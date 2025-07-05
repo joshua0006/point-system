@@ -10,6 +10,8 @@ import { Search, Filter, Star, Users, Clock } from 'lucide-react';
 import { useServices, useCategories } from '@/hooks/useServices';
 import { useBookService } from '@/hooks/useBookings';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import heroImage from "@/assets/hero-consulting.jpg";
 
 const Marketplace = () => {
@@ -18,6 +20,8 @@ const Marketplace = () => {
   const [selectedTier, setSelectedTier] = useState<string>('All');
   
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: services = [], isLoading: servicesLoading } = useServices();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const bookServiceMutation = useBookService();
@@ -42,6 +46,16 @@ const Marketplace = () => {
   });
 
   const handlePurchase = (serviceId: string) => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please login to book services.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    
     const service = services.find(s => s.id === serviceId);
     if (service && service.consultant) {
       bookServiceMutation.mutate({
@@ -53,6 +67,16 @@ const Marketplace = () => {
   };
 
   const handleBookingClick = (bookingUrl: string) => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please login to contact consultants.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    
     if (bookingUrl) {
       window.open(bookingUrl, '_blank');
     } else {

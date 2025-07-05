@@ -18,7 +18,7 @@ export function Navigation() {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: "/", label: "Marketplace", icon: Search, roles: ["user", "consultant", "admin"] },
+    { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "consultant", "admin"] },
     { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "consultant", "admin"] },
     { path: "/services", label: "My Services", icon: List, roles: ["consultant", "admin"] },
     { path: "/bookings", label: "Bookings", icon: Calendar, roles: ["consultant", "admin"] },
@@ -59,20 +59,33 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-card border rounded-lg px-3 py-2">
-              <Wallet className="w-4 h-4 text-accent" />
-              <span className="font-semibold text-foreground">{profile?.points_balance?.toLocaleString() || 0}</span>
-              <span className="text-muted-foreground text-sm">points</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground hidden md:block">
-                {profile?.full_name || profile?.email}
-              </span>
-              <Button variant="outline" size="sm" onClick={signOut}>
-                Logout
-              </Button>
-            </div>
+            {profile ? (
+              <>
+                <div className="flex items-center space-x-2 bg-card border rounded-lg px-3 py-2">
+                  <Wallet className="w-4 h-4 text-accent" />
+                  <span className="font-semibold text-foreground">{profile?.points_balance?.toLocaleString() || 0}</span>
+                  <span className="text-muted-foreground text-sm">points</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground hidden md:block">
+                    {profile?.full_name || profile?.email}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={signOut}>
+                    Logout
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/auth">Login</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/auth">Sign Up</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
