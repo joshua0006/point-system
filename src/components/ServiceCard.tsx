@@ -21,17 +21,33 @@ export interface Service {
 }
 
 interface ServiceCardProps {
-  service: Service;
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  points: number;
+  duration?: string;
+  consultant: {
+    name: string;
+    tier: TierType;
+  };
+  bookingUrl: string;
+  tags: string[];
   onPurchase?: (serviceId: string) => void;
+  onBookingClick?: (bookingUrl: string) => void;
+  isLoading?: boolean;
 }
 
-export function ServiceCard({ service, onPurchase }: ServiceCardProps) {
+export function ServiceCard({ 
+  id, title, description, category, points, duration, consultant, bookingUrl, tags, 
+  onPurchase, onBookingClick, isLoading 
+}: ServiceCardProps) {
   const handlePurchase = () => {
-    onPurchase?.(service.id);
+    onPurchase?.(id);
   };
 
   const handleBooking = () => {
-    window.open(service.bookingUrl, '_blank');
+    onBookingClick?.(bookingUrl);
   };
 
   return (
@@ -40,15 +56,15 @@ export function ServiceCard({ service, onPurchase }: ServiceCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="font-semibold text-lg text-foreground mb-2 group-hover:text-primary transition-colors">
-              {service.title}
+              {title}
             </h3>
             <Badge variant="secondary" className="mb-2">
-              {service.category}
+              {category}
             </Badge>
           </div>
           <div className="flex items-center space-x-2 text-accent font-bold">
             <Wallet className="w-4 h-4" />
-            <span>{service.points.toLocaleString()}</span>
+            <span>{points.toLocaleString()}</span>
           </div>
         </div>
         
@@ -57,10 +73,10 @@ export function ServiceCard({ service, onPurchase }: ServiceCardProps) {
             <User className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1">
-            <p className="font-medium text-sm text-foreground">{service.consultant.name}</p>
+            <p className="font-medium text-sm text-foreground">{consultant.name}</p>
             <div className="flex items-center space-x-2 mt-1">
-              <TierBadge tier={service.consultant.tier} size="sm" />
-              <span className="text-xs text-muted-foreground">• {service.duration}</span>
+              <TierBadge tier={consultant.tier} size="sm" />
+              {duration && <span className="text-xs text-muted-foreground">• {duration}</span>}
             </div>
           </div>
         </div>
@@ -68,12 +84,12 @@ export function ServiceCard({ service, onPurchase }: ServiceCardProps) {
 
       <CardContent className="py-3">
         <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-          {service.description}
+          {description}
         </p>
         
-        {service.tags.length > 0 && (
+        {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {service.tags.map((tag) => (
+            {tags.map((tag) => (
               <Badge key={tag} variant="outline" className="text-xs">
                 {tag}
               </Badge>
@@ -87,9 +103,10 @@ export function ServiceCard({ service, onPurchase }: ServiceCardProps) {
           onClick={handlePurchase} 
           className="flex-1"
           size="sm"
+          disabled={isLoading}
         >
           <Wallet className="w-4 h-4 mr-2" />
-          Purchase
+          {isLoading ? "Processing..." : "Purchase"}
         </Button>
         <Button 
           onClick={handleBooking}

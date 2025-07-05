@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   User, 
   Users, 
@@ -12,7 +12,8 @@ import {
 
 export function Navigation() {
   const location = useLocation();
-  const [userRole] = useState<"user" | "consultant" | "admin">("user"); // Mock user role
+  const { profile, signOut } = useAuth();
+  const userRole = profile?.role || "user";
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -60,14 +61,18 @@ export function Navigation() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 bg-card border rounded-lg px-3 py-2">
               <Wallet className="w-4 h-4 text-accent" />
-              <span className="font-semibold text-foreground">2,450</span>
+              <span className="font-semibold text-foreground">{profile?.points_balance?.toLocaleString() || 0}</span>
               <span className="text-muted-foreground text-sm">points</span>
             </div>
             
-            <Button variant="outline" size="sm">
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground hidden md:block">
+                {profile?.full_name || profile?.email}
+              </span>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>

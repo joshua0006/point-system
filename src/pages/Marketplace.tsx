@@ -1,118 +1,76 @@
-import { useState } from "react";
-import { Navigation } from "@/components/Navigation";
-import { ServiceCard, Service } from "@/components/ServiceCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Users, Star, Clock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Navigation } from '@/components/Navigation';
+import { ServiceCard } from '@/components/ServiceCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Search, Filter, Star, Users, Clock } from 'lucide-react';
+import { useServices, useCategories } from '@/hooks/useServices';
+import { useBookService } from '@/hooks/useBookings';
+import { useToast } from '@/hooks/use-toast';
 import heroImage from "@/assets/hero-consulting.jpg";
 
-// Mock data
-const mockServices: Service[] = [
-  {
-    id: "1",
-    title: "Strategic Business Consultation",
-    description: "1-hour strategic planning session to align your business goals with actionable roadmaps and KPIs.",
-    category: "Strategy",
-    points: 500,
-    duration: "1 hour",
-    consultant: {
-      name: "Sarah Chen",
-      tier: "platinum",
-    },
-    bookingUrl: "https://calendly.com/sarah-chen/strategy",
-    tags: ["Planning", "KPIs", "Growth"],
-  },
-  {
-    id: "2", 
-    title: "Technical Architecture Review",
-    description: "Comprehensive review of your system architecture with optimization recommendations.",
-    category: "Technology",
-    points: 350,
-    duration: "45 mins",
-    consultant: {
-      name: "Marcus Rodriguez",
-      tier: "gold",
-    },
-    bookingUrl: "https://calendly.com/marcus-rodriguez/tech-review",
-    tags: ["Architecture", "Optimization", "Scalability"],
-  },
-  {
-    id: "3",
-    title: "Marketing Campaign Analysis",
-    description: "Deep dive analysis of your current marketing efforts with actionable improvement strategies.",
-    category: "Marketing",
-    points: 275,
-    duration: "30 mins",
-    consultant: {
-      name: "Emily Johnson",
-      tier: "silver",
-    },
-    bookingUrl: "https://calendly.com/emily-johnson/marketing",
-    tags: ["Analysis", "Campaigns", "ROI"],
-  },
-  {
-    id: "4",
-    title: "Financial Planning & Budgeting",
-    description: "Personal financial planning session covering budgeting, investments, and long-term financial goals.",
-    category: "Finance",
-    points: 400,
-    duration: "1 hour",
-    consultant: {
-      name: "David Kim",
-      tier: "gold",
-    },
-    bookingUrl: "https://calendly.com/david-kim/finance",
-    tags: ["Budgeting", "Investments", "Planning"],
-  },
-  {
-    id: "5",
-    title: "Career Development Coaching",
-    description: "Professional coaching to help advance your career with personalized strategies and action plans.",
-    category: "Career",
-    points: 200,
-    duration: "45 mins",
-    consultant: {
-      name: "Lisa Thompson",
-      tier: "bronze",
-    },
-    bookingUrl: "https://calendly.com/lisa-thompson/career",
-    tags: ["Coaching", "Development", "Strategy"],
-  },
-];
-
-const categories = ["All", "Strategy", "Technology", "Marketing", "Finance", "Career"];
-const tiers = ["All", "Bronze", "Silver", "Gold", "Platinum"];
-
-export default function Marketplace() {
-  const [services, setServices] = useState(mockServices);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedTier, setSelectedTier] = useState("All");
+const Marketplace = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedTier, setSelectedTier] = useState<string>('All');
+  
   const { toast } = useToast();
+  const { data: services = [], isLoading: servicesLoading } = useServices();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const bookServiceMutation = useBookService();
 
-  const filteredServices = services.filter((service) => {
-    const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = selectedCategory === "All" || service.category === selectedCategory;
+  const filteredServices = services.filter(service => {
+    const consultantName = service.consultant?.profiles?.full_name || 
+                          service.consultant?.profiles?.email || 
+                          'Unknown Consultant';
+    
+    const matchesSearch = !searchTerm || 
+      service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      consultantName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "All" || 
+      service.categories?.name === selectedCategory;
+    
     const matchesTier = selectedTier === "All" || 
-                       service.consultant.tier.toLowerCase() === selectedTier.toLowerCase();
+      service.consultant?.tier === selectedTier.toLowerCase();
     
     return matchesSearch && matchesCategory && matchesTier;
   });
 
   const handlePurchase = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    if (service) {
-      toast({
-        title: "Service Purchased!",
-        description: `You've successfully purchased "${service.title}" for ${service.points} points.`,
+    if (service && service.consultant) {
+      bookServiceMutation.mutate({
+        serviceId: service.id,
+        consultantId: service.consultant.id,
+        price: service.price
       });
     }
   };
+
+  const handleBookingClick = (bookingUrl: string) => {
+    if (bookingUrl) {
+      window.open(bookingUrl, '_blank');
+    } else {
+      toast({
+        title: "Booking unavailable",
+        description: "This consultant hasn't set up their booking link yet.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (servicesLoading || categoriesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,8 +105,8 @@ export default function Marketplace() {
                   <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mx-auto mb-2">
                     <Users className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="text-2xl font-bold text-foreground">89</div>
-                  <div className="text-sm text-muted-foreground">Expert Consultants</div>
+                  <div className="text-2xl font-bold text-foreground">{services.length}</div>
+                  <div className="text-sm text-muted-foreground">Services Available</div>
                 </div>
                 <div>
                   <div className="flex items-center justify-center w-12 h-12 bg-accent/10 rounded-lg mx-auto mb-2">
@@ -203,88 +161,137 @@ export default function Marketplace() {
               />
             </div>
             
-            <div className="flex gap-3">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedTier} onValueChange={setSelectedTier}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Tier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tiers.map((tier) => (
-                    <SelectItem key={tier} value={tier}>
-                      {tier}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full lg:w-48">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedTier} onValueChange={setSelectedTier}>
+              <SelectTrigger className="w-full lg:w-48">
+                <SelectValue placeholder="Tier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Tiers</SelectItem>
+                <SelectItem value="bronze">Bronze</SelectItem>
+                <SelectItem value="silver">Silver</SelectItem>
+                <SelectItem value="gold">Gold</SelectItem>
+                <SelectItem value="platinum">Platinum</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button variant="outline" size="icon">
+              <Filter className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
 
-          {/* Active Filters */}
-          <div className="flex gap-2 mt-4">
+        {/* Active Filters */}
+        {(selectedCategory !== "All" || selectedTier !== "All" || searchTerm) && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {searchTerm && (
+              <Badge variant="secondary" className="px-3 py-1">
+                Search: "{searchTerm}"
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="ml-2 hover:text-destructive"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
             {selectedCategory !== "All" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="px-3 py-1">
                 Category: {selectedCategory}
                 <button 
                   onClick={() => setSelectedCategory("All")}
-                  className="ml-1 hover:bg-background/20 rounded-full p-0.5"
+                  className="ml-2 hover:text-destructive"
                 >
                   ×
                 </button>
               </Badge>
             )}
             {selectedTier !== "All" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="px-3 py-1">
                 Tier: {selectedTier}
                 <button 
                   onClick={() => setSelectedTier("All")}
-                  className="ml-1 hover:bg-background/20 rounded-full p-0.5"
+                  className="ml-2 hover:text-destructive"
                 >
                   ×
                 </button>
               </Badge>
             )}
           </div>
-        </div>
-
-        {/* Results */}
-        <div className="mb-4">
-          <p className="text-muted-foreground">
-            {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found
-          </p>
-        </div>
+        )}
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredServices.map((service) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
-              onPurchase={handlePurchase}
-            />
-          ))}
-        </div>
+        {filteredServices.length === 0 ? (
+          <Card className="p-8 text-center">
+            <CardContent>
+              <div className="text-muted-foreground mb-4">
+                <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold mb-2">No services found</h3>
+                <p>Try adjusting your search criteria or filters</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('All');
+                  setSelectedTier('All');
+                }}
+              >
+                Clear all filters
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredServices.map((service) => (
+              <ServiceCard
+                key={service.id}
+                id={service.id}
+                title={service.title}
+                description={service.description}
+                category={service.categories?.name || 'Uncategorized'}
+                points={service.price}
+                duration={service.duration_minutes ? `${service.duration_minutes} mins` : undefined}
+                consultant={{
+                  name: service.consultant?.profiles?.full_name || 
+                        service.consultant?.profiles?.email || 
+                        'Unknown Consultant',
+                  tier: service.consultant?.tier || 'bronze',
+                }}
+                bookingUrl={service.consultant?.calendar_link || ''}
+                tags={[]} // We could add tags to the database schema later
+                onPurchase={handlePurchase}
+                onBookingClick={handleBookingClick}
+                isLoading={bookServiceMutation.isPending}
+              />
+            ))}
+          </div>
+        )}
 
-        {filteredServices.length === 0 && (
-          <div className="text-center py-12">
-            <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No services found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+        {/* Load More Button */}
+        {filteredServices.length > 0 && (
+          <div className="text-center mt-12">
+            <p className="text-muted-foreground mb-4">
+              Showing {filteredServices.length} of {services.length} services
+            </p>
           </div>
         )}
       </div>
     </div>
   );
-}
+};
+
+export default Marketplace;

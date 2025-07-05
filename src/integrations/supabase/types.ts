@@ -9,7 +9,248 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          consultant_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          points_spent: number
+          scheduled_at: string | null
+          service_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consultant_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points_spent: number
+          scheduled_at?: string | null
+          service_id: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consultant_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points_spent?: number
+          scheduled_at?: string | null
+          service_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      consultants: {
+        Row: {
+          bio: string | null
+          calendar_link: string | null
+          created_at: string
+          expertise_areas: string[] | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean
+          tier: Database["public"]["Enums"]["consultant_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          calendar_link?: string | null
+          created_at?: string
+          expertise_areas?: string[] | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          tier?: Database["public"]["Enums"]["consultant_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          calendar_link?: string | null
+          created_at?: string
+          expertise_areas?: string[] | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          tier?: Database["public"]["Enums"]["consultant_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      points_transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          points_balance: number
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          points_balance?: number
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          points_balance?: number
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category_id: string | null
+          consultant_id: string
+          created_at: string
+          description: string
+          duration_minutes: number | null
+          id: string
+          is_active: boolean
+          price: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          consultant_id: string
+          created_at?: string
+          description: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          price: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          consultant_id?: string
+          created_at?: string
+          description?: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          price?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +259,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
+      consultant_tier: "bronze" | "silver" | "gold" | "platinum"
+      transaction_type:
+        | "purchase"
+        | "refund"
+        | "admin_credit"
+        | "initial_credit"
+      user_role: "user" | "consultant" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +381,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+      consultant_tier: ["bronze", "silver", "gold", "platinum"],
+      transaction_type: [
+        "purchase",
+        "refund",
+        "admin_credit",
+        "initial_credit",
+      ],
+      user_role: ["user", "consultant", "admin"],
+    },
   },
 } as const
