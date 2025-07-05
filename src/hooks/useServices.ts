@@ -31,14 +31,11 @@ export const useServices = (categoryFilter?: string, tierFilter?: string) => {
         .from('services')
         .select(`
           *,
-          consultant:consultants!inner (
+          consultants!inner (
             id,
+            user_id,
             tier,
-            calendar_link,
-            profiles!inner (
-              full_name,
-              email
-            )
+            calendar_link
           ),
           categories (
             id,
@@ -52,13 +49,33 @@ export const useServices = (categoryFilter?: string, tierFilter?: string) => {
       }
 
       if (tierFilter) {
-        query = query.eq('consultant.tier', tierFilter);
+        query = query.eq('consultants.tier', tierFilter as 'bronze' | 'silver' | 'gold' | 'platinum');
       }
 
-      const { data, error } = await query;
+      const { data: servicesData, error } = await query;
 
       if (error) throw error;
-      return data || [];
+
+      // Now fetch profile data separately for each consultant
+      const servicesWithProfiles = await Promise.all(
+        (servicesData || []).map(async (service) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('user_id', service.consultants.user_id)
+            .single();
+
+          return {
+            ...service,
+            consultant: {
+              ...service.consultants,
+              profiles: profileData
+            }
+          };
+        })
+      );
+
+      return servicesWithProfiles;
     },
   });
 };
