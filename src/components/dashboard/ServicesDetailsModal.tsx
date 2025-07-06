@@ -194,7 +194,7 @@ export function ServicesDetailsModal({
                     </Card>
                   ))}
                 </div>
-              )}
+              </div>
             )}
 
             {/* No Services Message */}
