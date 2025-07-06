@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,17 +59,20 @@ export function useCreateConversation() {
   return useMutation({
     mutationFn: async ({
       serviceId,
-      sellerId,
+      sellerUserId,
     }: {
       serviceId: string;
-      sellerId: string;
+      sellerUserId: string;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('conversations')
         .insert({
           service_id: serviceId,
-          seller_id: sellerId,
-          buyer_id: (await supabase.auth.getUser()).data.user?.id,
+          seller_id: sellerUserId,
+          buyer_id: user.id,
         })
         .select()
         .single();
@@ -90,11 +94,11 @@ export function useCreateConversation() {
   });
 }
 
-export function useExistingConversation(serviceId: string, sellerId: string) {
+export function useExistingConversation(serviceId: string, sellerUserId: string) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['conversation', serviceId, sellerId, user?.id],
+    queryKey: ['conversation', serviceId, sellerUserId, user?.id],
     queryFn: async () => {
       if (!user) return null;
 
@@ -102,13 +106,13 @@ export function useExistingConversation(serviceId: string, sellerId: string) {
         .from('conversations')
         .select('*')
         .eq('service_id', serviceId)
-        .eq('seller_id', sellerId)
+        .eq('seller_id', sellerUserId)
         .eq('buyer_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !!serviceId && !!sellerId,
+    enabled: !!user && !!serviceId && !!sellerUserId,
   });
 }

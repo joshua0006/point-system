@@ -31,7 +31,7 @@ const ServiceDetail = () => {
   
   const { data: existingConversation } = useExistingConversation(
     serviceId || '', 
-    service?.consultant?.id || ''
+    service?.consultant?.user_id || ''
   );
 
   const handlePurchase = () => {
@@ -65,7 +65,7 @@ const ServiceDetail = () => {
       return;
     }
 
-    if (!service?.consultant) {
+    if (!service?.consultant?.user_id) {
       toast({
         title: "Error",
         description: "Consultant information not available.",
@@ -83,7 +83,7 @@ const ServiceDetail = () => {
       try {
         const newConversation = await createConversationMutation.mutateAsync({
           serviceId: service.id,
-          sellerId: service.consultant.id,
+          sellerUserId: service.consultant.user_id,
         });
         setSelectedConversation(newConversation);
         setChatOpen(true);
