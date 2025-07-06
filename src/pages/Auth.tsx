@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,12 +28,75 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
+  const handleQuickDemo = async (accountType: 'buyer' | 'consultant') => {
+    setIsLoading(true);
+    
+    try {
+      const demoEmail = `demo-${accountType}@demo.com`;
+      const demoPassword = 'demo123456';
+      
+      // First try to sign in with existing account
+      let { data, error } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      });
+
+      // If account doesn't exist or has issues, create it using admin functions
+      if (error) {
+        // Use the setup-demo-data function to create and configure the account
+        const { data: setupData, error: setupError } = await supabase.functions.invoke('setup-demo-data', {
+          body: {
+            email: demoEmail,
+            password: demoPassword,
+            fullName: accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer',
+            isConsultant: accountType === 'consultant',
+            autoConfirm: true // This tells the function to auto-confirm the email
+          }
+        });
+
+        if (setupError) {
+          throw setupError;
+        }
+
+        // Now try to sign in again
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: demoEmail,
+          password: demoPassword,
+        });
+
+        if (signInError) {
+          throw signInError;
+        }
+
+        data = signInData;
+      }
+
+      toast({
+        title: "Demo Login Successful!",
+        description: `Welcome as a demo ${accountType}.`,
+      });
+      
+      if (data.user) {
+        navigate('/');
+      }
+    } catch (err: any) {
+      console.error('Demo login error:', err);
+      toast({
+        title: "Demo Login Error",
+        description: err.message || "Failed to create/login to demo account",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Demo mode - create actual demo accounts
+      // Demo mode - create actual demo accounts with auto-confirmation
       const demoEmail = `demo-${Date.now()}@demo.com`;
       const demoPassword = 'demo123456';
       
@@ -181,44 +245,7 @@ const Auth = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={async () => {
-                    setEmail('demo-buyer@demo.com');
-                    setPassword('demo123456');
-                    // Trigger sign in directly
-                    setIsLoading(true);
-                    try {
-                      const demoEmail = 'demo-buyer@demo.com';
-                      const demoPassword = 'demo123456';
-
-                      let { data, error } = await supabase.auth.signInWithPassword({
-                        email: demoEmail,
-                        password: demoPassword,
-                      });
-
-                      if (error && error.message.includes('Invalid login credentials')) {
-                        const signUpResult = await supabase.auth.signUp({
-                          email: demoEmail,
-                          password: demoPassword,
-                          options: {
-                            data: { full_name: 'Demo Buyer' },
-                            emailRedirectTo: `${window.location.origin}/`,
-                          },
-                        });
-                        
-                        if (signUpResult.error) throw signUpResult.error;
-                        data = signUpResult.data;
-                      } else if (error) {
-                        throw error;
-                      }
-
-                      toast({ title: "Demo Login Successful!", description: "Welcome as a demo buyer." });
-                      if (data.user) navigate('/');
-                    } catch (err: any) {
-                      toast({ title: "Error", description: err.message, variant: "destructive" });
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
+                  onClick={() => handleQuickDemo('buyer')}
                   disabled={isLoading}
                 >
                   🛍️ Demo Buyer Account
@@ -226,59 +253,7 @@ const Auth = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={async () => {
-                    setEmail('demo-consultant@demo.com');
-                    setPassword('demo123456');
-                    // Trigger sign in directly
-                    setIsLoading(true);
-                    try {
-                      const demoEmail = 'demo-consultant@demo.com';
-                      const demoPassword = 'demo123456';
-
-                      let { data, error } = await supabase.auth.signInWithPassword({
-                        email: demoEmail,
-                        password: demoPassword,
-                      });
-
-                      if (error && error.message.includes('Invalid login credentials')) {
-                        const signUpResult = await supabase.auth.signUp({
-                          email: demoEmail,
-                          password: demoPassword,
-                          options: {
-                            data: { full_name: 'Demo Consultant' },
-                            emailRedirectTo: `${window.location.origin}/`,
-                          },
-                        });
-                        
-                        if (signUpResult.error) throw signUpResult.error;
-                        data = signUpResult.data;
-
-                        // Set up demo consultant data
-                        if (data.user) {
-                          try {
-                            await supabase.functions.invoke('setup-demo-data', {
-                              body: {
-                                userId: data.user.id,
-                                userEmail: demoEmail,
-                                isConsultant: true
-                              }
-                            });
-                          } catch (setupError) {
-                            console.warn('Demo data setup failed:', setupError);
-                          }
-                        }
-                      } else if (error) {
-                        throw error;
-                      }
-
-                      toast({ title: "Demo Login Successful!", description: "Welcome as a demo consultant." });
-                      if (data.user) navigate('/');
-                    } catch (err: any) {
-                      toast({ title: "Error", description: err.message, variant: "destructive" });
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
+                  onClick={() => handleQuickDemo('consultant')}
                   disabled={isLoading}
                 >
                   💼 Demo Consultant Account
