@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,10 +20,10 @@ const Auth = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in and not loading, redirect immediately
+    // If user is already logged in and not loading, redirect to marketplace
     if (!loading && user) {
-      console.log('User already logged in, redirecting to home...');
-      navigate('/', { replace: true });
+      console.log('User already logged in, redirecting to marketplace...');
+      navigate('/marketplace', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -54,7 +55,7 @@ const Auth = () => {
             data: {
               full_name: accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer',
             },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/marketplace`,
           },
         });
 
@@ -75,12 +76,15 @@ const Auth = () => {
         }
       }
 
-      console.log('Demo login successful, user should be redirected by useEffect');
+      console.log('Demo login successful, redirecting to marketplace...');
       
       toast({
         title: "Demo Login Successful!",
         description: `Welcome as a demo ${accountType}.`,
       });
+
+      // Redirect to marketplace
+      navigate('/marketplace', { replace: true });
       
     } catch (err: any) {
       console.error('Demo login error:', err);
@@ -106,7 +110,7 @@ const Auth = () => {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/marketplace`,
         },
       });
 
@@ -116,6 +120,15 @@ const Auth = () => {
         title: "Account Created!",
         description: "Please check your email to confirm your account.",
       });
+
+      // If the user is immediately signed in (email confirmation disabled), redirect
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Welcome!",
+          description: "Your account has been created successfully.",
+        });
+        navigate('/marketplace', { replace: true });
+      }
       
     } catch (error: any) {
       toast({
@@ -145,14 +158,14 @@ const Auth = () => {
         throw error;
       }
 
-      console.log('Sign in successful');
+      console.log('Sign in successful, redirecting to marketplace...');
       
       toast({
         title: "Login Successful!",
         description: "Welcome back!",
       });
       
-      navigate('/');
+      navigate('/marketplace', { replace: true });
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({

@@ -1,11 +1,42 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Users, Clock, ArrowRight, Wallet } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigation } from '@/components/Navigation';
 import heroImage from "@/assets/hero-consulting.jpg";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user is authenticated and page has loaded, redirect to marketplace
+    if (!loading && user) {
+      console.log('Authenticated user detected on index page, redirecting to marketplace...');
+      navigate('/marketplace', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while auth is being checked
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, don't render the marketing page (redirect will happen via useEffect)
+  if (user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
