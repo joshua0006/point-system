@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { TierBadge } from "@/components/TierBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceForm } from "@/components/forms/ServiceForm";
+import { EarningsModal } from "@/components/dashboard/EarningsModal";
+import { RecentOrdersModal } from "@/components/dashboard/RecentOrdersModal";
+import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
@@ -14,15 +18,16 @@ import {
   Users, 
   Calendar,
   TrendingUp,
-  Edit,
-  Trash2,
-  ExternalLink
+  BarChart3
 } from "lucide-react";
 
 export default function ConsultantDashboard() {
   const { toast } = useToast();
   const [showAddService, setShowAddService] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
+  const [earningsModalOpen, setEarningsModalOpen] = useState(false);
+  const [ordersModalOpen, setOrdersModalOpen] = useState(false);
+  const [servicesModalOpen, setServicesModalOpen] = useState(false);
   
   const { data: services, isLoading: servicesLoading } = useConsultantServices();
   const createService = useCreateService();
@@ -42,10 +47,8 @@ export default function ConsultantDashboard() {
   // Calculate stats from real services
   const totalServices = services?.length || 0;
   const activeServices = services?.filter(s => s.is_active).length || 0;
-  const totalRevenue = services?.reduce((sum, s) => sum + (s.price * 5), 0) || 0; // Mock booking count of 5
+  const totalRevenue = services?.reduce((sum, s) => sum + (s.price * 5), 0) || 0; // Mock booking count
   
-  const myServices = services || [];
-
   const upcomingBookings = [
     {
       id: "1",
@@ -116,12 +119,15 @@ export default function ConsultantDashboard() {
           </Button>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Now Clickable */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground">
+          <Card 
+            className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setEarningsModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Total Earnings
+                Lifetime Earnings
                 <DollarSign className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
@@ -131,10 +137,13 @@ export default function ConsultantDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setOrdersModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Total Sessions
+                Recent Orders
                 <Users className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
@@ -172,69 +181,54 @@ export default function ConsultantDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* My Services */}
-          <Card>
+          {/* My Services - Now Clickable Card */}
+          <Card 
+            className="cursor-pointer hover:scale-[1.02] transition-transform"
+            onClick={() => setServicesModalOpen(true)}
+          >
             <CardHeader>
-              <CardTitle>My Services</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <BarChart3 className="w-5 h-5" />
+                <span>My Services</span>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {servicesLoading ? (
                 <div className="text-center py-8">Loading services...</div>
-              ) : myServices.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No services created yet. Click "Add Service" to get started.
-                </div>
-              ) : (
+              ) : services && services.length > 0 ? (
                 <div className="space-y-4">
-                  {myServices.map((service) => (
+                  {services.slice(0, 3).map((service) => (
                     <div key={service.id} className="p-4 rounded-lg border bg-card">
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h4 className="font-semibold text-foreground">{service.title}</h4>
                           <div className="flex items-center space-x-2 mt-1">
                             <Badge variant="secondary">{service.categories?.name || 'Uncategorized'}</Badge>
-                            <span className="text-sm text-muted-foreground">•</span>
-                            <span className="text-sm text-muted-foreground">
-                              {service.duration_minutes ? `${service.duration_minutes} mins` : 'Flexible'}
-                            </span>
+                            <Badge variant={service.is_active ? 'default' : 'secondary'}>
+                              {service.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => setEditingService(service)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDeleteService(service.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
                         </div>
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 text-sm">
-                          <span className="font-semibold text-accent">{service.price} points</span>
-                          <Badge variant={service.is_active ? 'default' : 'secondary'}>
-                            {service.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
+                        <div className="flex items-center space-x-1 font-semibold text-accent">
+                          <span>{service.price} points</span>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => window.open('#', '_blank')}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
                       </div>
                     </div>
                   ))}
+                  {services.length > 3 && (
+                    <div className="text-center pt-2">
+                      <p className="text-sm text-muted-foreground">
+                        +{services.length - 3} more services
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No services created yet. Click "Add Service" to get started.
                 </div>
               )}
             </CardContent>
@@ -272,6 +266,28 @@ export default function ConsultantDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Modals */}
+        <EarningsModal
+          open={earningsModalOpen}
+          onOpenChange={setEarningsModalOpen}
+          totalEarnings={totalRevenue}
+        />
+
+        <RecentOrdersModal
+          open={ordersModalOpen}
+          onOpenChange={setOrdersModalOpen}
+          orders={[]}
+        />
+
+        <ServicesDetailsModal
+          open={servicesModalOpen}
+          onOpenChange={setServicesModalOpen}
+          services={services || []}
+          onEditService={setEditingService}
+          onDeleteService={handleDeleteService}
+          isLoading={servicesLoading}
+        />
 
         {/* Create Service Dialog */}
         <Dialog open={showAddService} onOpenChange={setShowAddService}>
