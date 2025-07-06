@@ -5,11 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { TrendingUp, DollarSign } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface EarningsModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean, newFilter?: TimeScale) => void;
   totalEarnings: number;
 }
 
@@ -68,8 +68,17 @@ export function EarningsModal({ open, onOpenChange, totalEarnings }: EarningsMod
     ? ((currentPeriodEarnings - previousPeriodEarnings) / previousPeriodEarnings * 100)
     : 0;
 
+  // Handle modal close and pass the current filter
+  const handleModalClose = (open: boolean) => {
+    if (!open) {
+      onOpenChange(false, timeScale);
+    } else {
+      onOpenChange(true);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">

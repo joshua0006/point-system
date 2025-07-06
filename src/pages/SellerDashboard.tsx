@@ -22,8 +22,11 @@ import {
   Trash2,
   ExternalLink,
   BarChart3,
-  MessageCircle
+  MessageCircle,
+  Star
 } from "lucide-react";
+
+type TimeScale = "lifetime" | "yearly" | "monthly";
 
 export default function SellerDashboard() {
   const { toast } = useToast();
@@ -35,6 +38,9 @@ export default function SellerDashboard() {
   const [ordersModalOpen, setOrdersModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
   
+  // Persistent earnings filter state
+  const [currentEarningsFilter, setCurrentEarningsFilter] = useState<TimeScale>("lifetime");
+  
   const { data: services, isLoading: servicesLoading } = useConsultantServices();
   const createService = useCreateService();
   const updateService = useUpdateService();
@@ -45,6 +51,13 @@ export default function SellerDashboard() {
   const activeServices = services?.filter(s => s.is_active).length || 0;
   const monthlyEarnings = services?.reduce((sum, s) => sum + (s.price * 3), 0) || 0; // Mock earnings
   const totalRevenue = services?.reduce((sum, s) => sum + (s.price * 8), 0) || 0; // Mock total revenue
+  
+  // Mock earnings data for different time scales
+  const mockEarningsData = {
+    lifetime: totalRevenue,
+    yearly: Math.round(totalRevenue * 0.7),
+    monthly: Math.round(totalRevenue * 0.1),
+  };
   
   const myServices = services || [];
 
@@ -75,6 +88,47 @@ export default function SellerDashboard() {
     },
   ];
 
+  // Mock buyer reviews data
+  const buyerReviews = [
+    {
+      id: "1",
+      buyer: "John D.",
+      service: "Strategic Business Consultation",
+      rating: 5,
+      comment: "Excellent consultation! Very insightful and actionable advice.",
+      date: "2024-01-18"
+    },
+    {
+      id: "2",
+      buyer: "Maria S.",
+      service: "Growth Strategy Workshop",
+      rating: 4,
+      comment: "Great session, learned a lot about scaling strategies.",
+      date: "2024-01-19"
+    },
+    {
+      id: "3",
+      buyer: "Alex K.",
+      service: "Strategic Business Consultation",
+      rating: 5,
+      comment: "Phenomenal insights! Will definitely book again.",
+      date: "2024-01-20"
+    },
+  ];
+
+  const getEarningsDisplayTitle = (filter: TimeScale) => {
+    switch (filter) {
+      case "lifetime":
+        return "Lifetime Earnings";
+      case "yearly":
+        return "Yearly Earnings";
+      case "monthly":
+        return "Monthly Earnings";
+      default:
+        return "Lifetime Earnings";
+    }
+  };
+
   const handleCreateService = (serviceData: any) => {
     createService.mutate(serviceData, {
       onSuccess: () => {
@@ -100,6 +154,11 @@ export default function SellerDashboard() {
     if (confirm('Are you sure you want to delete this service?')) {
       deleteService.mutate(serviceId);
     }
+  };
+
+  const handleEarningsModalClose = (newFilter: TimeScale) => {
+    setCurrentEarningsFilter(newFilter);
+    setEarningsModalOpen(false);
   };
 
   return (
@@ -134,12 +193,12 @@ export default function SellerDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Lifetime Earnings
+                {getEarningsDisplayTitle(currentEarningsFilter)}
                 <DollarSign className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{mockEarningsData[currentEarningsFilter].toLocaleString()}</div>
               <p className="text-xs opacity-90">total points earned</p>
             </CardContent>
           </Card>
@@ -163,26 +222,37 @@ export default function SellerDashboard() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Success Rate
+                Performance
                 <TrendingUp className="w-4 h-4 text-success" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">4.8</div>
-              <p className="text-xs text-muted-foreground">average rating</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Rating:</span>
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                    <span className="text-sm font-semibold">4.8</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Conversion:</span>
+                  <span className="text-sm font-semibold">85%</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Conversion Rate
-                <BarChart3 className="w-4 h-4 text-accent" />
+                Buyer Reviews
+                <MessageCircle className="w-4 h-4 text-accent" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">85%</div>
-              <p className="text-xs text-muted-foreground">inquiries to orders</p>
+              <div className="text-2xl font-bold text-foreground">{buyerReviews.length}</div>
+              <p className="text-xs text-muted-foreground">recent reviews</p>
             </CardContent>
           </Card>
         </div>
@@ -288,38 +358,36 @@ export default function SellerDashboard() {
             </Card>
           </div>
 
-          {/* Recent Orders - Takes 1 column */}
+          {/* Buyer Reviews - Takes 1 column */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <MessageCircle className="w-5 h-5" />
-                <span>Recent Orders</span>
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span>Recent Reviews</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="p-3 rounded-lg border bg-card">
+                {buyerReviews.map((review) => (
+                  <div key={review.id} className="p-3 rounded-lg border bg-card">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h5 className="font-medium text-sm text-foreground">{order.service}</h5>
-                        <p className="text-xs text-muted-foreground">from {order.buyer}</p>
+                        <h5 className="font-medium text-sm text-foreground">{review.service}</h5>
+                        <p className="text-xs text-muted-foreground">by {review.buyer}</p>
                       </div>
-                      <Badge 
-                        variant={
-                          order.status === 'completed' ? 'default' : 
-                          order.status === 'in_progress' ? 'secondary' : 'outline'
-                        }
-                        className="text-xs"
-                      >
-                        {order.status.replace('_', ' ')}
-                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            className={`w-3 h-3 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
+                          />
+                        ))}
+                      </div>
                     </div>
                     
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">{order.date}</span>
-                      <span className="font-semibold text-success">{order.points} pts</span>
-                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{review.comment}</p>
+                    
+                    <div className="text-xs text-muted-foreground">{review.date}</div>
                   </div>
                 ))}
               </div>
@@ -361,8 +429,14 @@ export default function SellerDashboard() {
         {/* Earnings Modal */}
         <EarningsModal
           open={earningsModalOpen}
-          onOpenChange={setEarningsModalOpen}
-          totalEarnings={totalRevenue}
+          onOpenChange={(open, newFilter) => {
+            if (!open && newFilter) {
+              handleEarningsModalClose(newFilter);
+            } else {
+              setEarningsModalOpen(open);
+            }
+          }}
+          totalEarnings={mockEarningsData[currentEarningsFilter]}
         />
 
         {/* Recent Orders Modal */}
