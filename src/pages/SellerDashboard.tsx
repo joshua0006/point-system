@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { RecentOrdersModal } from "@/components/dashboard/RecentOrdersModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
 import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
+import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
@@ -24,7 +26,8 @@ import {
   ExternalLink,
   BarChart3,
   MessageCircle,
-  Star
+  Star,
+  Clock
 } from "lucide-react";
 
 type TimeScale = "lifetime" | "yearly" | "monthly";
@@ -40,6 +43,7 @@ export default function SellerDashboard() {
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
+  const [upcomingSessionsModalOpen, setUpcomingSessionsModalOpen] = useState(false);
   
   // Persistent earnings filter state
   const [currentEarningsFilter, setCurrentEarningsFilter] = useState<TimeScale>("lifetime");
@@ -116,6 +120,40 @@ export default function SellerDashboard() {
       rating: 5,
       comment: "Phenomenal insights! Will definitely book again.",
       date: "2024-01-20"
+    },
+  ];
+
+  // Mock upcoming sessions data
+  const upcomingSessions = [
+    {
+      id: "1",
+      service: "Strategic Business Consultation",
+      consultant: "You",
+      date: "2024-01-25",
+      time: "2:00 PM",
+      duration: "60 mins",
+      bookingUrl: "#",
+      status: "confirmed" as const
+    },
+    {
+      id: "2",
+      service: "Growth Strategy Workshop",
+      consultant: "You",
+      date: "2024-01-26",
+      time: "10:00 AM",
+      duration: "90 mins",
+      bookingUrl: "#",
+      status: "confirmed" as const
+    },
+    {
+      id: "3",
+      service: "Strategic Business Consultation",
+      consultant: "You",
+      date: "2024-01-28",
+      time: "3:30 PM",
+      duration: "60 mins",
+      bookingUrl: "#",
+      status: "pending" as const
     },
   ];
 
@@ -260,8 +298,8 @@ export default function SellerDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{buyerReviews.length}</div>
-              <p className="text-xs text-muted-foreground">recent reviews</p>
+              <div className="text-2xl font-bold text-foreground">{buyerReviews.length + 3}</div>
+              <p className="text-xs text-muted-foreground">total reviews</p>
             </CardContent>
           </Card>
         </div>
@@ -367,38 +405,57 @@ export default function SellerDashboard() {
             </Card>
           </div>
 
-          {/* Buyer Reviews - Takes 1 column */}
-          <Card>
+          {/* Upcoming Sessions - Takes 1 column */}
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setUpcomingSessionsModalOpen(true)}
+          >
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Star className="w-5 h-5 text-yellow-500" />
-                <span>Recent Reviews</span>
+                <Clock className="w-5 h-5 text-primary" />
+                <span>Upcoming Sessions</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {buyerReviews.map((review) => (
-                  <div key={review.id} className="p-3 rounded-lg border bg-card">
+                {upcomingSessions.slice(0, 2).map((session) => (
+                  <div key={session.id} className="p-3 rounded-lg border bg-card">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h5 className="font-medium text-sm text-foreground">{review.service}</h5>
-                        <p className="text-xs text-muted-foreground">by {review.buyer}</p>
+                        <h5 className="font-medium text-sm text-foreground">{session.service}</h5>
+                        <p className="text-xs text-muted-foreground">with {session.consultant}</p>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`w-3 h-3 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
-                          />
-                        ))}
+                      <div className="flex gap-1">
+                        <Badge variant="outline" className="text-xs">{session.duration}</Badge>
+                        {session.status && (
+                          <Badge variant={session.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs">
+                            {session.status}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     
-                    <p className="text-xs text-muted-foreground mb-2">{review.comment}</p>
-                    
-                    <div className="text-xs text-muted-foreground">{review.date}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-3 h-3" />
+                          <span>{session.date}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{session.time}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
+                
+                {upcomingSessions.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>No upcoming sessions</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -476,6 +533,13 @@ export default function SellerDashboard() {
           open={reviewsModalOpen}
           onOpenChange={setReviewsModalOpen}
           reviews={buyerReviews}
+        />
+
+        {/* Upcoming Sessions Modal */}
+        <UpcomingSessionsModal
+          open={upcomingSessionsModalOpen}
+          onOpenChange={setUpcomingSessionsModalOpen}
+          sessions={upcomingSessions}
         />
       </div>
     </div>
