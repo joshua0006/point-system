@@ -45,6 +45,19 @@ const mockEarningsData = {
   ],
 };
 
+const getModalTitle = (timeScale: TimeScale) => {
+  switch (timeScale) {
+    case "lifetime":
+      return "Lifetime Earnings";
+    case "yearly":
+      return "Yearly Earnings";
+    case "monthly":
+      return "Monthly Earnings";
+    default:
+      return "Earnings Overview";
+  }
+};
+
 export function EarningsModal({ open, onOpenChange, totalEarnings }: EarningsModalProps) {
   const [timeScale, setTimeScale] = useState<TimeScale>("lifetime");
   
@@ -61,7 +74,7 @@ export function EarningsModal({ open, onOpenChange, totalEarnings }: EarningsMod
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <DollarSign className="w-5 h-5" />
-            <span>Earnings Overview</span>
+            <span>{getModalTitle(timeScale)}</span>
           </DialogTitle>
         </DialogHeader>
 

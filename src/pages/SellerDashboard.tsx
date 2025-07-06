@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { TierBadge } from "@/components/TierBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceForm } from "@/components/forms/ServiceForm";
+import { EarningsModal } from "@/components/dashboard/EarningsModal";
+import { RecentOrdersModal } from "@/components/dashboard/RecentOrdersModal";
+import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
@@ -25,6 +29,11 @@ export default function SellerDashboard() {
   const { toast } = useToast();
   const [showAddService, setShowAddService] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
+  
+  // Modal states
+  const [earningsModalOpen, setEarningsModalOpen] = useState(false);
+  const [ordersModalOpen, setOrdersModalOpen] = useState(false);
+  const [servicesModalOpen, setServicesModalOpen] = useState(false);
   
   const { data: services, isLoading: servicesLoading } = useConsultantServices();
   const createService = useCreateService();
@@ -119,29 +128,35 @@ export default function SellerDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-success to-success/80 text-success-foreground">
+          <Card 
+            className="bg-gradient-to-br from-success to-success/80 text-success-foreground cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setEarningsModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Monthly Earnings
+                Lifetime Earnings
                 <DollarSign className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{monthlyEarnings.toLocaleString()}</div>
-              <p className="text-xs opacity-90">points this month</p>
+              <div className="text-2xl font-bold">{totalRevenue.toLocaleString()}</div>
+              <p className="text-xs opacity-90">total points earned</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setOrdersModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Active Orders
+                Recent Orders
                 <Users className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{activeServices}</div>
-              <p className="text-xs text-muted-foreground">active services</p>
+              <div className="text-2xl font-bold text-foreground">{recentOrders.length}</div>
+              <p className="text-xs text-muted-foreground">recent orders</p>
             </CardContent>
           </Card>
 
@@ -177,7 +192,10 @@ export default function SellerDashboard() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle 
+                  className="flex items-center justify-between cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => setServicesModalOpen(true)}
+                >
                   <span>My Services</span>
                   <Badge variant="secondary">{myServices.length} active</Badge>
                 </CardTitle>
@@ -191,7 +209,7 @@ export default function SellerDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {myServices.map((service) => (
+                    {myServices.slice(0, 3).map((service) => (
                       <div key={service.id} className="p-4 rounded-lg border bg-card">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
@@ -254,6 +272,16 @@ export default function SellerDashboard() {
                         </div>
                       </div>
                     ))}
+                    {myServices.length > 3 && (
+                      <div className="text-center pt-4">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setServicesModalOpen(true)}
+                        >
+                          View All Services ({myServices.length})
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -329,6 +357,30 @@ export default function SellerDashboard() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Earnings Modal */}
+        <EarningsModal
+          open={earningsModalOpen}
+          onOpenChange={setEarningsModalOpen}
+          totalEarnings={totalRevenue}
+        />
+
+        {/* Recent Orders Modal */}
+        <RecentOrdersModal
+          open={ordersModalOpen}
+          onOpenChange={setOrdersModalOpen}
+          orders={recentOrders}
+        />
+
+        {/* Services Details Modal */}
+        <ServicesDetailsModal
+          open={servicesModalOpen}
+          onOpenChange={setServicesModalOpen}
+          services={myServices}
+          onEditService={setEditingService}
+          onDeleteService={handleDeleteService}
+          isLoading={servicesLoading}
+        />
       </div>
     </div>
   );
