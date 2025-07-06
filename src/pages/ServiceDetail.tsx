@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
 import { ChatWindow } from '@/components/chat/ChatWindow';
+import { BookingSuccessModal } from '@/components/booking/BookingSuccessModal';
+import { useBookingSuccess } from '@/hooks/useBookingSuccess';
 import { useState } from 'react';
 
 const ServiceDetail = () => {
@@ -22,10 +24,22 @@ const ServiceDetail = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { data: services = [], isLoading } = useServices();
-  const bookServiceMutation = useBookService();
+  const { isSuccessModalOpen, bookingDetails, showSuccessModal, hideSuccessModal } = useBookingSuccess();
   const createConversationMutation = useCreateConversation();
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  
+  const bookServiceMutation = useBookService((booking, serviceData) => {
+    showSuccessModal({
+      id: booking.id,
+      serviceTitle: serviceData.title,
+      consultantName: serviceData.consultantName,
+      consultantTier: serviceData.consultantTier,
+      price: serviceData.price,
+      duration: serviceData.duration_minutes,
+      description: serviceData.description,
+    });
+  });
 
   const service = services.find(s => s.id === serviceId);
   
@@ -46,10 +60,22 @@ const ServiceDetail = () => {
     }
     
     if (service && service.consultant) {
+      const consultantName = service.consultant?.profiles?.full_name || 
+                           service.consultant?.profiles?.email || 
+                           'Unknown Consultant';
+      
       bookServiceMutation.mutate({
         serviceId: service.id,
         consultantId: service.consultant.id,
-        price: service.price
+        price: service.price,
+        serviceData: {
+          title: service.title,
+          description: service.description,
+          consultantName,
+          consultantTier: service.consultant.tier,
+          price: service.price,
+          duration_minutes: service.duration_minutes,
+        }
       });
     }
   };
@@ -390,6 +416,12 @@ const ServiceDetail = () => {
         conversation={selectedConversation}
         open={chatOpen}
         onOpenChange={setChatOpen}
+      />
+
+      <BookingSuccessModal
+        open={isSuccessModalOpen}
+        onOpenChange={hideSuccessModal}
+        bookingDetails={bookingDetails}
       />
     </div>
   );

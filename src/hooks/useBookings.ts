@@ -3,16 +3,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export const useBookService = () => {
+export const useBookService = (onSuccess?: (booking: any, serviceData: any) => void) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ serviceId, consultantId, price }: { 
+    mutationFn: async ({ serviceId, consultantId, price, serviceData }: { 
       serviceId: string; 
       consultantId: string; 
       price: number;
+      serviceData?: any;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
@@ -67,11 +68,18 @@ export const useBookService = () => {
 
       return booking;
     },
-    onSuccess: () => {
-      toast({
-        title: "Service booked successfully!",
-        description: "Check your dashboard for booking details.",
-      });
+    onSuccess: (booking, variables) => {
+      // Call the custom success handler if provided
+      if (onSuccess) {
+        onSuccess(booking, variables.serviceData);
+      } else {
+        // Fallback to basic toast
+        toast({
+          title: "Service booked successfully!",
+          description: "Check your dashboard for booking details.",
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
