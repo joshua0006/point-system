@@ -10,7 +10,7 @@ interface ServiceCompletion {
   service: string;
   consultant: string;
   date: string;
-  status: 'completed' | 'cancelled' | 'pending';
+  status: 'completed' | 'cancelled' | 'pending' | 'confirmed';
   completionRate?: number;
 }
 
@@ -25,12 +25,14 @@ export function CompletionRateModal({ open, onOpenChange, services, overallRate 
   const completed = services.filter(s => s.status === 'completed').length;
   const cancelled = services.filter(s => s.status === 'cancelled').length;
   const pending = services.filter(s => s.status === 'pending').length;
+  const confirmed = services.filter(s => s.status === 'confirmed').length;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle className="w-5 h-5 text-success" />;
       case 'cancelled': return <XCircle className="w-5 h-5 text-destructive" />;
       case 'pending': return <Clock className="w-5 h-5 text-warning" />;
+      case 'confirmed': return <CheckCircle className="w-5 h-5 text-primary" />;
       default: return <Clock className="w-5 h-5 text-muted-foreground" />;
     }
   };
@@ -49,10 +51,14 @@ export function CompletionRateModal({ open, onOpenChange, services, overallRate 
           </div>
           <Progress value={overallRate} className="mb-3" />
           
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-lg font-semibold text-success">{completed}</p>
               <p className="text-xs text-muted-foreground">Completed</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-primary">{confirmed}</p>
+              <p className="text-xs text-muted-foreground">Confirmed</p>
             </div>
             <div>
               <p className="text-lg font-semibold text-warning">{pending}</p>
@@ -79,6 +85,7 @@ export function CompletionRateModal({ open, onOpenChange, services, overallRate 
                 </div>
                 <Badge 
                   variant={service.status === 'completed' ? 'default' : 
+                          service.status === 'confirmed' ? 'default' :
                           service.status === 'cancelled' ? 'destructive' : 'secondary'}
                 >
                   {service.status}
