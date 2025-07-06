@@ -33,12 +33,12 @@ serve(async (req) => {
       // Create consultant profile
       const { data: consultant, error: consultantError } = await supabaseClient
         .from('consultants')
-        .insert({
+        .upsert({
           user_id: userId,
-          bio: 'Experienced consultant providing expert advice and guidance',
+          bio: 'Experienced consultant providing expert advice and guidance in business strategy, marketing, and technology. 5+ years of experience helping startups scale.',
           tier: 'gold',
-          hourly_rate: 100,
-          expertise_areas: ['Business Strategy', 'Marketing', 'Technology'],
+          hourly_rate: 150,
+          expertise_areas: ['Business Strategy', 'Marketing', 'Technology', 'E-commerce', 'Digital Transformation'],
           is_active: true
         })
         .select()
@@ -87,58 +87,56 @@ serve(async (req) => {
         throw servicesError
       }
 
-      // Create sample conversation and messages for demo
-      if (services && services.length > 0) {
-        // Check if demo buyer exists
-        const { data: demoBuyer } = await supabaseClient
-          .from('profiles')
-          .select('user_id')
-          .eq('email', 'demo-buyer@demo.com')
+      // Create sample conversation with demo buyer if exists
+      const { data: buyerProfile } = await supabaseClient
+        .from('profiles')
+        .select('user_id')
+        .eq('email', 'demo-buyer@demo.com')
+        .single()
+
+      if (buyerProfile && services && services.length > 0) {
+        const { data: conversation, error: convError } = await supabaseClient
+          .from('conversations')
+          .upsert({
+            id: '550e8400-e29b-41d4-a716-446655440100',
+            buyer_id: buyerProfile.user_id,
+            seller_id: userId,
+            service_id: services[0].id,
+            status: 'active',
+            last_message_at: new Date().toISOString()
+          })
+          .select()
           .single()
 
-        if (demoBuyer) {
-          // Create conversation between demo buyer and this consultant
-          const { data: conversation, error: conversationError } = await supabaseClient
-            .from('conversations')
-            .insert({
-              id: '550e8400-e29b-41d4-a716-446655440100',
-              buyer_id: demoBuyer.user_id,
-              seller_id: userId,
-              service_id: services[0].id,
-              status: 'active',
-              last_message_at: new Date().toISOString()
-            })
-            .select()
-            .single()
+        if (!convError && conversation) {
+          // Add sample messages
+          const sampleMessages = [
+            {
+              conversation_id: conversation.id,
+              sender_id: userId,
+              message_text: "Hi! Thanks for your interest in my business strategy consultation. I'd be happy to help you develop a comprehensive plan for your venture.",
+              message_type: 'text',
+              created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              conversation_id: conversation.id,
+              sender_id: buyerProfile.user_id,
+              message_text: "That sounds great! I'm looking to expand my e-commerce business and need guidance on market positioning.",
+              message_type: 'text',
+              created_at: new Date(Date.now() - 90 * 60 * 1000).toISOString()
+            },
+            {
+              conversation_id: conversation.id,
+              sender_id: userId,
+              message_text: "Perfect! Market positioning is crucial for e-commerce success. Let's schedule a session to dive deep into your target audience and competitive landscape.",
+              message_type: 'text',
+              created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString()
+            }
+          ]
 
-          if (!conversationError && conversation) {
-            // Add sample messages
-            await supabaseClient
-              .from('messages')
-              .insert([
-                {
-                  conversation_id: conversation.id,
-                  sender_id: userId,
-                  message_text: "Hi! Thanks for your interest in my business strategy consultation. I'd be happy to help you develop a comprehensive plan for your venture.",
-                  message_type: 'text',
-                  created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
-                },
-                {
-                  conversation_id: conversation.id,
-                  sender_id: demoBuyer.user_id,
-                  message_text: "That sounds great! I'm looking to expand my e-commerce business and need guidance on market positioning.",
-                  message_type: 'text',
-                  created_at: new Date(Date.now() - 90 * 60 * 1000).toISOString() // 1.5 hours ago
-                },
-                {
-                  conversation_id: conversation.id,
-                  sender_id: userId,
-                  message_text: "Perfect! Market positioning is crucial for e-commerce success. Let's schedule a session to dive deep into your target audience and competitive landscape.",
-                  message_type: 'text',
-                  created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString() // 1 hour ago
-                }
-              ])
-          }
+          await supabaseClient
+            .from('messages')
+            .upsert(sampleMessages)
         }
       }
     }

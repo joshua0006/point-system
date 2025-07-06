@@ -74,6 +74,12 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            {profile?.email?.includes('demo') && (
+              <div className="bg-accent/10 text-accent-foreground px-2 py-1 rounded text-xs font-medium">
+                Demo Mode
+              </div>
+            )}
+            
             {profile && (
               <ModeToggle />
             )}

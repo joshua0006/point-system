@@ -155,16 +155,14 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Consultant Marketplace
-          </CardTitle>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <div className="px-2 py-1 bg-accent/20 text-accent rounded-full text-xs font-medium">
-              🚀 DEMO MODE
-            </div>
+          <div className="mb-2 inline-flex items-center gap-2 bg-accent/10 text-accent-foreground px-3 py-1 rounded-full text-sm font-medium">
+            🚀 Demo Mode Active
           </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            ConsultHub
+          </CardTitle>
           <CardDescription>
-            🚀 Demo Mode - Enter any email/password or use quick demo accounts below
+            No registration required - Use quick demo accounts below or enter any credentials
           </CardDescription>
         </CardHeader>
         <CardContent>
