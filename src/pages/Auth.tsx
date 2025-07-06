@@ -35,45 +35,45 @@ const Auth = () => {
       const demoEmail = `demo-${accountType}@demo.com`;
       const demoPassword = 'demo123456';
       
-      console.log(`Attempting quick demo login for: ${demoEmail}`);
+      console.log(`Attempting demo login for: ${demoEmail}`);
       
-      // Try to sign in with existing account
+      // Simply try to sign in - if it fails, we'll handle it
       const { data, error } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
       });
 
       if (error) {
-        console.error('Demo login error:', error);
+        console.log('Demo account login failed, creating account:', error.message);
         
-        // If account doesn't exist, create it using admin functions
-        const { data: setupData, error: setupError } = await supabase.functions.invoke('setup-demo-data', {
-          body: {
-            email: demoEmail,
-            password: demoPassword,
-            fullName: accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer',
-            isConsultant: accountType === 'consultant',
-            autoConfirm: true
-          }
-        });
-
-        if (setupError) {
-          throw setupError;
-        }
-
-        // Now try to sign in again
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        // Try to create the account first
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: demoEmail,
           password: demoPassword,
+          options: {
+            data: {
+              full_name: accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer',
+            },
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         });
 
-        if (signInError) {
-          throw signInError;
+        if (signUpError) {
+          throw signUpError;
         }
 
-        console.log('Demo account created and signed in successfully');
-      } else {
-        console.log('Demo login successful with existing account');
+        // If signup was successful, try signing in again
+        if (signUpData.user && !signUpData.session) {
+          console.log('Account created, attempting sign in...');
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: demoEmail,
+            password: demoPassword,
+          });
+
+          if (signInError) {
+            throw signInError;
+          }
+        }
       }
 
       toast({
@@ -81,13 +81,13 @@ const Auth = () => {
         description: `Welcome as a demo ${accountType}.`,
       });
       
-      // Navigate immediately after successful login
+      // Navigate after successful login
       navigate('/');
     } catch (err: any) {
       console.error('Demo login error:', err);
       toast({
         title: "Demo Login Error",
-        description: err.message || "Failed to create/login to demo account",
+        description: err.message || "Failed to access demo account",
         variant: "destructive",
       });
     } finally {
@@ -118,7 +118,6 @@ const Auth = () => {
         description: "Please check your email to confirm your account.",
       });
       
-      // Don't navigate immediately for signup - user needs to confirm email
     } catch (error: any) {
       toast({
         title: "Error",
@@ -154,7 +153,6 @@ const Auth = () => {
         description: "Welcome back!",
       });
       
-      // Navigate immediately after successful login
       navigate('/');
     } catch (error: any) {
       console.error('Sign in error:', error);
