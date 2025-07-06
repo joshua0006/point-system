@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,8 @@ import { ServiceForm } from "@/components/forms/ServiceForm";
 import { EarningsModal } from "@/components/dashboard/EarningsModal";
 import { RecentOrdersModal } from "@/components/dashboard/RecentOrdersModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
+import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
+import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
@@ -37,6 +38,8 @@ export default function SellerDashboard() {
   const [earningsModalOpen, setEarningsModalOpen] = useState(false);
   const [ordersModalOpen, setOrdersModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
+  const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
   
   // Persistent earnings filter state
   const [currentEarningsFilter, setCurrentEarningsFilter] = useState<TimeScale>("lifetime");
@@ -219,7 +222,10 @@ export default function SellerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setPerformanceModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Performance
@@ -243,7 +249,10 @@ export default function SellerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setReviewsModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Buyer Reviews
@@ -454,6 +463,19 @@ export default function SellerDashboard() {
           onEditService={setEditingService}
           onDeleteService={handleDeleteService}
           isLoading={servicesLoading}
+        />
+
+        {/* Performance Modal */}
+        <PerformanceModal
+          open={performanceModalOpen}
+          onOpenChange={setPerformanceModalOpen}
+        />
+
+        {/* Buyer Reviews Modal */}
+        <BuyerReviewsModal
+          open={reviewsModalOpen}
+          onOpenChange={setReviewsModalOpen}
+          reviews={buyerReviews}
         />
       </div>
     </div>
