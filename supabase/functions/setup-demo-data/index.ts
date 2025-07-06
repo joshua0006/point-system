@@ -29,22 +29,23 @@ serve(async (req) => {
       const existingUser = existingUsers.users?.find(user => user.email === email)
       
       if (existingUser) {
-        console.log('User already exists, confirming email:', email)
+        console.log('User already exists:', email)
         
-        // If user exists but email is not confirmed, confirm it
-        if (!existingUser.email_confirmed_at) {
-          const { data: updateData, error: updateError } = await supabaseClient.auth.admin.updateUserById(
-            existingUser.id,
-            { email_confirm: true }
-          )
-          
-          if (updateError) {
-            console.error('Error confirming existing user email:', updateError)
-            throw updateError
+        // Always confirm email for existing demo accounts
+        const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
+          existingUser.id,
+          { 
+            email_confirm: true,
+            user_metadata: { full_name: fullName || existingUser.user_metadata?.full_name }
           }
-          
-          console.log('Email confirmed for existing user:', existingUser.id)
+        )
+        
+        if (updateError) {
+          console.error('Error confirming existing user email:', updateError)
+          throw updateError
         }
+        
+        console.log('Email confirmed for existing user:', existingUser.id)
         
         // Set up demo data for existing user if needed
         await setupDemoData(supabaseClient, existingUser.id, email, isConsultant)

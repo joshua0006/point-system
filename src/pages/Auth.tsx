@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -35,45 +34,39 @@ const Auth = () => {
     try {
       const demoEmail = `demo-${accountType}@demo.com`;
       const demoPassword = 'demo123456';
+      const fullName = accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer';
       
-      console.log(`Starting demo login for: ${demoEmail}`);
+      console.log(`Setting up demo account: ${demoEmail}`);
       
-      // First try to sign in
+      // Call the edge function to create/setup the demo account
+      const { data: setupResult, error: setupError } = await supabase.functions.invoke('setup-demo-data', {
+        body: {
+          email: demoEmail,
+          password: demoPassword,
+          fullName: fullName,
+          isConsultant: accountType === 'consultant',
+          autoConfirm: true
+        }
+      });
+
+      if (setupError) {
+        console.error('Setup error:', setupError);
+        throw setupError;
+      }
+
+      console.log('Demo account setup result:', setupResult);
+      
+      // Now try to sign in
+      console.log(`Attempting sign in for: ${demoEmail}`);
+      
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
       });
 
       if (signInError) {
-        console.log('Demo account does not exist, creating it...', signInError.message);
-        
-        // Create the account
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: demoEmail,
-          password: demoPassword,
-          options: {
-            data: {
-              full_name: accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer',
-            },
-            emailRedirectTo: `${window.location.origin}/marketplace`,
-          },
-        });
-
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        console.log('Demo account created, attempting sign in...');
-        
-        // Now sign in
-        const { error: finalSignInError } = await supabase.auth.signInWithPassword({
-          email: demoEmail,
-          password: demoPassword,
-        });
-
-        if (finalSignInError) {
-          throw finalSignInError;
-        }
+        console.error('Sign in error:', signInError);
+        throw signInError;
       }
 
       console.log('Demo login successful, redirecting to marketplace...');
