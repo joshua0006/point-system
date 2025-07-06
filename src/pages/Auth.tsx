@@ -32,23 +32,16 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
-
-      if (error) throw error;
-
+      // Demo mode - auto approve any signup
       toast({
-        title: "Account created successfully!",
-        description: "Please check your email to verify your account.",
+        title: "Demo Account Created!",
+        description: "Welcome to the demo. You're now logged in.",
       });
+      
+      // Simulate successful login in demo mode
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -65,19 +58,16 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
+      // Demo mode - auto approve any login
       toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
+        title: "Demo Login Successful!",
+        description: "Welcome to the demo marketplace.",
       });
       
-      navigate('/');
+      // Simulate successful login in demo mode
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -97,7 +87,7 @@ const Auth = () => {
             Consultant Marketplace
           </CardTitle>
           <CardDescription>
-            Access your private marketplace
+            🚀 Demo Mode - Enter any email/password to access
           </CardDescription>
         </CardHeader>
         <CardContent>
