@@ -45,47 +45,8 @@ const Marketplace = () => {
     return matchesSearch && matchesCategory && matchesTier;
   });
 
-  const handlePurchase = (serviceId: string) => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to book services.",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
-    
-    const service = services.find(s => s.id === serviceId);
-    if (service && service.consultant) {
-      bookServiceMutation.mutate({
-        serviceId: service.id,
-        consultantId: service.consultant.id,
-        price: service.price
-      });
-    }
-  };
-
-  const handleBookingClick = (bookingUrl: string) => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to contact consultants.",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
-    
-    if (bookingUrl) {
-      window.open(bookingUrl, '_blank');
-    } else {
-      toast({
-        title: "Booking unavailable",
-        description: "This consultant hasn't set up their booking link yet.",
-        variant: "destructive",
-      });
-    }
+  const handleServiceClick = (serviceId: string) => {
+    navigate(`/service/${serviceId}`);
   };
 
   if (servicesLoading || categoriesLoading) {
@@ -297,9 +258,7 @@ const Marketplace = () => {
                 }}
                 bookingUrl={service.consultant?.calendar_link || ''}
                 tags={[]} // We could add tags to the database schema later
-                onPurchase={handlePurchase}
-                onBookingClick={handleBookingClick}
-                isLoading={bookServiceMutation.isPending}
+                onClick={handleServiceClick}
               />
             ))}
           </div>
