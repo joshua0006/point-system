@@ -2,8 +2,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from "recharts";
 import { TrendingUp, Star, Users, Target } from "lucide-react";
+import { useState } from "react";
 
 interface PerformanceModalProps {
   open: boolean;
@@ -21,14 +23,36 @@ const chartConfig = {
   },
 };
 
-// Mock performance data over time
-const performanceData = [
-  { month: "Jul", rating: 4.5, conversion: 78 },
-  { month: "Aug", rating: 4.6, conversion: 82 },
-  { month: "Sep", rating: 4.7, conversion: 79 },
-  { month: "Oct", rating: 4.8, conversion: 85 },
-  { month: "Nov", rating: 4.8, conversion: 85 },
-];
+// Mock performance data for different time periods
+const performanceDataSets = {
+  "3months": [
+    { month: "Nov", rating: 4.7, conversion: 82 },
+    { month: "Dec", rating: 4.8, conversion: 85 },
+    { month: "Jan", rating: 4.8, conversion: 85 },
+  ],
+  "6months": [
+    { month: "Aug", rating: 4.6, conversion: 82 },
+    { month: "Sep", rating: 4.7, conversion: 79 },
+    { month: "Oct", rating: 4.8, conversion: 85 },
+    { month: "Nov", rating: 4.7, conversion: 82 },
+    { month: "Dec", rating: 4.8, conversion: 85 },
+    { month: "Jan", rating: 4.8, conversion: 85 },
+  ],
+  "12months": [
+    { month: "Feb", rating: 4.3, conversion: 75 },
+    { month: "Mar", rating: 4.4, conversion: 77 },
+    { month: "Apr", rating: 4.5, conversion: 78 },
+    { month: "May", rating: 4.5, conversion: 80 },
+    { month: "Jun", rating: 4.6, conversion: 81 },
+    { month: "Jul", rating: 4.5, conversion: 78 },
+    { month: "Aug", rating: 4.6, conversion: 82 },
+    { month: "Sep", rating: 4.7, conversion: 79 },
+    { month: "Oct", rating: 4.8, conversion: 85 },
+    { month: "Nov", rating: 4.7, conversion: 82 },
+    { month: "Dec", rating: 4.8, conversion: 85 },
+    { month: "Jan", rating: 4.8, conversion: 85 },
+  ],
+};
 
 // Mock detailed metrics
 const detailedMetrics = {
@@ -41,6 +65,8 @@ const detailedMetrics = {
 };
 
 export function PerformanceModal({ open, onOpenChange }: PerformanceModalProps) {
+  const [timeFilter, setTimeFilter] = useState<keyof typeof performanceDataSets>("6months");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -128,12 +154,24 @@ export function PerformanceModal({ open, onOpenChange }: PerformanceModalProps) 
           {/* Performance Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Performance Over Time</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Performance Over Time</CardTitle>
+                <Select value={timeFilter} onValueChange={(value: keyof typeof performanceDataSets) => setTimeFilter(value)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3months">Last 3 months</SelectItem>
+                    <SelectItem value="6months">Last 6 months</SelectItem>
+                    <SelectItem value="12months">Last 12 months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={performanceData}>
+                  <LineChart data={performanceDataSets[timeFilter]}>
                     <XAxis 
                       dataKey="month" 
                       tick={{ fontSize: 12 }}
