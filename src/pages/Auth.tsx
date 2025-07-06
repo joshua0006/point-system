@@ -20,9 +20,14 @@ const Auth = () => {
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log('User already logged in, redirecting...');
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
       }
     };
     checkUser();
@@ -37,17 +42,16 @@ const Auth = () => {
       
       console.log(`Attempting demo login for: ${demoEmail}`);
       
-      // Simply try to sign in - if it fails, we'll handle it
       const { data, error } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
       });
 
       if (error) {
-        console.log('Demo account login failed, creating account:', error.message);
+        console.log('Demo login failed, will create account:', error.message);
         
-        // Try to create the account first
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        // Create account
+        const { error: signUpError } = await supabase.auth.signUp({
           email: demoEmail,
           password: demoPassword,
           options: {
@@ -62,27 +66,31 @@ const Auth = () => {
           throw signUpError;
         }
 
-        // If signup was successful, try signing in again
-        if (signUpData.user && !signUpData.session) {
-          console.log('Account created, attempting sign in...');
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: demoEmail,
-            password: demoPassword,
-          });
+        console.log('Demo account created, now signing in...');
+        
+        // Sign in after creation
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: demoEmail,
+          password: demoPassword,
+        });
 
-          if (signInError) {
-            throw signInError;
-          }
+        if (signInError) {
+          throw signInError;
         }
       }
 
+      console.log('Demo login successful');
+      
       toast({
         title: "Demo Login Successful!",
         description: `Welcome as a demo ${accountType}.`,
       });
       
-      // Navigate after successful login
-      navigate('/');
+      // Small delay to ensure auth state has updated
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
+      
     } catch (err: any) {
       console.error('Demo login error:', err);
       toast({
