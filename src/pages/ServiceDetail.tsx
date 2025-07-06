@@ -7,11 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TierBadge } from '@/components/TierBadge';
-import { Star, Clock, ArrowLeft, Check, X, Calendar, ShoppingCart } from 'lucide-react';
+import { Star, Clock, ArrowLeft, Check, X, Calendar, ShoppingCart, MessageCircle } from 'lucide-react';
 import { useServices } from '@/hooks/useServices';
 import { useBookService } from '@/hooks/useBookings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
+import { ChatWindow } from '@/components/chat/ChatWindow';
+import { useState } from 'react';
 
 const ServiceDetail = () => {
   const { serviceId } = useParams();
@@ -20,8 +23,16 @@ const ServiceDetail = () => {
   const { user } = useAuth();
   const { data: services = [], isLoading } = useServices();
   const bookServiceMutation = useBookService();
+  const createConversationMutation = useCreateConversation();
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
 
   const service = services.find(s => s.id === serviceId);
+  
+  const { data: existingConversation } = useExistingConversation(
+    serviceId || '', 
+    service?.consultant?.id || ''
+  );
 
   const handlePurchase = () => {
     if (!user) {
@@ -40,6 +51,45 @@ const ServiceDetail = () => {
         consultantId: service.consultant.id,
         price: service.price
       });
+    }
+  };
+
+  const handleMessageClick = async () => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please login to message consultants.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!service?.consultant) {
+      toast({
+        title: "Error",
+        description: "Consultant information not available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (existingConversation) {
+      // Open existing conversation
+      setSelectedConversation(existingConversation);
+      setChatOpen(true);
+    } else {
+      // Create new conversation
+      try {
+        const newConversation = await createConversationMutation.mutateAsync({
+          serviceId: service.id,
+          sellerId: service.consultant.id,
+        });
+        setSelectedConversation(newConversation);
+        setChatOpen(true);
+      } catch (error) {
+        console.error('Failed to create conversation:', error);
+      }
     }
   };
 
@@ -306,12 +356,23 @@ const ServiceDetail = () => {
                     
                     <Button 
                       variant="outline"
-                      onClick={handleBookingClick}
+                      onClick={handleMessageClick}
+                      disabled={createConversationMutation.isPending}
                       className="w-full"
                       size="lg"
                     >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      {existingConversation ? 'Continue Chat' : 'Message Seller'}
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost"
+                      onClick={handleBookingClick}
+                      className="w-full"
+                      size="sm"
+                    >
                       <Calendar className="w-4 h-4 mr-2" />
-                      Contact Consultant
+                      Schedule Call
                     </Button>
                   </div>
 
@@ -324,6 +385,12 @@ const ServiceDetail = () => {
           </div>
         </div>
       </div>
+
+      <ChatWindow
+        conversation={selectedConversation}
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+      />
     </div>
   );
 };

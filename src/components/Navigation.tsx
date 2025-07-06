@@ -7,7 +7,8 @@ import {
   Wallet, 
   Search,
   List,
-  Calendar
+  Calendar,
+  MessageCircle
 } from "lucide-react";
 
 export function Navigation() {
@@ -19,6 +20,7 @@ export function Navigation() {
 
   const navItems = [
     { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "consultant", "admin"] },
+    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "consultant", "admin"] },
     { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "consultant", "admin"] },
     { path: "/services", label: "My Services", icon: List, roles: ["consultant", "admin"] },
     { path: "/bookings", label: "Bookings", icon: Calendar, roles: ["consultant", "admin"] },
