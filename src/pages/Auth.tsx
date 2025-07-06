@@ -35,22 +35,25 @@ const Auth = () => {
       const demoEmail = `demo-${accountType}@demo.com`;
       const demoPassword = 'demo123456';
       
-      // First try to sign in with existing account
-      let { data, error } = await supabase.auth.signInWithPassword({
+      console.log(`Attempting quick demo login for: ${demoEmail}`);
+      
+      // Try to sign in with existing account
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
       });
 
-      // If account doesn't exist or has issues, create it using admin functions
       if (error) {
-        // Use the setup-demo-data function to create and configure the account
+        console.error('Demo login error:', error);
+        
+        // If account doesn't exist, create it using admin functions
         const { data: setupData, error: setupError } = await supabase.functions.invoke('setup-demo-data', {
           body: {
             email: demoEmail,
             password: demoPassword,
             fullName: accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer',
             isConsultant: accountType === 'consultant',
-            autoConfirm: true // This tells the function to auto-confirm the email
+            autoConfirm: true
           }
         });
 
@@ -68,7 +71,9 @@ const Auth = () => {
           throw signInError;
         }
 
-        data = signInData;
+        console.log('Demo account created and signed in successfully');
+      } else {
+        console.log('Demo login successful with existing account');
       }
 
       toast({
@@ -76,9 +81,8 @@ const Auth = () => {
         description: `Welcome as a demo ${accountType}.`,
       });
       
-      if (data.user) {
-        navigate('/');
-      }
+      // Navigate immediately after successful login
+      navigate('/');
     } catch (err: any) {
       console.error('Demo login error:', err);
       toast({
@@ -96,16 +100,12 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Demo mode - create actual demo accounts with auto-confirmation
-      const demoEmail = `demo-${Date.now()}@demo.com`;
-      const demoPassword = 'demo123456';
-      
       const { data, error } = await supabase.auth.signUp({
-        email: demoEmail,
-        password: demoPassword,
+        email,
+        password,
         options: {
           data: {
-            full_name: fullName || 'Demo User',
+            full_name: fullName,
           },
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -114,14 +114,11 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "Demo Account Created!",
-        description: "Welcome to the demo marketplace.",
+        title: "Account Created!",
+        description: "Please check your email to confirm your account.",
       });
       
-      // Navigate after successful signup
-      if (data.user) {
-        navigate('/');
-      }
+      // Don't navigate immediately for signup - user needs to confirm email
     } catch (error: any) {
       toast({
         title: "Error",
@@ -138,73 +135,29 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // For demo mode, we'll use predefined demo accounts or create new ones
-      let demoEmail = email;
-      let demoPassword = password;
-      let isConsultantAccount = false;
+      console.log(`Attempting sign in for: ${email}`);
       
-      // If user enters demo credentials, use predefined accounts
-      if (email.includes('demo') || email === '' || password === '') {
-        demoEmail = `demo-buyer@demo.com`;
-        demoPassword = 'demo123456';
-      }
-
-      // Check if it's a consultant demo account
-      if (demoEmail.includes('consultant')) {
-        isConsultantAccount = true;
-      }
-
-      // First try to sign in with existing account
-      let { data, error } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: demoPassword,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      // If account doesn't exist, create it
-      if (error && error.message.includes('Invalid login credentials')) {
-        const signUpResult = await supabase.auth.signUp({
-          email: demoEmail,
-          password: demoPassword,
-          options: {
-            data: {
-              full_name: isConsultantAccount ? 'Demo Consultant' : 'Demo Buyer',
-            },
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
-        
-        if (signUpResult.error) throw signUpResult.error;
-        data = signUpResult.data;
-
-        // Set up demo data for new accounts
-        if (data.user) {
-          try {
-            await supabase.functions.invoke('setup-demo-data', {
-              body: {
-                userId: data.user.id,
-                userEmail: demoEmail,
-                isConsultant: isConsultantAccount
-              }
-            });
-          } catch (setupError) {
-            console.warn('Demo data setup failed:', setupError);
-            // Don't block login if demo data setup fails
-          }
-        }
-      } else if (error) {
+      if (error) {
+        console.error('Sign in error:', error);
         throw error;
       }
 
+      console.log('Sign in successful');
+      
       toast({
-        title: "Demo Login Successful!",
-        description: `Welcome to the demo marketplace${isConsultantAccount ? ' as a consultant' : ''}.`,
+        title: "Login Successful!",
+        description: "Welcome back!",
       });
       
-      // Navigate after successful login
-      if (data.user) {
-        navigate('/');
-      }
+      // Navigate immediately after successful login
+      navigate('/');
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -305,9 +258,9 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="signup-email">Email</Label>
                   <Input
-                    id="email"
+                    id="signup-email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
@@ -316,9 +269,9 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="signup-password">Password</Label>
                   <Input
-                    id="password"
+                    id="signup-password"
                     type="password"
                     placeholder="Create a password"
                     value={password}
