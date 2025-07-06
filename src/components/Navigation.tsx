@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,11 +9,8 @@ import {
   Users, 
   Wallet, 
   Search,
-  List,
-  Calendar,
   MessageCircle,
-  BarChart3,
-  TrendingUp
+  BarChart3
 } from "lucide-react";
 
 export function Navigation() {
@@ -33,9 +31,7 @@ export function Navigation() {
 
   const sellerNavItems = [
     { path: "/seller", label: "Dashboard", icon: BarChart3, roles: ["consultant", "admin"] },
-    { path: "/services", label: "My Services", icon: List, roles: ["consultant", "admin"] },
     { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant", "admin"] },
-    { path: "/bookings", label: "Orders", icon: Calendar, roles: ["consultant", "admin"] },
     { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
   ];
 
