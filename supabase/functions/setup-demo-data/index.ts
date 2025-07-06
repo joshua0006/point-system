@@ -22,97 +22,73 @@ serve(async (req) => {
 
     // Handle creating new demo accounts with auto-confirmation
     if (email && password && autoConfirm) {
-      console.log('Creating new demo account:', email)
+      console.log('Processing demo account request:', email)
       
-      // Create the user with admin privileges (bypasses email confirmation)
-      const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
-        email: email,
-        password: password,
-        email_confirm: true, // This automatically confirms the email
-        user_metadata: {
-          full_name: fullName
-        }
-      })
-
-      if (createError) {
-        console.error('Error creating user:', createError)
-        throw createError
-      }
-
-      console.log('User created successfully:', newUser.user?.id)
-
-      // Set up the user's profile and consultant data
-      if (newUser.user) {
-        // Update profile role if it's a consultant account
-        if (isConsultant) {
-          const { error: profileError } = await supabaseClient
-            .from('profiles')
-            .update({ role: 'consultant' })
-            .eq('user_id', newUser.user.id)
-
-          if (profileError) {
-            console.error('Error updating profile:', profileError)
+      // First check if user already exists
+      const { data: existingUsers } = await supabaseClient.auth.admin.listUsers()
+      const existingUser = existingUsers.users?.find(user => user.email === email)
+      
+      if (existingUser) {
+        console.log('User already exists, confirming email:', email)
+        
+        // If user exists but email is not confirmed, confirm it
+        if (!existingUser.email_confirmed_at) {
+          const { data: updateData, error: updateError } = await supabaseClient.auth.admin.updateUserById(
+            existingUser.id,
+            { email_confirm: true }
+          )
+          
+          if (updateError) {
+            console.error('Error confirming existing user email:', updateError)
+            throw updateError
           }
-
-          // Create consultant profile
-          const { data: consultant, error: consultantError } = await supabaseClient
-            .from('consultants')
-            .upsert({
-              user_id: newUser.user.id,
-              bio: 'Experienced consultant providing expert advice and guidance in business strategy, marketing, and technology. 5+ years of experience helping startups scale.',
-              tier: 'gold',
-              hourly_rate: 150,
-              expertise_areas: ['Business Strategy', 'Marketing', 'Technology', 'E-commerce', 'Digital Transformation'],
-              is_active: true
-            })
-            .select()
-            .single()
-
-          if (consultantError) {
-            console.error('Error creating consultant:', consultantError)
-          } else {
-            console.log('Consultant created successfully')
-            
-            // Create sample services for the consultant
-            const sampleServices = [
-              {
-                consultant_id: consultant.id,
-                title: '1-on-1 Business Strategy Session',
-                description: 'Personalized consultation to help you develop and refine your business strategy',
-                price: 150,
-                duration_minutes: 60,
-                category_id: '550e8400-e29b-41d4-a716-446655440000' // Business Strategy
-              },
-              {
-                consultant_id: consultant.id,
-                title: 'Marketing Plan Review',
-                description: 'Comprehensive review of your marketing strategy with actionable recommendations',
-                price: 100,
-                duration_minutes: 45,
-                category_id: '550e8400-e29b-41d4-a716-446655440001' // Marketing
-              }
-            ]
-
-            const { error: servicesError } = await supabaseClient
-              .from('services')
-              .insert(sampleServices)
-
-            if (servicesError) {
-              console.error('Error creating services:', servicesError)
-            } else {
-              console.log('Sample services created successfully')
-            }
+          
+          console.log('Email confirmed for existing user:', existingUser.id)
+        }
+        
+        // Set up demo data for existing user if needed
+        await setupDemoData(supabaseClient, existingUser.id, email, isConsultant)
+        
+        return new Response(
+          JSON.stringify({ success: true, message: 'Demo account ready', userId: existingUser.id }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
           }
-        }
-      }
+        )
+      } else {
+        console.log('Creating new demo account:', email)
+        
+        // Create the user with admin privileges (bypasses email confirmation)
+        const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
+          email: email,
+          password: password,
+          email_confirm: true, // This automatically confirms the email
+          user_metadata: {
+            full_name: fullName
+          }
+        })
 
-      return new Response(
-        JSON.stringify({ success: true, message: 'Demo account created and configured', userId: newUser.user?.id }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
+        if (createError) {
+          console.error('Error creating user:', createError)
+          throw createError
         }
-      )
+
+        console.log('User created successfully:', newUser.user?.id)
+
+        // Set up the user's profile and demo data
+        if (newUser.user) {
+          await setupDemoData(supabaseClient, newUser.user.id, email, isConsultant)
+        }
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Demo account created and configured', userId: newUser.user?.id }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        )
+      }
     }
 
     // Handle existing logic for setting up data for existing users
@@ -120,32 +96,61 @@ serve(async (req) => {
       throw new Error('User ID is required for existing user setup')
     }
 
-    // Update profile role if it's a consultant account
-    if (isConsultant) {
-      await supabaseClient
-        .from('profiles')
-        .update({ role: 'consultant' })
-        .eq('user_id', userId)
+    await setupDemoData(supabaseClient, userId, userEmail, isConsultant)
 
-      // Create consultant profile
-      const { data: consultant, error: consultantError } = await supabaseClient
-        .from('consultants')
-        .upsert({
-          user_id: userId,
-          bio: 'Experienced consultant providing expert advice and guidance in business strategy, marketing, and technology. 5+ years of experience helping startups scale.',
-          tier: 'gold',
-          hourly_rate: 150,
-          expertise_areas: ['Business Strategy', 'Marketing', 'Technology', 'E-commerce', 'Digital Transformation'],
-          is_active: true
-        })
-        .select()
-        .single()
-
-      if (consultantError) {
-        console.error('Error creating consultant:', consultantError)
-        throw consultantError
+    return new Response(
+      JSON.stringify({ success: true, message: 'Demo data setup complete' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
       }
+    )
 
+  } catch (error) {
+    console.error('Error setting up demo data:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400 
+      }
+    )
+  }
+})
+
+async function setupDemoData(supabaseClient: any, userId: string, userEmail: string, isConsultant: boolean) {
+  console.log('Setting up demo data for user:', userId, 'isConsultant:', isConsultant)
+  
+  // Update profile role if it's a consultant account
+  if (isConsultant) {
+    const { error: profileError } = await supabaseClient
+      .from('profiles')
+      .update({ role: 'consultant' })
+      .eq('user_id', userId)
+
+    if (profileError) {
+      console.error('Error updating profile:', profileError)
+    }
+
+    // Create consultant profile
+    const { data: consultant, error: consultantError } = await supabaseClient
+      .from('consultants')
+      .upsert({
+        user_id: userId,
+        bio: 'Experienced consultant providing expert advice and guidance in business strategy, marketing, and technology. 5+ years of experience helping startups scale.',
+        tier: 'gold',
+        hourly_rate: 150,
+        expertise_areas: ['Business Strategy', 'Marketing', 'Technology', 'E-commerce', 'Digital Transformation'],
+        is_active: true
+      })
+      .select()
+      .single()
+
+    if (consultantError) {
+      console.error('Error creating consultant:', consultantError)
+    } else {
+      console.log('Consultant created successfully')
+      
       // Create sample services for the consultant
       const sampleServices = [
         {
@@ -176,12 +181,11 @@ serve(async (req) => {
 
       const { data: services, error: servicesError } = await supabaseClient
         .from('services')
-        .insert(sampleServices)
+        .upsert(sampleServices)
         .select()
 
       if (servicesError) {
         console.error('Error creating services:', servicesError)
-        throw servicesError
       }
 
       // Create sample conversation with demo buyer if exists
@@ -237,23 +241,5 @@ serve(async (req) => {
         }
       }
     }
-
-    return new Response(
-      JSON.stringify({ success: true, message: 'Demo data setup complete' }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    )
-
-  } catch (error) {
-    console.error('Error setting up demo data:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
-    )
   }
-})
+}
