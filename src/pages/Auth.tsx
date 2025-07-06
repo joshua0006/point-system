@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,42 +16,38 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          console.log('User already logged in, redirecting...');
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      }
-    };
-    checkUser();
-  }, [navigate]);
+    // If user is already logged in and not loading, redirect immediately
+    if (!loading && user) {
+      console.log('User already logged in, redirecting to home...');
+      navigate('/', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleQuickDemo = async (accountType: 'buyer' | 'consultant') => {
+    if (isLoading) return;
+    
     setIsLoading(true);
     
     try {
       const demoEmail = `demo-${accountType}@demo.com`;
       const demoPassword = 'demo123456';
       
-      console.log(`Attempting demo login for: ${demoEmail}`);
+      console.log(`Starting demo login for: ${demoEmail}`);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // First try to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
       });
 
-      if (error) {
-        console.log('Demo login failed, will create account:', error.message);
+      if (signInError) {
+        console.log('Demo account does not exist, creating it...', signInError.message);
         
-        // Create account
-        const { error: signUpError } = await supabase.auth.signUp({
+        // Create the account
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: demoEmail,
           password: demoPassword,
           options: {
@@ -66,30 +62,25 @@ const Auth = () => {
           throw signUpError;
         }
 
-        console.log('Demo account created, now signing in...');
+        console.log('Demo account created, attempting sign in...');
         
-        // Sign in after creation
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        // Now sign in
+        const { error: finalSignInError } = await supabase.auth.signInWithPassword({
           email: demoEmail,
           password: demoPassword,
         });
 
-        if (signInError) {
-          throw signInError;
+        if (finalSignInError) {
+          throw finalSignInError;
         }
       }
 
-      console.log('Demo login successful');
+      console.log('Demo login successful, user should be redirected by useEffect');
       
       toast({
         title: "Demo Login Successful!",
         description: `Welcome as a demo ${accountType}.`,
       });
-      
-      // Small delay to ensure auth state has updated
-      setTimeout(() => {
-        navigate('/');
-      }, 100);
       
     } catch (err: any) {
       console.error('Demo login error:', err);
@@ -173,6 +164,18 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading while auth context is initializing
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
