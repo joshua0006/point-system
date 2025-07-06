@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,6 +93,9 @@ export default function SellerDashboard() {
       points: 500
     },
   ];
+
+  // Calculate total lifetime orders (including mock data for demonstration)
+  const lifetimeOrders = recentOrders.length + 15; // Adding mock historical orders
 
   // Mock buyer reviews data
   const buyerReviews = [
@@ -250,13 +252,13 @@ export default function SellerDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Recent Orders
+                Lifetime Orders
                 <Users className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{recentOrders.length}</div>
-              <p className="text-xs text-muted-foreground">recent orders</p>
+              <div className="text-2xl font-bold text-foreground">{lifetimeOrders}</div>
+              <p className="text-xs text-muted-foreground">total orders completed</p>
             </CardContent>
           </Card>
 
