@@ -1,3 +1,5 @@
+
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +15,21 @@ import {
   ArrowUpDown
 } from "lucide-react";
 
+// Import the modal components
+import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { SpentDetailsModal } from "@/components/dashboard/SpentDetailsModal";
+import { ServicesBookedModal } from "@/components/dashboard/ServicesBookedModal";
+import { CompletionRateModal } from "@/components/dashboard/CompletionRateModal";
+import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
+
 export default function UserDashboard() {
+  // Modal states
+  const [balanceModalOpen, setBalanceModalOpen] = useState(false);
+  const [spentModalOpen, setSpentModalOpen] = useState(false);
+  const [servicesModalOpen, setServicesModalOpen] = useState(false);
+  const [completionModalOpen, setCompletionModalOpen] = useState(false);
+  const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
+
   // Mock data
   const userStats = {
     totalPoints: 2450,
@@ -23,10 +39,10 @@ export default function UserDashboard() {
     completedSessions: 6,
   };
 
-  const recentTransactions = [
+  const allTransactions = [
     {
       id: "1",
-      type: "spent",
+      type: "spent" as const,
       service: "Strategic Business Consultation",
       consultant: "Sarah Chen",
       points: 500,
@@ -35,7 +51,7 @@ export default function UserDashboard() {
     },
     {
       id: "2", 
-      type: "earned",
+      type: "earned" as const,
       service: "Monthly Bonus",
       points: 200,
       date: "2024-01-01",
@@ -43,12 +59,117 @@ export default function UserDashboard() {
     },
     {
       id: "3",
-      type: "spent",
+      type: "spent" as const,
       service: "Technical Architecture Review",
       consultant: "Marcus Rodriguez", 
       points: 350,
       date: "2024-01-10",
       status: "completed"
+    },
+    {
+      id: "4",
+      type: "earned" as const,
+      service: "Welcome Bonus",
+      points: 1000,
+      date: "2023-12-15",
+      status: "completed"
+    },
+    {
+      id: "5",
+      type: "spent" as const,
+      service: "Marketing Strategy Session",
+      consultant: "Emily Johnson",
+      points: 300,
+      date: "2024-01-05",
+      status: "completed"
+    },
+  ];
+
+  const spentTransactions = allTransactions.filter(t => t.type === 'spent').map(t => ({
+    ...t,
+    duration: t.points > 400 ? "1 hour" : "30 mins"
+  }));
+
+  const bookedServices = [
+    {
+      id: "1",
+      service: "Strategic Business Consultation",
+      consultant: "Sarah Chen",
+      date: "2024-01-15",
+      time: "2:00 PM",
+      duration: "1 hour",
+      status: "completed" as const,
+      points: 500
+    },
+    {
+      id: "2",
+      service: "Technical Architecture Review",
+      consultant: "Marcus Rodriguez",
+      date: "2024-01-10",
+      time: "10:00 AM",
+      duration: "45 mins",
+      status: "completed" as const,
+      points: 350
+    },
+    {
+      id: "3",
+      service: "Marketing Strategy Session",
+      consultant: "Emily Johnson",
+      date: "2024-01-05",
+      time: "3:00 PM",
+      duration: "30 mins",
+      status: "completed" as const,
+      points: 300
+    },
+    {
+      id: "4",
+      service: "Financial Planning",
+      consultant: "David Kim",
+      date: "2024-01-02",
+      time: "11:00 AM",
+      duration: "1 hour",
+      status: "completed" as const,
+      points: 400
+    },
+    {
+      id: "5",
+      service: "Legal Consultation",
+      consultant: "Jennifer Liu",
+      date: "2023-12-28",
+      time: "4:00 PM",
+      duration: "30 mins",
+      status: "completed" as const,
+      points: 250
+    },
+    {
+      id: "6",
+      service: "Product Strategy",
+      consultant: "Alex Turner",
+      date: "2023-12-25",
+      time: "1:00 PM",
+      duration: "45 mins",
+      status: "completed" as const,
+      points: 375
+    },
+    {
+      id: "7",
+      service: "HR Consultation",
+      consultant: "Maria Garcia",
+      date: "2024-01-22",
+      time: "9:00 AM",
+      duration: "30 mins",
+      status: "pending" as const,
+      points: 275
+    },
+    {
+      id: "8",
+      service: "Technology Audit",
+      consultant: "Robert Chen",
+      date: "2024-01-18",
+      time: "2:30 PM",
+      duration: "1.5 hours",
+      status: "confirmed" as const,
+      points: 600
     },
   ];
 
@@ -60,7 +181,8 @@ export default function UserDashboard() {
       date: "2024-01-20",
       time: "2:00 PM",
       duration: "30 mins",
-      bookingUrl: "https://calendly.com/emily-johnson/marketing"
+      bookingUrl: "https://calendly.com/emily-johnson/marketing",
+      status: "confirmed" as const
     },
     {
       id: "2",
@@ -69,9 +191,22 @@ export default function UserDashboard() {
       date: "2024-01-25",
       time: "10:00 AM",
       duration: "1 hour",
-      bookingUrl: "https://calendly.com/david-kim/finance"
+      bookingUrl: "https://calendly.com/david-kim/finance",
+      status: "pending" as const
+    },
+    {
+      id: "3",
+      service: "Product Roadmap Review",
+      consultant: "Alex Turner",
+      date: "2024-01-28",
+      time: "3:00 PM",
+      duration: "45 mins",
+      bookingUrl: "https://calendly.com/alex-turner/product",
+      status: "confirmed" as const
     },
   ];
+
+  const recentTransactions = allTransactions.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,7 +225,10 @@ export default function UserDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
+          <Card 
+            className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setBalanceModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Current Balance
@@ -103,7 +241,10 @@ export default function UserDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setSpentModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Total Spent
@@ -116,7 +257,10 @@ export default function UserDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setServicesModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Services Booked
@@ -129,7 +273,10 @@ export default function UserDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setCompletionModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Completion Rate
@@ -150,7 +297,7 @@ export default function UserDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Transactions */}
-          <Card>
+          <Card className="cursor-pointer hover:scale-[1.02] transition-transform" onClick={() => setBalanceModalOpen(true)}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <ArrowUpDown className="w-5 h-5" />
@@ -198,7 +345,7 @@ export default function UserDashboard() {
           </Card>
 
           {/* Upcoming Bookings */}
-          <Card>
+          <Card className="cursor-pointer hover:scale-[1.02] transition-transform" onClick={() => setUpcomingModalOpen(true)}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Clock className="w-5 h-5" />
@@ -207,7 +354,7 @@ export default function UserDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {upcomingBookings.map((booking) => (
+                {upcomingBookings.slice(0, 2).map((booking) => (
                   <div key={booking.id} className="p-4 rounded-lg border bg-card">
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -225,7 +372,10 @@ export default function UserDashboard() {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => window.open(booking.bookingUrl, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(booking.bookingUrl, '_blank');
+                        }}
                       >
                         Join Session
                       </Button>
@@ -244,6 +394,38 @@ export default function UserDashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Modals */}
+      <BalanceDetailsModal 
+        open={balanceModalOpen}
+        onOpenChange={setBalanceModalOpen}
+        transactions={allTransactions}
+      />
+      
+      <SpentDetailsModal
+        open={spentModalOpen}
+        onOpenChange={setSpentModalOpen}
+        spentTransactions={spentTransactions}
+      />
+      
+      <ServicesBookedModal
+        open={servicesModalOpen}
+        onOpenChange={setServicesModalOpen}
+        bookedServices={bookedServices}
+      />
+      
+      <CompletionRateModal
+        open={completionModalOpen}
+        onOpenChange={setCompletionModalOpen}
+        services={bookedServices}
+        overallRate={Math.round((userStats.completedSessions / userStats.servicesBooked) * 100)}
+      />
+      
+      <UpcomingSessionsModal
+        open={upcomingModalOpen}
+        onOpenChange={setUpcomingModalOpen}
+        sessions={upcomingBookings}
+      />
     </div>
   );
 }
