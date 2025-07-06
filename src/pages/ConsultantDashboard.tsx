@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { TierBadge } from "@/components/TierBadge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ServiceForm } from "@/components/forms/ServiceForm";
 import { useToast } from "@/hooks/use-toast";
+import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
   Plus, 
   DollarSign, 
@@ -22,6 +22,12 @@ import {
 export default function ConsultantDashboard() {
   const { toast } = useToast();
   const [showAddService, setShowAddService] = useState(false);
+  const [editingService, setEditingService] = useState<any>(null);
+  
+  const { data: services, isLoading: servicesLoading } = useConsultantServices();
+  const createService = useCreateService();
+  const updateService = useUpdateService();
+  const deleteService = useDeleteService();
 
   // Mock consultant data
   const consultantProfile = {
@@ -33,28 +39,12 @@ export default function ConsultantDashboard() {
     responseRate: 98
   };
 
-  const myServices = [
-    {
-      id: "1",
-      title: "Strategic Business Consultation",
-      category: "Strategy",
-      points: 500,
-      duration: "1 hour",
-      bookingUrl: "https://calendly.com/sarah-chen/strategy",
-      status: "active",
-      bookings: 12
-    },
-    {
-      id: "2",
-      title: "Growth Strategy Workshop",
-      category: "Strategy", 
-      points: 350,
-      duration: "45 mins",
-      bookingUrl: "https://calendly.com/sarah-chen/growth",
-      status: "active",
-      bookings: 8
-    },
-  ];
+  // Calculate stats from real services
+  const totalServices = services?.length || 0;
+  const activeServices = services?.filter(s => s.is_active).length || 0;
+  const totalRevenue = services?.reduce((sum, s) => sum + (s.price * 5), 0) || 0; // Mock booking count of 5
+  
+  const myServices = services || [];
 
   const upcomingBookings = [
     {
@@ -75,12 +65,31 @@ export default function ConsultantDashboard() {
     },
   ];
 
-  const handleAddService = () => {
-    toast({
-      title: "Service Added",
-      description: "Your new service has been added to the marketplace.",
+  const handleCreateService = (serviceData: any) => {
+    createService.mutate(serviceData, {
+      onSuccess: () => {
+        setShowAddService(false);
+      }
     });
-    setShowAddService(false);
+  };
+
+  const handleUpdateService = (serviceData: any) => {
+    if (editingService) {
+      updateService.mutate(
+        { id: editingService.id, updates: serviceData },
+        {
+          onSuccess: () => {
+            setEditingService(null);
+          }
+        }
+      );
+    }
+  };
+
+  const handleDeleteService = (serviceId: string) => {
+    if (confirm('Are you sure you want to delete this service?')) {
+      deleteService.mutate(serviceId);
+    }
   };
 
   return (
@@ -117,8 +126,8 @@ export default function ConsultantDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{consultantProfile.totalEarnings.toLocaleString()}</div>
-              <p className="text-xs opacity-90">points earned</p>
+              <div className="text-2xl font-bold">{totalRevenue.toLocaleString()}</div>
+              <p className="text-xs opacity-90">estimated revenue</p>
             </CardContent>
           </Card>
 
@@ -130,8 +139,8 @@ export default function ConsultantDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{consultantProfile.totalSessions}</div>
-              <p className="text-xs text-muted-foreground">completed sessions</p>
+              <div className="text-2xl font-bold text-foreground">{activeServices}</div>
+              <p className="text-xs text-muted-foreground">active services</p>
             </CardContent>
           </Card>
 
@@ -169,45 +178,65 @@ export default function ConsultantDashboard() {
               <CardTitle>My Services</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {myServices.map((service) => (
-                  <div key={service.id} className="p-4 rounded-lg border bg-card">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold text-foreground">{service.title}</h4>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="secondary">{service.category}</Badge>
-                          <span className="text-sm text-muted-foreground">•</span>
-                          <span className="text-sm text-muted-foreground">{service.duration}</span>
+              {servicesLoading ? (
+                <div className="text-center py-8">Loading services...</div>
+              ) : myServices.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No services created yet. Click "Add Service" to get started.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {myServices.map((service) => (
+                    <div key={service.id} className="p-4 rounded-lg border bg-card">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-foreground">{service.title}</h4>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="secondary">{service.categories?.name || 'Uncategorized'}</Badge>
+                            <span className="text-sm text-muted-foreground">•</span>
+                            <span className="text-sm text-muted-foreground">
+                              {service.duration_minutes ? `${service.duration_minutes} mins` : 'Flexible'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setEditingService(service)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDeleteService(service.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Trash2 className="w-4 h-4" />
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4 text-sm">
+                          <span className="font-semibold text-accent">{service.price} points</span>
+                          <Badge variant={service.is_active ? 'default' : 'secondary'}>
+                            {service.is_active ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => window.open('#', '_blank')}
+                        >
+                          <ExternalLink className="w-4 h-4 mr-1" />
+                          View
                         </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span className="font-semibold text-accent">{service.points} points</span>
-                        <span className="text-muted-foreground">{service.bookings} bookings</span>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => window.open(service.bookingUrl, '_blank')}
-                      >
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        Calendly
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -244,61 +273,36 @@ export default function ConsultantDashboard() {
           </Card>
         </div>
 
-        {/* Add Service Modal */}
-        {showAddService && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>Add New Service</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Service Title</label>
-                    <Input placeholder="Enter service title" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Description</label>
-                    <Textarea placeholder="Describe your service" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Category</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="strategy">Strategy</SelectItem>
-                          <SelectItem value="technology">Technology</SelectItem>
-                          <SelectItem value="marketing">Marketing</SelectItem>
-                          <SelectItem value="finance">Finance</SelectItem>
-                          <SelectItem value="career">Career</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Points</label>
-                      <Input type="number" placeholder="350" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Booking URL</label>
-                    <Input placeholder="https://calendly.com/your-link" />
-                  </div>
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <Button variant="outline" onClick={() => setShowAddService(false)}>
-                      Cancel
-                    </Button>  
-                    <Button onClick={handleAddService}>
-                      Add Service
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Create Service Dialog */}
+        <Dialog open={showAddService} onOpenChange={setShowAddService}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Service</DialogTitle>
+            </DialogHeader>
+            <ServiceForm
+              mode="create"
+              onSubmit={handleCreateService}
+              isLoading={createService.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Service Dialog */}
+        <Dialog open={!!editingService} onOpenChange={() => setEditingService(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Service</DialogTitle>
+            </DialogHeader>
+            {editingService && (
+              <ServiceForm
+                mode="edit"
+                initialData={editingService}
+                onSubmit={handleUpdateService}
+                isLoading={updateService.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
