@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMode } from "@/contexts/ModeContext";
+import { ModeToggle } from "@/components/ModeToggle";
 import { 
   User, 
   Users, 
@@ -8,26 +10,37 @@ import {
   Search,
   List,
   Calendar,
-  MessageCircle
+  MessageCircle,
+  BarChart3,
+  TrendingUp
 } from "lucide-react";
 
 export function Navigation() {
   const location = useLocation();
   const { profile, signOut } = useAuth();
+  const { isSellerMode } = useMode();
   const userRole = profile?.role || "user";
 
   const isActive = (path: string) => location.pathname === path;
 
-  const navItems = [
+  // Define navigation items based on mode
+  const buyerNavItems = [
     { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "consultant", "admin"] },
     { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "consultant", "admin"] },
     { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "consultant", "admin"] },
-    { path: "/services", label: "My Services", icon: List, roles: ["consultant", "admin"] },
-    { path: "/bookings", label: "Bookings", icon: Calendar, roles: ["consultant", "admin"] },
     { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
   ];
 
-  const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
+  const sellerNavItems = [
+    { path: "/seller", label: "Dashboard", icon: BarChart3, roles: ["consultant", "admin"] },
+    { path: "/services", label: "My Services", icon: List, roles: ["consultant", "admin"] },
+    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant", "admin"] },
+    { path: "/bookings", label: "Orders", icon: Calendar, roles: ["consultant", "admin"] },
+    { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
+  ];
+
+  const currentNavItems = isSellerMode ? sellerNavItems : buyerNavItems;
+  const filteredNavItems = currentNavItems.filter(item => item.roles.includes(userRole));
 
   return (
     <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -61,6 +74,10 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            {profile && (
+              <ModeToggle />
+            )}
+            
             {profile ? (
               <>
                 <div className="flex items-center space-x-2 bg-card border rounded-lg px-3 py-2">
