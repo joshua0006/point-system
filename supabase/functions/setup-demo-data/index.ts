@@ -77,13 +77,69 @@ serve(async (req) => {
         }
       ]
 
-      const { error: servicesError } = await supabaseClient
+      const { data: services, error: servicesError } = await supabaseClient
         .from('services')
         .insert(sampleServices)
+        .select()
 
       if (servicesError) {
         console.error('Error creating services:', servicesError)
         throw servicesError
+      }
+
+      // Create sample conversation and messages for demo
+      if (services && services.length > 0) {
+        // Check if demo buyer exists
+        const { data: demoBuyer } = await supabaseClient
+          .from('profiles')
+          .select('user_id')
+          .eq('email', 'demo-buyer@demo.com')
+          .single()
+
+        if (demoBuyer) {
+          // Create conversation between demo buyer and this consultant
+          const { data: conversation, error: conversationError } = await supabaseClient
+            .from('conversations')
+            .insert({
+              id: '550e8400-e29b-41d4-a716-446655440100',
+              buyer_id: demoBuyer.user_id,
+              seller_id: userId,
+              service_id: services[0].id,
+              status: 'active',
+              last_message_at: new Date().toISOString()
+            })
+            .select()
+            .single()
+
+          if (!conversationError && conversation) {
+            // Add sample messages
+            await supabaseClient
+              .from('messages')
+              .insert([
+                {
+                  conversation_id: conversation.id,
+                  sender_id: userId,
+                  message_text: "Hi! Thanks for your interest in my business strategy consultation. I'd be happy to help you develop a comprehensive plan for your venture.",
+                  message_type: 'text',
+                  created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+                },
+                {
+                  conversation_id: conversation.id,
+                  sender_id: demoBuyer.user_id,
+                  message_text: "That sounds great! I'm looking to expand my e-commerce business and need guidance on market positioning.",
+                  message_type: 'text',
+                  created_at: new Date(Date.now() - 90 * 60 * 1000).toISOString() // 1.5 hours ago
+                },
+                {
+                  conversation_id: conversation.id,
+                  sender_id: userId,
+                  message_text: "Perfect! Market positioning is crucial for e-commerce success. Let's schedule a session to dive deep into your target audience and competitive landscape.",
+                  message_type: 'text',
+                  created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString() // 1 hour ago
+                }
+              ])
+          }
+        }
       }
     }
 

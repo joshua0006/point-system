@@ -158,6 +158,11 @@ const Auth = () => {
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Consultant Marketplace
           </CardTitle>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="px-2 py-1 bg-accent/20 text-accent rounded-full text-xs font-medium">
+              🚀 DEMO MODE
+            </div>
+          </div>
           <CardDescription>
             🚀 Demo Mode - Enter any email/password or use quick demo accounts below
           </CardDescription>
