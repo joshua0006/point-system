@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -24,21 +25,37 @@ interface CompletionRateModalProps {
 }
 
 type StatusFilter = 'all' | 'completed' | 'confirmed' | 'pending' | 'cancelled';
+type SortOption = 'date-newest' | 'date-oldest';
 
 export function CompletionRateModal({ open, onOpenChange, services, overallRate }: CompletionRateModalProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('date-newest');
 
   const completed = services.filter(s => s.status === 'completed').length;
   const cancelled = services.filter(s => s.status === 'cancelled').length;
   const pending = services.filter(s => s.status === 'pending').length;
   const confirmed = services.filter(s => s.status === 'confirmed').length;
 
-  const filteredServices = useMemo(() => {
-    if (statusFilter === 'all') {
-      return services;
-    }
-    return services.filter(service => service.status === statusFilter);
-  }, [services, statusFilter]);
+  const filteredAndSortedServices = useMemo(() => {
+    // Filter by status
+    let filtered = statusFilter === 'all' 
+      ? services 
+      : services.filter(service => service.status === statusFilter);
+
+    // Sort services
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'date-newest':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case 'date-oldest':
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [services, statusFilter, sortBy]);
 
   const handleStatusClick = (status: StatusFilter) => {
     // If clicking the same status, toggle back to 'all'
@@ -113,23 +130,42 @@ export function CompletionRateModal({ open, onOpenChange, services, overallRate 
           </div>
         </div>
 
+        {/* Sort Controls */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Sort by:</span>
+            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date-newest">Date (Newest)</SelectItem>
+                <SelectItem value="date-oldest">Date (Oldest)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredAndSortedServices.length} of {services.length} services
+          </div>
+        </div>
+
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             {statusFilter === 'all' 
               ? `Showing all ${services.length} services`
-              : `Showing ${filteredServices.length} ${statusFilter} service${filteredServices.length !== 1 ? 's' : ''}`
+              : `Showing ${filteredAndSortedServices.length} ${statusFilter} service${filteredAndSortedServices.length !== 1 ? 's' : ''}`
             }
           </p>
         </div>
 
         <ScrollArea className="h-80">
           <div className="space-y-3">
-            {filteredServices.length === 0 ? (
+            {filteredAndSortedServices.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No services found for the selected status.
               </div>
             ) : (
-              filteredServices.map((service) => (
+              filteredAndSortedServices.map((service) => (
                 <div key={service.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(service.status)}
