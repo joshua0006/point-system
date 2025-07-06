@@ -1,3 +1,4 @@
+
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useMode } from '@/contexts/ModeContext';
@@ -40,12 +41,6 @@ export function ModeToggle() {
           Seller
         </span>
       </div>
-      
-      {isSellerMode && (
-        <div className="ml-2 px-2 py-1 bg-success/10 text-success text-xs rounded-full font-medium">
-          ON
-        </div>
-      )}
     </div>
   );
 }
