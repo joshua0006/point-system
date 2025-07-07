@@ -20,11 +20,13 @@ import {
   Clock,
   Edit
 } from 'lucide-react';
+import { ReviewsModal } from '@/components/profile/ReviewsModal';
 
 export default function ConsultantProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['consultant-profile', userId],
@@ -310,30 +312,53 @@ export default function ConsultantProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <Star className="w-8 h-8 text-yellow-400 fill-current" />
-                  <span className="text-3xl font-bold">4.8</span>
-                </div>
-                <p className="text-muted-foreground mb-4">
-                  Average rating from {bookingStats?.completed || 0} reviews
-                </p>
-                <div className="space-y-2">
-                  {[5, 4, 3, 2, 1].map((stars) => (
-                    <div key={stars} className="flex items-center gap-2">
-                      <span className="text-sm w-3">{stars}</span>
-                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <div className="flex-1 bg-muted rounded-full h-2">
-                        <div 
-                          className="bg-yellow-400 h-2 rounded-full" 
-                          style={{ width: stars === 5 ? '80%' : stars === 4 ? '15%' : '5%' }}
-                        />
+              <div 
+                className="cursor-pointer hover:bg-muted/50 rounded-lg p-4 -m-4 transition-colors"
+                onClick={() => setReviewsModalOpen(true)}
+              >
+                <div className="text-center py-4">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <Star className="w-8 h-8 text-yellow-400 fill-current" />
+                    <span className="text-3xl font-bold">4.8</span>
+                  </div>
+                  <p className="text-muted-foreground mb-4">
+                    Average rating from {bookingStats?.completed || 6} reviews
+                  </p>
+                  
+                  {/* Recent Reviews Preview */}
+                  <div className="space-y-3 mb-4">
+                    <div className="text-left p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">Sarah J.</span>
                       </div>
-                      <span className="text-xs text-muted-foreground w-8">
-                        {stars === 5 ? '80%' : stars === 4 ? '15%' : '5%'}
-                      </span>
+                      <p className="text-xs text-muted-foreground">
+                        "Exceptional service! The consultant provided deep insights..."
+                      </p>
                     </div>
-                  ))}
+                    
+                    <div className="text-left p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">Michael R.</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        "Outstanding workshop! The strategies provided were..."
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-primary hover:text-primary/80 transition-colors">
+                    Click to view all reviews →
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -346,6 +371,12 @@ export default function ConsultantProfile() {
         onOpenChange={setEditModalOpen}
         profile={profile}
         consultant={profile.consultant}
+      />
+
+      <ReviewsModal
+        open={reviewsModalOpen}
+        onOpenChange={setReviewsModalOpen}
+        consultantName={profile?.full_name || 'Professional Consultant'}
       />
     </div>
   );
