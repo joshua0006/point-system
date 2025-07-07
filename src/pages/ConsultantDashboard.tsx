@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +20,11 @@ import {
   Users, 
   Calendar,
   Star,
-  BarChart3
+  BarChart3,
+  Target
 } from "lucide-react";
+
+type TimeScale = "lifetime" | "yearly" | "monthly";
 
 export default function ConsultantDashboard() {
   const { toast } = useToast();
@@ -31,6 +35,7 @@ export default function ConsultantDashboard() {
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
+  const [currentEarningsFilter, setCurrentEarningsFilter] = useState<TimeScale>("lifetime");
   
   const { data: services, isLoading: servicesLoading } = useConsultantServices();
   const createService = useCreateService();
@@ -53,6 +58,26 @@ export default function ConsultantDashboard() {
   const activeServices = services?.filter(s => s.is_active).length || 0;
   const totalRevenue = services?.reduce((sum, s) => sum + (s.price * 5), 0) || 0; // Mock booking count
   
+  // Mock earnings data for different time scales
+  const earningsData = {
+    lifetime: 15750,
+    yearly: 8200,
+    monthly: 3650
+  };
+
+  const getEarningsLabel = (filter: TimeScale) => {
+    switch (filter) {
+      case "lifetime":
+        return "Lifetime Earnings";
+      case "yearly":
+        return "Yearly Earnings";
+      case "monthly":
+        return "Monthly Earnings";
+      default:
+        return "Earnings";
+    }
+  };
+
   const upcomingBookings = [
     {
       id: "1",
@@ -99,6 +124,13 @@ export default function ConsultantDashboard() {
     }
   };
 
+  const handleEarningsModalClose = (open: boolean, newFilter?: TimeScale) => {
+    setEarningsModalOpen(open);
+    if (newFilter) {
+      setCurrentEarningsFilter(newFilter);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -124,19 +156,19 @@ export default function ConsultantDashboard() {
         </div>
 
         {/* Updated Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card 
             className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setEarningsModalOpen(true)}
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Earnings
+                {getEarningsLabel(currentEarningsFilter)}
                 <TrendingUp className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{earningsData[currentEarningsFilter].toLocaleString()}</div>
               <p className="text-xs opacity-90">earnings over time</p>
             </CardContent>
           </Card>
@@ -147,7 +179,7 @@ export default function ConsultantDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                All Past Orders
+                Lifetime Orders
                 <Users className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
@@ -163,13 +195,29 @@ export default function ConsultantDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Performance
-                <BarChart3 className="w-4 h-4 text-success" />
+                Rating
+                <Star className="w-4 h-4 text-yellow-500" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{consultantProfile.rating}</div>
-              <p className="text-xs text-muted-foreground">rating & conversion</p>
+              <p className="text-xs text-muted-foreground">average rating</p>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setPerformanceModalOpen(true)}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-sm font-medium">
+                Conversion
+                <Target className="w-4 h-4 text-success" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{consultantProfile.conversionRate}%</div>
+              <p className="text-xs text-muted-foreground">conversion rate</p>
             </CardContent>
           </Card>
 
@@ -280,7 +328,7 @@ export default function ConsultantDashboard() {
         {/* Updated Modals - Fixed Props */}
         <EarningsModal
           open={earningsModalOpen}
-          onOpenChange={setEarningsModalOpen}
+          onOpenChange={handleEarningsModalClose}
           totalEarnings={totalRevenue}
         />
 

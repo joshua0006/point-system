@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -70,11 +69,7 @@ export function EarningsModal({ open, onOpenChange, totalEarnings }: EarningsMod
 
   // Handle modal close and pass the current filter
   const handleModalClose = (open: boolean) => {
-    if (!open) {
-      onOpenChange(false, timeScale);
-    } else {
-      onOpenChange(true);
-    }
+    onOpenChange(open, timeScale);
   };
 
   return (
