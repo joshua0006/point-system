@@ -67,9 +67,22 @@ export function useCreateConversation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // For profile enquiries, we need to create a placeholder service or handle differently
+      // For profile enquiries, we need to find a service and check for existing conversation
       if (serviceId === 'profile-enquiry') {
-        // First, try to find an existing general service for this consultant
+        // First, check if there's already a conversation with this seller
+        const { data: existingConversation } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('seller_id', sellerUserId)
+          .eq('buyer_id', user.id)
+          .maybeSingle();
+
+        if (existingConversation) {
+          // Return the existing conversation instead of creating a new one
+          return existingConversation;
+        }
+
+        // If no existing conversation, find an active service for this consultant
         const { data: consultantServices, error: servicesError } = await supabase
           .from('services')
           .select(`
@@ -103,6 +116,19 @@ export function useCreateConversation() {
           // If no services found, we can't create a conversation
           throw new Error('Cannot start conversation - consultant has no active services');
         }
+      }
+
+      // For regular service conversations, also check for existing conversation first
+      const { data: existingConversation } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('service_id', serviceId)
+        .eq('seller_id', sellerUserId)
+        .eq('buyer_id', user.id)
+        .maybeSingle();
+
+      if (existingConversation) {
+        return existingConversation;
       }
 
       const { data, error } = await supabase
