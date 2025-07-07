@@ -94,8 +94,8 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     )}
                     
                     {lastMessage && (
-                      <div className="text-right">
-                        <p className={`text-sm truncate ${hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border">
+                        <p className={`text-sm truncate ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'}`}>
                           {lastMessage.sender_id === user?.id ? 'You: ' : ''}
                           {lastMessage.message_text}
                         </p>
