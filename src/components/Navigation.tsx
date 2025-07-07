@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,7 +44,7 @@ export function Navigation() {
   ];
 
   const sellerNavItems = [
-    { path: "/seller", label: "Dashboard", icon: BarChart3, roles: ["consultant", "admin"] },
+    { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant", "admin"] },
     { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant", "admin"], hasNotification: unreadCount > 0 },
     { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
   ];
