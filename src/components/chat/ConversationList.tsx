@@ -37,11 +37,10 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
         const hasUnreadMessages = (conversation.unread_count || 0) > 0;
         const lastMessage = conversation.last_message;
 
-        // Check if message text is long enough to need truncation
+        // Create the message text
         const messageText = lastMessage 
           ? `${lastMessage.sender_id === user?.id ? 'You: ' : ''}${lastMessage.message_text}`
           : '';
-        const isTextLong = messageText.length > 50; // Approximate threshold for truncation
 
         return (
           <Card 
@@ -100,17 +99,9 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     )}
                     
                     {lastMessage && (
-                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full relative overflow-hidden">
-                        <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} relative`}>
-                          <span className="block overflow-hidden whitespace-nowrap">
-                            {lastMessage.sender_id === user?.id ? 'You: ' : ''}
-                            {lastMessage.message_text}
-                          </span>
-                          {isTextLong && (
-                            <span className="absolute right-0 bottom-0 bg-gradient-to-l from-muted/30 via-muted/30 to-transparent w-8 h-full flex items-end justify-end text-xs opacity-60">
-                              ...
-                            </span>
-                          )}
+                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full overflow-hidden">
+                        <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} overflow-hidden whitespace-nowrap`}>
+                          {messageText}
                         </p>
                       </div>
                     )}
