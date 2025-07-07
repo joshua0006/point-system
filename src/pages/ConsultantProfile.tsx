@@ -12,6 +12,7 @@ import { BuyerProfileHeader } from '@/components/profile/BuyerProfileHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { getExperienceLevel } from '@/utils/profileUtils';
 import { 
   Star, 
   Calendar, 
@@ -127,14 +128,13 @@ export default function ConsultantProfile() {
     created_at: profile.created_at
   };
 
+  // Mock points spent for experience level calculation (in a real app, this would come from actual data)
+  const mockPointsSpent = profile.consultant.tier === 'platinum' ? 5000 : 
+                          profile.consultant.tier === 'gold' ? 2000 :
+                          profile.consultant.tier === 'silver' ? 500 : 0;
+
   const profileStats = {
-    experienceLevel: {
-      level: profile.consultant.tier,
-      label: profile.consultant.tier.charAt(0).toUpperCase() + profile.consultant.tier.slice(1),
-      color: profile.consultant.tier === 'platinum' ? 'bg-purple-500' : 
-             profile.consultant.tier === 'gold' ? 'bg-yellow-500' :
-             profile.consultant.tier === 'silver' ? 'bg-gray-400' : 'bg-amber-600'
-    },
+    experienceLevel: getExperienceLevel(mockPointsSpent),
     consultationCategories: profile.consultant.expertise_areas?.map(area => ({
       name: area,
       count: Math.floor(Math.random() * 10) + 1 // Mock count for now
