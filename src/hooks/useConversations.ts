@@ -67,7 +67,7 @@ export function useCreateConversation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // For profile enquiries, we need to find a service and check for existing conversation
+      // Handle profile enquiries separately
       if (serviceId === 'profile-enquiry') {
         // First, check if there's already a conversation with this seller
         const { data: existingConversation } = await supabase
@@ -118,7 +118,7 @@ export function useCreateConversation() {
         }
       }
 
-      // For regular service conversations, also check for existing conversation first
+      // For regular service conversations, check for existing conversation first
       const { data: existingConversation } = await supabase
         .from('conversations')
         .select('*')
@@ -131,6 +131,7 @@ export function useCreateConversation() {
         return existingConversation;
       }
 
+      // Create new conversation for regular services
       const { data, error } = await supabase
         .from('conversations')
         .insert({
