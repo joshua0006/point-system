@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -79,22 +78,25 @@ export default function BuyerProfile() {
       <div className="container mx-auto px-4 py-8">
         {/* Enhanced Header Section */}
         <div className="mb-10">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-card via-card to-muted/30">
-            <CardContent className="p-8 relative">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-card via-card to-muted/30 relative">
+            <CardContent className="p-8">
               {/* Background decoration */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full -translate-y-8 translate-x-8 opacity-50" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-accent/10 to-primary/10 rounded-full translate-y-4 -translate-x-4 opacity-30" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full -translate-y-8 translate-x-8 opacity-50 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-accent/10 to-primary/10 rounded-full translate-y-4 -translate-x-4 opacity-30 pointer-events-none" />
               
+              {/* Edit Button - Fixed positioning */}
               {isOwnProfile && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-6 right-6 bg-background/80 backdrop-blur-sm hover:bg-background shadow-sm z-10"
-                  onClick={() => setEditModalOpen(true)}
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </Button>
+                <div className="absolute top-6 right-6 z-20">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-background/80 backdrop-blur-sm hover:bg-background shadow-sm border-2 hover:border-primary/20 transition-all duration-200"
+                    onClick={() => setEditModalOpen(true)}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </div>
               )}
               
               <div className="flex flex-col lg:flex-row items-start gap-8 relative z-10">
