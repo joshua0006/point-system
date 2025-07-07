@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -11,23 +12,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { 
   User, 
-  Star, 
   Calendar, 
   Award,
-  MessageCircle,
   TrendingUp,
   Edit
 } from 'lucide-react';
-import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
 
 export default function BuyerProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-
-  const createConversationMutation = useCreateConversation();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['buyer-profile', userId],
@@ -62,11 +56,6 @@ export default function BuyerProfile() {
     enabled: !!userId
   });
 
-  const { data: existingConversation } = useExistingConversation(
-    'profile-enquiry', // Use a placeholder service ID for profile enquiries
-    userId || ''
-  );
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -89,24 +78,7 @@ export default function BuyerProfile() {
     );
   }
 
-  const canMessage = currentUserProfile?.user_id !== userId && currentUserProfile?.role === 'consultant';
   const isOwnProfile = currentUserProfile?.user_id === userId;
-
-  const handleSendMessage = () => {
-    if (existingConversation) {
-      setChatOpen(true);
-    } else {
-      // Create a new conversation for profile enquiry
-      createConversationMutation.mutate({
-        serviceId: 'profile-enquiry',
-        sellerUserId: userId!,
-      }, {
-        onSuccess: () => {
-          setChatOpen(true);
-        }
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,31 +109,22 @@ export default function BuyerProfile() {
                 </Avatar>
                 
                 <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <h1 className="text-3xl font-bold text-foreground mb-2">
-                        {profile.full_name || 'Anonymous Buyer'}
-                      </h1>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="secondary">
-                          <User className="w-3 h-3 mr-1" />
-                          Buyer
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          Member since {new Date(profile.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground">
-                        Active marketplace participant looking for expert consultation services
-                      </p>
+                  <div>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                      {profile.full_name || 'Anonymous Buyer'}
+                    </h1>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge variant="secondary">
+                        <User className="w-3 h-3 mr-1" />
+                        Buyer
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        Member since {new Date(profile.created_at).toLocaleDateString()}
+                      </span>
                     </div>
-                    
-                    {canMessage && (
-                      <Button onClick={handleSendMessage}>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Send Message
-                      </Button>
-                    )}
+                    <p className="text-muted-foreground">
+                      Active marketplace participant looking for expert consultation services
+                    </p>
                   </div>
                 </div>
               </div>
@@ -241,12 +204,6 @@ export default function BuyerProfile() {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         profile={profile}
-      />
-
-      <ChatWindow
-        conversation={existingConversation || null}
-        open={chatOpen}
-        onOpenChange={setChatOpen}
       />
     </div>
   );

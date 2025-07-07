@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -14,24 +15,18 @@ import {
   Star, 
   Calendar, 
   Award,
-  MessageCircle,
   TrendingUp,
   Users,
   Clock,
   Edit
 } from 'lucide-react';
 import { ReviewsModal } from '@/components/profile/ReviewsModal';
-import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
 
 export default function ConsultantProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-
-  const createConversationMutation = useCreateConversation();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['consultant-profile', userId],
@@ -98,11 +93,6 @@ export default function ConsultantProfile() {
     enabled: !!profile?.consultant?.id
   });
 
-  const { data: existingConversation } = useExistingConversation(
-    'profile-enquiry', // Use a placeholder service ID for profile enquiries
-    userId || ''
-  );
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -125,24 +115,7 @@ export default function ConsultantProfile() {
     );
   }
 
-  const canMessage = currentUserProfile?.user_id !== userId;
   const isOwnProfile = currentUserProfile?.user_id === userId;
-
-  const handleSendMessage = () => {
-    if (existingConversation) {
-      setChatOpen(true);
-    } else {
-      // Create a new conversation for profile enquiry
-      createConversationMutation.mutate({
-        serviceId: 'profile-enquiry',
-        sellerUserId: userId!,
-      }, {
-        onSuccess: () => {
-          setChatOpen(true);
-        }
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -173,37 +146,28 @@ export default function ConsultantProfile() {
                 </Avatar>
                 
                 <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-foreground">
-                          {profile.full_name || 'Professional Consultant'}
-                        </h1>
-                        <TierBadge tier={profile.consultant.tier} />
-                      </div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="secondary">Consultant</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          Active since {new Date(profile.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground mb-3">
-                        {profile.consultant.bio || 'Experienced consultant ready to help with your needs'}
-                      </p>
-                      {profile.consultant.expertise_areas && profile.consultant.expertise_areas.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {profile.consultant.expertise_areas.map((area, index) => (
-                            <Badge key={index} variant="outline">{area}</Badge>
-                          ))}
-                        </div>
-                      )}
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-3xl font-bold text-foreground">
+                        {profile.full_name || 'Professional Consultant'}
+                      </h1>
+                      <TierBadge tier={profile.consultant.tier} />
                     </div>
-                    
-                    {canMessage && (
-                      <Button onClick={handleSendMessage}>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Send Message
-                      </Button>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge variant="secondary">Consultant</Badge>
+                      <span className="text-sm text-muted-foreground">
+                        Active since {new Date(profile.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground mb-3">
+                      {profile.consultant.bio || 'Experienced consultant ready to help with your needs'}
+                    </p>
+                    {profile.consultant.expertise_areas && profile.consultant.expertise_areas.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {profile.consultant.expertise_areas.map((area, index) => (
+                          <Badge key={index} variant="outline">{area}</Badge>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -403,12 +367,6 @@ export default function ConsultantProfile() {
         open={reviewsModalOpen}
         onOpenChange={setReviewsModalOpen}
         consultantName={profile?.full_name || 'Professional Consultant'}
-      />
-
-      <ChatWindow
-        conversation={existingConversation || null}
-        open={chatOpen}
-        onOpenChange={setChatOpen}
       />
     </div>
   );

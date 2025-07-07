@@ -67,72 +67,7 @@ export function useCreateConversation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Handle profile enquiries
-      if (serviceId === 'profile-enquiry') {
-        // Check for existing conversation with this seller (any service)
-        const { data: existingConversation } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('seller_id', sellerUserId)
-          .eq('buyer_id', user.id)
-          .maybeSingle();
-
-        if (existingConversation) {
-          return existingConversation;
-        }
-
-        // Find an active service for this consultant
-        const { data: consultantServices, error: servicesError } = await supabase
-          .from('services')
-          .select(`
-            id,
-            consultants!inner(user_id)
-          `)
-          .eq('consultants.user_id', sellerUserId)
-          .eq('is_active', true)
-          .limit(1);
-
-        if (servicesError) {
-          console.error('Error fetching consultant services:', servicesError);
-          throw new Error('Could not find consultant services');
-        }
-
-        if (!consultantServices || consultantServices.length === 0) {
-          throw new Error('Cannot start conversation - consultant has no active services');
-        }
-
-        // Use the first available service
-        const actualServiceId = consultantServices[0].id;
-
-        // Double-check for existing conversation with this specific service
-        const { data: existingServiceConversation } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('service_id', actualServiceId)
-          .eq('seller_id', sellerUserId)
-          .eq('buyer_id', user.id)
-          .maybeSingle();
-
-        if (existingServiceConversation) {
-          return existingServiceConversation;
-        }
-
-        // Create new conversation
-        const { data, error } = await supabase
-          .from('conversations')
-          .insert({
-            service_id: actualServiceId,
-            seller_id: sellerUserId,
-            buyer_id: user.id,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      }
-
-      // Handle regular service conversations
+      // Check for existing conversation with this specific service
       const { data: existingConversation } = await supabase
         .from('conversations')
         .select('*')
@@ -145,7 +80,7 @@ export function useCreateConversation() {
         return existingConversation;
       }
 
-      // Create new conversation for regular services
+      // Create new conversation
       const { data, error } = await supabase
         .from('conversations')
         .insert({
@@ -181,22 +116,7 @@ export function useExistingConversation(serviceId: string, sellerUserId: string)
     queryFn: async () => {
       if (!user) return null;
 
-      // For profile enquiries, find any conversation with this seller
-      if (serviceId === 'profile-enquiry') {
-        const { data, error } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('seller_id', sellerUserId)
-          .eq('buyer_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (error) throw error;
-        return data;
-      }
-
-      // For regular services, check for specific service conversation
+      // Check for specific service conversation
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
