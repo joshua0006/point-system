@@ -8,10 +8,37 @@ interface MessageBubbleProps {
   message: Message;
 }
 
+function isEmojiOnly(text: string): boolean {
+  // Remove whitespace and check if remaining characters are only emojis
+  const trimmed = text.trim();
+  const emojiRegex = /^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}]+$/u;
+  return emojiRegex.test(trimmed) && trimmed.length <= 6; // Max 6 emoji characters for large display
+}
+
+function formatMessageText(text: string): React.ReactNode {
+  // Split text by emojis to handle mixed content
+  const parts = text.split(/([\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}]+)/u);
+  
+  return parts.map((part, index) => {
+    const isEmoji = /[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}]/u.test(part);
+    
+    if (isEmoji) {
+      return (
+        <span key={index} className="inline-block" role="img">
+          {part}
+        </span>
+      );
+    }
+    
+    return part;
+  });
+}
+
 export function MessageBubble({ message }: MessageBubbleProps) {
   const { user } = useAuth();
   const isOwnMessage = message.sender_id === user?.id;
   const senderName = message.sender_profile?.full_name || message.sender_profile?.email || 'Unknown';
+  const isEmojiOnlyMessage = isEmojiOnly(message.message_text);
 
   return (
     <div className={cn(
@@ -29,12 +56,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         isOwnMessage ? "items-end" : "items-start"
       )}>
         <div className={cn(
-          "px-4 py-2 rounded-lg text-sm relative",
-          isOwnMessage 
+          "relative",
+          isEmojiOnlyMessage 
+            ? "text-4xl leading-none p-2" 
+            : "px-4 py-2 rounded-lg text-sm",
+          !isEmojiOnlyMessage && (isOwnMessage 
             ? "bg-primary text-primary-foreground rounded-br-sm" 
-            : "bg-muted text-foreground rounded-bl-sm"
+            : "bg-muted text-foreground rounded-bl-sm")
         )}>
-          {message.message_text}
+          {isEmojiOnlyMessage ? (
+            <span className="block">{message.message_text}</span>
+          ) : (
+            <span className="break-words">{formatMessageText(message.message_text)}</span>
+          )}
         </div>
         
         <div className={cn(
