@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -278,7 +277,7 @@ export default function ConsultantDashboard() {
           </Card>
         </div>
 
-        {/* Updated Modals */}
+        {/* Updated Modals - Fixed Props */}
         <EarningsModal
           open={earningsModalOpen}
           onOpenChange={setEarningsModalOpen}
@@ -294,15 +293,12 @@ export default function ConsultantDashboard() {
         <PerformanceModal
           open={performanceModalOpen}
           onOpenChange={setPerformanceModalOpen}
-          rating={consultantProfile.rating}
-          conversionRate={consultantProfile.conversionRate}
         />
 
         <BuyerReviewsModal
           open={reviewsModalOpen}
           onOpenChange={setReviewsModalOpen}
-          totalReviews={consultantProfile.totalReviews}
-          averageRating={consultantProfile.rating}
+          reviews={[]}
         />
 
         <ServicesDetailsModal
