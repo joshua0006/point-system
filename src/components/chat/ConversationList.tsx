@@ -102,7 +102,7 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     {lastMessage && (
                       <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full relative overflow-hidden">
                         <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} relative`}>
-                          <span className="block truncate">
+                          <span className="block overflow-hidden whitespace-nowrap">
                             {lastMessage.sender_id === user?.id ? 'You: ' : ''}
                             {lastMessage.message_text}
                           </span>
