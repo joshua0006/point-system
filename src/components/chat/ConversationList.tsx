@@ -86,7 +86,7 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     </div>
                   </div>
                   
-                  <div className="flex flex-col items-end justify-between ml-4 min-w-0 max-w-[200px]">
+                  <div className="flex flex-col items-end justify-between ml-4 min-w-0 max-w-[40%]">
                     {conversation.last_message_at && (
                       <span className="text-xs text-muted-foreground mb-2">
                         {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
@@ -94,8 +94,8 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     )}
                     
                     {lastMessage && (
-                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border">
-                        <p className={`text-sm truncate ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'}`}>
+                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full">
+                        <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} line-clamp-2`}>
                           {lastMessage.sender_id === user?.id ? 'You: ' : ''}
                           {lastMessage.message_text}
                         </p>
