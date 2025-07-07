@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,29 +29,42 @@ import {
 export function Navigation() {
   const location = useLocation();
   const { profile, signOut } = useAuth();
-  const { isSellerMode } = useMode();
+  const { isSellerMode, toggleMode, canAccessSellerMode } = useMode();
   const { data: unreadCount = 0 } = useUnreadMessageCount();
   const userRole = profile?.role || "user";
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Define navigation items based on mode
-  const buyerNavItems = [
-    { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "consultant", "admin"] },
-    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "consultant", "admin"], hasNotification: unreadCount > 0 },
-    { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "consultant", "admin"] },
-    { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
-  ];
+  // Define navigation items - for consultants, show all three main tabs
+  const getNavItems = () => {
+    if (userRole === "consultant") {
+      return [
+        { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["consultant"] },
+        { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant"], hasNotification: unreadCount > 0 },
+        { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] },
+      ];
+    }
 
-  const sellerNavItems = [
-    { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant", "admin"] },
-    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant", "admin"], hasNotification: unreadCount > 0 },
-    { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
-  ];
+    // For other users, use the existing mode-based logic
+    const buyerNavItems = [
+      { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "admin"] },
+      { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "admin"], hasNotification: unreadCount > 0 },
+      { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
+      { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
+    ];
 
-  const currentNavItems = isSellerMode ? sellerNavItems : buyerNavItems;
-  const filteredNavItems = currentNavItems.filter(item => item.roles.includes(userRole));
+    const sellerNavItems = [
+      { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["admin"] },
+      { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["admin"], hasNotification: unreadCount > 0 },
+      { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
+    ];
+
+    return isSellerMode ? sellerNavItems : buyerNavItems;
+  };
+
+  const navItems = getNavItems();
+  const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
 
   // Mock transaction data for the balance modal
   const mockTransactions = [
@@ -134,7 +148,8 @@ export function Navigation() {
                 </div>
               )}
               
-              {profile && (
+              {/* Only show mode toggle for non-consultant users */}
+              {profile && userRole !== "consultant" && (
                 <ModeToggle />
               )}
               
