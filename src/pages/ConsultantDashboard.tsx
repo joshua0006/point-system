@@ -12,6 +12,7 @@ import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
 import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
@@ -109,10 +110,14 @@ export default function ConsultantDashboard() {
       id: "1",
       service: "Strategic Business Consultation",
       client: "John D.",
+      consultant: "You",
       date: "2024-01-20",
       time: "2:00 PM",
+      duration: "60 mins",
       points: 500,
-      type: "selling" as const
+      type: "selling" as const,
+      bookingUrl: "#",
+      status: "confirmed" as const
     },
   ];
 
@@ -123,8 +128,11 @@ export default function ConsultantDashboard() {
       consultant: "Jane S.",
       date: "2024-01-22",
       time: "3:00 PM", 
+      duration: "90 mins",
       points: 350,
-      type: "buying" as const
+      type: "buying" as const,
+      bookingUrl: "#",
+      status: "confirmed" as const
     },
   ];
 
@@ -220,7 +228,7 @@ export default function ConsultantDashboard() {
           <div>
             <div className="flex items-center space-x-3 mb-2">
               <h1 className="text-3xl font-bold text-foreground">
-                Unified Dashboard
+                Dashboard
               </h1>
               <TierBadge tier={consultantProfile.tier} />
             </div>
@@ -501,98 +509,55 @@ export default function ConsultantDashboard() {
           </Card>
         </div>
 
-        {/* Detailed Views */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* My Services Detail */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5" />
-                <span>My Services</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {servicesLoading ? (
-                <div className="text-center py-8">Loading services...</div>
-              ) : services && services.length > 0 ? (
-                <div className="space-y-4">
-                  {services.slice(0, 3).map((service) => (
-                    <div key={service.id} className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h4 className="font-semibold text-foreground">{service.title}</h4>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge variant="secondary">{service.categories?.name || 'Uncategorized'}</Badge>
-                            <Badge variant={service.is_active ? 'default' : 'secondary'}>
-                              {service.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1 font-semibold text-accent">
-                          <span>{service.price} points</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {services.length > 3 && (
-                    <div className="text-center pt-2">
-                      <p className="text-sm text-muted-foreground">
-                        +{services.length - 3} more services
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No services created yet. Click "Add Service" to get started.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* My Services Detail - Single section now */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="w-5 h-5" />
+              <span>My Services</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {servicesLoading ? (
+              <div className="text-center py-8">Loading services...</div>
+            ) : services && services.length > 0 ? (
               <div className="space-y-4">
-                {getUpcomingSessions(sessionsMode).slice(0, 2).map((session) => (
-                  <div key={session.id} className="p-4 rounded-lg border bg-card">
+                {services.slice(0, 3).map((service) => (
+                  <div key={service.id} className="p-4 rounded-lg border bg-card">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h4 className="font-semibold text-foreground">{session.service}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {sessionsMode === "selling" ? `with ${session.client}` : `with ${session.consultant}`}
-                        </p>
+                        <h4 className="font-semibold text-foreground">{service.title}</h4>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="secondary">{service.categories?.name || 'Uncategorized'}</Badge>
+                          <Badge variant={service.is_active ? 'default' : 'secondary'}>
+                            {service.is_active ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </div>
                       </div>
-                      <Badge variant="outline">{session.points} pts</Badge>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>{session.date}</span>
-                        <span>{session.time}</span>
+                      <div className="flex items-center space-x-1 font-semibold text-accent">
+                        <span>{service.price} points</span>
                       </div>
-                      <Button size="sm" variant="outline">
-                        View Details
-                      </Button>
                     </div>
                   </div>
                 ))}
-                
-                {getUpcomingSessions(sessionsMode).length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No upcoming {sessionsMode} sessions
+                {services.length > 3 && (
+                  <div className="text-center pt-2">
+                    <p className="text-sm text-muted-foreground">
+                      +{services.length - 3} more services
+                    </p>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No services created yet. Click "Add Service" to get started.
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Modals */}
         <BalanceDetailsModal
@@ -631,6 +596,12 @@ export default function ConsultantDashboard() {
           onEditService={setEditingService}
           onDeleteService={handleDeleteService}
           isLoading={servicesLoading}
+        />
+
+        <UpcomingSessionsModal
+          open={upcomingModalOpen}
+          onOpenChange={setUpcomingModalOpen}
+          sessions={[...getUpcomingSessions(sessionsMode)]}
         />
 
         {/* Create Service Dialog */}
