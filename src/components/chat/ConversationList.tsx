@@ -56,49 +56,52 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                   )}
                 </div>
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
-                      {participantName}
-                    </h4>
-                    <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 flex justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
+                        {participantName}
+                      </h4>
                       {hasUnreadMessages && (
-                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">
+                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5 ml-2">
                           {conversation.unread_count}
                         </Badge>
                       )}
-                      {conversation.last_message_at && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
-                        </span>
-                      )}
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground truncate mb-2">
+                      {conversation.service?.title}
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className="text-xs">
+                        {isSellerChat ? 'Customer' : 'Service Provider'}
+                      </Badge>
+                      
+                      <Badge 
+                        variant={conversation.status === 'active' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {conversation.status}
+                      </Badge>
                     </div>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground truncate mb-2">
-                    {conversation.service?.title}
-                  </p>
-                  
-                  {lastMessage && (
-                    <div className="mb-2">
-                      <p className={`text-sm truncate ${hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
-                        {lastMessage.sender_id === user?.id ? 'You: ' : ''}
-                        {lastMessage.message_text}
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="text-xs">
-                      {isSellerChat ? 'Customer' : 'Service Provider'}
-                    </Badge>
+                  <div className="flex flex-col items-end justify-between ml-4 min-w-0 max-w-[200px]">
+                    {conversation.last_message_at && (
+                      <span className="text-xs text-muted-foreground mb-2">
+                        {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                      </span>
+                    )}
                     
-                    <Badge 
-                      variant={conversation.status === 'active' ? 'default' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {conversation.status}
-                    </Badge>
+                    {lastMessage && (
+                      <div className="text-right">
+                        <p className={`text-sm truncate ${hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                          {lastMessage.sender_id === user?.id ? 'You: ' : ''}
+                          {lastMessage.message_text}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
