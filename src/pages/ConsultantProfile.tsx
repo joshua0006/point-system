@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { TierBadge } from '@/components/TierBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
+import { BuyerProfileHeader } from '@/components/profile/BuyerProfileHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -117,64 +118,40 @@ export default function ConsultantProfile() {
 
   const isOwnProfile = currentUserProfile?.user_id === userId;
 
+  // Transform profile data to match BuyerProfileHeader expected format
+  const transformedProfile = {
+    avatar_url: profile.avatar_url,
+    full_name: profile.full_name,
+    email: profile.email,
+    bio: profile.consultant.bio || profile.bio,
+    created_at: profile.created_at
+  };
+
+  const profileStats = {
+    experienceLevel: {
+      level: profile.consultant.tier,
+      label: profile.consultant.tier.charAt(0).toUpperCase() + profile.consultant.tier.slice(1),
+      color: profile.consultant.tier === 'platinum' ? 'bg-purple-500' : 
+             profile.consultant.tier === 'gold' ? 'bg-yellow-500' :
+             profile.consultant.tier === 'silver' ? 'bg-gray-400' : 'bg-amber-600'
+    },
+    consultationCategories: profile.consultant.expertise_areas?.map(area => ({
+      name: area,
+      count: Math.floor(Math.random() * 10) + 1 // Mock count for now
+    })) || []
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Card>
-            <CardContent className="pt-6 relative">
-              {isOwnProfile && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-4 right-4"
-                  onClick={() => setEditModalOpen(true)}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
-              
-              <div className="flex flex-col md:flex-row items-start gap-6">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={profile.avatar_url || ''} />
-                  <AvatarFallback className="text-2xl">
-                    {profile.full_name?.charAt(0) || profile.email.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold text-foreground">
-                        {profile.full_name || 'Professional Consultant'}
-                      </h1>
-                      <TierBadge tier={profile.consultant.tier} />
-                    </div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary">Consultant</Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Active since {new Date(profile.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground mb-3">
-                      {profile.consultant.bio || 'Experienced consultant ready to help with your needs'}
-                    </p>
-                    {profile.consultant.expertise_areas && profile.consultant.expertise_areas.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {profile.consultant.expertise_areas.map((area, index) => (
-                          <Badge key={index} variant="outline">{area}</Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <BuyerProfileHeader
+          profile={transformedProfile}
+          profileStats={profileStats}
+          isOwnProfile={isOwnProfile}
+          onEditClick={() => setEditModalOpen(true)}
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
