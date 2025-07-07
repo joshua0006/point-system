@@ -181,7 +181,17 @@ export function useRealtimeMessages(conversationId: string | undefined) {
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        () => {
+        async (payload) => {
+          // If someone else sent a message, mark all previous messages as read
+          if (payload.new.sender_id !== user.id) {
+            await supabase
+              .from('messages')
+              .update({ read_at: new Date().toISOString() })
+              .eq('conversation_id', conversationId)
+              .eq('sender_id', user.id)
+              .is('read_at', null);
+          }
+          
           queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
           queryClient.invalidateQueries({ queryKey: ['unread-count'] });
