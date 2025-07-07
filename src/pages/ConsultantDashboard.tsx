@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -195,29 +194,24 @@ export default function ConsultantDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Rating
-                <Star className="w-4 h-4 text-yellow-500" />
+                Performance
+                <BarChart3 className="w-4 h-4 text-success" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{consultantProfile.rating}</div>
-              <p className="text-xs text-muted-foreground">average rating</p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => setPerformanceModalOpen(true)}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Conversion
-                <Target className="w-4 h-4 text-success" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{consultantProfile.conversionRate}%</div>
-              <p className="text-xs text-muted-foreground">conversion rate</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Rating:</span>
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                    <span className="text-sm font-semibold">{consultantProfile.rating}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Conversion:</span>
+                  <span className="text-sm font-semibold">{consultantProfile.conversionRate}%</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -234,6 +228,22 @@ export default function ConsultantDashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{consultantProfile.totalReviews}</div>
               <p className="text-xs text-muted-foreground">total reviews</p>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setServicesModalOpen(true)}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-sm font-medium">
+                My Services
+                <Target className="w-4 h-4 text-accent" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{totalServices}</div>
+              <p className="text-xs text-muted-foreground">active services</p>
             </CardContent>
           </Card>
         </div>
