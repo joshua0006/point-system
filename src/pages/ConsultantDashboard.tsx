@@ -13,6 +13,7 @@ import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
 import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
+import { ServicesBookedModal } from "@/components/dashboard/ServicesBookedModal";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
@@ -30,7 +31,8 @@ import {
   ShoppingCart,
   Target,
   ArrowUpDown,
-  TrendingDown
+  TrendingDown,
+  BookOpen
 } from "lucide-react";
 
 type TimeScale = "lifetime" | "yearly" | "monthly";
@@ -53,6 +55,7 @@ export default function ConsultantDashboard() {
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
   const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
+  const [servicesBookedModalOpen, setServicesBookedModalOpen] = useState(false);
   
   // Mode states for each section
   const [earningsMode, setEarningsMode] = useState<EarningsMode>("earnings");
@@ -102,6 +105,89 @@ export default function ConsultantDashboard() {
       date: "2024-01-19",
       status: "completed"
     },
+  ];
+
+  const bookedServices = [
+    {
+      id: "1",
+      service: "HR Consultation",
+      consultant: "Maria Garcia",
+      date: "2024-01-22",
+      time: "9:00 AM",
+      duration: "30 mins",
+      status: "pending" as const,
+      points: 275
+    },
+    {
+      id: "2", 
+      service: "Technology Audit",
+      consultant: "Robert Chen",
+      date: "2024-01-18",
+      time: "2:30 PM", 
+      duration: "1.5 hours",
+      status: "confirmed" as const,
+      points: 600
+    },
+    {
+      id: "3",
+      service: "Strategic Business Consultation", 
+      consultant: "Sarah Chen",
+      date: "2024-01-15",
+      time: "2:00 PM",
+      duration: "1 hour", 
+      status: "completed" as const,
+      points: 500
+    },
+    {
+      id: "4",
+      service: "Marketing Strategy Session",
+      consultant: "John Smith", 
+      date: "2024-01-12",
+      time: "10:00 AM",
+      duration: "45 mins",
+      status: "completed" as const,
+      points: 400
+    },
+    {
+      id: "5",
+      service: "Financial Planning Workshop",
+      consultant: "Lisa Wang",
+      date: "2024-01-10", 
+      time: "3:00 PM",
+      duration: "2 hours",
+      status: "completed" as const,
+      points: 750
+    },
+    {
+      id: "6",
+      service: "Leadership Coaching",
+      consultant: "Mike Johnson",
+      date: "2024-01-08",
+      time: "11:00 AM", 
+      duration: "1 hour",
+      status: "completed" as const,
+      points: 350
+    },
+    {
+      id: "7",
+      service: "Project Management Consultation",
+      consultant: "Anna Davis",
+      date: "2024-01-05",
+      time: "4:00 PM",
+      duration: "90 mins", 
+      status: "completed" as const,
+      points: 450
+    },
+    {
+      id: "8",
+      service: "Innovation Workshop",
+      consultant: "David Lee",
+      date: "2024-01-03",
+      time: "1:00 PM",
+      duration: "2.5 hours",
+      status: "completed" as const,
+      points: 800
+    }
   ];
 
   const upcomingSellingBookings = [
@@ -399,7 +485,7 @@ export default function ConsultantDashboard() {
         </div>
 
         {/* Second Row of Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Reviews */}
           <Card 
             className="cursor-pointer hover:scale-105 transition-transform"
@@ -489,6 +575,29 @@ export default function ConsultantDashboard() {
               <p className="text-xs text-muted-foreground">scheduled sessions</p>
             </CardContent>
           </Card>
+
+          {/* All Booked Services */}
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setServicesBookedModalOpen(true)}
+          >
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center justify-between text-sm font-medium">
+                All Booked Services
+                <BookOpen className="w-4 h-4 text-primary" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-foreground">{bookedServices.length}</div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {bookedServices.filter(s => s.status === 'completed').length} completed
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* My Services Detail - Single section now */}
@@ -575,6 +684,12 @@ export default function ConsultantDashboard() {
           open={upcomingModalOpen}
           onOpenChange={setUpcomingModalOpen}
           sessions={[...getUpcomingSessions(sessionsMode)]}
+        />
+
+        <ServicesBookedModal
+          open={servicesBookedModalOpen}
+          onOpenChange={setServicesBookedModalOpen}
+          bookedServices={bookedServices}
         />
 
         {/* Create Service Dialog */}
