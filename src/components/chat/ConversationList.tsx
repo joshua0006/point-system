@@ -37,6 +37,12 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
         const hasUnreadMessages = (conversation.unread_count || 0) > 0;
         const lastMessage = conversation.last_message;
 
+        // Check if message text is long enough to need truncation
+        const messageText = lastMessage 
+          ? `${lastMessage.sender_id === user?.id ? 'You: ' : ''}${lastMessage.message_text}`
+          : '';
+        const isTextLong = messageText.length > 50; // Approximate threshold for truncation
+
         return (
           <Card 
             key={conversation.id} 
@@ -100,9 +106,11 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                             {lastMessage.sender_id === user?.id ? 'You: ' : ''}
                             {lastMessage.message_text}
                           </span>
-                          <span className="absolute right-0 bottom-0 bg-gradient-to-l from-muted/30 via-muted/30 to-transparent w-8 h-full flex items-end justify-end text-xs opacity-60">
-                            ...
-                          </span>
+                          {isTextLong && (
+                            <span className="absolute right-0 bottom-0 bg-gradient-to-l from-muted/30 via-muted/30 to-transparent w-8 h-full flex items-end justify-end text-xs opacity-60">
+                              ...
+                            </span>
+                          )}
                         </p>
                       </div>
                     )}
