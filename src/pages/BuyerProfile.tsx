@@ -18,7 +18,6 @@ import {
   Award,
   MessageSquare,
   Star,
-  TrendingUp,
   Edit,
   Target
 } from 'lucide-react';
@@ -120,7 +119,35 @@ export default function BuyerProfile() {
                         Member since {new Date(profile.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-muted-foreground">
+                    
+                    {/* Profile Description */}
+                    {profile.bio && (
+                      <p className="text-muted-foreground mb-4">
+                        {profile.bio}
+                      </p>
+                    )}
+                    
+                    {/* Consultation Areas */}
+                    {profileStats?.consultationCategories && profileStats.consultationCategories.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-muted-foreground">Consultation Areas</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {profileStats.consultationCategories.map((category, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {category.name}
+                              <span className="ml-1 bg-muted px-1 py-0.5 rounded-full text-xs">
+                                {category.count}
+                              </span>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <p className="text-muted-foreground text-sm">
                       Active marketplace participant with {profileStats?.completedBookings || 0} successful consultations
                     </p>
                   </div>
@@ -130,34 +157,8 @@ export default function BuyerProfile() {
           </Card>
         </div>
 
-        {/* Consultation Categories */}
-        {profileStats?.consultationCategories && profileStats.consultationCategories.length > 0 && (
-          <div className="mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Consultation Areas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-3">
-                  {profileStats.consultationCategories.map((category, index) => (
-                    <Badge key={index} variant="outline" className="text-sm">
-                      {category.name}
-                      <span className="ml-2 bg-muted px-1.5 py-0.5 rounded-full text-xs">
-                        {category.count}
-                      </span>
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
@@ -229,42 +230,6 @@ export default function BuyerProfile() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Activity Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              {profileStats?.completedBookings ? (
-                <div>
-                  <TrendingUp className="w-12 h-12 mx-auto mb-4 text-success" />
-                  <p className="text-lg font-medium mb-2">Active Consultation Client</p>
-                  <p className="text-muted-foreground">
-                    Has completed {profileStats.completedBookings} successful consultations
-                    {profileStats.consultationCategories.length > 0 && (
-                      <> across {profileStats.consultationCategories.length} different areas</>
-                    )}
-                  </p>
-                  <div className="mt-4 text-sm text-muted-foreground">
-                    <p>Experience Level: {profileStats.experienceLevel.label}</p>
-                    <p>Based on {profileStats.totalPointsSpent.toLocaleString()} points invested in consultations</p>
-                    <p>Typically responds to messages within {profileStats.averageResponseTimeHours} hours</p>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <User className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">New to the Platform</p>
-                  <p className="text-muted-foreground">
-                    Ready to start their consultation journey
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <EditProfileModal

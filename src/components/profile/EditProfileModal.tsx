@@ -63,7 +63,7 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
   const form = useForm({
     defaultValues: {
       full_name: profile?.full_name || '',
-      bio: consultant?.bio || '',
+      bio: profile?.bio || consultant?.bio || '',
       avatar_url: profile?.avatar_url || ''
     }
   });
@@ -75,7 +75,8 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
         .from('profiles')
         .update({
           full_name: data.full_name,
-          avatar_url: data.avatar_url
+          avatar_url: data.avatar_url,
+          bio: data.bio
         })
         .eq('user_id', profile.user_id);
 
@@ -174,61 +175,64 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
               )}
             />
 
-            {consultant && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="bio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bio</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Tell others about yourself and your expertise..."
-                          className="min-h-[80px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {consultant ? 'Bio & Expertise' : 'About Me'}
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder={consultant 
+                        ? "Tell others about yourself and your expertise..."
+                        : "Tell others about yourself, your interests, and what you're looking for in consultations..."
+                      }
+                      className="min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <div>
-                  <FormLabel>Expertise Areas</FormLabel>
-                  <div className="flex gap-2 mt-2">
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select expertise area" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories?.map((category) => (
-                          <SelectItem key={category.id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" onClick={addTag} size="sm" disabled={!selectedCategory}>
-                      Add
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="flex items-center gap-1">
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="ml-1 hover:text-destructive"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
+            {consultant && (
+              <div>
+                <FormLabel>Expertise Areas</FormLabel>
+                <div className="flex gap-2 mt-2">
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select expertise area" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" onClick={addTag} size="sm" disabled={!selectedCategory}>
+                    Add
+                  </Button>
                 </div>
-              </>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="flex items-center gap-1">
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
 
             <div className="flex gap-2 pt-4">
