@@ -3,7 +3,6 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TierBadge } from "@/components/TierBadge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceForm } from "@/components/forms/ServiceForm";
 import { EarningsModal } from "@/components/dashboard/EarningsModal";
@@ -12,8 +11,11 @@ import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModa
 import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
 import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
+import { SellerProfileHeader } from "@/components/profile/SellerProfileHeader";
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Plus, 
   DollarSign, 
@@ -33,8 +35,10 @@ type TimeScale = "lifetime" | "yearly" | "monthly";
 
 export default function SellerDashboard() {
   const { toast } = useToast();
+  const { profile: currentUserProfile } = useAuth();
   const [showAddService, setShowAddService] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
+  const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
   
   // Modal states
   const [earningsModalOpen, setEarningsModalOpen] = useState(false);
@@ -66,6 +70,25 @@ export default function SellerDashboard() {
   };
   
   const myServices = services || [];
+
+  // Mock profile stats for the header
+  const profileStats = {
+    totalServices,
+    totalEarnings: totalRevenue,
+    averageRating: 4.8,
+    serviceCategories: services?.map(service => ({
+      name: service.categories?.name || 'Uncategorized',
+      count: 1
+    })).reduce((acc, curr) => {
+      const existing = acc.find(item => item.name === curr.name);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        acc.push(curr);
+      }
+      return acc;
+    }, [] as Array<{ name: string; count: number }>) || []
+  };
 
   const recentOrders = [
     {
@@ -204,24 +227,33 @@ export default function SellerDashboard() {
     setEarningsModalOpen(false);
   };
 
+  if (!currentUserProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">Loading profile...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-3xl font-bold text-foreground">
-                  Seller Dashboard
-                </h1>
-                <TierBadge tier="platinum" />
-              </div>
-              <p className="text-muted-foreground">
-                Manage your services, track earnings, and grow your business
-              </p>
-            </div>
+        {/* Profile Header */}
+        <SellerProfileHeader
+          profile={currentUserProfile}
+          tier="platinum"
+          profileStats={profileStats}
+          isOwnProfile={true}
+          onEditClick={() => setEditProfileModalOpen(true)}
+        />
+
+        {/* Action Button */}
+        <div className="flex justify-end mb-8">
           <Button onClick={() => setShowAddService(true)} className="bg-success hover:bg-success/90">
             <Plus className="w-4 h-4 mr-2" />
             Create Service
@@ -493,6 +525,13 @@ export default function SellerDashboard() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Edit Profile Modal */}
+        <EditProfileModal
+          open={editProfileModalOpen}
+          onOpenChange={setEditProfileModalOpen}
+          profile={currentUserProfile}
+        />
 
         {/* Earnings Modal */}
         <EarningsModal
