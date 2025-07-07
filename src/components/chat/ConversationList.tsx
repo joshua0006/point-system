@@ -94,10 +94,15 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     )}
                     
                     {lastMessage && (
-                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full">
-                        <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} line-clamp-2`}>
-                          {lastMessage.sender_id === user?.id ? 'You: ' : ''}
-                          {lastMessage.message_text}
+                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full relative overflow-hidden">
+                        <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} relative`}>
+                          <span className="block truncate">
+                            {lastMessage.sender_id === user?.id ? 'You: ' : ''}
+                            {lastMessage.message_text}
+                          </span>
+                          <span className="absolute right-0 bottom-0 bg-gradient-to-l from-muted/30 via-muted/30 to-transparent w-8 h-full flex items-end justify-end text-xs opacity-60">
+                            ...
+                          </span>
                         </p>
                       </div>
                     )}
