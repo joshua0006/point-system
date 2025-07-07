@@ -86,9 +86,9 @@ export async function getBuyerProfileStats(userId: string) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 
-  // For now, set placeholder values for response rate and rating
-  // These would need message/rating tracking implementation
-  const responseRate = Math.floor(Math.random() * 20) + 80; // 80-100%
+  // For now, set placeholder values for average response time and rating
+  // These would need message tracking and rating system implementation
+  const averageResponseTimeHours = Math.floor(Math.random() * 12) + 1; // 1-12 hours
   const averageRating = 4.2 + Math.random() * 0.7; // 4.2-4.9
 
   return {
@@ -98,7 +98,7 @@ export async function getBuyerProfileStats(userId: string) {
     completedBookings,
     completionRate,
     consultationCategories,
-    responseRate,
+    averageResponseTimeHours,
     averageRating
   };
 }

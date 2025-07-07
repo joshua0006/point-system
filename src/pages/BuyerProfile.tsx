@@ -191,15 +191,15 @@ export default function BuyerProfile() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Response Rate
+                Response Time
                 <MessageSquare className="w-4 h-4 text-blue-500" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
-                {profileStats?.responseRate || 0}%
+                {profileStats?.averageResponseTimeHours || 0}h
               </div>
-              <p className="text-xs text-muted-foreground">message response</p>
+              <p className="text-xs text-muted-foreground">average response</p>
             </CardContent>
           </Card>
 
@@ -250,6 +250,7 @@ export default function BuyerProfile() {
                   <div className="mt-4 text-sm text-muted-foreground">
                     <p>Experience Level: {profileStats.experienceLevel.label}</p>
                     <p>Based on {profileStats.totalPointsSpent.toLocaleString()} points invested in consultations</p>
+                    <p>Typically responds to messages within {profileStats.averageResponseTimeHours} hours</p>
                   </div>
                 </div>
               ) : (
