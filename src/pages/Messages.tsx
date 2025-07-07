@@ -1,8 +1,10 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useConversations, Conversation } from '@/hooks/useConversations';
+import { useMarkMessagesAsRead } from '@/hooks/useMessages';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageCircle } from 'lucide-react';
 
@@ -11,10 +13,16 @@ const Messages = () => {
   const [chatOpen, setChatOpen] = useState(false);
   
   const { data: conversations = [], isLoading } = useConversations();
+  const markAsReadMutation = useMarkMessagesAsRead();
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
     setChatOpen(true);
+    
+    // Mark messages as read when conversation is opened
+    if (conversation.unread_count && conversation.unread_count > 0) {
+      markAsReadMutation.mutate(conversation.id);
+    }
   };
 
   return (

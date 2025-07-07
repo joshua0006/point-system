@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMode } from "@/contexts/ModeContext";
 import { ModeToggle } from "@/components/ModeToggle";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { useUnreadMessageCount } from "@/hooks/useMessages";
 import { useState } from "react";
 import { 
   User, 
@@ -29,6 +30,7 @@ export function Navigation() {
   const location = useLocation();
   const { profile, signOut } = useAuth();
   const { isSellerMode } = useMode();
+  const { data: unreadCount = 0 } = useUnreadMessageCount();
   const userRole = profile?.role || "user";
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
 
@@ -37,14 +39,14 @@ export function Navigation() {
   // Define navigation items based on mode
   const buyerNavItems = [
     { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "consultant", "admin"] },
-    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "consultant", "admin"] },
+    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "consultant", "admin"], hasNotification: unreadCount > 0 },
     { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "consultant", "admin"] },
     { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
   ];
 
   const sellerNavItems = [
     { path: "/seller", label: "Dashboard", icon: BarChart3, roles: ["consultant", "admin"] },
-    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant", "admin"] },
+    { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant", "admin"], hasNotification: unreadCount > 0 },
     { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
   ];
 
@@ -112,10 +114,13 @@ export function Navigation() {
                       <Button
                         variant={isActive(item.path) ? "default" : "ghost"}
                         size="sm"
-                        className="flex items-center space-x-2"
+                        className="flex items-center space-x-2 relative"
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.label}</span>
+                        {item.hasNotification && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                        )}
                       </Button>
                     </Link>
                   );
@@ -144,6 +149,12 @@ export function Navigation() {
                     <span className="font-semibold text-foreground">{profile?.points_balance?.toLocaleString() || 0}</span>
                     <span className="text-muted-foreground text-sm">points</span>
                   </div>
+                  
+                  {unreadCount > 0 && (
+                    <div className="bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 font-medium">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </div>
+                  )}
                   
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -71,6 +72,7 @@ export function useSendMessage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
     },
     onError: (error) => {
       toast({
@@ -80,6 +82,58 @@ export function useSendMessage() {
       });
       console.error('Send message error:', error);
     },
+  });
+}
+
+export function useMarkMessagesAsRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', user.id)
+        .is('read_at', null);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, conversationId) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+    },
+  });
+}
+
+export function useUnreadMessageCount() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['unread-count', user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact' })
+        .neq('sender_id', user.id)
+        .is('read_at', null)
+        .in('conversation_id', 
+          supabase
+            .from('conversations')
+            .select('id')
+            .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        );
+
+      if (error) throw error;
+      return data?.length || 0;
+    },
+    enabled: !!user,
   });
 }
 
@@ -103,6 +157,21 @@ export function useRealtimeMessages(conversationId: string | undefined) {
         () => {
           queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          queryClient.invalidateQueries({ queryKey: ['unread-count'] });
         }
       )
       .subscribe();

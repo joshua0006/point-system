@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -33,36 +34,59 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
         
         const participantName = otherParticipant?.full_name || otherParticipant?.email || 'Unknown';
         const isSellerChat = conversation.seller_id === user?.id;
+        const hasUnreadMessages = (conversation.unread_count || 0) > 0;
+        const lastMessage = conversation.last_message;
 
         return (
           <Card 
             key={conversation.id} 
-            className="cursor-pointer hover:bg-muted/50 transition-colors"
+            className={`cursor-pointer hover:bg-muted/50 transition-colors ${hasUnreadMessages ? 'ring-2 ring-primary/20' : ''}`}
             onClick={() => onSelectConversation(conversation)}
           >
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {participantName.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {participantName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {hasUnreadMessages && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background"></div>
+                  )}
+                </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-sm truncate">
+                    <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
                       {participantName}
                     </h4>
-                    {conversation.last_message_at && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {hasUnreadMessages && (
+                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">
+                          {conversation.unread_count}
+                        </Badge>
+                      )}
+                      {conversation.last_message_at && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <p className="text-sm text-muted-foreground truncate mb-2">
                     {conversation.service?.title}
                   </p>
+                  
+                  {lastMessage && (
+                    <div className="mb-2">
+                      <p className={`text-sm truncate ${hasUnreadMessages ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                        {lastMessage.sender_id === user?.id ? 'You: ' : ''}
+                        {lastMessage.message_text}
+                      </p>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between">
                     <Badge variant="secondary" className="text-xs">

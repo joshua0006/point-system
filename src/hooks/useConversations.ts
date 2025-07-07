@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +24,12 @@ export interface Conversation {
     full_name: string | null;
     email: string;
   };
+  last_message?: {
+    message_text: string;
+    sender_id: string;
+    created_at: string;
+  };
+  unread_count?: number;
 }
 
 export function useConversations() {
@@ -43,10 +48,40 @@ export function useConversations() {
           buyer_profile:profiles!conversations_buyer_id_fkey(full_name, email),
           seller_profile:profiles!conversations_seller_id_fkey(full_name, email)
         `)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
-      return data as Conversation[];
+
+      // Get last message and unread count for each conversation
+      const conversationsWithMessages = await Promise.all(
+        (data || []).map(async (conversation) => {
+          // Get last message
+          const { data: lastMessage } = await supabase
+            .from('messages')
+            .select('message_text, sender_id, created_at')
+            .eq('conversation_id', conversation.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          // Get unread count for current user
+          const { data: unreadMessages } = await supabase
+            .from('messages')
+            .select('id', { count: 'exact' })
+            .eq('conversation_id', conversation.id)
+            .neq('sender_id', user.id)
+            .is('read_at', null);
+
+          return {
+            ...conversation,
+            last_message: lastMessage,
+            unread_count: unreadMessages?.length || 0,
+          };
+        })
+      );
+
+      return conversationsWithMessages as Conversation[];
     },
     enabled: !!user,
   });
@@ -116,7 +151,6 @@ export function useExistingConversation(serviceId: string, sellerUserId: string)
     queryFn: async () => {
       if (!user) return null;
 
-      // Check for specific service conversation
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
