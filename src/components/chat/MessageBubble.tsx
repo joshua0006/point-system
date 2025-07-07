@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Message } from '@/hooks/useMessages';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageStatus } from './MessageStatus';
 
 interface MessageBubbleProps {
   message: Message;
@@ -13,7 +12,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const { user } = useAuth();
   const isOwnMessage = message.sender_id === user?.id;
   const senderName = message.sender_profile?.full_name || message.sender_profile?.email || 'Unknown';
-  const isRead = message.read_at !== null;
 
   return (
     <div className={cn(
@@ -49,10 +47,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               minute: '2-digit' 
             })}
           </span>
-          <MessageStatus 
-            isOwnMessage={isOwnMessage} 
-            isRead={isRead}
-          />
         </div>
       </div>
     </div>
