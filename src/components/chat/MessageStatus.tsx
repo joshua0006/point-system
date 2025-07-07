@@ -14,10 +14,12 @@ export function MessageStatus({ isOwnMessage, isRead, className }: MessageStatus
     return null;
   }
 
+  console.log('MessageStatus - isRead:', isRead);
+
   return (
     <div className={cn("flex items-center ml-2", className)}>
       {isRead ? (
-        <CheckCheck className={cn("h-3 w-3", isRead ? "text-blue-500" : "text-gray-400")} />
+        <CheckCheck className="h-3 w-3 text-blue-500" />
       ) : (
         <CheckCheck className="h-3 w-3 text-gray-400" />
       )}

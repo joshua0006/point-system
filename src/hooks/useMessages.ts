@@ -37,6 +37,12 @@ export function useMessages(conversationId: string | undefined) {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
+      console.log('Messages fetched:', data?.map(m => ({ 
+        id: m.id, 
+        sender_id: m.sender_id, 
+        read_at: m.read_at, 
+        message_text: m.message_text.substring(0, 20) + '...' 
+      })));
       return data as Message[];
     },
     enabled: !!conversationId && !!user,
@@ -93,6 +99,7 @@ export function useMarkMessagesAsRead() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      console.log('Marking messages as read for conversation:', conversationId);
       const { error } = await supabase
         .from('messages')
         .update({ read_at: new Date().toISOString() })
@@ -171,6 +178,8 @@ export function useRealtimeMessages(conversationId: string | undefined) {
   useEffect(() => {
     if (!conversationId || !user) return;
 
+    console.log('Setting up realtime listener for conversation:', conversationId);
+
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on(
@@ -182,15 +191,28 @@ export function useRealtimeMessages(conversationId: string | undefined) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
+          console.log('New message received:', payload.new);
+          console.log('Current user ID:', user.id);
+          console.log('Message sender ID:', payload.new.sender_id);
+          
           // If someone else sent a message, they have seen my previous messages
           // so mark my previous unread messages as read
           if (payload.new.sender_id !== user.id) {
-            await supabase
+            console.log('Marking my previous messages as read because other participant replied');
+            
+            const { data: updatedMessages, error } = await supabase
               .from('messages')
               .update({ read_at: new Date().toISOString() })
               .eq('conversation_id', conversationId)
               .eq('sender_id', user.id)
-              .is('read_at', null);
+              .is('read_at', null)
+              .select();
+
+            if (error) {
+              console.error('Error marking messages as read:', error);
+            } else {
+              console.log('Successfully marked messages as read:', updatedMessages);
+            }
           }
           
           queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
@@ -207,15 +229,7 @@ export function useRealtimeMessages(conversationId: string | undefined) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // If someone else sent a message, they have seen my previous messages
-          if (payload.new.sender_id !== user.id) {
-            await supabase
-              .from('messages')
-              .update({ read_at: new Date().toISOString() })
-              .eq('conversation_id', conversationId)
-              .eq('sender_id', user.id)
-              .is('read_at', null);
-          }
+          console.log('Message updated:', payload.new);
           
           queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
