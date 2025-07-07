@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -45,6 +46,11 @@ export function ChatWindow({ conversation, open, onOpenChange }: ChatWindowProps
 
   const participantName = otherParticipant?.full_name || otherParticipant?.email || 'Unknown';
 
+  // Handle profile enquiry title
+  const conversationTitle = conversation.service_id === 'profile-enquiry' 
+    ? 'Enquiry' 
+    : conversation.service?.title || 'Chat';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl h-[600px] flex flex-col p-0">
@@ -53,7 +59,7 @@ export function ChatWindow({ conversation, open, onOpenChange }: ChatWindowProps
             Chat with {participantName}
           </DialogTitle>
           <p className="text-sm text-muted-foreground text-left">
-            About: {conversation.service?.title}
+            About: {conversationTitle}
           </p>
         </DialogHeader>
 

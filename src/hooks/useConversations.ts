@@ -67,6 +67,22 @@ export function useCreateConversation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // For profile enquiries, we'll use a special handling
+      if (serviceId === 'profile-enquiry') {
+        const { data, error } = await supabase
+          .from('conversations')
+          .insert({
+            service_id: serviceId,
+            seller_id: sellerUserId,
+            buyer_id: user.id,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
       const { data, error } = await supabase
         .from('conversations')
         .insert({

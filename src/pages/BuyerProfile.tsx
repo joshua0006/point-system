@@ -18,11 +18,16 @@ import {
   TrendingUp,
   Edit
 } from 'lucide-react';
+import { ChatWindow } from '@/components/chat/ChatWindow';
+import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
 
 export default function BuyerProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const createConversationMutation = useCreateConversation();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['buyer-profile', userId],
@@ -57,6 +62,11 @@ export default function BuyerProfile() {
     enabled: !!userId
   });
 
+  const { data: existingConversation } = useExistingConversation(
+    'profile-enquiry', // Use a placeholder service ID for profile enquiries
+    userId || ''
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -81,6 +91,22 @@ export default function BuyerProfile() {
 
   const canMessage = currentUserProfile?.user_id !== userId && currentUserProfile?.role === 'consultant';
   const isOwnProfile = currentUserProfile?.user_id === userId;
+
+  const handleSendMessage = () => {
+    if (existingConversation) {
+      setChatOpen(true);
+    } else {
+      // Create a new conversation for profile enquiry
+      createConversationMutation.mutate({
+        serviceId: 'profile-enquiry',
+        sellerUserId: userId!,
+      }, {
+        onSuccess: () => {
+          setChatOpen(true);
+        }
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,7 +157,7 @@ export default function BuyerProfile() {
                     </div>
                     
                     {canMessage && (
-                      <Button>
+                      <Button onClick={handleSendMessage}>
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Send Message
                       </Button>
@@ -215,6 +241,12 @@ export default function BuyerProfile() {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         profile={profile}
+      />
+
+      <ChatWindow
+        conversation={existingConversation || null}
+        open={chatOpen}
+        onOpenChange={setChatOpen}
       />
     </div>
   );

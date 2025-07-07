@@ -21,12 +21,17 @@ import {
   Edit
 } from 'lucide-react';
 import { ReviewsModal } from '@/components/profile/ReviewsModal';
+import { ChatWindow } from '@/components/chat/ChatWindow';
+import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
 
 export default function ConsultantProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const createConversationMutation = useCreateConversation();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['consultant-profile', userId],
@@ -93,6 +98,11 @@ export default function ConsultantProfile() {
     enabled: !!profile?.consultant?.id
   });
 
+  const { data: existingConversation } = useExistingConversation(
+    'profile-enquiry', // Use a placeholder service ID for profile enquiries
+    userId || ''
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -117,6 +127,22 @@ export default function ConsultantProfile() {
 
   const canMessage = currentUserProfile?.user_id !== userId;
   const isOwnProfile = currentUserProfile?.user_id === userId;
+
+  const handleSendMessage = () => {
+    if (existingConversation) {
+      setChatOpen(true);
+    } else {
+      // Create a new conversation for profile enquiry
+      createConversationMutation.mutate({
+        serviceId: 'profile-enquiry',
+        sellerUserId: userId!,
+      }, {
+        onSuccess: () => {
+          setChatOpen(true);
+        }
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -174,7 +200,7 @@ export default function ConsultantProfile() {
                     </div>
                     
                     {canMessage && (
-                      <Button>
+                      <Button onClick={handleSendMessage}>
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Send Message
                       </Button>
@@ -377,6 +403,12 @@ export default function ConsultantProfile() {
         open={reviewsModalOpen}
         onOpenChange={setReviewsModalOpen}
         consultantName={profile?.full_name || 'Professional Consultant'}
+      />
+
+      <ChatWindow
+        conversation={existingConversation || null}
+        open={chatOpen}
+        onOpenChange={setChatOpen}
       />
     </div>
   );
