@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,8 @@ import UserDashboard from "./pages/UserDashboard";
 import ConsultantDashboard from "./pages/ConsultantDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import BuyerProfile from "./pages/BuyerProfile";
+import ConsultantProfile from "./pages/ConsultantProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +35,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/service/:serviceId" element={<ServiceDetail />} />
+            <Route path="/profile/buyer/:userId" element={<BuyerProfile />} />
+            <Route path="/profile/consultant/:userId" element={<ConsultantProfile />} />
             <Route path="/messages" element={
               <ProtectedRoute>
                 <Messages />
