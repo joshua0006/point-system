@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
 import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
@@ -27,7 +27,9 @@ import {
   MessageCircle,
   Clock,
   ShoppingCart,
-  Target
+  Target,
+  ArrowUpDown,
+  TrendingDown
 } from "lucide-react";
 
 type TimeScale = "lifetime" | "yearly" | "monthly";
@@ -67,7 +69,6 @@ export default function ConsultantDashboard() {
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
 
-  // Mock consultant data
   const consultantProfile = {
     name: "Sarah Chen",
     tier: "platinum" as const,
@@ -83,7 +84,6 @@ export default function ConsultantDashboard() {
     pointsBalance: 2500
   };
 
-  // Mock transaction data
   const mockTransactions = [
     {
       id: "1",
@@ -104,7 +104,6 @@ export default function ConsultantDashboard() {
     },
   ];
 
-  // Mock upcoming sessions data
   const upcomingSellingBookings = [
     {
       id: "1",
@@ -259,23 +258,35 @@ export default function ConsultantDashboard() {
             className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setEarningsModalOpen(true)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 <div className="flex items-center space-x-2">
                   <span>{getEarningsLabel(currentEarningsFilter, earningsMode)}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEarningsMode(earningsMode === "earnings" ? "spendings" : "earnings");
-                    }}
+                  <ToggleGroup 
+                    type="single" 
+                    value={earningsMode} 
+                    onValueChange={(value) => value && setEarningsMode(value as EarningsMode)}
+                    className="h-6"
                   >
-                    {earningsMode === "earnings" ? "→Spending" : "→Earning"}
-                  </Button>
+                    <ToggleGroupItem 
+                      value="earnings" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs bg-white/20 data-[state=on]:bg-white/40 data-[state=on]:text-accent-foreground"
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Earn
+                    </ToggleGroupItem>
+                    <ToggleGroupItem 
+                      value="spendings" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs bg-white/20 data-[state=on]:bg-white/40 data-[state=on]:text-accent-foreground"
+                    >
+                      <TrendingDown className="w-3 h-3 mr-1" />
+                      Spend
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
-                <TrendingUp className="w-4 h-4" />
+                <ArrowUpDown className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -289,21 +300,33 @@ export default function ConsultantDashboard() {
             className="cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setOrdersModalOpen(true)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 <div className="flex items-center space-x-2">
                   <span>{getOrdersLabel(ordersMode)}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOrdersMode(ordersMode === "selling" ? "buying" : "selling");
-                    }}
+                  <ToggleGroup 
+                    type="single" 
+                    value={ordersMode} 
+                    onValueChange={(value) => value && setOrdersMode(value as OrdersMode)}
+                    className="h-6"
                   >
-                    {ordersMode === "selling" ? "→Buy" : "→Sell"}
-                  </Button>
+                    <ToggleGroupItem 
+                      value="selling" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Sell
+                    </ToggleGroupItem>
+                    <ToggleGroupItem 
+                      value="buying" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <ShoppingCart className="w-3 h-3 mr-1" />
+                      Buy
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
                 <Users className="w-4 h-4 text-primary" />
               </CardTitle>
@@ -319,21 +342,33 @@ export default function ConsultantDashboard() {
             className="cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setPerformanceModalOpen(true)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 <div className="flex items-center space-x-2">
                   <span>Performance</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPerformanceMode(performanceMode === "seller" ? "buyer" : "seller");
-                    }}
+                  <ToggleGroup 
+                    type="single" 
+                    value={performanceMode} 
+                    onValueChange={(value) => value && setPerformanceMode(value as PerformanceMode)}
+                    className="h-6"
                   >
-                    {performanceMode === "seller" ? "→Buyer" : "→Seller"}
-                  </Button>
+                    <ToggleGroupItem 
+                      value="seller" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Sell
+                    </ToggleGroupItem>
+                    <ToggleGroupItem 
+                      value="buyer" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <ShoppingCart className="w-3 h-3 mr-1" />
+                      Buy
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
                 <BarChart3 className="w-4 h-4 text-success" />
               </CardTitle>
@@ -363,21 +398,33 @@ export default function ConsultantDashboard() {
             className="cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setReviewsModalOpen(true)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 <div className="flex items-center space-x-2">
                   <span>Reviews</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setReviewsMode(reviewsMode === "seller" ? "buyer" : "seller");
-                    }}
+                  <ToggleGroup 
+                    type="single" 
+                    value={reviewsMode} 
+                    onValueChange={(value) => value && setReviewsMode(value as ReviewsMode)}
+                    className="h-6"
                   >
-                    {reviewsMode === "seller" ? "→Buyer" : "→Seller"}
-                  </Button>
+                    <ToggleGroupItem 
+                      value="seller" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Sell
+                    </ToggleGroupItem>
+                    <ToggleGroupItem 
+                      value="buyer" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <ShoppingCart className="w-3 h-3 mr-1" />
+                      Buy
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
                 <MessageCircle className="w-4 h-4 text-primary" />
               </CardTitle>
@@ -416,21 +463,33 @@ export default function ConsultantDashboard() {
             className="cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setUpcomingModalOpen(true)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 <div className="flex items-center space-x-2">
                   <span>Upcoming Sessions</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSessionsMode(sessionsMode === "selling" ? "buying" : "selling");
-                    }}
+                  <ToggleGroup 
+                    type="single" 
+                    value={sessionsMode} 
+                    onValueChange={(value) => value && setSessionsMode(value as SessionsMode)}
+                    className="h-6"
                   >
-                    {sessionsMode === "selling" ? "→Buy" : "→Sell"}
-                  </Button>
+                    <ToggleGroupItem 
+                      value="selling" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Sell
+                    </ToggleGroupItem>
+                    <ToggleGroupItem 
+                      value="buying" 
+                      size="sm" 
+                      className="px-2 py-1 text-xs"
+                    >
+                      <ShoppingCart className="w-3 h-3 mr-1" />
+                      Buy
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
                 <Clock className="w-4 h-4 text-primary" />
               </CardTitle>
