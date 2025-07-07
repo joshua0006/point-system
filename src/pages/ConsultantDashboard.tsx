@@ -52,7 +52,6 @@ export default function ConsultantDashboard() {
   const [ordersModalOpen, setOrdersModalOpen] = useState(false);
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
-  const [servicesModalOpen, setServicesModalOpen] = useState(false);
   const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
   
   // Mode states for each section
@@ -449,23 +448,6 @@ export default function ConsultantDashboard() {
             </CardContent>
           </Card>
 
-          {/* My Services */}
-          <Card 
-            className="cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => setServicesModalOpen(true)}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm font-medium">
-                My Services
-                <Target className="w-4 h-4 text-accent" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{services?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">active services</p>
-            </CardContent>
-          </Card>
-
           {/* Upcoming Sessions */}
           <Card 
             className="cursor-pointer hover:scale-105 transition-transform"
@@ -587,15 +569,6 @@ export default function ConsultantDashboard() {
           open={reviewsModalOpen}
           onOpenChange={setReviewsModalOpen}
           reviews={[]}
-        />
-
-        <ServicesDetailsModal
-          open={servicesModalOpen}
-          onOpenChange={setServicesModalOpen}
-          services={services || []}
-          onEditService={setEditingService}
-          onDeleteService={handleDeleteService}
-          isLoading={servicesLoading}
         />
 
         <UpcomingSessionsModal
