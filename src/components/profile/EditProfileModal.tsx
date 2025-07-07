@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +44,21 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [tags, setTags] = useState<string[]>(consultant?.expertise_areas || []);
-  const [newTag, setNewTag] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  // Fetch categories for tag suggestions
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   const form = useForm({
     defaultValues: {
@@ -97,9 +118,9 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
   };
 
   const addTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag('');
+    if (selectedCategory && !tags.includes(selectedCategory)) {
+      setTags([...tags, selectedCategory]);
+      setSelectedCategory('');
     }
   };
 
@@ -176,18 +197,19 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
                 <div>
                   <FormLabel>Expertise Areas</FormLabel>
                   <div className="flex gap-2 mt-2">
-                    <Input
-                      placeholder="Add expertise area"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addTag();
-                        }
-                      }}
-                    />
-                    <Button type="button" onClick={addTag} size="sm">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select expertise area" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" onClick={addTag} size="sm" disabled={!selectedCategory}>
                       Add
                     </Button>
                   </div>
