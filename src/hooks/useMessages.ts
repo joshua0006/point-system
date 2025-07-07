@@ -182,14 +182,14 @@ export function useRealtimeMessages(conversationId: string | undefined) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // If someone else sent a message, mark all their previous unread messages as read
-          // because the current user is now seeing them
+          // If someone else sent a message, they have seen my previous messages
+          // so mark my previous unread messages as read
           if (payload.new.sender_id !== user.id) {
             await supabase
               .from('messages')
               .update({ read_at: new Date().toISOString() })
               .eq('conversation_id', conversationId)
-              .neq('sender_id', user.id)
+              .eq('sender_id', user.id)
               .is('read_at', null);
           }
           
@@ -207,13 +207,13 @@ export function useRealtimeMessages(conversationId: string | undefined) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // If someone else sent a message, mark all their previous unread messages as read
+          // If someone else sent a message, they have seen my previous messages
           if (payload.new.sender_id !== user.id) {
             await supabase
               .from('messages')
               .update({ read_at: new Date().toISOString() })
               .eq('conversation_id', conversationId)
-              .neq('sender_id', user.id)
+              .eq('sender_id', user.id)
               .is('read_at', null);
           }
           
