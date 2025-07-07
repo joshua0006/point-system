@@ -253,11 +253,13 @@ export default function BuyerProfile() {
         </div>
       </div>
 
-      <EditProfileModal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        profile={profile}
-      />
+      {profile && (
+        <EditProfileModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          profile={profile}
+        />
+      )}
     </div>
   );
 }
