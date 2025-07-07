@@ -194,6 +194,7 @@ export function useExistingConversation(serviceId: string, sellerUserId: string)
         return data;
       }
 
+      // For regular services, check for specific service conversation
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
