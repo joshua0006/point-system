@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,10 +38,6 @@ export function BuyerProfileHeader({
     <div className="mb-10">
       <Card className="border-0 shadow-lg bg-gradient-to-br from-card via-card to-muted/30 relative">
         <CardContent className="p-8">
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full -translate-y-8 translate-x-8 opacity-50 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-accent/10 to-primary/10 rounded-full translate-y-4 -translate-x-4 opacity-30 pointer-events-none" />
-          
           {/* Edit Button - Fixed positioning */}
           {isOwnProfile && (
             <div className="absolute top-6 right-6 z-20">
