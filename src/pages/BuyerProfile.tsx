@@ -1,10 +1,11 @@
-
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -14,12 +15,14 @@ import {
   Calendar, 
   Award,
   MessageCircle,
-  TrendingUp
+  TrendingUp,
+  Edit
 } from 'lucide-react';
 
 export default function BuyerProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['buyer-profile', userId],
@@ -77,6 +80,7 @@ export default function BuyerProfile() {
   }
 
   const canMessage = currentUserProfile?.user_id !== userId && currentUserProfile?.role === 'consultant';
+  const isOwnProfile = currentUserProfile?.user_id === userId;
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,7 +90,18 @@ export default function BuyerProfile() {
         {/* Header */}
         <div className="mb-8">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 relative">
+              {isOwnProfile && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-4 right-4"
+                  onClick={() => setEditModalOpen(true)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              
               <div className="flex flex-col md:flex-row items-start gap-6">
                 <Avatar className="w-24 h-24">
                   <AvatarImage src={profile.avatar_url || ''} />
@@ -195,6 +210,12 @@ export default function BuyerProfile() {
           </CardContent>
         </Card>
       </div>
+
+      <EditProfileModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        profile={profile}
+      />
     </div>
   );
 }
