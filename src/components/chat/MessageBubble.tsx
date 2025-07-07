@@ -1,7 +1,9 @@
+
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Message } from '@/hooks/useMessages';
 import { useAuth } from '@/contexts/AuthContext';
+import { MessageStatus } from './MessageStatus';
 
 interface MessageBubbleProps {
   message: Message;
@@ -11,6 +13,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const { user } = useAuth();
   const isOwnMessage = message.sender_id === user?.id;
   const senderName = message.sender_profile?.full_name || message.sender_profile?.email || 'Unknown';
+  const isRead = message.read_at !== null;
 
   return (
     <div className={cn(
@@ -28,7 +31,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         isOwnMessage ? "items-end" : "items-start"
       )}>
         <div className={cn(
-          "px-4 py-2 rounded-lg text-sm",
+          "px-4 py-2 rounded-lg text-sm relative",
           isOwnMessage 
             ? "bg-primary text-primary-foreground rounded-br-sm" 
             : "bg-muted text-foreground rounded-bl-sm"
@@ -37,13 +40,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         </div>
         
         <div className={cn(
-          "text-xs text-muted-foreground",
-          isOwnMessage ? "text-right" : "text-left"
+          "flex items-center gap-1 text-xs text-muted-foreground",
+          isOwnMessage ? "justify-end" : "justify-start"
         )}>
-          {new Date(message.created_at).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })}
+          <span>
+            {new Date(message.created_at).toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </span>
+          <MessageStatus 
+            isOwnMessage={isOwnMessage} 
+            isRead={isRead}
+          />
         </div>
       </div>
     </div>
