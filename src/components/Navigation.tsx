@@ -12,8 +12,18 @@ import {
   Wallet, 
   Search,
   MessageCircle,
-  BarChart3
+  BarChart3,
+  Menu,
+  Settings,
+  LogOut
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navigation() {
   const location = useLocation();
@@ -71,6 +81,16 @@ export function Navigation() {
     },
   ];
 
+  const getProfilePath = () => {
+    if (!profile) return "/";
+    
+    if (profile.role === "consultant") {
+      return `/profile/consultant/${profile.user_id}`;
+    } else {
+      return `/profile/buyer/${profile.user_id}`;
+    }
+  };
+
   return (
     <>
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -125,14 +145,30 @@ export function Navigation() {
                     <span className="text-muted-foreground text-sm">points</span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground hidden md:block">
-                      {profile?.full_name || profile?.email}
-                    </span>
-                    <Button variant="outline" size="sm" onClick={signOut}>
-                      Logout
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Menu className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link to={getProfilePath()} className="flex items-center space-x-2 cursor-pointer">
+                          <User className="w-4 h-4" />
+                          <span>Profile</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Settings className="w-4 h-4 mr-2" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        <span>Logout</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <div className="flex items-center gap-2">
