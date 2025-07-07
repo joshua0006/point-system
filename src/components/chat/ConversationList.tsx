@@ -58,12 +58,18 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                 
                 <div className="flex-1 min-w-0 flex justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2 mb-1">
                       <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
                         {participantName}
                       </h4>
+                      <Badge 
+                        variant={conversation.status === 'active' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {conversation.status}
+                      </Badge>
                       {hasUnreadMessages && (
-                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5 ml-2">
+                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">
                           {conversation.unread_count}
                         </Badge>
                       )}
@@ -73,16 +79,9 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                       {conversation.service?.title}
                     </p>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <Badge variant="secondary" className="text-xs">
                         {isSellerChat ? 'Customer' : 'Service Provider'}
-                      </Badge>
-                      
-                      <Badge 
-                        variant={conversation.status === 'active' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {conversation.status}
                       </Badge>
                     </div>
                   </div>
