@@ -141,6 +141,12 @@ const ServiceDetail = () => {
     }
   };
 
+  const handleConsultantClick = () => {
+    if (service?.consultant?.user_id) {
+      navigate(`/profile/consultant/${service.consultant.user_id}`);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -204,14 +210,17 @@ const ServiceDetail = () => {
                 </div>
 
                 {/* Consultant Info */}
-                <div className="flex items-center gap-4 pt-4 border-t">
+                <div 
+                  className="flex items-center gap-4 pt-4 border-t cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
+                  onClick={handleConsultantClick}
+                >
                   <Avatar className="h-12 w-12">
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {consultantName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-foreground">{consultantName}</h4>
+                    <h4 className="font-semibold text-foreground hover:text-primary transition-colors">{consultantName}</h4>
                     <div className="flex items-center gap-2">
                       <TierBadge tier={service.consultant?.tier || 'bronze'} />
                       <div className="flex items-center gap-1">
