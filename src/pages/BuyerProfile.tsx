@@ -146,10 +146,6 @@ export default function BuyerProfile() {
                         </div>
                       </div>
                     )}
-                    
-                    <p className="text-muted-foreground text-sm">
-                      Active marketplace participant with {profileStats?.completedBookings || 0} successful consultations
-                    </p>
                   </div>
                 </div>
               </div>
