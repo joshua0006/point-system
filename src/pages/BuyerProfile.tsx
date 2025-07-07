@@ -77,85 +77,110 @@ export default function BuyerProfile() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Card>
-            <CardContent className="pt-6 relative">
+        {/* Enhanced Header Section */}
+        <div className="mb-10">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-card via-card to-muted/30">
+            <CardContent className="p-8 relative">
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full -translate-y-8 translate-x-8 opacity-50" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-accent/10 to-primary/10 rounded-full translate-y-4 -translate-x-4 opacity-30" />
+              
               {isOwnProfile && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="absolute top-4 right-4"
+                  className="absolute top-6 right-6 bg-background/80 backdrop-blur-sm hover:bg-background shadow-sm z-10"
                   onClick={() => setEditModalOpen(true)}
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
                 </Button>
               )}
               
-              <div className="flex flex-col md:flex-row items-start gap-6">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={profile.avatar_url || ''} />
-                  <AvatarFallback className="text-2xl">
-                    {profile.full_name?.charAt(0) || profile.email.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex flex-col lg:flex-row items-start gap-8 relative z-10">
+                <div className="flex flex-col items-center lg:items-start">
+                  <Avatar className="w-32 h-32 ring-4 ring-background shadow-xl">
+                    <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
+                    <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-accent text-white">
+                      {profile.full_name?.charAt(0) || profile.email.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* Member since info moved under avatar */}
+                  <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    <span>Member since {new Date(profile.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
                 
-                <div className="flex-1">
-                  <div>
-                    <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
-                      <h1 className="text-3xl font-bold text-foreground">
+                <div className="flex-1 space-y-6">
+                  {/* Name and badges section */}
+                  <div className="space-y-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                      <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
                         {profile.full_name || 'Anonymous Buyer'}
                       </h1>
-                      {profileStats && (
-                        <ExperienceBadge experienceLevel={profileStats.experienceLevel} />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary">
-                        <User className="w-3 h-3 mr-1" />
-                        Buyer
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Member since {new Date(profile.created_at).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        {profileStats && (
+                          <ExperienceBadge experienceLevel={profileStats.experienceLevel} />
+                        )}
+                        <Badge variant="secondary" className="px-3 py-1">
+                          <User className="w-3 h-3 mr-2" />
+                          Buyer
+                        </Badge>
+                      </div>
                     </div>
                     
                     {/* Profile Description */}
-                    {profile.bio && (
-                      <p className="text-muted-foreground mb-4">
-                        {profile.bio}
-                      </p>
-                    )}
-                    
-                    {/* Consultation Areas */}
-                    {profileStats?.consultationCategories && profileStats.consultationCategories.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm font-medium text-muted-foreground">Consultation Areas</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {profileStats.consultationCategories.map((category, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {category.name}
-                              <span className="ml-1 bg-muted px-1 py-0.5 rounded-full text-xs">
-                                {category.count}
-                              </span>
-                            </Badge>
-                          ))}
-                        </div>
+                    {profile.bio ? (
+                      <div className="bg-muted/30 rounded-lg p-4 border-l-4 border-primary/30">
+                        <p className="text-muted-foreground leading-relaxed">
+                          {profile.bio}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/20 rounded-lg p-4 border border-dashed border-muted-foreground/20">
+                        <p className="text-muted-foreground/60 italic text-center">
+                          No bio added yet
+                        </p>
                       </div>
                     )}
                   </div>
+                  
+                  {/* Consultation Areas */}
+                  {profileStats?.consultationCategories && profileStats.consultationCategories.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Target className="w-5 h-5 text-primary" />
+                        </div>
+                        <span className="font-semibold text-foreground">Consultation Areas</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {profileStats.consultationCategories.map((category, index) => (
+                          <Badge 
+                            key={index} 
+                            variant="outline" 
+                            className="px-4 py-2 text-sm bg-background/50 hover:bg-background transition-colors"
+                          >
+                            {category.name}
+                            <span className="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
+                              {category.count}
+                            </span>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Stats */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Total Bookings
@@ -170,7 +195,7 @@ export default function BuyerProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Completion Rate
@@ -185,7 +210,7 @@ export default function BuyerProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Response Time
@@ -200,7 +225,7 @@ export default function BuyerProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Average Rating
