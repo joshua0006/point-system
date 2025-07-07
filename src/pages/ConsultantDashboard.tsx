@@ -9,15 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ServiceForm } from "@/components/forms/ServiceForm";
 import { EarningsModal } from "@/components/dashboard/EarningsModal";
 import { RecentOrdersModal } from "@/components/dashboard/RecentOrdersModal";
+import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
+import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
   Plus, 
-  DollarSign, 
+  TrendingUp, 
   Users, 
   Calendar,
-  TrendingUp,
+  Star,
   BarChart3
 } from "lucide-react";
 
@@ -27,6 +29,8 @@ export default function ConsultantDashboard() {
   const [editingService, setEditingService] = useState<any>(null);
   const [earningsModalOpen, setEarningsModalOpen] = useState(false);
   const [ordersModalOpen, setOrdersModalOpen] = useState(false);
+  const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
   
   const { data: services, isLoading: servicesLoading } = useConsultantServices();
@@ -41,7 +45,8 @@ export default function ConsultantDashboard() {
     totalEarnings: 15750,
     totalSessions: 42,
     rating: 4.8,
-    responseRate: 98
+    totalReviews: 24,
+    conversionRate: 85
   };
 
   // Calculate stats from real services
@@ -119,7 +124,7 @@ export default function ConsultantDashboard() {
           </Button>
         </div>
 
-        {/* Stats Cards - Now Clickable */}
+        {/* Updated Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground cursor-pointer hover:scale-105 transition-transform"
@@ -127,13 +132,13 @@ export default function ConsultantDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Lifetime Earnings
-                <DollarSign className="w-4 h-4" />
+                Earnings
+                <TrendingUp className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalRevenue.toLocaleString()}</div>
-              <p className="text-xs opacity-90">estimated revenue</p>
+              <p className="text-xs opacity-90">earnings over time</p>
             </CardContent>
           </Card>
 
@@ -143,39 +148,45 @@ export default function ConsultantDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Recent Orders
+                All Past Orders
                 <Users className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{activeServices}</div>
-              <p className="text-xs text-muted-foreground">active services</p>
+              <div className="text-2xl font-bold text-foreground">{consultantProfile.totalSessions}</div>
+              <p className="text-xs text-muted-foreground">completed sessions</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setPerformanceModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Average Rating
-                <TrendingUp className="w-4 h-4 text-success" />
+                Performance
+                <BarChart3 className="w-4 h-4 text-success" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{consultantProfile.rating}</div>
-              <p className="text-xs text-muted-foreground">out of 5.0</p>
+              <p className="text-xs text-muted-foreground">rating & conversion</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setReviewsModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Response Rate
-                <Calendar className="w-4 h-4 text-primary" />
+                Buyer Reviews
+                <Star className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{consultantProfile.responseRate}%</div>
-              <p className="text-xs text-muted-foreground">within 24 hours</p>
+              <div className="text-2xl font-bold text-foreground">{consultantProfile.totalReviews}</div>
+              <p className="text-xs text-muted-foreground">total reviews</p>
             </CardContent>
           </Card>
         </div>
@@ -267,7 +278,7 @@ export default function ConsultantDashboard() {
           </Card>
         </div>
 
-        {/* Modals */}
+        {/* Updated Modals */}
         <EarningsModal
           open={earningsModalOpen}
           onOpenChange={setEarningsModalOpen}
@@ -278,6 +289,20 @@ export default function ConsultantDashboard() {
           open={ordersModalOpen}
           onOpenChange={setOrdersModalOpen}
           orders={[]}
+        />
+
+        <PerformanceModal
+          open={performanceModalOpen}
+          onOpenChange={setPerformanceModalOpen}
+          rating={consultantProfile.rating}
+          conversionRate={consultantProfile.conversionRate}
+        />
+
+        <BuyerReviewsModal
+          open={reviewsModalOpen}
+          onOpenChange={setReviewsModalOpen}
+          totalReviews={consultantProfile.totalReviews}
+          averageRating={consultantProfile.rating}
         />
 
         <ServicesDetailsModal
