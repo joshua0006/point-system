@@ -19,8 +19,7 @@ import {
   Users, 
   Calendar,
   Star,
-  BarChart3,
-  Target
+  BarChart3
 } from "lucide-react";
 
 type TimeScale = "lifetime" | "yearly" | "monthly";
@@ -154,8 +153,8 @@ export default function ConsultantDashboard() {
           </Button>
         </div>
 
-        {/* Updated Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        {/* Updated Stats Cards - Only 4 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             className="bg-gradient-to-br from-accent to-accent/80 text-accent-foreground cursor-pointer hover:scale-105 transition-transform"
             onClick={() => setEarningsModalOpen(true)}
@@ -228,22 +227,6 @@ export default function ConsultantDashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{consultantProfile.totalReviews}</div>
               <p className="text-xs text-muted-foreground">total reviews</p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => setServicesModalOpen(true)}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm font-medium">
-                My Services
-                <Target className="w-4 h-4 text-accent" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{totalServices}</div>
-              <p className="text-xs text-muted-foreground">active services</p>
             </CardContent>
           </Card>
         </div>
