@@ -25,6 +25,14 @@ const Messages = () => {
     }
   };
 
+  // Mark messages as read when chat window is closed
+  const handleChatClose = (open: boolean) => {
+    if (!open && selectedConversation && selectedConversation.unread_count && selectedConversation.unread_count > 0) {
+      markAsReadMutation.mutate(selectedConversation.id);
+    }
+    setChatOpen(open);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -60,7 +68,7 @@ const Messages = () => {
       <ChatWindow
         conversation={selectedConversation}
         open={chatOpen}
-        onOpenChange={setChatOpen}
+        onOpenChange={handleChatClose}
       />
     </div>
   );

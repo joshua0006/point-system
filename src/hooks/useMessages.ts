@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -130,16 +131,34 @@ export function useUnreadMessageCount() {
       // Extract conversation IDs
       const conversationIds = conversations.map(conv => conv.id);
 
-      // Then count unread messages in those conversations
-      const { data, error } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact' })
-        .neq('sender_id', user.id)
-        .is('read_at', null)
-        .in('conversation_id', conversationIds);
+      // For each conversation, check if the last message is from someone else
+      // and count unread messages only from those conversations
+      let totalUnreadCount = 0;
 
-      if (error) throw error;
-      return data?.length || 0;
+      for (const conversationId of conversationIds) {
+        // Get the last message of this conversation
+        const { data: lastMessage } = await supabase
+          .from('messages')
+          .select('sender_id')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        // Only count unread messages if the last message is from someone else
+        if (lastMessage && lastMessage.sender_id !== user.id) {
+          const { data: unreadMessages } = await supabase
+            .from('messages')
+            .select('id', { count: 'exact' })
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', user.id)
+            .is('read_at', null);
+
+          totalUnreadCount += unreadMessages?.length || 0;
+        }
+      }
+
+      return totalUnreadCount;
     },
     enabled: !!user,
   });

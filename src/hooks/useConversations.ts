@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -65,18 +66,24 @@ export function useConversations() {
             .limit(1)
             .maybeSingle();
 
-          // Get unread count for current user
-          const { data: unreadMessages } = await supabase
-            .from('messages')
-            .select('id', { count: 'exact' })
-            .eq('conversation_id', conversation.id)
-            .neq('sender_id', user.id)
-            .is('read_at', null);
+          // Only count unread messages that are NOT from the current user
+          // AND only if the last message is from someone else
+          let unreadCount = 0;
+          if (lastMessage && lastMessage.sender_id !== user.id) {
+            const { data: unreadMessages } = await supabase
+              .from('messages')
+              .select('id', { count: 'exact' })
+              .eq('conversation_id', conversation.id)
+              .neq('sender_id', user.id)
+              .is('read_at', null);
+
+            unreadCount = unreadMessages?.length || 0;
+          }
 
           return {
             ...conversation,
             last_message: lastMessage,
-            unread_count: unreadMessages?.length || 0,
+            unread_count: unreadCount,
           };
         })
       );
