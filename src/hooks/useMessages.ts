@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -118,17 +117,26 @@ export function useUnreadMessageCount() {
     queryFn: async () => {
       if (!user) return 0;
 
+      // First get all conversation IDs for the user
+      const { data: conversations, error: conversationError } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+
+      if (conversationError) throw conversationError;
+
+      if (!conversations || conversations.length === 0) return 0;
+
+      // Extract conversation IDs
+      const conversationIds = conversations.map(conv => conv.id);
+
+      // Then count unread messages in those conversations
       const { data, error } = await supabase
         .from('messages')
         .select('id', { count: 'exact' })
         .neq('sender_id', user.id)
         .is('read_at', null)
-        .in('conversation_id', 
-          supabase
-            .from('conversations')
-            .select('id')
-            .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        );
+        .in('conversation_id', conversationIds);
 
       if (error) throw error;
       return data?.length || 0;
