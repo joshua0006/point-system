@@ -78,7 +78,9 @@ const App = () => (
               />
               <Route path="/consultant/:userId" element={<ConsultantProfile />} />
               <Route path="/buyer/:userId" element={<BuyerProfile />} />
-              <Route path="/seller/:userId" element={<SellerProfile />} />
+              <Route path="/profile/consultant/:userId" element={<ConsultantProfile />} />
+              <Route path="/profile/buyer/:userId" element={<BuyerProfile />} />
+              <Route path="/profile/seller/:userId" element={<SellerProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
