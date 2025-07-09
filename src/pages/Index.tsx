@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Users, Clock, ArrowRight, Wallet } from 'lucide-react';
+import { Star, Users, Clock, ArrowRight, Wallet, Shield, Search, TrendingUp, MessageSquare, Award, Target, Zap, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
 import heroImage from "@/assets/hero-consulting.jpg";
@@ -55,7 +55,7 @@ const Index = () => {
                 <Link to="/auth">Login</Link>
               </Button>
               <Button size="sm" asChild>
-                <Link to="/auth">Sign Up</Link>
+                <Link to="/auth">Start Free Trial</Link>
               </Button>
             </div>
           </div>
@@ -68,14 +68,14 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6">
-                Find Perfect 
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> 
-                  {" "}Consultants
+                See Expert Consultation
+                <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> 
+                  In Action
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                Connect with top-tier experts across strategy, technology, marketing, and finance. 
-                Browse services without signing up, pay with points when ready.
+                Experience the power of professional consulting with live marketplace 
+                previews and instant expert connections.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button size="lg" className="px-8" asChild>
@@ -125,61 +125,242 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Features Section */}
+      {/* Key Features Section */}
+      <div className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-6">
+              Everything You Need to Drive Results
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Powerful features designed to connect businesses with expert consultants, 
+              track progress, and deliver measurable outcomes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="text-center p-6">
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-2">Smart Consultant Matching</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Browse and filter through expert consultants by expertise, tier, and ratings. 
+                  Find the perfect match for your business needs instantly.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6">
+              <CardHeader>
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-8 h-8 text-accent" />
+                </div>
+                <CardTitle className="text-xl mb-2">Real-Time Communication</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Connect instantly with consultants through our built-in messaging system. 
+                  Schedule sessions and collaborate seamlessly in real-time.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6">
+              <CardHeader>
+                <div className="w-16 h-16 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Award className="w-8 h-8 text-success" />
+                </div>
+                <CardTitle className="text-xl mb-2">Achievement System</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Track your progress with badges, milestones, and achievements. 
+                  Complete challenges and unlock rewards as you grow your business.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6">
+              <CardHeader>
+                <div className="w-16 h-16 bg-warning/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-8 h-8 text-warning" />
+                </div>
+                <CardTitle className="text-xl mb-2">Instant Service Booking</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Book consultations with one tap. Every service booking earns points 
+                  and provides immediate access to expert guidance.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6">
+              <CardHeader>
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-2">Performance Analytics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Monitor your consultation history, track spending, and measure ROI. 
+                  Get insights that help you make better business decisions.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6">
+              <CardHeader>
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-accent" />
+                </div>
+                <CardTitle className="text-xl mb-2">Secure & Trusted</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  All consultants are verified and rated. Secure payments, data protection, 
+                  and quality assurance give you peace of mind.
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Journey Section */}
       <div className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Why Choose ConsultHub?
+            <h2 className="text-4xl font-bold text-foreground mb-6">
+              Your Journey to Success
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We make it easy to find the right expertise for your business needs
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              From discovery to transformation - experience the consultation process 
+              that drives real business results.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
+                01
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Discover Expert Consultants</h3>
+              <p className="text-muted-foreground">
+                Browse our marketplace and find consultants that match your industry, 
+                expertise needs, and budget. Filter by ratings, experience, and specializations.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
+                02
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Book & Earn Points</h3>
+              <p className="text-muted-foreground">
+                Schedule consultations using our points system. Every booking earns rewards 
+                and provides access to premium features and exclusive consultant tiers.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
+                03
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Grow & Track Progress</h3>
+              <p className="text-muted-foreground">
+                Collaborate with experts, implement strategies, and watch your business grow. 
+                Track your consultation history and measure your success over time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-6">
+              Trusted by High-Performing Teams
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              See how businesses across industries are accelerating growth with ConsultHub.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-6 h-6 text-primary" />
+            <Card className="p-6">
+              <CardContent className="pt-6">
+                <div className="flex mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-accent text-accent" />
+                  ))}
                 </div>
-                <CardTitle>Browse Freely</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Explore our marketplace of expert consultants without any signup requirements. 
-                  Find exactly what you need before committing.
-                </CardDescription>
+                <blockquote className="text-foreground mb-4 italic">
+                  "ConsultHub transformed our startup's strategy. We saw a 300% increase 
+                  in productivity within the first month of working with their consultants."
+                </blockquote>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold mr-3">
+                    SJ
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">Sarah Johnson</div>
+                    <div className="text-sm text-muted-foreground">CEO at TechCorp Solutions</div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="text-center">
-              <CardHeader>
-                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Wallet className="w-6 h-6 text-accent" />
+            <Card className="p-6">
+              <CardContent className="pt-6">
+                <div className="flex mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-accent text-accent" />
+                  ))}
                 </div>
-                <CardTitle>Points System</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Simple, transparent pricing with our points system. 
-                  No hidden fees, no complicated billing - just straightforward value.
-                </CardDescription>
+                <blockquote className="text-foreground mb-4 italic">
+                  "The quality of consultants is exceptional. The points system makes it 
+                  easy to budget and the results speak for themselves."
+                </blockquote>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-success rounded-full flex items-center justify-center text-white font-bold mr-3">
+                    MC
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">Michael Chen</div>
+                    <div className="text-sm text-muted-foreground">Team Manager at Growth Marketing Inc</div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="text-center">
-              <CardHeader>
-                <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Star className="w-6 h-6 text-success" />
+            <Card className="p-6">
+              <CardContent className="pt-6">
+                <div className="flex mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-accent text-accent" />
+                  ))}
                 </div>
-                <CardTitle>Quality Assured</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  All consultants are vetted and tiered based on experience and expertise. 
-                  Get the quality guidance your business deserves.
-                </CardDescription>
+                <blockquote className="text-foreground mb-4 italic">
+                  "Finally, a platform that makes finding expert consultants simple and 
+                  effective. The insights we gained were invaluable."
+                </blockquote>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-white font-bold mr-3">
+                    ER
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">Emily Rodriguez</div>
+                    <div className="text-sm text-muted-foreground">Operations Manager at ServicePro LLC</div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -187,39 +368,88 @@ const Index = () => {
       </div>
 
       {/* CTA Section */}
-      <div className="py-20">
+      <div className="py-20 bg-gradient-to-br from-primary/10 to-accent/10">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-foreground mb-6">
             Ready to Get Started?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses who have found their perfect consultant match
+            Join thousands of businesses who have found their perfect consultant match. 
+            Start your free trial today and discover expert guidance tailored to your needs.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="px-8" asChild>
-              <Link to="/marketplace">
-                Explore Marketplace <ArrowRight className="ml-2 w-4 h-4" />
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button size="lg" className="px-8 text-lg" asChild>
+              <Link to="/auth">
+                Start Free Trial <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="px-8" asChild>
-              <Link to="/auth">Create Account</Link>
+            <Button size="lg" variant="outline" className="px-8 text-lg" asChild>
+              <Link to="/marketplace">
+                Explore Marketplace
+              </Link>
             </Button>
           </div>
+          <p className="text-sm text-muted-foreground">
+            No credit card required • Cancel anytime • 14-day free trial
+          </p>
         </div>
       </div>
 
       {/* Footer */}
       <footer className="border-t py-12 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-primary-foreground" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
+                  <Wallet className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <span className="font-bold text-xl text-foreground">ConsultHub</span>
               </div>
-              <span className="font-bold text-xl text-foreground">ConsultHub</span>
+              <p className="text-muted-foreground mb-4">
+                Transform your business with expert consulting and real-time performance insights.
+              </p>
             </div>
-            <div className="text-sm text-muted-foreground">
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-4">Product</h3>
+              <ul className="space-y-2 text-muted-foreground">
+                <li><Link to="/marketplace" className="hover:text-foreground transition-colors">Features</Link></li>
+                <li><Link to="/auth" className="hover:text-foreground transition-colors">Pricing</Link></li>
+                <li><Link to="/marketplace" className="hover:text-foreground transition-colors">Integrations</Link></li>
+                <li><Link to="/marketplace" className="hover:text-foreground transition-colors">Security</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-4">Company</h3>
+              <ul className="space-y-2 text-muted-foreground">
+                <li><Link to="/" className="hover:text-foreground transition-colors">About</Link></li>
+                <li><Link to="/" className="hover:text-foreground transition-colors">Careers</Link></li>
+                <li><Link to="/" className="hover:text-foreground transition-colors">Contact</Link></li>
+                <li><Link to="/" className="hover:text-foreground transition-colors">Blog</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-foreground mb-4">Get Started Today</h3>
+              <p className="text-muted-foreground mb-4">
+                Join thousands of teams already boosting their performance.
+              </p>
+              <Button className="w-full" asChild>
+                <Link to="/auth">Start Free Trial</Link>
+              </Button>
+            </div>
+          </div>
+          
+          <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <div className="text-sm text-muted-foreground mb-4 md:mb-0">
               © 2024 ConsultHub. All rights reserved.
+            </div>
+            <div className="flex space-x-6 text-sm text-muted-foreground">
+              <Link to="/" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+              <Link to="/" className="hover:text-foreground transition-colors">Terms of Service</Link>
+              <Link to="/" className="hover:text-foreground transition-colors">Cookie Policy</Link>
             </div>
           </div>
         </div>
