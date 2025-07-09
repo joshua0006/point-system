@@ -67,7 +67,7 @@ const App = () => (
                 }
               />
               <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/service/:id" element={<ServiceDetail />} />
+              <Route path="/service/:serviceId" element={<ServiceDetail />} />
               <Route
                 path="/messages"
                 element={

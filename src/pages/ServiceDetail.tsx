@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -29,6 +30,9 @@ const ServiceDetail = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   
+  console.log('ServiceDetail - serviceId from params:', serviceId);
+  console.log('ServiceDetail - services data:', services);
+  
   const bookServiceMutation = useBookService((booking, serviceData) => {
     showSuccessModal({
       id: booking.id,
@@ -42,6 +46,7 @@ const ServiceDetail = () => {
   });
 
   const service = services.find(s => s.id === serviceId);
+  console.log('ServiceDetail - found service:', service);
   
   const { data: existingConversation } = useExistingConversation(
     serviceId || '', 
@@ -156,11 +161,15 @@ const ServiceDetail = () => {
   }
 
   if (!service) {
+    console.log('ServiceDetail - No service found for ID:', serviceId);
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Service not found</h1>
+          <p className="text-muted-foreground mb-4">
+            The service you're looking for doesn't exist or may have been removed.
+          </p>
           <Button onClick={() => navigate('/marketplace')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Marketplace
