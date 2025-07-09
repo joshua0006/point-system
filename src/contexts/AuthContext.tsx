@@ -132,8 +132,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setSession(null);
       setProfile(null);
+      // Redirect to homepage after logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
+      // Even if there's an error, redirect to homepage
+      window.location.href = '/';
     }
   };
 
