@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -327,8 +328,8 @@ export default function ConsultantDashboard() {
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* First Row: Point Balance, Spending/Earning, Orders Completed */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Current Point Balance */}
           <Card 
             className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground cursor-pointer hover:scale-105 transition-transform"
@@ -429,7 +430,10 @@ export default function ConsultantDashboard() {
               <p className="text-xs text-muted-foreground">total orders</p>
             </CardContent>
           </Card>
+        </div>
 
+        {/* Second Row: Performance, Reviews, Upcoming Sessions, All Booked Services */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Performance */}
           <Card 
             className="cursor-pointer hover:scale-105 transition-transform"
@@ -482,10 +486,7 @@ export default function ConsultantDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Second Row of Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Reviews */}
           <Card 
             className="cursor-pointer hover:scale-105 transition-transform"
@@ -600,7 +601,7 @@ export default function ConsultantDashboard() {
           </Card>
         </div>
 
-        {/* My Services Detail - Single section now */}
+        {/* Third Row: My Services Detail - Single section now */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
