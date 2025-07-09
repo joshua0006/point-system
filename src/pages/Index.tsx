@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Users, Clock, ArrowRight, Wallet, Shield, Search, TrendingUp, MessageSquare, Award, Target, Zap, CheckCircle } from 'lucide-react';
+import { Star, Users, Clock, ArrowRight, Wallet, Shield, Search, TrendingUp, MessageSquare, Award, Target, Zap, CheckCircle, Gift, Heart, Coins } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
 import heroImage from "@/assets/hero-consulting.jpg";
@@ -237,46 +237,89 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-6">
-              Your Journey to Success
+              Your Journey to Success - Completely Free
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From discovery to transformation - experience the consultation process 
-              that drives real business results.
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
+              Start your consultation journey at no cost and discover how you can both 
+              receive expert guidance and contribute to our community.
             </p>
+            <div className="flex items-center justify-center gap-2 text-success font-semibold">
+              <Gift className="w-5 h-5" />
+              <span>100% Free to Start • No Credit Card Required</span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <div className="text-center">
               <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
                 01
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Discover Expert Consultants</h3>
-              <p className="text-muted-foreground">
-                Browse our marketplace and find consultants that match your industry, 
-                expertise needs, and budget. Filter by ratings, experience, and specializations.
+              <h3 className="text-2xl font-bold text-foreground mb-4">Get Started Free</h3>
+              <p className="text-muted-foreground mb-4">
+                Join ConsultHub at absolutely no cost. Browse our marketplace, discover expert consultants, 
+                and start your journey with our complimentary starter points.
               </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-success">
+                <CheckCircle className="w-4 h-4" />
+                <span>Free starter points included</span>
+              </div>
             </div>
 
             <div className="text-center">
               <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
                 02
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Book & Earn Points</h3>
-              <p className="text-muted-foreground">
-                Schedule consultations using our points system. Every booking earns rewards 
-                and provides access to premium features and exclusive consultant tiers.
+              <h3 className="text-2xl font-bold text-foreground mb-4">Book & Learn</h3>
+              <p className="text-muted-foreground mb-4">
+                Use your points to book consultations with verified experts. Gain valuable insights, 
+                implement strategies, and watch your skills and business grow.
               </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-primary">
+                <Target className="w-4 h-4" />
+                <span>Expert guidance on demand</span>
+              </div>
             </div>
 
             <div className="text-center">
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
                 03
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Grow & Track Progress</h3>
-              <p className="text-muted-foreground">
-                Collaborate with experts, implement strategies, and watch your business grow. 
-                Track your consultation history and measure your success over time.
+              <h3 className="text-2xl font-bold text-foreground mb-4">Give Back & Earn</h3>
+              <p className="text-muted-foreground mb-4">
+                Share your expertise by becoming a consultant. Help others in the community 
+                while earning points to spend on your own professional development.
               </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-accent">
+                <Heart className="w-4 h-4" />
+                <span>Help others while earning rewards</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Community Impact Section */}
+          <div className="mt-16 text-center">
+            <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                Build a Thriving Knowledge Community
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                When you sign up as a consultant, you're not just earning points - you're helping create 
+                a vibrant ecosystem where knowledge flows freely and everyone grows together.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div className="flex items-center gap-2 justify-center">
+                  <Coins className="w-5 h-5 text-warning" />
+                  <span>Earn points for every consultation</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <Users className="w-5 h-5 text-primary" />
+                  <span>Build your professional network</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <TrendingUp className="w-5 h-5 text-success" />
+                  <span>Grow your reputation and skills</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
