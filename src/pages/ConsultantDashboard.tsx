@@ -201,7 +201,7 @@ export default function ConsultantDashboard() {
       duration: "60 mins",
       points: 500,
       type: "selling" as const,
-      bookingUrl: "#",
+      bookingUrl: "https://calendly.com/sarah-chen/strategic-consultation",
       status: "confirmed" as const
     },
   ];
@@ -216,7 +216,7 @@ export default function ConsultantDashboard() {
       duration: "90 mins",
       points: 350,
       type: "buying" as const,
-      bookingUrl: "#",
+      bookingUrl: "https://calendly.com/jane-smith/marketing-strategy",
       status: "confirmed" as const
     },
   ];
