@@ -43,7 +43,7 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
 
       if (bookingError) throw bookingError;
 
-      // Update user points
+      // Update user points (deduct from buyer)
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
@@ -53,8 +53,35 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
 
       if (updateError) throw updateError;
 
-      // Create transaction record
-      const { error: transactionError } = await supabase
+      // Get consultant's user_id and current points balance
+      const { data: consultant } = await supabase
+        .from('consultants')
+        .select('user_id')
+        .eq('id', consultantId)
+        .single();
+
+      if (!consultant) throw new Error('Consultant not found');
+
+      const { data: consultantProfile } = await supabase
+        .from('profiles')
+        .select('points_balance')
+        .eq('user_id', consultant.user_id)
+        .single();
+
+      if (!consultantProfile) throw new Error('Consultant profile not found');
+
+      // Add points to consultant's balance
+      const { error: consultantUpdateError } = await supabase
+        .from('profiles')
+        .update({ 
+          points_balance: consultantProfile.points_balance + price 
+        })
+        .eq('user_id', consultant.user_id);
+
+      if (consultantUpdateError) throw consultantUpdateError;
+
+      // Create transaction record for buyer (deduction)
+      const { error: buyerTransactionError } = await supabase
         .from('points_transactions')
         .insert({
           user_id: user.id,
@@ -64,7 +91,20 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
           booking_id: booking.id
         });
 
-      if (transactionError) throw transactionError;
+      if (buyerTransactionError) throw buyerTransactionError;
+
+      // Create transaction record for seller (earning)
+      const { error: sellerTransactionError } = await supabase
+        .from('points_transactions')
+        .insert({
+          user_id: consultant.user_id,
+          type: 'earning',
+          amount: price,
+          description: `Service sale: ${serviceId}`,
+          booking_id: booking.id
+        });
+
+      if (sellerTransactionError) throw sellerTransactionError;
 
       return booking;
     },
