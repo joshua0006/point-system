@@ -20,10 +20,13 @@ export const useCreateService = () => {
 
   return useMutation({
     mutationFn: async (serviceData: ServiceFormData) => {
+      console.log('Creating service with data:', serviceData);
+      
       // For demo mode, use a hardcoded demo consultant ID if user is not authenticated
       let consultantId: string;
       
       if (!user) {
+        console.log('Demo mode - looking up demo consultant');
         // Demo mode - use existing demo consultant
         const { data: demoConsultant, error: demoError } = await supabase
           .from('consultants')
@@ -35,8 +38,11 @@ export const useCreateService = () => {
           throw new Error('Demo consultant not found. Please set up demo data.');
         }
         
+        console.log('Demo consultant found:', demoConsultant);
         consultantId = demoConsultant.id;
+        console.log('Using consultant ID:', consultantId);
       } else {
+        console.log('Authenticated mode - user:', user);
         // Regular authenticated mode
         const { data: consultant, error: consultantError } = await supabase
           .from('consultants')
@@ -52,13 +58,17 @@ export const useCreateService = () => {
       }
 
       // Create the service
+      const insertData = {
+        ...serviceData,
+        consultant_id: consultantId,
+        is_active: serviceData.is_active ?? true
+      };
+      
+      console.log('Inserting service data:', insertData);
+      
       const { data, error } = await supabase
         .from('services')
-        .insert({
-          ...serviceData,
-          consultant_id: consultantId,
-          is_active: serviceData.is_active ?? true
-        })
+        .insert(insertData)
         .select()
         .single();
 
