@@ -22,9 +22,10 @@ interface BookingSuccessModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bookingDetails: BookingDetails | null;
+  onMessageConsultant?: () => void;
 }
 
-export function BookingSuccessModal({ open, onOpenChange, bookingDetails }: BookingSuccessModalProps) {
+export function BookingSuccessModal({ open, onOpenChange, bookingDetails, onMessageConsultant }: BookingSuccessModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showSessionDemo, setShowSessionDemo] = useState(false);
 
@@ -219,7 +220,7 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails }: Book
                 {currentStep < 3 ? "Session Preview (Available Soon)" : "Preview Session Experience"}
               </Button>
               
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={onMessageConsultant}>
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Message Consultant
               </Button>

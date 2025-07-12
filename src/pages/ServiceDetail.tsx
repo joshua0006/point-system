@@ -440,6 +440,7 @@ const ServiceDetail = () => {
         open={isSuccessModalOpen}
         onOpenChange={hideSuccessModal}
         bookingDetails={bookingDetails}
+        onMessageConsultant={handleMessageClick}
       />
     </div>
   );
