@@ -5,7 +5,6 @@ import { MarketplaceHero } from '@/components/marketplace/MarketplaceHero';
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
 import { ActiveFilters } from '@/components/marketplace/ActiveFilters';
 import { ServicesGrid } from '@/components/marketplace/ServicesGrid';
-import { ServicesGridSkeleton } from '@/components/marketplace/LoadingSkeleton';
 import { useServices, useCategories } from '@/hooks/useServices';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -90,16 +89,13 @@ const Marketplace = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <MarketplaceHero servicesCount={0} />
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <div className="h-8 w-64 bg-muted animate-pulse rounded mb-2" />
-            <div className="h-4 w-96 bg-muted animate-pulse rounded" />
+        
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
+            <h3 className="text-lg font-semibold mb-2">Loading Marketplace...</h3>
+            <p className="text-muted-foreground">Getting the latest services for you</p>
           </div>
-          <div className="mb-8">
-            <div className="h-20 bg-muted/30 rounded-lg animate-pulse" />
-          </div>
-          <ServicesGridSkeleton />
         </div>
       </div>
     );
@@ -116,14 +112,9 @@ const Marketplace = () => {
           <h2 className="text-3xl font-bold text-foreground mb-2">
             Available Services
           </h2>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">
-              Discover expert consultants and book services using your points
-            </p>
-            <div className="text-sm text-muted-foreground">
-              {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found
-            </div>
-          </div>
+          <p className="text-muted-foreground">
+            Discover expert consultants and book services using your points
+          </p>
         </div>
 
         <MarketplaceFilters
