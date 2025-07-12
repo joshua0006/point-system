@@ -20,17 +20,35 @@ export const useCreateService = () => {
 
   return useMutation({
     mutationFn: async (serviceData: ServiceFormData) => {
-      if (!user) throw new Error('User not authenticated');
+      // For demo mode, use a hardcoded demo consultant ID if user is not authenticated
+      let consultantId: string;
+      
+      if (!user) {
+        // Demo mode - use existing demo consultant
+        const { data: demoConsultant, error: demoError } = await supabase
+          .from('consultants')
+          .select('id')
+          .eq('user_id', '952c1a39-f9bf-4f5d-ba81-fac0ab686384') // Demo consultant user ID
+          .single();
+          
+        if (demoError || !demoConsultant) {
+          throw new Error('Demo consultant not found. Please set up demo data.');
+        }
+        
+        consultantId = demoConsultant.id;
+      } else {
+        // Regular authenticated mode
+        const { data: consultant, error: consultantError } = await supabase
+          .from('consultants')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
 
-      // First, get the consultant record
-      const { data: consultant, error: consultantError } = await supabase
-        .from('consultants')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (consultantError || !consultant) {
-        throw new Error('Consultant profile not found. Please create a consultant profile first.');
+        if (consultantError || !consultant) {
+          throw new Error('Consultant profile not found. Please create a consultant profile first.');
+        }
+        
+        consultantId = consultant.id;
       }
 
       // Create the service
@@ -38,7 +56,7 @@ export const useCreateService = () => {
         .from('services')
         .insert({
           ...serviceData,
-          consultant_id: consultant.id,
+          consultant_id: consultantId,
           is_active: serviceData.is_active ?? true
         })
         .select()
@@ -134,9 +152,10 @@ export const useConsultantServices = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['consultant-services', user?.id],
+    queryKey: ['consultant-services', user?.id || 'demo'],
     queryFn: async () => {
-      if (!user) return [];
+      // For demo mode, use the demo consultant's user ID
+      const userId = user?.id || '952c1a39-f9bf-4f5d-ba81-fac0ab686384';
 
       const { data, error } = await supabase
         .from('services')
@@ -151,13 +170,13 @@ export const useConsultantServices = () => {
             user_id
           )
         `)
-        .eq('consultants.user_id', user.id)
+        .eq('consultants.user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: true, // Always enabled now to support demo mode
   });
 };
 
