@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useBookService = (onSuccess?: (booking: any, serviceData: any) => void) => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -108,7 +108,10 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
 
       return booking;
     },
-    onSuccess: (booking, variables) => {
+    onSuccess: async (booking, variables) => {
+      // Refresh the profile in AuthContext to update points balance in UI
+      await refreshProfile();
+      
       // Call the custom success handler if provided
       if (onSuccess) {
         onSuccess(booking, variables.serviceData);
