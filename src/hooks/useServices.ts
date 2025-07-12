@@ -9,6 +9,7 @@ export interface Service {
   price: number;
   duration_minutes: number | null;
   is_active: boolean;
+  created_at: string;
   consultant: {
     id: string;
     user_id: string;
@@ -42,6 +43,7 @@ export const useServices = (categoryFilter?: string, tierFilter?: string) => {
             price,
             duration_minutes,
             is_active,
+            created_at,
             consultant_id,
             category_id,
             consultants!inner (
