@@ -61,6 +61,8 @@ export const useCreateService = () => {
       const insertData = {
         ...serviceData,
         consultant_id: consultantId,
+        category_id: serviceData.category_id || null, // Convert empty string to null
+        image_url: serviceData.image_url || null, // Convert empty string to null
         is_active: serviceData.is_active ?? true
       };
       
