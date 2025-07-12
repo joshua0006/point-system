@@ -379,6 +379,7 @@ export type Database = {
         | "refund"
         | "admin_credit"
         | "initial_credit"
+        | "earning"
       user_role: "user" | "consultant" | "admin"
     }
     CompositeTypes: {
@@ -516,6 +517,7 @@ export const Constants = {
         "refund",
         "admin_credit",
         "initial_credit",
+        "earning",
       ],
       user_role: ["user", "consultant", "admin"],
     },
