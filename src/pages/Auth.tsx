@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,14 +18,46 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading } = useAuth();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    // Check for email confirmation errors in URL
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    
+    if (error) {
+      console.log('Auth error from URL:', error, errorDescription);
+      
+      if (error === 'access_denied' || errorDescription?.includes('expired')) {
+        toast({
+          title: "Email Link Expired",
+          description: "The confirmation link has expired. Please try signing up again or request a new confirmation email.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Authentication Error",
+          description: errorDescription || "There was an issue with email confirmation. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+
     // If user is already logged in and not loading, redirect to marketplace
     if (!loading && user) {
       console.log('User already logged in, redirecting to marketplace...');
       navigate('/marketplace', { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, searchParams, toast]);
+
+  const cleanupAuthState = () => {
+    // Clean up any existing auth state to prevent conflicts
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
 
   const handleQuickDemo = async (accountType: 'buyer' | 'consultant') => {
     if (isLoading) return;
@@ -33,6 +65,9 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
+      // Clean up any existing state first
+      cleanupAuthState();
+      
       const demoEmail = `demo-${accountType}@demo.com`;
       const demoPassword = 'demo123456';
       const fullName = accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer';
@@ -77,8 +112,8 @@ const Auth = () => {
         description: `Welcome as a demo ${accountType}.`,
       });
 
-      // Redirect to marketplace
-      navigate('/marketplace', { replace: true });
+      // Force page reload to ensure clean state
+      window.location.href = '/marketplace';
       
     } catch (err: any) {
       console.error('Demo login error:', err);
@@ -116,6 +151,9 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Clean up any existing state first
+      cleanupAuthState();
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -127,28 +165,41 @@ const Auth = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign up error:', error);
+        
+        // Handle specific error cases
+        if (error.message.includes('User already registered')) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in instead or use a different email.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        throw error;
+      }
 
       if (data.user && !data.user.email_confirmed_at) {
         toast({
           title: "Account Created!",
-          description: "Please check your email to confirm your account, or continue if email confirmation is disabled.",
+          description: "Please check your email to confirm your account before signing in.",
         });
-      }
-
-      // If the user is immediately signed in (email confirmation disabled), redirect
-      if (data.user) {
+      } else if (data.user) {
+        // If email confirmation is disabled, user is immediately signed in
         toast({
           title: "Welcome!",
           description: "Your account has been created successfully.",
         });
-        navigate('/marketplace', { replace: true });
+        window.location.href = '/marketplace';
       }
       
     } catch (error: any) {
+      console.error('Sign up error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -161,6 +212,9 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Clean up any existing state first
+      cleanupAuthState();
+      
       console.log(`Attempting sign in for: ${email}`);
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -170,6 +224,26 @@ const Auth = () => {
 
       if (error) {
         console.error('Sign in error:', error);
+        
+        // Handle specific error cases
+        if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: "Email Not Confirmed",
+            description: "Please check your email and click the confirmation link before signing in. Check your spam folder if you don't see it.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Invalid Credentials",
+            description: "Please check your email and password and try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         throw error;
       }
 
@@ -180,12 +254,52 @@ const Auth = () => {
         description: "Welcome back!",
       });
       
-      navigate('/marketplace', { replace: true });
+      // Force page reload to ensure clean state
+      window.location.href = '/marketplace';
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to sign in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/marketplace`,
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Confirmation Email Sent",
+        description: "Please check your email for a new confirmation link.",
+      });
+    } catch (error: any) {
+      console.error('Resend confirmation error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend confirmation email.",
         variant: "destructive",
       });
     } finally {
@@ -292,6 +406,18 @@ const Auth = () => {
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
+                
+                <div className="text-center">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={handleResendConfirmation}
+                    disabled={isLoading}
+                    className="text-sm"
+                  >
+                    Resend confirmation email
+                  </Button>
+                </div>
               </form>
             </TabsContent>
           </Tabs>
