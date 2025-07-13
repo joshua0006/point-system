@@ -221,7 +221,7 @@ export default function ConsultantProfile() {
           </Card>
         </div>
 
-        {/* Stats */}
+        {/* Stats - Show real data only */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
@@ -276,8 +276,8 @@ export default function ConsultantProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">98%</div>
-              <p className="text-xs text-muted-foreground">within 24 hours</p>
+              <div className="text-2xl font-bold text-foreground">-</div>
+              <p className="text-xs text-muted-foreground">no data available</p>
             </CardContent>
           </Card>
         </div>
@@ -338,7 +338,7 @@ export default function ConsultantProfile() {
             </CardContent>
           </Card>
 
-          {/* Reviews/Ratings */}
+          {/* Reviews/Ratings - Show no reviews message instead of fake data */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -347,54 +347,12 @@ export default function ConsultantProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div 
-                className="cursor-pointer hover:bg-muted/50 rounded-lg p-4 -m-4 transition-colors"
-                onClick={() => setReviewsModalOpen(true)}
-              >
-                <div className="text-center py-4">
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <Star className="w-8 h-8 text-yellow-400 fill-current" />
-                    <span className="text-3xl font-bold">4.8</span>
-                  </div>
-                  <p className="text-muted-foreground mb-4">
-                    Average rating from {bookingStats?.completed || 6} reviews
-                  </p>
-                  
-                  {/* Recent Reviews Preview */}
-                  <div className="space-y-3 mb-4">
-                    <div className="text-left p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
-                          ))}
-                        </div>
-                        <span className="text-xs text-muted-foreground">Sarah J.</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        "Exceptional service! The consultant provided deep insights..."
-                      </p>
-                    </div>
-                    
-                    <div className="text-left p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
-                          ))}
-                        </div>
-                        <span className="text-xs text-muted-foreground">Michael R.</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        "Outstanding workshop! The strategies provided were..."
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm text-primary hover:text-primary/80 transition-colors">
-                    Click to view all reviews →
-                  </div>
-                </div>
+              <div className="text-center py-8 text-muted-foreground">
+                <Star className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="mb-2">No reviews yet</p>
+                <p className="text-sm">
+                  Reviews will appear here after completed bookings
+                </p>
               </div>
             </CardContent>
           </Card>
