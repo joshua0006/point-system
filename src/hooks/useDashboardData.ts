@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Transaction {
   id: string;
@@ -41,6 +43,8 @@ export interface UserStats {
 }
 
 export function useDashboardData() {
+  const { user } = useAuth();
+  
   // Modal states
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
   const [spentModalOpen, setSpentModalOpen] = useState(false);
@@ -48,182 +52,122 @@ export function useDashboardData() {
   const [completionModalOpen, setCompletionModalOpen] = useState(false);
   const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
 
-  // Mock data
-  const userStats: UserStats = {
-    totalPoints: 2450,
-    pointsSpent: 1200,
-    pointsEarned: 3650,
-    servicesBooked: 8,
-    completedSessions: 6,
+  // Data states
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalPoints: 0,
+    pointsSpent: 0,
+    pointsEarned: 0,
+    servicesBooked: 0,
+    completedSessions: 0,
+  });
+  
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [bookedServices, setBookedServices] = useState<BookedService[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<UpcomingSession[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  const fetchUserData = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch user profile for points balance
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('points_balance')
+        .eq('user_id', user.id)
+        .single();
+
+      // Fetch points transactions
+      const { data: transactions } = await supabase
+        .from('points_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      // Fetch bookings
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services!inner(title, duration_minutes),
+          consultants!inner(
+            profiles!inner(full_name)
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      // Process transactions
+      const processedTransactions: Transaction[] = (transactions || []).map(t => ({
+        id: t.id,
+        type: t.type === 'purchase' ? 'spent' : 'earned',
+        service: t.description || 'Transaction',
+        points: Math.abs(t.amount),
+        date: new Date(t.created_at).toISOString().split('T')[0],
+        status: 'completed'
+      }));
+
+      // Process bookings
+      const processedBookings: BookedService[] = (bookings || []).map(b => ({
+        id: b.id,
+        service: b.services?.title || 'Unknown Service',
+        consultant: b.consultants?.profiles?.full_name || 'Unknown Consultant',
+        date: b.scheduled_at ? new Date(b.scheduled_at).toISOString().split('T')[0] : new Date(b.created_at).toISOString().split('T')[0],
+        time: b.scheduled_at ? new Date(b.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : undefined,
+        duration: b.services?.duration_minutes ? `${b.services.duration_minutes} mins` : undefined,
+        status: b.status,
+        points: b.points_spent
+      }));
+
+      // Filter upcoming sessions (future bookings that are confirmed or pending)
+      const upcoming: UpcomingSession[] = processedBookings
+        .filter(b => {
+          const bookingDate = new Date(b.date);
+          const now = new Date();
+          return bookingDate > now && (b.status === 'confirmed' || b.status === 'pending');
+        })
+        .map(b => ({
+          ...b,
+          time: b.time || '00:00',
+          duration: b.duration || '30 mins',
+          bookingUrl: '#'
+        }));
+
+      // Calculate stats
+      const totalPoints = profile?.points_balance || 0;
+      const pointsSpent = processedTransactions
+        .filter(t => t.type === 'spent')
+        .reduce((sum, t) => sum + t.points, 0);
+      const pointsEarned = processedTransactions
+        .filter(t => t.type === 'earned')
+        .reduce((sum, t) => sum + t.points, 0);
+      const servicesBooked = processedBookings.length;
+      const completedSessions = processedBookings.filter(b => b.status === 'completed').length;
+
+      setUserStats({
+        totalPoints,
+        pointsSpent,
+        pointsEarned,
+        servicesBooked,
+        completedSessions,
+      });
+
+      setAllTransactions(processedTransactions);
+      setBookedServices(processedBookings);
+      setUpcomingBookings(upcoming);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      // Keep default empty state on error
+    }
   };
 
-  const allTransactions: Transaction[] = [
-    {
-      id: "1",
-      type: "spent",
-      service: "Strategic Business Consultation",
-      consultant: "Sarah Chen",
-      points: 500,
-      date: "2024-01-15",
-      status: "completed"
-    },
-    {
-      id: "2", 
-      type: "earned",
-      service: "Monthly Bonus",
-      points: 200,
-      date: "2024-01-01",
-      status: "completed"
-    },
-    {
-      id: "3",
-      type: "spent",
-      service: "Technical Architecture Review",
-      consultant: "Marcus Rodriguez", 
-      points: 350,
-      date: "2024-01-10",
-      status: "completed"
-    },
-    {
-      id: "4",
-      type: "earned",
-      service: "Welcome Bonus",
-      points: 1000,
-      date: "2023-12-15",
-      status: "completed"
-    },
-    {
-      id: "5",
-      type: "spent",
-      service: "Marketing Strategy Session",
-      consultant: "Emily Johnson",
-      points: 300,
-      date: "2024-01-05",
-      status: "completed"
-    },
-  ];
-
-  const spentTransactions = allTransactions.filter(t => t.type === 'spent').map(t => ({
-    ...t,
-    duration: t.points > 400 ? "1 hour" : "30 mins"
-  }));
-
-  const bookedServices: BookedService[] = [
-    {
-      id: "1",
-      service: "Strategic Business Consultation",
-      consultant: "Sarah Chen",
-      date: "2024-01-15",
-      time: "2:00 PM",
-      duration: "1 hour",
-      status: "completed",
-      points: 500
-    },
-    {
-      id: "2",
-      service: "Technical Architecture Review",
-      consultant: "Marcus Rodriguez",
-      date: "2024-01-10",
-      time: "10:00 AM",
-      duration: "45 mins",
-      status: "completed",
-      points: 350
-    },
-    {
-      id: "3",
-      service: "Marketing Strategy Session",
-      consultant: "Emily Johnson",
-      date: "2024-01-05",
-      time: "3:00 PM",
-      duration: "30 mins",
-      status: "completed",
-      points: 300
-    },
-    {
-      id: "4",
-      service: "Financial Planning",
-      consultant: "David Kim",
-      date: "2024-01-02",
-      time: "11:00 AM",
-      duration: "1 hour",
-      status: "completed",
-      points: 400
-    },
-    {
-      id: "5",
-      service: "Legal Consultation",
-      consultant: "Jennifer Liu",
-      date: "2023-12-28",
-      time: "4:00 PM",
-      duration: "30 mins",
-      status: "completed",
-      points: 250
-    },
-    {
-      id: "6",
-      service: "Product Strategy",
-      consultant: "Alex Turner",
-      date: "2023-12-25",
-      time: "1:00 PM",
-      duration: "45 mins",
-      status: "completed",
-      points: 375
-    },
-    {
-      id: "7",
-      service: "HR Consultation",
-      consultant: "Maria Garcia",
-      date: "2024-01-22",
-      time: "9:00 AM",
-      duration: "30 mins",
-      status: "pending",
-      points: 275
-    },
-    {
-      id: "8",
-      service: "Technology Audit",
-      consultant: "Robert Chen",
-      date: "2024-01-18",
-      time: "2:30 PM",
-      duration: "1.5 hours",
-      status: "confirmed",
-      points: 600
-    },
-  ];
-
-  const upcomingBookings: UpcomingSession[] = [
-    {
-      id: "1",
-      service: "Marketing Campaign Analysis",
-      consultant: "Emily Johnson",
-      date: "2024-01-20",
-      time: "2:00 PM",
-      duration: "30 mins",
-      bookingUrl: "https://calendly.com/emily-johnson/marketing",
-      status: "confirmed"
-    },
-    {
-      id: "2",
-      service: "Financial Planning & Budgeting", 
-      consultant: "David Kim",
-      date: "2024-01-25",
-      time: "10:00 AM",
-      duration: "1 hour",
-      bookingUrl: "https://calendly.com/david-kim/finance",
-      status: "pending"
-    },
-    {
-      id: "3",
-      service: "Product Roadmap Review",
-      consultant: "Alex Turner",
-      date: "2024-01-28",
-      time: "3:00 PM",
-      duration: "45 mins",
-      bookingUrl: "https://calendly.com/alex-turner/product",
-      status: "confirmed"
-    },
-  ];
-
+  const spentTransactions = allTransactions.filter(t => t.type === 'spent');
   const recentTransactions = allTransactions.slice(0, 3);
 
   return {

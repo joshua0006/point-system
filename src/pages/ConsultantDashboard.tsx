@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,8 @@ import { ServicesBookedModal } from "@/components/dashboard/ServicesBookedModal"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Plus, 
   TrendingUp, 
@@ -46,6 +47,7 @@ type SessionsMode = "selling" | "buying";
 
 export default function ConsultantDashboard() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showAddService, setShowAddService] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   
@@ -68,159 +70,118 @@ export default function ConsultantDashboard() {
   
   const [currentEarningsFilter, setCurrentEarningsFilter] = useState<TimeScale>("lifetime");
   
+  // Real data states
+  const [consultantProfile, setConsultantProfile] = useState({
+    name: "",
+    tier: "bronze" as const,
+    totalEarnings: 0,
+    totalSpendings: 0,
+    totalSessions: 0,
+    totalPurchases: 0,
+    sellerRating: 0,
+    buyerRating: 0,
+    totalSellerReviews: 0,
+    totalBuyerReviews: 0,
+    conversionRate: 0,
+    pointsBalance: 0
+  });
+
+  const [mockTransactions, setMockTransactions] = useState<any[]>([]);
+  const [bookedServices, setBookedServices] = useState<any[]>([]);
+  const [upcomingSellingBookings, setUpcomingSellingBookings] = useState<any[]>([]);
+  const [upcomingBuyingBookings, setUpcomingBuyingBookings] = useState<any[]>([]);
+  
   const { data: services, isLoading: servicesLoading } = useConsultantServices();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
 
-  const consultantProfile = {
-    name: "Sarah Chen",
-    tier: "platinum" as const,
-    totalEarnings: 15750,
-    totalSpendings: 8500,
-    totalSessions: 42,
-    totalPurchases: 18,
-    sellerRating: 4.8,
-    buyerRating: 4.6,
-    totalSellerReviews: 24,
-    totalBuyerReviews: 12,
-    conversionRate: 85,
-    pointsBalance: 2500
-  };
-
-  const mockTransactions = [
-    {
-      id: "1",
-      type: "spent" as const,
-      service: "Strategic Business Consultation",
-      consultant: "John Smith",
-      points: 500,
-      date: "2024-01-18",
-      status: "completed"
-    },
-    {
-      id: "2",
-      type: "earned" as const,
-      service: "Growth Strategy Workshop",
-      points: 350,
-      date: "2024-01-19",
-      status: "completed"
-    },
-  ];
-
-  const bookedServices = [
-    {
-      id: "1",
-      service: "HR Consultation",
-      consultant: "Maria Garcia",
-      date: "2024-01-22",
-      time: "9:00 AM",
-      duration: "30 mins",
-      status: "pending" as const,
-      points: 275
-    },
-    {
-      id: "2", 
-      service: "Technology Audit",
-      consultant: "Robert Chen",
-      date: "2024-01-18",
-      time: "2:30 PM", 
-      duration: "1.5 hours",
-      status: "confirmed" as const,
-      points: 600
-    },
-    {
-      id: "3",
-      service: "Strategic Business Consultation", 
-      consultant: "Sarah Chen",
-      date: "2024-01-15",
-      time: "2:00 PM",
-      duration: "1 hour", 
-      status: "completed" as const,
-      points: 500
-    },
-    {
-      id: "4",
-      service: "Marketing Strategy Session",
-      consultant: "John Smith", 
-      date: "2024-01-12",
-      time: "10:00 AM",
-      duration: "45 mins",
-      status: "completed" as const,
-      points: 400
-    },
-    {
-      id: "5",
-      service: "Financial Planning Workshop",
-      consultant: "Lisa Wang",
-      date: "2024-01-10", 
-      time: "3:00 PM",
-      duration: "2 hours",
-      status: "completed" as const,
-      points: 750
-    },
-    {
-      id: "6",
-      service: "Leadership Coaching",
-      consultant: "Mike Johnson",
-      date: "2024-01-08",
-      time: "11:00 AM", 
-      duration: "1 hour",
-      status: "completed" as const,
-      points: 350
-    },
-    {
-      id: "7",
-      service: "Project Management Consultation",
-      consultant: "Anna Davis",
-      date: "2024-01-05",
-      time: "4:00 PM",
-      duration: "90 mins", 
-      status: "completed" as const,
-      points: 450
-    },
-    {
-      id: "8",
-      service: "Innovation Workshop",
-      consultant: "David Lee",
-      date: "2024-01-03",
-      time: "1:00 PM",
-      duration: "2.5 hours",
-      status: "completed" as const,
-      points: 800
+  useEffect(() => {
+    if (user) {
+      fetchConsultantData();
     }
-  ];
+  }, [user]);
 
-  const upcomingSellingBookings = [
-    {
-      id: "1",
-      service: "Strategic Business Consultation",
-      client: "John D.",
-      consultant: "You",
-      date: "2024-01-20",
-      time: "2:00 PM",
-      duration: "60 mins",
-      points: 500,
-      type: "selling" as const,
-      bookingUrl: "https://calendly.com/sarah-chen/strategic-consultation",
-      status: "confirmed" as const
-    },
-  ];
+  const fetchConsultantData = async () => {
+    if (!user) return;
 
-  const upcomingBuyingBookings = [
-    {
-      id: "2",
-      service: "Marketing Strategy Session",
-      consultant: "Jane S.",
-      date: "2024-01-22",
-      time: "3:00 PM", 
-      duration: "90 mins",
-      points: 350,
-      type: "buying" as const,
-      bookingUrl: "https://calendly.com/jane-smith/marketing-strategy",
-      status: "confirmed" as const
-    },
-  ];
+    try {
+      // Fetch user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, points_balance')
+        .eq('user_id', user.id)
+        .single();
+
+      // Fetch consultant data
+      const { data: consultant } = await supabase
+        .from('consultants')
+        .select('tier')
+        .eq('user_id', user.id)
+        .single();
+
+      // Fetch points transactions
+      const { data: transactions } = await supabase
+        .from('points_transactions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Fetch bookings as buyer
+      const { data: buyerBookings } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services!inner(title, duration_minutes),
+          consultants!inner(
+            profiles!inner(full_name)
+          )
+        `)
+        .eq('user_id', user.id);
+
+      // Fetch bookings as consultant (seller)
+      const { data: sellerBookings } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services!inner(title, duration_minutes, consultant_id),
+          profiles!inner(full_name)
+        `)
+        .eq('services.consultants.user_id', user.id);
+
+      // Process data
+      const totalEarnings = (transactions || [])
+        .filter(t => t.type === 'earning')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const totalSpendings = (transactions || [])
+        .filter(t => t.type === 'purchase')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+      setConsultantProfile({
+        name: profile?.full_name || "User",
+        tier: consultant?.tier || "bronze",
+        totalEarnings,
+        totalSpendings,
+        totalSessions: sellerBookings?.length || 0,
+        totalPurchases: buyerBookings?.length || 0,
+        sellerRating: 0, // Would need review system
+        buyerRating: 0, // Would need review system
+        totalSellerReviews: 0, // Would need review system
+        totalBuyerReviews: 0, // Would need review system
+        conversionRate: 0, // Would need analytics
+        pointsBalance: profile?.points_balance || 0
+      });
+
+      // Set empty arrays for now - real data would come from the queries above
+      setMockTransactions([]);
+      setBookedServices([]);
+      setUpcomingSellingBookings([]);
+      setUpcomingBuyingBookings([]);
+
+    } catch (error) {
+      console.error('Error fetching consultant data:', error);
+    }
+  };
 
   const getEarningsLabel = (filter: TimeScale, mode: EarningsMode) => {
     const prefix = mode === "earnings" ? "Earnings" : "Spendings";
@@ -476,12 +437,12 @@ export default function ConsultantDashboard() {
                   <span className="text-sm text-muted-foreground">Rating:</span>
                   <div className="flex items-center space-x-1">
                     <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                    <span className="text-sm font-semibold">{getPerformanceData(performanceMode).rating}</span>
+                    <span className="text-sm font-semibold">{getPerformanceData(performanceMode).rating || 'N/A'}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Conversion:</span>
-                  <span className="text-sm font-semibold">{getPerformanceData(performanceMode).conversion}%</span>
+                  <span className="text-sm font-semibold">{getPerformanceData(performanceMode).conversion || 0}%</span>
                 </div>
               </div>
             </CardContent>
@@ -528,7 +489,7 @@ export default function ConsultantDashboard() {
                 <div className="text-2xl font-bold text-foreground">{getReviewsData(reviewsMode).count}</div>
                 <div className="flex items-center space-x-1">
                   <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                  <span className="text-sm font-semibold">{getReviewsData(reviewsMode).rating}</span>
+                  <span className="text-sm font-semibold">{getReviewsData(reviewsMode).rating || 'N/A'}</span>
                   <span className="text-xs text-muted-foreground">average</span>
                 </div>
               </div>
