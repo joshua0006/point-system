@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -89,18 +90,23 @@ export function useDashboardData() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Fetch bookings
+      // Fetch bookings with proper joins
       const { data: bookings } = await supabase
         .from('bookings')
         .select(`
           *,
           services!inner(title, duration_minutes),
-          consultants!inner(
-            profiles!inner(full_name)
-          )
+          consultants!inner(user_id)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+
+      // Get consultant profiles separately
+      const consultantUserIds = bookings?.map(b => b.consultants?.user_id).filter(Boolean) || [];
+      const { data: consultantProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', consultantUserIds);
 
       // Process transactions
       const processedTransactions: Transaction[] = (transactions || []).map(t => ({
@@ -113,18 +119,21 @@ export function useDashboardData() {
       }));
 
       // Process bookings
-      const processedBookings: BookedService[] = (bookings || []).map(b => ({
-        id: b.id,
-        service: b.services?.title || 'Unknown Service',
-        consultant: b.consultants?.profiles?.full_name || 'Unknown Consultant',
-        date: b.scheduled_at ? new Date(b.scheduled_at).toISOString().split('T')[0] : new Date(b.created_at).toISOString().split('T')[0],
-        time: b.scheduled_at ? new Date(b.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : undefined,
-        duration: b.services?.duration_minutes ? `${b.services.duration_minutes} mins` : undefined,
-        status: b.status,
-        points: b.points_spent
-      }));
+      const processedBookings: BookedService[] = (bookings || []).map(b => {
+        const consultantProfile = consultantProfiles?.find(p => p.user_id === b.consultants?.user_id);
+        return {
+          id: b.id,
+          service: b.services?.title || 'Unknown Service',
+          consultant: consultantProfile?.full_name || 'Unknown Consultant',
+          date: b.scheduled_at ? new Date(b.scheduled_at).toISOString().split('T')[0] : new Date(b.created_at).toISOString().split('T')[0],
+          time: b.scheduled_at ? new Date(b.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : undefined,
+          duration: b.services?.duration_minutes ? `${b.services.duration_minutes} mins` : undefined,
+          status: b.status,
+          points: b.points_spent
+        };
+      });
 
-      // Filter upcoming sessions (future bookings that are confirmed or pending)
+      // Filter upcoming sessions (future bookings that are confirmed or pending only)
       const upcoming: UpcomingSession[] = processedBookings
         .filter(b => {
           const bookingDate = new Date(b.date);
@@ -132,10 +141,15 @@ export function useDashboardData() {
           return bookingDate > now && (b.status === 'confirmed' || b.status === 'pending');
         })
         .map(b => ({
-          ...b,
+          id: b.id,
+          service: b.service,
+          consultant: b.consultant,
+          date: b.date,
           time: b.time || '00:00',
           duration: b.duration || '30 mins',
-          bookingUrl: '#'
+          bookingUrl: '#',
+          status: b.status as 'confirmed' | 'pending',
+          points: b.points
         }));
 
       // Calculate stats

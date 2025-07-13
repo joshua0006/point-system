@@ -73,7 +73,7 @@ export default function ConsultantDashboard() {
   // Real data states
   const [consultantProfile, setConsultantProfile] = useState({
     name: "",
-    tier: "bronze" as const,
+    tier: "bronze" as "bronze" | "silver" | "gold" | "platinum",
     totalEarnings: 0,
     totalSpendings: 0,
     totalSessions: 0,
@@ -132,21 +132,18 @@ export default function ConsultantDashboard() {
         .select(`
           *,
           services!inner(title, duration_minutes),
-          consultants!inner(
-            profiles!inner(full_name)
-          )
+          consultants!inner(user_id)
         `)
         .eq('user_id', user.id);
 
-      // Fetch bookings as consultant (seller)
+      // Fetch bookings as consultant (seller) - need to do this through services
       const { data: sellerBookings } = await supabase
         .from('bookings')
         .select(`
           *,
-          services!inner(title, duration_minutes, consultant_id),
-          profiles!inner(full_name)
+          services!inner(title, duration_minutes, consultant_id)
         `)
-        .eq('services.consultants.user_id', user.id);
+        .eq('services.consultant_id', consultant?.id);
 
       // Process data
       const totalEarnings = (transactions || [])
@@ -159,7 +156,7 @@ export default function ConsultantDashboard() {
 
       setConsultantProfile({
         name: profile?.full_name || "User",
-        tier: consultant?.tier || "bronze",
+        tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "bronze",
         totalEarnings,
         totalSpendings,
         totalSessions: sellerBookings?.length || 0,
