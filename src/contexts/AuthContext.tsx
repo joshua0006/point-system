@@ -127,17 +127,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const cleanupAuthState = () => {
+    // Clear all auth-related keys from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Clear sessionStorage as well
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  };
+
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Clear component state
       setUser(null);
       setSession(null);
       setProfile(null);
-      // Redirect to homepage after logout
+      
+      // Attempt global sign out (fallback if it fails)
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.warn('Global signout failed, continuing with local cleanup:', err);
+      }
+      
+      // Force page reload for clean state
       window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
-      // Even if there's an error, redirect to homepage
+      // Even if there's an error, clean up and redirect
+      cleanupAuthState();
       window.location.href = '/';
     }
   };
