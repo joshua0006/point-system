@@ -35,8 +35,24 @@ export default function UserDashboard() {
   const [bookedServices, setBookedServices] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user) {
+    console.log('User state in dashboard:', user);
+    if (user?.id) {
+      console.log('User ID found, fetching data...');
       fetchConsultantData();
+    } else {
+      console.log('No user found, setting empty state');
+      // Set default empty state when no user
+      setConsultantProfile({
+        name: "Guest User",
+        tier: "bronze",
+        totalEarnings: 0,
+        totalSpendings: 0,
+        totalSessions: 0,
+        totalPurchases: 0,
+        pointsBalance: 0,
+        completionRate: 0,
+        totalServices: 0
+      });
     }
   }, [user]);
 
