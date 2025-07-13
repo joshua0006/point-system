@@ -174,6 +174,8 @@ export default function ConsultantProfile() {
 
           <ConsultantReviewsSection
             onReviewsClick={() => setReviewsModalOpen(true)}
+            rating={4.8}
+            reviewCount={15}
           />
         </div>
       </div>

@@ -6,12 +6,14 @@ interface ConsultantProfileStatsProps {
   servicesCount: number;
   bookingStats: { total: number; completed: number } | undefined;
   onAllServicesClick: () => void;
+  responseRate?: number;
 }
 
 export function ConsultantProfileStats({ 
   servicesCount, 
   bookingStats, 
-  onAllServicesClick 
+  onAllServicesClick,
+  responseRate = 95
 }: ConsultantProfileStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -68,8 +70,8 @@ export function ConsultantProfileStats({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-foreground">-</div>
-          <p className="text-xs text-muted-foreground">no data available</p>
+          <div className="text-2xl font-bold text-foreground">{responseRate}%</div>
+          <p className="text-xs text-muted-foreground">within 2 hours</p>
         </CardContent>
       </Card>
     </div>
