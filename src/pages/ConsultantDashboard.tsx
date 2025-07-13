@@ -113,10 +113,10 @@ export default function ConsultantDashboard() {
         .eq('user_id', user.id)
         .single();
 
-      // Fetch consultant data
+      // Fetch consultant data - include both id and tier
       const { data: consultant } = await supabase
         .from('consultants')
-        .select('tier')
+        .select('id, tier')
         .eq('user_id', user.id)
         .single();
 
