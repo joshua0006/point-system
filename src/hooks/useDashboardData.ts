@@ -33,6 +33,7 @@ export interface UpcomingSession {
   duration: string;
   bookingUrl: string;
   status: 'confirmed' | 'pending';
+  points: number;
 }
 
 export interface UserStats {
@@ -111,7 +112,7 @@ export function useDashboardData() {
       // Process transactions
       const processedTransactions: Transaction[] = (transactions || []).map(t => ({
         id: t.id,
-        type: t.type === 'purchase' ? 'spent' : 'earned',
+        type: t.amount < 0 ? 'spent' : 'earned',
         service: t.description || 'Transaction',
         points: Math.abs(t.amount),
         date: new Date(t.created_at).toISOString().split('T')[0],
@@ -169,6 +170,16 @@ export function useDashboardData() {
         pointsEarned,
         servicesBooked,
         completedSessions,
+      });
+
+      console.log('Dashboard stats:', {
+        totalPoints,
+        pointsSpent,
+        pointsEarned,
+        servicesBooked,
+        completedSessions,
+        transactionsCount: processedTransactions.length,
+        bookingsCount: processedBookings.length
       });
 
       setAllTransactions(processedTransactions);

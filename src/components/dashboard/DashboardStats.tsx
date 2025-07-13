@@ -85,10 +85,10 @@ export function DashboardStats({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">
-            {Math.round((userStats.completedSessions / userStats.servicesBooked) * 100)}%
+            {userStats.servicesBooked > 0 ? Math.round((userStats.completedSessions / userStats.servicesBooked) * 100) : 0}%
           </div>
           <Progress 
-            value={(userStats.completedSessions / userStats.servicesBooked) * 100} 
+            value={userStats.servicesBooked > 0 ? (userStats.completedSessions / userStats.servicesBooked) * 100 : 0} 
             className="mt-2" 
           />
         </CardContent>
