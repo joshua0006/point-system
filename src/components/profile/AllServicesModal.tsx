@@ -21,9 +21,16 @@ interface AllServicesModalProps {
   onOpenChange: (open: boolean) => void;
   services: Service[];
   consultantName: string;
+  onServiceDetails: (serviceId: string) => void;
 }
 
-export function AllServicesModal({ open, onOpenChange, services, consultantName }: AllServicesModalProps) {
+export function AllServicesModal({ 
+  open, 
+  onOpenChange, 
+  services, 
+  consultantName, 
+  onServiceDetails 
+}: AllServicesModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -66,7 +73,11 @@ export function AllServicesModal({ open, onOpenChange, services, consultantName 
                       <span className="text-xl">{service.price}</span>
                       <span className="text-sm text-muted-foreground">points</span>
                     </div>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => onServiceDetails(service.id)}
+                    >
                       View Details
                     </Button>
                   </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,7 @@ import { ReviewsModal } from '@/components/profile/ReviewsModal';
 export default function ConsultantProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
+  const navigate = useNavigate();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
   const [allServicesModalOpen, setAllServicesModalOpen] = useState(false);
@@ -121,6 +122,10 @@ export default function ConsultantProfile() {
   }
 
   const isOwnProfile = currentUserProfile?.user_id === userId;
+
+  const handleServiceDetails = (serviceId: string) => {
+    navigate(`/service/${serviceId}`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -316,7 +321,11 @@ export default function ConsultantProfile() {
                         <div className="flex items-center space-x-1 font-semibold text-accent">
                           <span>{service.price} points</span>
                         </div>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleServiceDetails(service.id)}
+                        >
                           View Details
                         </Button>
                       </div>
@@ -382,6 +391,7 @@ export default function ConsultantProfile() {
         onOpenChange={setAllServicesModalOpen}
         services={services || []}
         consultantName={profile?.full_name || 'Professional Consultant'}
+        onServiceDetails={handleServiceDetails}
       />
     </div>
   );
