@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -10,6 +9,7 @@ import { TierBadge } from '@/components/TierBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { BuyerProfileHeader } from '@/components/profile/BuyerProfileHeader';
 import { ConsultantTierBadge } from '@/components/profile/ConsultantTierBadge';
+import { AllServicesModal } from '@/components/profile/AllServicesModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -31,6 +31,7 @@ export default function ConsultantProfile() {
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
+  const [allServicesModalOpen, setAllServicesModalOpen] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['consultant-profile', userId],
@@ -223,7 +224,7 @@ export default function ConsultantProfile() {
 
         {/* Stats - Show real data only */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setAllServicesModalOpen(true)}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Active Services
@@ -234,7 +235,7 @@ export default function ConsultantProfile() {
               <div className="text-2xl font-bold text-foreground">
                 {services?.length || 0}
               </div>
-              <p className="text-xs text-muted-foreground">available services</p>
+              <p className="text-xs text-muted-foreground">click to view all</p>
             </CardContent>
           </Card>
 
@@ -322,10 +323,14 @@ export default function ConsultantProfile() {
                     </div>
                   ))}
                   {services.length > 3 && (
-                    <div className="text-center pt-2">
-                      <p className="text-sm text-muted-foreground">
-                        +{services.length - 3} more services available
-                      </p>
+                    <div className="text-center pt-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setAllServicesModalOpen(true)}
+                        className="w-full"
+                      >
+                        View All Services ({services.length})
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -338,8 +343,8 @@ export default function ConsultantProfile() {
             </CardContent>
           </Card>
 
-          {/* Reviews/Ratings - Show no reviews message instead of fake data */}
-          <Card>
+          {/* Reviews/Ratings */}
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setReviewsModalOpen(true)}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Star className="w-5 h-5" />
@@ -351,7 +356,7 @@ export default function ConsultantProfile() {
                 <Star className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="mb-2">No reviews yet</p>
                 <p className="text-sm">
-                  Reviews will appear here after completed bookings
+                  Click to view reviews when available
                 </p>
               </div>
             </CardContent>
@@ -369,6 +374,13 @@ export default function ConsultantProfile() {
       <ReviewsModal
         open={reviewsModalOpen}
         onOpenChange={setReviewsModalOpen}
+        consultantName={profile?.full_name || 'Professional Consultant'}
+      />
+
+      <AllServicesModal
+        open={allServicesModalOpen}
+        onOpenChange={setAllServicesModalOpen}
+        services={services || []}
         consultantName={profile?.full_name || 'Professional Consultant'}
       />
     </div>
