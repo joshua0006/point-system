@@ -169,18 +169,18 @@ export default function ConsultantDashboard() {
       const buyerRating = (buyerBookings?.length || 0) > 0 ? 4.2 : 4.1; // Always show a rating
       
       setConsultantProfile({
-        name: profile?.full_name || "User",
-        tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "bronze",
+        name: profile?.full_name || "John Consultant",
+        tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "gold",
         totalEarnings: demoEarnings,
-        totalSpendings,
+        totalSpendings: totalSpendings || 1200,
         totalSessions: demoSellerSessions,
-        totalPurchases: buyerBookings?.length || 0,
+        totalPurchases: buyerBookings?.length || 3,
         sellerRating,
         buyerRating,
         totalSellerReviews: demoCompletedSessions,
-        totalBuyerReviews: buyerBookings?.length || 0,
+        totalBuyerReviews: buyerBookings?.length || 2,
         conversionRate,
-        pointsBalance: profile?.points_balance || 0
+        pointsBalance: profile?.points_balance || 2500
       });
 
       // Create some demo transaction data if none exists
