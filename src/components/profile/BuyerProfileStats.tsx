@@ -1,3 +1,4 @@
+
 import { ProfileStatCard } from './ProfileStatCard';
 import { Calendar, Award, MessageSquare, Star } from 'lucide-react';
 
@@ -11,47 +12,55 @@ interface BuyerProfileStatsProps {
 }
 
 export function BuyerProfileStats({ profileStats }: BuyerProfileStatsProps) {
+  // Show actual data or zeros for new accounts
+  const totalBookings = profileStats?.totalBookings || 0;
+  const completionRate = profileStats?.completionRate || 0;
+  const responseTime = profileStats?.averageResponseTimeHours || 0;
+  const rating = profileStats?.averageRating || 0;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <ProfileStatCard
         title="Total Bookings"
-        value={profileStats?.totalBookings || 0}
+        value={totalBookings}
         description="services booked"
         icon={<Calendar className="w-4 h-4 text-primary" />}
       />
 
       <ProfileStatCard
         title="Completion Rate"
-        value={`${Math.round(profileStats?.completionRate || 0)}%`}
+        value={`${Math.round(completionRate)}%`}
         description="sessions completed"
         icon={<Award className="w-4 h-4 text-success" />}
       />
 
       <ProfileStatCard
         title="Response Time"
-        value={`${profileStats?.averageResponseTimeHours || 0}h`}
+        value={responseTime > 0 ? `${responseTime}h` : 'N/A'}
         description="average response"
         icon={<MessageSquare className="w-4 h-4 text-blue-500" />}
       />
 
       <ProfileStatCard
         title="Average Rating"
-        value={profileStats?.averageRating?.toFixed(1) || 'N/A'}
-        description=""
+        value={rating > 0 ? rating.toFixed(1) : 'N/A'}
+        description={rating > 0 ? "based on reviews" : "no reviews yet"}
         icon={<Star className="w-4 h-4 text-yellow-500" />}
       >
-        <div className="flex items-center mt-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`w-3 h-3 ${
-                star <= Math.round(profileStats?.averageRating || 0)
-                  ? 'text-yellow-500 fill-current'
-                  : 'text-gray-300'
-              }`}
-            />
-          ))}
-        </div>
+        {rating > 0 && (
+          <div className="flex items-center mt-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={`w-3 h-3 ${
+                  star <= Math.round(rating)
+                    ? 'text-yellow-500 fill-current'
+                    : 'text-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </ProfileStatCard>
     </div>
   );

@@ -1,104 +1,188 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export type ExperienceLevel = 'newcomer' | 'regular' | 'experienced' | 'expert';
-
 export interface ExperienceLevelInfo {
-  level: ExperienceLevel;
-  label: string;
+  level: 'Newcomer' | 'Regular' | 'Experienced' | 'Expert';
   color: string;
-  minPoints: number;
+  description: string;
 }
 
-export const experienceLevels: Record<ExperienceLevel, ExperienceLevelInfo> = {
-  newcomer: {
-    level: 'newcomer',
-    label: 'Newcomer',
-    color: 'bg-gray-500',
-    minPoints: 0
-  },
-  regular: {
-    level: 'regular', 
-    label: 'Regular',
-    color: 'bg-blue-500',
-    minPoints: 500
-  },
-  experienced: {
-    level: 'experienced',
-    label: 'Experienced', 
-    color: 'bg-purple-500',
-    minPoints: 2000
-  },
-  expert: {
-    level: 'expert',
-    label: 'Expert Client',
-    color: 'bg-gold-500',
-    minPoints: 5000
+export function getExperienceLevel(totalBookings: number = 0): ExperienceLevelInfo {
+  if (totalBookings === 0) {
+    return {
+      level: 'Newcomer',
+      color: 'bg-blue-100 text-blue-800',
+      description: 'New to the platform'
+    };
+  } else if (totalBookings < 5) {
+    return {
+      level: 'Regular',
+      color: 'bg-green-100 text-green-800',
+      description: 'Getting started'
+    };
+  } else if (totalBookings < 20) {
+    return {
+      level: 'Experienced',
+      color: 'bg-purple-100 text-purple-800',
+      description: 'Experienced user'
+    };
+  } else {
+    return {
+      level: 'Expert',
+      color: 'bg-gold-100 text-gold-800',
+      description: 'Platform expert'
+    };
   }
-};
-
-export function getExperienceLevel(totalPointsSpent: number): ExperienceLevelInfo {
-  if (totalPointsSpent >= 5000) return experienceLevels.expert;
-  if (totalPointsSpent >= 2000) return experienceLevels.experienced;
-  if (totalPointsSpent >= 500) return experienceLevels.regular;
-  return experienceLevels.newcomer;
 }
 
 export async function getBuyerProfileStats(userId: string) {
-  // Get total points spent
-  const { data: transactions } = await supabase
-    .from('points_transactions')
-    .select('amount')
-    .eq('user_id', userId)
-    .eq('type', 'purchase');
+  try {
+    // Get actual bookings for this user
+    const { data: bookings, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('user_id', userId);
 
-  const totalPointsSpent = transactions?.reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
-
-  // Get bookings with service categories
-  const { data: bookings } = await supabase
-    .from('bookings')
-    .select(`
-      *,
-      services (
-        title,
-        categories (
-          name
-        )
-      )
-    `)
-    .eq('user_id', userId);
-
-  const totalBookings = bookings?.length || 0;
-  const completedBookings = bookings?.filter(b => b.status === 'completed').length || 0;
-  const completionRate = totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
-
-  // Calculate consultation categories
-  const categoryMap = new Map<string, number>();
-  bookings?.forEach(booking => {
-    const categoryName = booking.services?.categories?.name;
-    if (categoryName) {
-      categoryMap.set(categoryName, (categoryMap.get(categoryName) || 0) + 1);
+    if (bookingsError) {
+      console.error('Error fetching bookings:', bookingsError);
+      return {
+        totalBookings: 0,
+        completionRate: 0,
+        averageResponseTimeHours: 0,
+        averageRating: 0,
+        experienceLevel: getExperienceLevel(0),
+        consultationCategories: []
+      };
     }
-  });
 
-  const consultationCategories = Array.from(categoryMap.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
+    const totalBookings = bookings?.length || 0;
+    const completedBookings = bookings?.filter(b => b.status === 'completed').length || 0;
+    const completionRate = totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
 
-  // For now, set placeholder values for average response time and rating
-  // These would need message tracking and rating system implementation
-  const averageResponseTimeHours = Math.floor(Math.random() * 12) + 1; // 1-12 hours
-  const averageRating = 4.2 + Math.random() * 0.7; // 4.2-4.9
+    // Get conversation categories for this user
+    const { data: conversations, error: conversationsError } = await supabase
+      .from('conversations')
+      .select(`
+        service_id,
+        services!inner(
+          title,
+          categories!inner(name)
+        )
+      `)
+      .eq('buyer_id', userId);
 
-  return {
-    totalPointsSpent,
-    experienceLevel: getExperienceLevel(totalPointsSpent),
-    totalBookings,
-    completedBookings,
-    completionRate,
-    consultationCategories,
-    averageResponseTimeHours,
-    averageRating
-  };
+    let consultationCategories: Array<{ name: string; count: number }> = [];
+    
+    if (!conversationsError && conversations) {
+      const categoryMap = new Map<string, number>();
+      
+      conversations.forEach(conv => {
+        const categoryName = conv.services?.categories?.name;
+        if (categoryName) {
+          categoryMap.set(categoryName, (categoryMap.get(categoryName) || 0) + 1);
+        }
+      });
+      
+      consultationCategories = Array.from(categoryMap.entries()).map(([name, count]) => ({
+        name,
+        count
+      }));
+    }
+
+    return {
+      totalBookings,
+      completionRate,
+      averageResponseTimeHours: 0, // Real calculation would need message timestamps
+      averageRating: 0, // Real calculation would need review system
+      experienceLevel: getExperienceLevel(totalBookings),
+      consultationCategories
+    };
+  } catch (error) {
+    console.error('Error calculating buyer profile stats:', error);
+    return {
+      totalBookings: 0,
+      completionRate: 0,
+      averageResponseTimeHours: 0,
+      averageRating: 0,
+      experienceLevel: getExperienceLevel(0),
+      consultationCategories: []
+    };
+  }
+}
+
+export async function getConsultantProfileStats(userId: string) {
+  try {
+    // Get consultant data
+    const { data: consultant, error: consultantError } = await supabase
+      .from('consultants')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+
+    if (consultantError || !consultant) {
+      return {
+        totalBookings: 0,
+        completionRate: 0,
+        averageResponseTimeHours: 0,
+        averageRating: 0,
+        totalEarnings: 0,
+        activeServices: 0,
+        experienceLevel: getExperienceLevel(0)
+      };
+    }
+
+    // Get bookings for this consultant
+    const { data: bookings, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('consultant_id', consultant.id);
+
+    if (bookingsError) {
+      console.error('Error fetching consultant bookings:', bookingsError);
+      return {
+        totalBookings: 0,
+        completionRate: 0,
+        averageResponseTimeHours: 0,
+        averageRating: 0,
+        totalEarnings: 0,
+        activeServices: 0,
+        experienceLevel: getExperienceLevel(0)
+      };
+    }
+
+    const totalBookings = bookings?.length || 0;
+    const completedBookings = bookings?.filter(b => b.status === 'completed').length || 0;
+    const completionRate = totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
+    const totalEarnings = bookings?.reduce((sum, booking) => sum + (booking.points_spent || 0), 0) || 0;
+
+    // Get active services count
+    const { data: services, error: servicesError } = await supabase
+      .from('services')
+      .select('id')
+      .eq('consultant_id', consultant.id)
+      .eq('is_active', true);
+
+    const activeServices = services?.length || 0;
+
+    return {
+      totalBookings,
+      completionRate,
+      averageResponseTimeHours: 0, // Real calculation would need message timestamps
+      averageRating: 0, // Real calculation would need review system
+      totalEarnings,
+      activeServices,
+      experienceLevel: getExperienceLevel(totalBookings)
+    };
+  } catch (error) {
+    console.error('Error calculating consultant profile stats:', error);
+    return {
+      totalBookings: 0,
+      completionRate: 0,
+      averageResponseTimeHours: 0,
+      averageRating: 0,
+      totalEarnings: 0,
+      activeServices: 0,
+      experienceLevel: getExperienceLevel(0)
+    };
+  }
 }
