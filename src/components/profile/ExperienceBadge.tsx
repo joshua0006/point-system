@@ -17,7 +17,7 @@ export function ExperienceBadge({ experienceLevel, className }: ExperienceBadgeP
         className
       )}
     >
-      {experienceLevel.label}
+      {experienceLevel.level}
     </Badge>
   );
 }
