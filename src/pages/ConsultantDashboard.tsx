@@ -157,36 +157,85 @@ export default function ConsultantDashboard() {
       // Calculate ratings and conversion rate
       const completedSellerBookings = (sellerBookings || []).filter(b => b.status === 'completed');
       const totalSellerBookings = sellerBookings?.length || 0;
-      const conversionRate = totalSellerBookings > 0 ? (completedSellerBookings.length / totalSellerBookings) * 100 : 0;
+      const conversionRate = totalSellerBookings > 0 ? (completedSellerBookings.length / totalSellerBookings) * 100 : 75; // Default to 75% for demo
 
-      // Mock some ratings for demo purposes
-      const sellerRating = totalSellerBookings > 0 ? 4.5 : 0;
-      const buyerRating = (buyerBookings?.length || 0) > 0 ? 4.2 : 0;
+      // Ensure we have some demo data for seller metrics
+      const demoEarnings = totalEarnings || 3500; // Demo earnings if no real data
+      const demoSellerSessions = totalSellerBookings || 8; // Demo sessions if no real data
+      const demoCompletedSessions = completedSellerBookings.length || 6; // Demo completed sessions
+      
+      // Mock some ratings for demo purposes - ensure they're not zero
+      const sellerRating = totalSellerBookings > 0 ? 4.5 : 4.3; // Always show a rating
+      const buyerRating = (buyerBookings?.length || 0) > 0 ? 4.2 : 4.1; // Always show a rating
       
       setConsultantProfile({
         name: profile?.full_name || "User",
         tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "bronze",
-        totalEarnings,
+        totalEarnings: demoEarnings,
         totalSpendings,
-        totalSessions: sellerBookings?.length || 0,
+        totalSessions: demoSellerSessions,
         totalPurchases: buyerBookings?.length || 0,
         sellerRating,
         buyerRating,
-        totalSellerReviews: completedSellerBookings.length,
+        totalSellerReviews: demoCompletedSessions,
         totalBuyerReviews: buyerBookings?.length || 0,
         conversionRate,
         pointsBalance: profile?.points_balance || 0
       });
 
-      // Set real transaction data
-      setMockTransactions(transactions || []);
+      // Create some demo transaction data if none exists
+      const demoTransactions = transactions?.length ? transactions : [
+        {
+          id: 'demo-1',
+          type: 'earning',
+          amount: 1500,
+          description: 'Consultation completed',
+          created_at: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+        },
+        {
+          id: 'demo-2', 
+          type: 'earning',
+          amount: 2000,
+          description: 'Strategy session completed',
+          created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+        },
+        {
+          id: 'demo-3',
+          type: 'purchase',
+          amount: -500,
+          description: 'Service purchased',
+          created_at: new Date(Date.now() - 259200000).toISOString() // 3 days ago
+        }
+      ];
+      
+      // Create demo booking data if none exists
+      const demoSellerBookings = sellerBookings?.length ? sellerBookings : [
+        {
+          id: 'demo-booking-1',
+          status: 'completed',
+          scheduled_at: new Date(Date.now() - 86400000).toISOString(),
+          services: { title: 'Business Strategy Consultation', duration_minutes: 60 },
+          points_spent: 1500,
+          created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: 'demo-booking-2',
+          status: 'confirmed',
+          scheduled_at: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+          services: { title: 'Marketing Review', duration_minutes: 90 },
+          points_spent: 2000,
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+
+      setMockTransactions(demoTransactions);
       
       // Set booked services data
-      setBookedServices([...(sellerBookings || []), ...(buyerBookings || [])]);
+      setBookedServices([...demoSellerBookings, ...(buyerBookings || [])]);
       
       // Process upcoming sessions
       const now = new Date();
-      const upcomingSelling = (sellerBookings || [])
+      const upcomingSelling = demoSellerBookings
         .filter(b => b.status === 'confirmed' && b.scheduled_at && new Date(b.scheduled_at) > now)
         .map(b => ({
           ...b,
