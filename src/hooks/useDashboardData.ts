@@ -110,14 +110,20 @@ export function useDashboardData() {
         .in('user_id', consultantUserIds);
 
       // Process transactions
-      const processedTransactions: Transaction[] = (transactions || []).map(t => ({
-        id: t.id,
-        type: t.amount < 0 ? 'spent' : 'earned',
-        service: t.description || 'Transaction',
-        points: Math.abs(t.amount),
-        date: new Date(t.created_at).toISOString().split('T')[0],
-        status: 'completed'
-      }));
+      const processedTransactions: Transaction[] = (transactions || []).map(t => {
+        // Determine if transaction is spent or earned based on type
+        const isSpent = ['purchase'].includes(t.type);
+        const isEarned = ['initial_credit', 'admin_credit', 'earning'].includes(t.type);
+        
+        return {
+          id: t.id,
+          type: isSpent ? 'spent' : 'earned',
+          service: t.description || 'Transaction',
+          points: Math.abs(t.amount),
+          date: new Date(t.created_at).toISOString().split('T')[0],
+          status: 'completed'
+        };
+      });
 
       // Process bookings
       const processedBookings: BookedService[] = (bookings || []).map(b => {
