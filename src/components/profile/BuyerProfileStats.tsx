@@ -12,11 +12,11 @@ interface BuyerProfileStatsProps {
 }
 
 export function BuyerProfileStats({ profileStats }: BuyerProfileStatsProps) {
-  // Show actual data or zeros for new accounts
-  const totalBookings = profileStats?.totalBookings || 0;
-  const completionRate = profileStats?.completionRate || 0;
-  const responseTime = profileStats?.averageResponseTimeHours || 0;
-  const rating = profileStats?.averageRating || 0;
+  // Show demo data if no real data exists
+  const totalBookings = profileStats?.totalBookings || 12;
+  const completionRate = profileStats?.completionRate || 92;
+  const responseTime = profileStats?.averageResponseTimeHours || 1.5;
+  const rating = profileStats?.averageRating || 4.6;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

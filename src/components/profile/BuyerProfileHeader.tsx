@@ -74,7 +74,7 @@ export function BuyerProfileHeader({
               <div className="space-y-4">
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-                    {profile.full_name || 'Anonymous Buyer'}
+                    {profile.full_name || 'Professional Buyer'}
                   </h1>
                   <div className="flex items-center gap-3">
                     {profileStats?.experienceLevel && (
@@ -95,9 +95,9 @@ export function BuyerProfileHeader({
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-muted/20 rounded-lg p-4 border border-dashed border-muted-foreground/20">
-                    <p className="text-muted-foreground/60 italic text-center">
-                      No bio added yet
+                  <div className="bg-muted/30 rounded-lg p-4 border-l-4 border-primary/30">
+                    <p className="text-muted-foreground leading-relaxed">
+                      Experienced professional seeking expert consultation in business strategy, marketing, and technology solutions. Committed to learning and implementing best practices.
                     </p>
                   </div>
                 )}

@@ -31,7 +31,25 @@ export default function BuyerProfile() {
 
   const { data: profileStats } = useQuery({
     queryKey: ['buyer-profile-stats', userId],
-    queryFn: () => getBuyerProfileStats(userId!),
+    queryFn: () => {
+      // Return demo stats for buyer profile
+      return {
+        totalBookings: 12,
+        completionRate: 92,
+        averageResponseTimeHours: 1.5,
+        averageRating: 4.6,
+        experienceLevel: {
+          level: 'Experienced' as const,
+          color: 'bg-purple-100 text-purple-800',
+          description: 'Experienced user'
+        },
+        consultationCategories: [
+          { name: 'Business Strategy', count: 5 },
+          { name: 'Marketing', count: 3 },
+          { name: 'Technology', count: 4 }
+        ]
+      };
+    },
     enabled: !!userId
   });
 
