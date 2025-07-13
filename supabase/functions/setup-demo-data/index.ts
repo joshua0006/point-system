@@ -24,6 +24,17 @@ serve(async (req) => {
     if (email && password && autoConfirm) {
       console.log('Processing demo account request:', email)
       
+      // Only process if it's a demo email
+      if (!email.includes('demo-') && !email.endsWith('@demo.com')) {
+        return new Response(
+          JSON.stringify({ error: 'This function is only for demo accounts' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400 
+          }
+        )
+      }
+      
       // First check if user already exists
       const { data: existingUsers } = await supabaseClient.auth.admin.listUsers()
       const existingUser = existingUsers.users?.find(user => user.email === email)
@@ -97,10 +108,13 @@ serve(async (req) => {
       throw new Error('User ID is required for existing user setup')
     }
 
-    await setupDemoData(supabaseClient, userId, userEmail, isConsultant)
+    // Only set up demo data for demo accounts
+    if (userEmail && (userEmail.includes('demo-') || userEmail.endsWith('@demo.com'))) {
+      await setupDemoData(supabaseClient, userId, userEmail, isConsultant)
+    }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Demo data setup complete' }),
+      JSON.stringify({ success: true, message: 'Setup complete' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -121,6 +135,12 @@ serve(async (req) => {
 
 async function setupDemoData(supabaseClient: any, userId: string, userEmail: string, isConsultant: boolean) {
   console.log('Setting up demo data for user:', userId, 'isConsultant:', isConsultant)
+  
+  // Only create demo data for demo accounts
+  if (!userEmail.includes('demo-') && !userEmail.endsWith('@demo.com')) {
+    console.log('Skipping demo data setup for non-demo account:', userEmail)
+    return
+  }
   
   // Update profile role if it's a consultant account
   if (isConsultant) {
