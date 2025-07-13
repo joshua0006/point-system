@@ -42,26 +42,34 @@ export default function UserDashboard() {
 
   const fetchConsultantData = async () => {
     try {
+      console.log('Fetching consultant data for user:', user?.id);
+      
       // Fetch consultant profile
-      const { data: consultant } = await supabase
+      const { data: consultant, error: consultantError } = await supabase
         .from('consultants')
         .select('*')
         .eq('user_id', user?.id)
         .single();
 
+      console.log('Consultant data:', consultant, 'Error:', consultantError);
+
       // Fetch user profile for points balance
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user?.id)
         .single();
 
+      console.log('Profile data:', profile, 'Error:', profileError);
+
       // Fetch transactions
-      const { data: transactionData } = await supabase
+      const { data: transactionData, error: transactionError } = await supabase
         .from('points_transactions')
         .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
+
+      console.log('Transaction data:', transactionData, 'Error:', transactionError);
 
       // Fetch bookings as consultant
       const { data: consultantBookings } = await supabase
@@ -95,6 +103,15 @@ export default function UserDashboard() {
       const completedBookings = (consultantBookings || []).filter(b => b.status === 'completed').length;
       const totalBookings = (consultantBookings || []).length;
       const completionRate = totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
+
+      console.log('Calculated stats:', {
+        earnings,
+        spendings,
+        completedBookings,
+        totalBookings,
+        completionRate,
+        pointsBalance: profile?.points_balance
+      });
 
       setConsultantProfile({
         name: profile?.full_name || "",
