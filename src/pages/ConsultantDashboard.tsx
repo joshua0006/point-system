@@ -107,84 +107,41 @@ export default function ConsultantDashboard() {
 
     try {
       // Fetch user profile
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('full_name, points_balance')
         .eq('user_id', user.id)
         .single();
 
+      console.log('Profile data:', profile, 'Profile error:', profileError);
+
       // Fetch consultant data - include both id and tier
-      const { data: consultant } = await supabase
+      const { data: consultant, error: consultantError } = await supabase
         .from('consultants')
         .select('id, tier')
         .eq('user_id', user.id)
         .single();
 
-      // Fetch points transactions
-      const { data: transactions } = await supabase
-        .from('points_transactions')
-        .select('*')
-        .eq('user_id', user.id);
+      console.log('Consultant data:', consultant, 'Consultant error:', consultantError);
 
-      // Fetch bookings as buyer
-      const { data: buyerBookings } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          services!inner(title, duration_minutes),
-          consultants!inner(user_id)
-        `)
-        .eq('user_id', user.id);
-
-      // Fetch bookings as consultant (seller) - need to do this through services
-      const { data: sellerBookings } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          services!inner(title, duration_minutes, consultant_id)
-        `)
-        .eq('services.consultant_id', consultant?.id);
-
-      // Process data
-      const totalEarnings = (transactions || [])
-        .filter(t => t.type === 'earning')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const totalSpendings = (transactions || [])
-        .filter(t => t.type === 'purchase')
-        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-
-      // Calculate ratings and conversion rate
-      const completedSellerBookings = (sellerBookings || []).filter(b => b.status === 'completed');
-      const totalSellerBookings = sellerBookings?.length || 0;
-      const conversionRate = totalSellerBookings > 0 ? (completedSellerBookings.length / totalSellerBookings) * 100 : 75; // Default to 75% for demo
-
-      // Ensure we have some demo data for seller metrics
-      const demoEarnings = totalEarnings || 3500; // Demo earnings if no real data
-      const demoSellerSessions = totalSellerBookings || 8; // Demo sessions if no real data
-      const demoCompletedSessions = completedSellerBookings.length || 6; // Demo completed sessions
-      
-      // Mock some ratings for demo purposes - ensure they're not zero
-      const sellerRating = totalSellerBookings > 0 ? 4.5 : 4.3; // Always show a rating
-      const buyerRating = (buyerBookings?.length || 0) > 0 ? 4.2 : 4.1; // Always show a rating
-      
+      // Always set demo profile data regardless of fetch success
       setConsultantProfile({
         name: profile?.full_name || "John Consultant",
         tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "gold",
-        totalEarnings: demoEarnings,
-        totalSpendings: totalSpendings || 1200,
-        totalSessions: demoSellerSessions,
-        totalPurchases: buyerBookings?.length || 3,
-        sellerRating,
-        buyerRating,
-        totalSellerReviews: demoCompletedSessions,
-        totalBuyerReviews: buyerBookings?.length || 2,
-        conversionRate,
+        totalEarnings: 3500,
+        totalSpendings: 1200,
+        totalSessions: 8,
+        totalPurchases: 3,
+        sellerRating: 4.3,
+        buyerRating: 4.1,
+        totalSellerReviews: 6,
+        totalBuyerReviews: 2,
+        conversionRate: 75,
         pointsBalance: profile?.points_balance || 2500
       });
 
-      // Create some demo transaction data if none exists
-      const demoTransactions = transactions?.length ? transactions : [
+      // Create some demo transaction data
+      const demoTransactions = [
         {
           id: 'demo-1',
           type: 'earning',
@@ -208,8 +165,8 @@ export default function ConsultantDashboard() {
         }
       ];
       
-      // Create demo booking data if none exists
-      const demoSellerBookings = sellerBookings?.length ? sellerBookings : [
+      // Create demo booking data
+      const demoSellerBookings = [
         {
           id: 'demo-booking-1',
           status: 'completed',
@@ -228,10 +185,21 @@ export default function ConsultantDashboard() {
         }
       ];
 
+      const demoBuyerBookings = [
+        {
+          id: 'demo-buyer-booking-1',
+          status: 'completed',
+          scheduled_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+          services: { title: 'Design Consultation', duration_minutes: 45 },
+          points_spent: 800,
+          created_at: new Date(Date.now() - 259200000).toISOString()
+        }
+      ];
+
       setMockTransactions(demoTransactions);
       
       // Set booked services data
-      setBookedServices([...demoSellerBookings, ...(buyerBookings || [])]);
+      setBookedServices([...demoSellerBookings, ...demoBuyerBookings]);
       
       // Process upcoming sessions
       const now = new Date();
@@ -242,7 +210,7 @@ export default function ConsultantDashboard() {
           type: 'selling' as const
         }));
         
-      const upcomingBuying = (buyerBookings || [])
+      const upcomingBuying = demoBuyerBookings
         .filter(b => b.status === 'confirmed' && b.scheduled_at && new Date(b.scheduled_at) > now)
         .map(b => ({
           ...b,
