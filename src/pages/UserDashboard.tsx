@@ -49,7 +49,7 @@ export default function UserDashboard() {
         .from('consultants')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       console.log('Consultant data:', consultant, 'Error:', consultantError);
 
@@ -58,7 +58,7 @@ export default function UserDashboard() {
         .from('profiles')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       console.log('Profile data:', profile, 'Error:', profileError);
 
@@ -71,15 +71,19 @@ export default function UserDashboard() {
 
       console.log('Transaction data:', transactionData, 'Error:', transactionError);
 
-      // Fetch bookings as consultant
-      const { data: consultantBookings } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          services(title, price),
-          profiles!bookings_user_id_fkey(full_name, email)
-        `)
-        .eq('consultant_id', consultant?.id);
+      // Fetch bookings as consultant (only if user is a consultant)
+      let consultantBookings = [];
+      if (consultant?.id) {
+        const { data: bookingsData } = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            services(title, price),
+            profiles!bookings_user_id_fkey(full_name, email)
+          `)
+          .eq('consultant_id', consultant.id);
+        consultantBookings = bookingsData || [];
+      }
 
       // Fetch bookings as user
       const { data: userBookings } = await supabase
@@ -100,8 +104,8 @@ export default function UserDashboard() {
         .filter(t => t.type === 'purchase')
         .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
-      const completedBookings = (consultantBookings || []).filter(b => b.status === 'completed').length;
-      const totalBookings = (consultantBookings || []).length;
+      const completedBookings = consultantBookings.filter(b => b.status === 'completed').length;
+      const totalBookings = consultantBookings.length;
       const completionRate = totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
 
       console.log('Calculated stats:', {
@@ -118,7 +122,7 @@ export default function UserDashboard() {
         tier: consultant?.tier || "bronze",
         totalEarnings: earnings,
         totalSpendings: spendings,
-        totalSessions: (consultantBookings || []).length,
+        totalSessions: consultantBookings.length,
         totalPurchases: (userBookings || []).length,
         pointsBalance: profile?.points_balance || 0,
         completionRate,
@@ -126,7 +130,7 @@ export default function UserDashboard() {
       });
 
       setTransactions(transactionData || []);
-      setBookedServices([...(consultantBookings || []), ...(userBookings || [])]);
+      setBookedServices([...consultantBookings, ...(userBookings || [])]);
 
     } catch (error) {
       console.error('Error fetching consultant data:', error);
