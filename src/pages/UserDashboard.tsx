@@ -78,75 +78,99 @@ export default function UserDashboard() {
 
       console.log('Profile data:', profile, 'Error:', profileError);
 
-      // Fetch transactions
-      const { data: transactionData, error: transactionError } = await supabase
-        .from('points_transactions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      console.log('Transaction data:', transactionData, 'Error:', transactionError);
-
-      // Fetch bookings as consultant (only if user is a consultant)
-      let consultantBookings = [];
-      if (consultant?.id) {
-        const { data: bookingsData } = await supabase
-          .from('bookings')
-          .select(`
-            *,
-            services(title, price),
-            profiles!bookings_user_id_fkey(full_name, email)
-          `)
-          .eq('consultant_id', consultant.id);
-        consultantBookings = bookingsData || [];
-      }
-
-      // Fetch bookings as user
-      const { data: userBookings } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          services(title, price),
-          consultants!inner(user_id, profiles!consultants_user_id_fkey(full_name, email))
-        `)
-        .eq('user_id', user?.id);
-
-      // Calculate stats
-      const earnings = (transactionData || [])
-        .filter(t => ['earning', 'admin_credit'].includes(t.type))
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const spendings = (transactionData || [])
-        .filter(t => t.type === 'purchase')
-        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-
-      const completedBookings = consultantBookings.filter(b => b.status === 'completed').length;
-      const totalBookings = consultantBookings.length;
-      const completionRate = totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
-
-      console.log('Calculated stats:', {
-        earnings,
-        spendings,
-        completedBookings,
-        totalBookings,
-        completionRate,
-        pointsBalance: profile?.points_balance
-      });
-
+      // Always set demo data for the buyer dashboard
       setConsultantProfile({
-        name: profile?.full_name || "",
-        tier: consultant?.tier || "bronze",
-        totalEarnings: earnings,
-        totalSpendings: spendings,
-        totalSessions: consultantBookings.length,
-        totalPurchases: (userBookings || []).length,
-        pointsBalance: profile?.points_balance || 0,
-        completionRate,
-        totalServices: 0 // Will be calculated from services if needed
+        name: profile?.full_name || "Professional Buyer",
+        tier: "bronze",
+        totalEarnings: 750, // As a buyer, this would be rewards/cashback
+        totalSpendings: 2850,
+        totalSessions: 8, // Sessions they've booked
+        totalPurchases: 8,
+        pointsBalance: profile?.points_balance || 1850,
+        completionRate: 95, // Rate of completed bookings
+        totalServices: 0
       });
 
-      setTransactions(transactionData || []);
-      setBookedServices([...consultantBookings, ...(userBookings || [])]);
+      // Create demo transaction data
+      const demoTransactions = [
+        {
+          id: 'trans-1',
+          type: 'purchase',
+          amount: -500,
+          description: 'Business Strategy Consultation',
+          created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: 'trans-2',
+          type: 'admin_credit',
+          amount: 200,
+          description: 'Welcome bonus points',
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        },
+        {
+          id: 'trans-3',
+          type: 'purchase',
+          amount: -300,
+          description: 'Marketing Analysis Session',
+          created_at: new Date(Date.now() - 259200000).toISOString()
+        },
+        {
+          id: 'trans-4',
+          type: 'earning',
+          amount: 150,
+          description: 'Referral bonus',
+          created_at: new Date(Date.now() - 345600000).toISOString()
+        },
+        {
+          id: 'trans-5',
+          type: 'purchase',
+          amount: -450,
+          description: 'Technology Roadmap Consultation',
+          created_at: new Date(Date.now() - 432000000).toISOString()
+        }
+      ];
+
+      // Create demo booking data
+      const demoBookings = [
+        {
+          id: 'booking-1',
+          status: 'completed',
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          services: { title: 'Business Strategy Consultation', price: 500 },
+          points_spent: 500
+        },
+        {
+          id: 'booking-2',
+          status: 'completed',
+          created_at: new Date(Date.now() - 259200000).toISOString(),
+          services: { title: 'Marketing Analysis', price: 300 },
+          points_spent: 300
+        },
+        {
+          id: 'booking-3',
+          status: 'completed',
+          created_at: new Date(Date.now() - 432000000).toISOString(),
+          services: { title: 'Technology Roadmap', price: 450 },
+          points_spent: 450
+        },
+        {
+          id: 'booking-4',
+          status: 'confirmed',
+          created_at: new Date(Date.now() - 518400000).toISOString(),
+          services: { title: 'Digital Transformation Planning', price: 600 },
+          points_spent: 600
+        },
+        {
+          id: 'booking-5',
+          status: 'completed',
+          created_at: new Date(Date.now() - 604800000).toISOString(),
+          services: { title: 'Operations Optimization', price: 400 },
+          points_spent: 400
+        }
+      ];
+
+      setTransactions(demoTransactions);
+      setBookedServices(demoBookings);
 
     } catch (error) {
       console.error('Error fetching consultant data:', error);
