@@ -42,24 +42,20 @@ export function RecentTransactionsModal({
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-full ${
-                    transaction.amount > 0 
+                    transaction.type === 'earned' 
                       ? 'bg-success/10 text-success' 
                       : 'bg-destructive/10 text-destructive'
                   }`}>
-                    {transaction.amount > 0 ? (
+                    {transaction.type === 'earned' ? (
                       <TrendingUp className="w-4 h-4" />
                     ) : (
                       <TrendingDown className="w-4 h-4" />
                     )}
                   </div>
                    <div>
-                     <p className="font-medium">{transaction.description || 'Transaction'}</p>
+                     <p className="font-medium">{transaction.service || 'Transaction'}</p>
                      <p className="text-sm text-muted-foreground">
-                       {transaction.created_at ? new Date(transaction.created_at).toLocaleDateString('en-US', {
-                         year: 'numeric',
-                         month: 'long',
-                         day: 'numeric'
-                       }) : 'Unknown date'}
+                       {transaction.date || 'Unknown date'}
                      </p>
                    </div>
                 </div>
@@ -69,9 +65,9 @@ export function RecentTransactionsModal({
                     completed
                   </Badge>
                   <div className={`text-right font-semibold ${
-                    transaction.amount > 0 ? 'text-success' : 'text-destructive'
+                    transaction.type === 'earned' ? 'text-success' : 'text-destructive'
                   }`}>
-                    {transaction.amount > 0 ? '+' : ''}{transaction.amount} pts
+                    {transaction.type === 'earned' ? '+' : '-'}{transaction.points} pts
                   </div>
                 </div>
               </div>
