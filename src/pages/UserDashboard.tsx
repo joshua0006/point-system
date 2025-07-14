@@ -1,22 +1,40 @@
 
 import { useState, useEffect } from "react";
-import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TierBadge } from "@/components/TierBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  TrendingUp, 
+import { Navigation } from "@/components/Navigation";
+import { DashboardModals } from "@/components/dashboard/DashboardModals";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import {
+  TrendingUp,
   Calendar,
   CheckCircle,
   Wallet,
-  Target,
   Users
 } from "lucide-react";
 
 export default function UserDashboard() {
   const { user } = useAuth();
+  const {
+    balanceModalOpen,
+    setBalanceModalOpen,
+    spentModalOpen,
+    setSpentModalOpen,
+    servicesModalOpen,
+    setServicesModalOpen,
+    completionModalOpen,
+    setCompletionModalOpen,
+    upcomingModalOpen,
+    setUpcomingModalOpen,
+    userStats,
+    allTransactions,
+    spentTransactions,
+    bookedServices,
+    upcomingBookings,
+    recentTransactions,
+  } = useDashboardData();
   
   // Real data states
   const [consultantProfile, setConsultantProfile] = useState({
@@ -32,7 +50,7 @@ export default function UserDashboard() {
   });
 
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [bookedServices, setBookedServices] = useState<any[]>([]);
+  const [demoBookedServices, setDemoBookedServices] = useState<any[]>([]);
 
   useEffect(() => {
     console.log('User state in dashboard:', user);
@@ -170,7 +188,7 @@ export default function UserDashboard() {
       ];
 
       setTransactions(demoTransactions);
-      setBookedServices(demoBookings);
+      setDemoBookedServices(demoBookings);
 
     } catch (error) {
       console.error('Error fetching consultant data:', error);
@@ -194,7 +212,10 @@ export default function UserDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
+          <Card 
+            className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setBalanceModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Points Balance
@@ -207,33 +228,42 @@ export default function UserDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setSpentModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Total Earnings
-                <TrendingUp className="w-4 h-4 text-success" />
+                Total Spent
+                <TrendingUp className="w-4 h-4 text-destructive" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{consultantProfile.totalEarnings.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">points earned</p>
+              <div className="text-2xl font-bold text-foreground">{consultantProfile.totalSpendings.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">points spent</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setServicesModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Sessions Completed
+                Services Booked
                 <Calendar className="w-4 h-4 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{consultantProfile.totalSessions}</div>
-              <p className="text-xs text-muted-foreground">total sessions</p>
+              <p className="text-xs text-muted-foreground">total bookings</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setCompletionModalOpen(true)}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
                 Completion Rate
@@ -285,7 +315,7 @@ export default function UserDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {bookedServices.slice(0, 5).map((booking) => (
+              {demoBookedServices.slice(0, 5).map((booking) => (
                 <div key={booking.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
                   <div>
                     <p className="font-medium">{booking.services?.title || 'Service'}</p>
@@ -298,13 +328,31 @@ export default function UserDashboard() {
                   </Badge>
                 </div>
               ))}
-              {bookedServices.length === 0 && (
+              {demoBookedServices.length === 0 && (
                 <p className="text-muted-foreground text-center py-4">No bookings yet</p>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <DashboardModals
+        balanceModalOpen={balanceModalOpen}
+        setBalanceModalOpen={setBalanceModalOpen}
+        spentModalOpen={spentModalOpen}
+        setSpentModalOpen={setSpentModalOpen}
+        servicesModalOpen={servicesModalOpen}
+        setServicesModalOpen={setServicesModalOpen}
+        completionModalOpen={completionModalOpen}
+        setCompletionModalOpen={setCompletionModalOpen}
+        upcomingModalOpen={upcomingModalOpen}
+        setUpcomingModalOpen={setUpcomingModalOpen}
+        allTransactions={allTransactions}
+        spentTransactions={spentTransactions}
+        bookedServices={bookedServices}
+        upcomingBookings={upcomingBookings}
+        userStats={userStats}
+      />
     </div>
   );
 }
