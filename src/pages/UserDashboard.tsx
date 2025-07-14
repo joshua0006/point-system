@@ -28,6 +28,10 @@ export default function UserDashboard() {
     setCompletionModalOpen,
     upcomingModalOpen,
     setUpcomingModalOpen,
+    recentTransactionsModalOpen,
+    setRecentTransactionsModalOpen,
+    recentBookingsModalOpen,
+    setRecentBookingsModalOpen,
     userStats,
     allTransactions,
     spentTransactions,
@@ -280,7 +284,10 @@ export default function UserDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setRecentTransactionsModalOpen(true)}
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
@@ -307,7 +314,10 @@ export default function UserDashboard() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setRecentBookingsModalOpen(true)}
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
@@ -347,6 +357,10 @@ export default function UserDashboard() {
         setCompletionModalOpen={setCompletionModalOpen}
         upcomingModalOpen={upcomingModalOpen}
         setUpcomingModalOpen={setUpcomingModalOpen}
+        recentTransactionsModalOpen={recentTransactionsModalOpen}
+        setRecentTransactionsModalOpen={setRecentTransactionsModalOpen}
+        recentBookingsModalOpen={recentBookingsModalOpen}
+        setRecentBookingsModalOpen={setRecentBookingsModalOpen}
         allTransactions={allTransactions}
         spentTransactions={spentTransactions}
         bookedServices={bookedServices}

@@ -3,6 +3,8 @@ import { SpentDetailsModal } from "./SpentDetailsModal";
 import { ServicesBookedModal } from "./ServicesBookedModal";
 import { CompletionRateModal } from "./CompletionRateModal";
 import { UpcomingSessionsModal } from "./UpcomingSessionsModal";
+import { RecentTransactionsModal } from "./RecentTransactionsModal";
+import { RecentBookingsModal } from "./RecentBookingsModal";
 import { Transaction, BookedService, UpcomingSession, UserStats } from "@/hooks/useDashboardData";
 
 interface DashboardModalsProps {
@@ -17,6 +19,10 @@ interface DashboardModalsProps {
   setCompletionModalOpen: (open: boolean) => void;
   upcomingModalOpen: boolean;
   setUpcomingModalOpen: (open: boolean) => void;
+  recentTransactionsModalOpen: boolean;
+  setRecentTransactionsModalOpen: (open: boolean) => void;
+  recentBookingsModalOpen: boolean;
+  setRecentBookingsModalOpen: (open: boolean) => void;
   
   // Data
   allTransactions: Transaction[];
@@ -37,6 +43,10 @@ export function DashboardModals({
   setCompletionModalOpen,
   upcomingModalOpen,
   setUpcomingModalOpen,
+  recentTransactionsModalOpen,
+  setRecentTransactionsModalOpen,
+  recentBookingsModalOpen,
+  setRecentBookingsModalOpen,
   allTransactions,
   spentTransactions,
   bookedServices,
@@ -74,6 +84,18 @@ export function DashboardModals({
         open={upcomingModalOpen}
         onOpenChange={setUpcomingModalOpen}
         sessions={upcomingBookings}
+      />
+      
+      <RecentTransactionsModal
+        open={recentTransactionsModalOpen}
+        onOpenChange={setRecentTransactionsModalOpen}
+        transactions={allTransactions}
+      />
+      
+      <RecentBookingsModal
+        open={recentBookingsModalOpen}
+        onOpenChange={setRecentBookingsModalOpen}
+        bookings={bookedServices}
       />
     </>
   );

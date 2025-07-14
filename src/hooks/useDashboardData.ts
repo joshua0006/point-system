@@ -53,6 +53,8 @@ export function useDashboardData() {
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
   const [completionModalOpen, setCompletionModalOpen] = useState(false);
   const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
+  const [recentTransactionsModalOpen, setRecentTransactionsModalOpen] = useState(false);
+  const [recentBookingsModalOpen, setRecentBookingsModalOpen] = useState(false);
 
   // Data states
   const [userStats, setUserStats] = useState<UserStats>({
@@ -213,6 +215,10 @@ export function useDashboardData() {
     setCompletionModalOpen,
     upcomingModalOpen,
     setUpcomingModalOpen,
+    recentTransactionsModalOpen,
+    setRecentTransactionsModalOpen,
+    recentBookingsModalOpen,
+    setRecentBookingsModalOpen,
     
     // Data
     userStats,
