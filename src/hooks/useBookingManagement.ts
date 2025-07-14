@@ -168,7 +168,7 @@ export function useUpdateBookingStatus() {
           .update(updateData)
           .eq('id', bookingId)
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         return data;
@@ -184,7 +184,7 @@ export function useUpdateBookingStatus() {
           .update(updateData)
           .eq('id', bookingId)
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         return data;
