@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMode } from "@/contexts/ModeContext";
 import { ModeToggle } from "@/components/ModeToggle";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { BuyerDashboardModal } from "@/components/dashboard/BuyerDashboardModal";
 import { useUnreadMessageCount } from "@/hooks/useMessages";
 import { useState } from "react";
 import { 
@@ -33,11 +34,22 @@ export function Navigation() {
   const { data: unreadCount = 0 } = useUnreadMessageCount();
   const userRole = profile?.role || "user";
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
+  const [buyerDashboardModalOpen, setBuyerDashboardModalOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Define navigation items type
+  type NavItem = {
+    path: string;
+    label: string;
+    icon: any;
+    roles: string[];
+    hasNotification?: boolean;
+    isModal?: boolean;
+  };
+
   // Define navigation items - for consultants, show all three main tabs
-  const getNavItems = () => {
+  const getNavItems = (): NavItem[] => {
     if (userRole === "consultant") {
       return [
         { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["consultant"] },
@@ -50,7 +62,7 @@ export function Navigation() {
     const buyerNavItems = [
       { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "admin"] },
       { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "admin"], hasNotification: unreadCount > 0 },
-      { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
+      { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"], isModal: true },
       { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
     ];
 
@@ -122,6 +134,26 @@ export function Navigation() {
               <div className="hidden md:flex items-center space-x-1">
                 {filteredNavItems.map((item) => {
                   const Icon = item.icon;
+                  
+                  // Handle modal items differently
+                  if (item.isModal) {
+                    return (
+                      <Button
+                        key={item.path}
+                        variant={buyerDashboardModalOpen ? "default" : "ghost"}
+                        size="sm"
+                        className="flex items-center space-x-2 relative"
+                        onClick={() => setBuyerDashboardModalOpen(true)}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                        {item.hasNotification && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                        )}
+                      </Button>
+                    );
+                  }
+                  
                   return (
                     <Link key={item.path} to={item.path}>
                       <Button
@@ -215,6 +247,12 @@ export function Navigation() {
         open={balanceModalOpen}
         onOpenChange={setBalanceModalOpen}
         transactions={mockTransactions}
+      />
+      
+      {/* Buyer Dashboard Modal */}
+      <BuyerDashboardModal
+        open={buyerDashboardModalOpen}
+        onOpenChange={setBuyerDashboardModalOpen}
       />
     </>
   );
