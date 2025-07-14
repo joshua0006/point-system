@@ -138,7 +138,10 @@ export function useUpdateBookingStatus() {
         // First get the current booking to check who is completing
         const { data: booking, error: fetchError } = await supabase
           .from('bookings')
-          .select('*')
+          .select(`
+            *,
+            consultants!inner(user_id)
+          `)
           .eq('id', bookingId)
           .single();
 
@@ -146,11 +149,17 @@ export function useUpdateBookingStatus() {
 
         // Determine if user is buyer or consultant
         const isBuyer = user.id === booking.user_id;
+        const isConsultant = user.id === booking.consultants.user_id;
+        
+        if (!isBuyer && !isConsultant) {
+          throw new Error('User is not authorized to update this booking');
+        }
+
         const updateData: any = {};
 
         if (isBuyer) {
           updateData.buyer_completed = true;
-        } else {
+        } else if (isConsultant) {
           updateData.consultant_completed = true;
         }
 
