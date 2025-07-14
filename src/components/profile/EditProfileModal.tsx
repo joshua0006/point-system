@@ -32,6 +32,7 @@ import {
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
+import { AvatarUpload } from '@/components/forms/AvatarUpload';
 
 interface EditProfileModalProps {
   open: boolean;
@@ -138,23 +139,20 @@ export function EditProfileModal({ open, onOpenChange, profile, consultant }: Ed
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex justify-center">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={form.watch('avatar_url') || ''} />
-                <AvatarFallback className="text-lg">
-                  {form.watch('full_name')?.charAt(0) || profile?.email?.charAt(0)?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-
             <FormField
               control={form.control}
               name="avatar_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Profile Photo URL</FormLabel>
+                  <FormLabel>Profile Photo</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/photo.jpg" {...field} />
+                    <AvatarUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={updateProfileMutation.isPending}
+                      userId={profile.user_id}
+                      fallbackText={form.watch('full_name')?.charAt(0) || profile?.email?.charAt(0)?.toUpperCase()}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
