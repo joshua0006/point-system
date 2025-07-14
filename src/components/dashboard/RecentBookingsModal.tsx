@@ -59,20 +59,20 @@ export function RecentBookingsModal({
                   <div className="p-2 rounded-full bg-primary/10 text-primary">
                     <Users className="w-4 h-4" />
                   </div>
-                  <div>
-                    <p className="font-medium">{booking.services?.title || 'Service'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      with Professional Consultant
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(booking.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </div>
+                   <div>
+                     <p className="font-medium">{booking.services?.title || 'Service'}</p>
+                     <p className="text-sm text-muted-foreground">
+                       with {booking.consultantName || 'Professional Consultant'}
+                     </p>
+                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                       <div className="flex items-center gap-1">
+                         <Calendar className="w-3 h-3" />
+                         {booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-US', {
+                           year: 'numeric',
+                           month: 'short',
+                           day: 'numeric'
+                         }) : 'Unknown date'}
+                       </div>
                       {/* Commenting out time and duration for demo data */}
                       {/* {booking.time && (
                         <div className="flex items-center gap-1">

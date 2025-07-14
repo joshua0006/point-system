@@ -52,16 +52,16 @@ export function RecentTransactionsModal({
                       <TrendingDown className="w-4 h-4" />
                     )}
                   </div>
-                  <div>
-                    <p className="font-medium">{transaction.description}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(transaction.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
+                   <div>
+                     <p className="font-medium">{transaction.description || 'Transaction'}</p>
+                     <p className="text-sm text-muted-foreground">
+                       {transaction.created_at ? new Date(transaction.created_at).toLocaleDateString('en-US', {
+                         year: 'numeric',
+                         month: 'long',
+                         day: 'numeric'
+                       }) : 'Unknown date'}
+                     </p>
+                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
