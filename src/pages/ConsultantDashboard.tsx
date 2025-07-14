@@ -100,6 +100,42 @@ export default function ConsultantDashboard() {
     if (user) {
       fetchConsultantData();
     }
+
+    // Set up real-time updates for points transactions and bookings
+    if (user?.id) {
+      const channel = supabase
+        .channel('consultant-dashboard-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'points_transactions',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Transaction updated:', payload);
+            fetchConsultantData(); // Refresh data
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings'
+          },
+          (payload) => {
+            console.log('Booking updated:', payload);
+            fetchConsultantData(); // Refresh data for any booking change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [user]);
 
   const fetchConsultantData = async () => {
@@ -124,129 +160,134 @@ export default function ConsultantDashboard() {
 
       console.log('Consultant data:', consultant, 'Consultant error:', consultantError);
 
-      // Always set demo profile data regardless of fetch success
+      // Fetch real transactions for this consultant
+      const { data: transactions, error: transactionsError } = await supabase
+        .from('points_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      console.log('Transactions data:', transactions, 'Error:', transactionsError);
+
+      // Fetch bookings where this user is the seller (consultant)
+      const { data: sellerBookings, error: sellerBookingsError } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services!inner(
+            title,
+            price,
+            duration_minutes
+          )
+        `)
+        .eq('consultant_id', consultant?.id)
+        .order('created_at', { ascending: false });
+
+      console.log('Seller bookings data:', sellerBookings, 'Error:', sellerBookingsError);
+
+      // Fetch bookings where this user is the buyer
+      const { data: buyerBookings, error: buyerBookingsError } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          services!inner(
+            title,
+            price,
+            duration_minutes
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      console.log('Buyer bookings data:', buyerBookings, 'Error:', buyerBookingsError);
+
+      // Calculate real stats
+      const earnings = transactions?.filter(t => t.type === 'earning').reduce((sum, t) => sum + t.amount, 0) || 0;
+      const spendings = transactions?.filter(t => t.type === 'purchase').reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
+      const totalSellerSessions = sellerBookings?.length || 0;
+      const totalBuyerSessions = buyerBookings?.length || 0;
+      const completedSellerSessions = sellerBookings?.filter(b => b.status === 'completed').length || 0;
+
       setConsultantProfile({
         name: profile?.full_name || "John Consultant",
-        tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "gold",
-        totalEarnings: 3500,
-        totalSpendings: 1200,
-        totalSessions: 8,
-        totalPurchases: 3,
-        sellerRating: 4.3,
-        buyerRating: 4.1,
-        totalSellerReviews: 6,
-        totalBuyerReviews: 2,
-        conversionRate: 75,
-        pointsBalance: profile?.points_balance || 2500
+        tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "bronze",
+        totalEarnings: earnings,
+        totalSpendings: spendings,
+        totalSessions: totalSellerSessions,
+        totalPurchases: totalBuyerSessions,
+        sellerRating: 4.3, // Keep demo for now
+        buyerRating: 4.1, // Keep demo for now
+        totalSellerReviews: 6, // Keep demo for now
+        totalBuyerReviews: 2, // Keep demo for now
+        conversionRate: totalSellerSessions > 0 ? Math.round((completedSellerSessions / totalSellerSessions) * 100) : 0,
+        pointsBalance: profile?.points_balance || 0
       });
 
-      // Create demo transaction data for BalanceDetailsModal
-      const demoTransactions = [
-        {
-          id: 'demo-1',
-          type: 'earned' as const,
-          service: 'Consultation completed',
-          consultant: undefined,
-          points: 1500,
-          date: new Date(Date.now() - 86400000).toLocaleDateString(),
-          status: 'completed'
-        },
-        {
-          id: 'demo-2', 
-          type: 'earned' as const,
-          service: 'Strategy session completed',
-          consultant: undefined,
-          points: 2000,
-          date: new Date(Date.now() - 172800000).toLocaleDateString(),
-          status: 'completed'
-        },
-        {
-          id: 'demo-3',
-          type: 'spent' as const,
-          service: 'Marketing Analysis Service',
-          consultant: 'Sarah Johnson',
-          points: 500,
-          date: new Date(Date.now() - 259200000).toLocaleDateString(),
-          status: 'completed'
-        }
-      ];
+      // Transform transactions for BalanceDetailsModal
+      const transformedTransactions = (transactions || []).map(t => ({
+        id: t.id,
+        type: t.type === 'earning' ? 'earned' : 'spent',
+        service: t.description || 'Transaction',
+        consultant: undefined,
+        points: Math.abs(t.amount),
+        date: new Date(t.created_at).toLocaleDateString(),
+        status: 'completed'
+      }));
       
-      // Create demo booking data for ServicesBookedModal
-      const demoSellerBookings = [
-        {
-          id: 'demo-booking-1',
-          service: 'Business Strategy Consultation',
-          consultant: 'John Consultant (You)',
-          date: new Date(Date.now() - 86400000).toLocaleDateString(),
-          time: '2:00 PM',
-          duration: '60 mins',
-          status: 'completed' as const,
-          points: 1500
-        },
-        {
-          id: 'demo-booking-2',
-          service: 'Marketing Review',
-          consultant: 'John Consultant (You)',
-          date: new Date(Date.now() + 86400000).toLocaleDateString(), // Tomorrow
-          time: '10:00 AM',
-          duration: '90 mins',
-          status: 'confirmed' as const,
-          points: 2000
-        },
-        {
-          id: 'demo-booking-3',
-          service: 'Technology Assessment',
-          consultant: 'John Consultant (You)',
-          date: new Date(Date.now() - 259200000).toLocaleDateString(), // 3 days ago
-          time: '3:30 PM',
-          duration: '45 mins',
-          status: 'completed' as const,
-          points: 1200
-        }
-      ];
+      // Transform seller bookings for ServicesBookedModal
+      const transformedSellerBookings = (sellerBookings || []).map(b => ({
+        id: b.id,
+        service: b.services?.title || 'Unknown Service',
+        consultant: 'You (Consultant)',
+        date: new Date(b.created_at).toLocaleDateString(),
+        time: b.scheduled_at ? new Date(b.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : undefined,
+        duration: b.services?.duration_minutes ? `${b.services.duration_minutes} mins` : undefined,
+        status: b.status,
+        points: b.points_spent
+      }));
 
-      const demoBuyerBookings = [
-        {
-          id: 'demo-buyer-booking-1',
-          service: 'Design Consultation',
-          consultant: 'Sarah Johnson',
-          date: new Date(Date.now() + 172800000).toLocaleDateString(), // Day after tomorrow
-          time: '1:00 PM',
-          duration: '45 mins',
-          status: 'confirmed' as const,
-          points: 800
-        }
-      ];
+      // Transform buyer bookings for ServicesBookedModal
+      const transformedBuyerBookings = (buyerBookings || []).map(b => ({
+        id: b.id,
+        service: b.services?.title || 'Unknown Service',
+        consultant: 'External Consultant',
+        date: new Date(b.created_at).toLocaleDateString(),
+        time: b.scheduled_at ? new Date(b.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : undefined,
+        duration: b.services?.duration_minutes ? `${b.services.duration_minutes} mins` : undefined,
+        status: b.status,
+        points: b.points_spent
+      }));
 
-      setMockTransactions(demoTransactions);
+      setMockTransactions(transformedTransactions);
       
-      // Set booked services data
-      setBookedServices([...demoSellerBookings, ...demoBuyerBookings]);
+      // Combine all bookings
+      const allBookings = [...transformedSellerBookings, ...transformedBuyerBookings];
+      setBookedServices(allBookings);
       
-      // Process upcoming sessions for UpcomingSessionsModal
+      // Process upcoming sessions
       const now = new Date();
-      const upcomingSelling = demoSellerBookings
+      const upcomingSelling = transformedSellerBookings
         .filter(b => b.status === 'confirmed')
         .map(b => ({
           id: b.id,
           service: b.service,
           consultant: b.consultant,
           date: b.date,
-          time: b.time,
-          duration: b.duration,
+          time: b.time || '00:00',
+          duration: b.duration || '30 mins',
           bookingUrl: '#',
           status: 'confirmed' as const
         }));
         
-      const upcomingBuying = demoBuyerBookings
+      const upcomingBuying = transformedBuyerBookings
         .filter(b => b.status === 'confirmed')
         .map(b => ({
           id: b.id,
           service: b.service,
           consultant: b.consultant,
           date: b.date,
-          time: b.time,
-          duration: b.duration,
+          time: b.time || '00:00',
+          duration: b.duration || '30 mins',
           bookingUrl: '#',
           status: 'confirmed' as const
         }));
