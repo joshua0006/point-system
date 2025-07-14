@@ -60,19 +60,15 @@ export function RecentBookingsModal({
                     <Users className="w-4 h-4" />
                   </div>
                    <div>
-                     <p className="font-medium">{booking.services?.title || 'Service'}</p>
+                     <p className="font-medium">{booking.service || 'Service'}</p>
                      <p className="text-sm text-muted-foreground">
-                       with {booking.consultant_name || 'Professional Consultant'}
+                       with {booking.consultant || 'Professional Consultant'}
                      </p>
                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                       <div className="flex items-center gap-1">
-                         <Calendar className="w-3 h-3" />
-                         {booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-US', {
-                           year: 'numeric',
-                           month: 'short',
-                           day: 'numeric'
-                         }) : 'Unknown date'}
-                       </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {booking.date || 'Unknown date'}
+                        </div>
                       {/* Commenting out time and duration for demo data */}
                       {/* {booking.time && (
                         <div className="flex items-center gap-1">
@@ -92,7 +88,7 @@ export function RecentBookingsModal({
                     {booking.status}
                   </Badge>
                   <div className="text-right">
-                    <div className="font-semibold">{booking.points_spent} pts</div>
+                    <div className="font-semibold">{booking.points} pts</div>
                   </div>
                 </div>
               </div>
