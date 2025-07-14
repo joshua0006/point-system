@@ -62,6 +62,18 @@ export function BookingCard({ booking }: BookingCardProps) {
     }
 
     if (booking.status === 'confirmed') {
+      const userCompleted = isConsultant ? booking.consultant_completed : booking.buyer_completed;
+      const otherCompleted = isConsultant ? booking.buyer_completed : booking.consultant_completed;
+
+      if (userCompleted && !otherCompleted) {
+        return (
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-2">Waiting for other party to mark as completed</p>
+            <Badge variant="secondary">Completion Pending</Badge>
+          </div>
+        );
+      }
+
       return (
         <div className="flex gap-2">
           <Button 

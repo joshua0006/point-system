@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          buyer_completed: boolean | null
+          consultant_completed: boolean | null
           consultant_id: string
           created_at: string
           id: string
@@ -28,6 +30,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          buyer_completed?: boolean | null
+          consultant_completed?: boolean | null
           consultant_id: string
           created_at?: string
           id?: string
@@ -40,6 +44,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          buyer_completed?: boolean | null
+          consultant_completed?: boolean | null
           consultant_id?: string
           created_at?: string
           id?: string

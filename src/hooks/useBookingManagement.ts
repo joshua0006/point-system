@@ -13,6 +13,8 @@ export interface BookingWithDetails {
   created_at: string;
   scheduled_at: string | null;
   notes: string | null;
+  buyer_completed: boolean;
+  consultant_completed: boolean;
   services: {
     title: string;
     description: string;
@@ -117,6 +119,7 @@ export function useBookingForConversation(conversationId: string) {
 export function useUpdateBookingStatus() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ 
@@ -128,20 +131,64 @@ export function useUpdateBookingStatus() {
       status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
       scheduledAt?: string;
     }) => {
-      const updateData: any = { status };
-      if (scheduledAt) {
-        updateData.scheduled_at = scheduledAt;
+      if (!user) throw new Error('Not authenticated');
+
+      // For completion, we need special handling
+      if (status === 'completed') {
+        // First get the current booking to check who is completing
+        const { data: booking, error: fetchError } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('id', bookingId)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        // Determine if user is buyer or consultant
+        const isBuyer = user.id === booking.user_id;
+        const updateData: any = {};
+
+        if (isBuyer) {
+          updateData.buyer_completed = true;
+        } else {
+          updateData.consultant_completed = true;
+        }
+
+        // Check if both parties have completed after this update
+        const bothCompleted = isBuyer 
+          ? (booking.consultant_completed && true) 
+          : (booking.buyer_completed && true);
+
+        if (bothCompleted) {
+          updateData.status = 'completed';
+        }
+
+        const { data, error } = await supabase
+          .from('bookings')
+          .update(updateData)
+          .eq('id', bookingId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // For other status changes, use original logic
+        const updateData: any = { status };
+        if (scheduledAt) {
+          updateData.scheduled_at = scheduledAt;
+        }
+
+        const { data, error } = await supabase
+          .from('bookings')
+          .update(updateData)
+          .eq('id', bookingId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
       }
-
-      const { data, error } = await supabase
-        .from('bookings')
-        .update(updateData)
-        .eq('id', bookingId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversation-booking'] });
