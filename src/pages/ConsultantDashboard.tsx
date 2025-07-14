@@ -140,59 +140,81 @@ export default function ConsultantDashboard() {
         pointsBalance: profile?.points_balance || 2500
       });
 
-      // Create some demo transaction data
+      // Create demo transaction data for BalanceDetailsModal
       const demoTransactions = [
         {
           id: 'demo-1',
-          type: 'earning',
-          amount: 1500,
-          description: 'Consultation completed',
-          created_at: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+          type: 'earned' as const,
+          service: 'Consultation completed',
+          consultant: undefined,
+          points: 1500,
+          date: new Date(Date.now() - 86400000).toLocaleDateString(),
+          status: 'completed'
         },
         {
           id: 'demo-2', 
-          type: 'earning',
-          amount: 2000,
-          description: 'Strategy session completed',
-          created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+          type: 'earned' as const,
+          service: 'Strategy session completed',
+          consultant: undefined,
+          points: 2000,
+          date: new Date(Date.now() - 172800000).toLocaleDateString(),
+          status: 'completed'
         },
         {
           id: 'demo-3',
-          type: 'purchase',
-          amount: -500,
-          description: 'Service purchased',
-          created_at: new Date(Date.now() - 259200000).toISOString() // 3 days ago
+          type: 'spent' as const,
+          service: 'Marketing Analysis Service',
+          consultant: 'Sarah Johnson',
+          points: 500,
+          date: new Date(Date.now() - 259200000).toLocaleDateString(),
+          status: 'completed'
         }
       ];
       
-      // Create demo booking data
+      // Create demo booking data for ServicesBookedModal
       const demoSellerBookings = [
         {
           id: 'demo-booking-1',
-          status: 'completed',
-          scheduled_at: new Date(Date.now() - 86400000).toISOString(),
-          services: { title: 'Business Strategy Consultation', duration_minutes: 60 },
-          points_spent: 1500,
-          created_at: new Date(Date.now() - 86400000).toISOString()
+          service: 'Business Strategy Consultation',
+          consultant: 'John Consultant (You)',
+          date: new Date(Date.now() - 86400000).toLocaleDateString(),
+          time: '2:00 PM',
+          duration: '60 mins',
+          status: 'completed' as const,
+          points: 1500
         },
         {
           id: 'demo-booking-2',
-          status: 'confirmed',
-          scheduled_at: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-          services: { title: 'Marketing Review', duration_minutes: 90 },
-          points_spent: 2000,
-          created_at: new Date(Date.now() - 172800000).toISOString()
+          service: 'Marketing Review',
+          consultant: 'John Consultant (You)',
+          date: new Date(Date.now() + 86400000).toLocaleDateString(), // Tomorrow
+          time: '10:00 AM',
+          duration: '90 mins',
+          status: 'confirmed' as const,
+          points: 2000
+        },
+        {
+          id: 'demo-booking-3',
+          service: 'Technology Assessment',
+          consultant: 'John Consultant (You)',
+          date: new Date(Date.now() - 259200000).toLocaleDateString(), // 3 days ago
+          time: '3:30 PM',
+          duration: '45 mins',
+          status: 'completed' as const,
+          points: 1200
         }
       ];
 
       const demoBuyerBookings = [
         {
           id: 'demo-buyer-booking-1',
-          status: 'completed',
-          scheduled_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-          services: { title: 'Design Consultation', duration_minutes: 45 },
-          points_spent: 800,
-          created_at: new Date(Date.now() - 259200000).toISOString()
+          service: 'Design Consultation',
+          consultant: 'Sarah Johnson',
+          date: new Date(Date.now() + 172800000).toLocaleDateString(), // Day after tomorrow
+          time: '1:00 PM',
+          duration: '45 mins',
+          status: 'confirmed' as const,
+          points: 800
         }
       ];
 
@@ -201,20 +223,32 @@ export default function ConsultantDashboard() {
       // Set booked services data
       setBookedServices([...demoSellerBookings, ...demoBuyerBookings]);
       
-      // Process upcoming sessions
+      // Process upcoming sessions for UpcomingSessionsModal
       const now = new Date();
       const upcomingSelling = demoSellerBookings
-        .filter(b => b.status === 'confirmed' && b.scheduled_at && new Date(b.scheduled_at) > now)
+        .filter(b => b.status === 'confirmed')
         .map(b => ({
-          ...b,
-          type: 'selling' as const
+          id: b.id,
+          service: b.service,
+          consultant: b.consultant,
+          date: b.date,
+          time: b.time,
+          duration: b.duration,
+          bookingUrl: '#',
+          status: 'confirmed' as const
         }));
         
       const upcomingBuying = demoBuyerBookings
-        .filter(b => b.status === 'confirmed' && b.scheduled_at && new Date(b.scheduled_at) > now)
+        .filter(b => b.status === 'confirmed')
         .map(b => ({
-          ...b,
-          type: 'buying' as const
+          id: b.id,
+          service: b.service,
+          consultant: b.consultant,
+          date: b.date,
+          time: b.time,
+          duration: b.duration,
+          bookingUrl: '#',
+          status: 'confirmed' as const
         }));
         
       setUpcomingSellingBookings(upcomingSelling);
