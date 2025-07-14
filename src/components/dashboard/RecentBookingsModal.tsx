@@ -62,7 +62,7 @@ export function RecentBookingsModal({
                    <div>
                      <p className="font-medium">{booking.services?.title || 'Service'}</p>
                      <p className="text-sm text-muted-foreground">
-                       with {booking.consultantName || 'Professional Consultant'}
+                       with {booking.consultant_name || 'Professional Consultant'}
                      </p>
                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                        <div className="flex items-center gap-1">
