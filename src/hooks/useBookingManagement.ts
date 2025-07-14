@@ -151,6 +151,16 @@ export function useUpdateBookingStatus() {
         const isBuyer = user.id === booking.user_id;
         const isConsultant = user.id === booking.consultants.user_id;
         
+        console.log('Completion debug:', {
+          userId: user.id,
+          bookingUserId: booking.user_id,
+          consultantUserId: booking.consultants.user_id,
+          isBuyer,
+          isConsultant,
+          currentBuyerCompleted: booking.buyer_completed,
+          currentConsultantCompleted: booking.consultant_completed
+        });
+        
         if (!isBuyer && !isConsultant) {
           throw new Error('User is not authorized to update this booking');
         }
@@ -159,8 +169,10 @@ export function useUpdateBookingStatus() {
 
         if (isBuyer) {
           updateData.buyer_completed = true;
+          console.log('Buyer completing, consultant already completed:', booking.consultant_completed);
         } else if (isConsultant) {
           updateData.consultant_completed = true;
+          console.log('Consultant completing, buyer already completed:', booking.buyer_completed);
         }
 
         // Check if both parties have completed after this update
@@ -168,9 +180,14 @@ export function useUpdateBookingStatus() {
           ? booking.consultant_completed  // buyer is completing now, check if consultant already completed
           : booking.buyer_completed;      // consultant is completing now, check if buyer already completed
 
+        console.log('Both completed check:', bothCompleted);
+
         if (bothCompleted) {
           updateData.status = 'completed';
+          console.log('Setting status to completed');
         }
+
+        console.log('Update data:', updateData);
 
         const { data, error } = await supabase
           .from('bookings')
