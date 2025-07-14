@@ -175,14 +175,14 @@ export function useUpdateBookingStatus() {
           console.log('Consultant completing, buyer already completed:', booking.buyer_completed);
         }
 
-        // Check if both parties have completed after this update
-        const bothCompleted = isBuyer 
+        // Check if both parties will have completed after this update
+        const bothWillBeCompleted = isBuyer 
           ? booking.consultant_completed  // buyer is completing now, check if consultant already completed
           : booking.buyer_completed;      // consultant is completing now, check if buyer already completed
 
-        console.log('Both completed check:', bothCompleted);
+        console.log('Both will be completed check:', bothWillBeCompleted);
 
-        if (bothCompleted) {
+        if (bothWillBeCompleted) {
           updateData.status = 'completed';
           console.log('Setting status to completed');
         }
