@@ -68,14 +68,14 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6">
-                See Expert Consultation
+                Connect with Singapore's
                 <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> 
-                  In Action
+                  Top Financial Consultants
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                Experience the power of professional consulting with live marketplace 
-                previews and instant expert connections.
+                Access expert financial advisory services from licensed professionals across Singapore. 
+                Get personalized guidance for investments, insurance, wealth planning, and business finance.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button size="lg" className="px-8" asChild>
@@ -93,8 +93,8 @@ const Index = () => {
                   <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mx-auto mb-2">
                     <Users className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="text-2xl font-bold text-foreground">500+</div>
-                  <div className="text-sm text-muted-foreground">Expert Consultants</div>
+                  <div className="text-2xl font-bold text-foreground">100+</div>
+                  <div className="text-sm text-muted-foreground">Licensed Advisors</div>
                 </div>
                 <div>
                   <div className="flex items-center justify-center w-12 h-12 bg-accent/10 rounded-lg mx-auto mb-2">
@@ -107,8 +107,8 @@ const Index = () => {
                   <div className="flex items-center justify-center w-12 h-12 bg-success/10 rounded-lg mx-auto mb-2">
                     <Clock className="w-6 h-6 text-success" />
                   </div>
-                  <div className="text-2xl font-bold text-foreground">24h</div>
-                  <div className="text-sm text-muted-foreground">Avg Response Time</div>
+                  <div className="text-2xl font-bold text-foreground">SGD</div>
+                  <div className="text-sm text-muted-foreground">Local Currency</div>
                 </div>
               </div>
             </div>
@@ -130,11 +130,11 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-6">
-              Everything You Need to Drive Results
+              Complete Financial Advisory Ecosystem
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Powerful features designed to connect businesses with expert consultants, 
-              track progress, and deliver measurable outcomes.
+              Everything you need to connect with Singapore's finest financial advisors, 
+              from wealth management to business financing solutions.
             </p>
           </div>
 
@@ -144,12 +144,12 @@ const Index = () => {
                 <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-2">Smart Consultant Matching</CardTitle>
+                <CardTitle className="text-xl mb-2">Smart Advisor Matching</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Browse and filter through expert consultants by expertise, tier, and ratings. 
-                  Find the perfect match for your business needs instantly.
+                  Find licensed financial advisors by specialization - wealth management, insurance, 
+                  investment planning, or business finance. All MAS-regulated professionals.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -159,12 +159,12 @@ const Index = () => {
                 <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <MessageSquare className="w-8 h-8 text-accent" />
                 </div>
-                <CardTitle className="text-xl mb-2">Real-Time Communication</CardTitle>
+                <CardTitle className="text-xl mb-2">Secure Consultations</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Connect instantly with consultants through our built-in messaging system. 
-                  Schedule sessions and collaborate seamlessly in real-time.
+                  Book secure video consultations or in-person meetings. All communications 
+                  are encrypted and compliant with Singapore's financial regulations.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -174,12 +174,12 @@ const Index = () => {
                 <div className="w-16 h-16 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Award className="w-8 h-8 text-success" />
                 </div>
-                <CardTitle className="text-xl mb-2">Achievement System</CardTitle>
+                <CardTitle className="text-xl mb-2">Portfolio Tracking</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Track your progress with badges, milestones, and achievements. 
-                  Complete challenges and unlock rewards as you grow your business.
+                  Monitor your financial journey with comprehensive portfolio tracking. 
+                  View all your investments, policies, and financial goals in one place.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -189,12 +189,12 @@ const Index = () => {
                 <div className="w-16 h-16 bg-warning/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-8 h-8 text-warning" />
                 </div>
-                <CardTitle className="text-xl mb-2">Instant Service Booking</CardTitle>
+                <CardTitle className="text-xl mb-2">Instant Advisory Booking</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Book consultations with one tap. Every service booking earns points 
-                  and provides immediate access to expert guidance.
+                  Book financial consultations instantly. From investment reviews to 
+                  insurance planning - get expert advice when you need it most.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -204,12 +204,12 @@ const Index = () => {
                 <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <TrendingUp className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-2">Performance Analytics</CardTitle>
+                <CardTitle className="text-xl mb-2">Financial Analytics</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Monitor your consultation history, track spending, and measure ROI. 
-                  Get insights that help you make better business decisions.
+                  Track your financial progress with detailed analytics. Monitor investment 
+                  performance, insurance coverage, and overall wealth growth.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -219,12 +219,12 @@ const Index = () => {
                 <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Shield className="w-8 h-8 text-accent" />
                 </div>
-                <CardTitle className="text-xl mb-2">Secure & Trusted</CardTitle>
+                <CardTitle className="text-xl mb-2">MAS Regulated</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  All consultants are verified and rated. Secure payments, data protection, 
-                  and quality assurance give you peace of mind.
+                  All advisors are MAS-licensed and verified. Enjoy complete data protection, 
+                  secure transactions, and regulatory compliance you can trust.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -237,11 +237,11 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-6">
-              Your Journey to Success - Completely Free
+              Your Financial Journey Starts Here
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-              Start your consultation journey at no cost and discover how you can both 
-              receive expert guidance and contribute to our community.
+              Begin your path to financial success with Singapore's most trusted advisory platform. 
+              Connect with licensed professionals and build your wealth systematically.
             </p>
             <div className="flex items-center justify-center gap-2 text-success font-semibold">
               <Gift className="w-5 h-5" />
@@ -254,10 +254,10 @@ const Index = () => {
               <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
                 01
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Get Started Free</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Discover Advisors</h3>
               <p className="text-muted-foreground mb-4">
-                Join ConsultHub at absolutely no cost. Browse our marketplace, discover expert consultants, 
-                and start your journey with our complimentary starter points.
+                Browse Singapore's top financial advisors. Review their expertise, certifications, 
+                and client testimonials to find the perfect match for your financial goals.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-success">
                 <CheckCircle className="w-4 h-4" />
@@ -269,10 +269,10 @@ const Index = () => {
               <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
                 02
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Book & Learn</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Get Expert Advice</h3>
               <p className="text-muted-foreground mb-4">
-                Use your points to book consultations with verified experts. Gain valuable insights, 
-                implement strategies, and watch your skills and business grow.
+                Book consultations with MAS-licensed advisors. Get personalized financial strategies, 
+                investment recommendations, and comprehensive wealth planning tailored to you.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-primary">
                 <Target className="w-4 h-4" />
@@ -284,10 +284,10 @@ const Index = () => {
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
                 03
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-4">Give Back & Earn</h3>
+              <h3 className="text-2xl font-bold text-foreground mb-4">Build Your Wealth</h3>
               <p className="text-muted-foreground mb-4">
-                Share your expertise by becoming a consultant. Help others in the community 
-                while earning points to spend on your own professional development.
+                Implement your personalized financial plan with ongoing support. Track your progress, 
+                adjust strategies, and watch your wealth grow with expert guidance.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-accent">
                 <Heart className="w-4 h-4" />
@@ -300,11 +300,11 @@ const Index = () => {
           <div className="mt-16 text-center">
             <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 max-w-4xl mx-auto">
               <h3 className="text-2xl font-bold text-foreground mb-4">
-                Build a Thriving Knowledge Community
+                Join Singapore's Premier Financial Network
               </h3>
               <p className="text-muted-foreground mb-6">
-                When you sign up as a consultant, you're not just earning points - you're helping create 
-                a vibrant ecosystem where knowledge flows freely and everyone grows together.
+                Connect with like-minded individuals building wealth in Singapore. Share insights, 
+                learn from others, and grow your financial knowledge within our trusted community.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                 <div className="flex items-center gap-2 justify-center">
@@ -330,10 +330,10 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-6">
-              Trusted by High-Performing Teams
+              Trusted by Singapore's Financial Community
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              See how businesses across industries are accelerating growth with ConsultHub.
+              See how individuals and businesses across Singapore are achieving their financial goals.
             </p>
           </div>
 
@@ -346,16 +346,16 @@ const Index = () => {
                   ))}
                 </div>
                 <blockquote className="text-foreground mb-4 italic">
-                  "ConsultHub transformed our startup's strategy. We saw a 300% increase 
-                  in productivity within the first month of working with their consultants."
+                  "My advisor helped me diversify my portfolio and plan for my retirement. 
+                  I've achieved a 15% annual return and feel confident about my financial future."
                 </blockquote>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold mr-3">
-                    SJ
+                    LT
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">Sarah Johnson</div>
-                    <div className="text-sm text-muted-foreground">CEO at TechCorp Solutions</div>
+                    <div className="font-semibold text-foreground">Li Wei Tan</div>
+                    <div className="text-sm text-muted-foreground">Senior Engineer, Marina Bay</div>
                   </div>
                 </div>
               </CardContent>
@@ -369,15 +369,15 @@ const Index = () => {
                   ))}
                 </div>
                 <blockquote className="text-foreground mb-4 italic">
-                  "The quality of consultants is exceptional. The points system makes it 
-                  easy to budget and the results speak for themselves."
+                  "The business finance advisor helped me secure funding for my restaurant expansion. 
+                  Professional, knowledgeable, and truly understands the Singapore market."
                 </blockquote>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-success rounded-full flex items-center justify-center text-white font-bold mr-3">
-                    MC
+                    PR
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground">Michael Chen</div>
+                    <div className="font-semibold text-foreground">Priya Raj</div>
                     <div className="text-sm text-muted-foreground">Team Manager at Growth Marketing Inc</div>
                   </div>
                 </div>
