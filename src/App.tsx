@@ -19,6 +19,7 @@ import Messages from "./pages/Messages";
 import ConsultantProfile from "./pages/ConsultantProfile";
 import BuyerProfile from "./pages/BuyerProfile";
 import SellerProfile from "./pages/SellerProfile";
+import LeadGenCampaigns from "./pages/LeadGenCampaigns";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,14 @@ const App = () => (
               <Route path="/profile/consultant/:userId" element={<ConsultantProfile />} />
               <Route path="/profile/buyer/:userId" element={<BuyerProfile />} />
               <Route path="/profile/seller/:userId" element={<SellerProfile />} />
+              <Route
+                path="/lead-gen-campaigns"
+                element={
+                  <ProtectedRoute>
+                    <LeadGenCampaigns />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
