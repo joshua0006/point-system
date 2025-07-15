@@ -30,13 +30,13 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Expert Consultation
-            <span className="block text-primary">Marketplace</span>
+            Financial Infrastructure
+            <span className="block text-primary">Services</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Connect with top-tier consultants and book services using your points. 
-            Get expert advice tailored to your needs.
+            Essential infrastructure services for financial consultants. 
+            Purchase professional support services to enhance your practice.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -67,15 +67,15 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">{servicesCount}+</div>
-              <p className="text-muted-foreground">Expert Services</p>
+              <p className="text-muted-foreground">Infrastructure Services</p>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">4.9★</div>
-              <p className="text-muted-foreground">Average Rating</p>
+              <p className="text-muted-foreground">Service Quality</p>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-muted-foreground">Support Available</p>
+              <p className="text-muted-foreground">Professional Support</p>
             </div>
           </div>
         </div>
