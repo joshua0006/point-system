@@ -74,6 +74,56 @@ export type Database = {
           },
         ]
       }
+      campaign_participants: {
+        Row: {
+          budget_contribution: number
+          campaign_id: string
+          consultant_name: string
+          conversions: number | null
+          id: string
+          joined_at: string
+          leads_received: number | null
+          notes: string | null
+          revenue_generated: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_contribution: number
+          campaign_id: string
+          consultant_name: string
+          conversions?: number | null
+          id?: string
+          joined_at?: string
+          leads_received?: number | null
+          notes?: string | null
+          revenue_generated?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_contribution?: number
+          campaign_id?: string
+          consultant_name?: string
+          conversions?: number | null
+          id?: string
+          joined_at?: string
+          leads_received?: number | null
+          notes?: string | null
+          revenue_generated?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "lead_gen_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -188,6 +238,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lead_gen_campaigns: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          total_budget: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          total_budget: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          total_budget?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
