@@ -13,21 +13,41 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Function started");
+    
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      console.error("STRIPE_SECRET_KEY is not set");
+      throw new Error("Stripe secret key not configured");
+    }
+    console.log("Stripe key found");
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
     const authHeader = req.headers.get("Authorization")!;
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
+    
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
+    console.log("User authenticated:", user.email);
 
-    const { points } = await req.json();
+    const requestBody = await req.json();
+    const { points } = requestBody;
+    if (!points || points <= 0) {
+      throw new Error("Invalid points amount");
+    }
+    console.log("Points requested:", points);
+    
     const priceInCents = points * 100; // 1 point = $1, so convert to cents
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -70,6 +90,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    console.error("Error in create-points-checkout:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
