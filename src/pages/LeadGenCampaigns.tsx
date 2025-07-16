@@ -436,9 +436,12 @@ const LeadGenCampaigns = () => {
       if (error) throw error;
 
       toast({
-        title: "Campaign Started!",
-        description: `${monthlySpend} points deducted for first month. Your ${selectedTarget?.name} Facebook ads campaign is now active.`,
+        title: "Campaign Started! 🎉",
+        description: `${monthlySpend} points deducted. Your ${selectedTarget?.name} campaign will charge ${monthlySpend} points monthly.`,
       });
+
+      // Update the user balance state
+      setUserBalance(prev => prev - monthlySpend);
 
       setBudgetAmount("");
       setConsultantName("");
