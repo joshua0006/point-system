@@ -25,7 +25,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
 
     const { points } = await req.json();
-    const priceInCents = points; // $1 = 100 points, so 100 points = $1.00
+    const priceInCents = points * 100; // 1 point = $1, so convert to cents
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
