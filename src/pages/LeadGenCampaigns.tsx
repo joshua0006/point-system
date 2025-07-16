@@ -541,16 +541,42 @@ const LeadGenCampaigns = () => {
 
       if (transactionError) throw transactionError;
 
+      // For Facebook ads, we'll create a simple campaign participation record
+      // First, create or get a Facebook ads campaign entry
+      const { data: fbCampaign, error: campaignError } = await supabase
+        .from('lead_gen_campaigns')
+        .upsert({
+          name: `Facebook Ads - ${selectedTarget.name}`,
+          description: `Facebook advertising campaign targeting ${selectedTarget.name}`,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+          total_budget: monthlySpend * 12, // Yearly budget estimate
+          status: 'active',
+          created_by: user.id
+        }, {
+          onConflict: 'name'
+        })
+        .select()
+        .single();
+
+      if (campaignError) {
+        console.error('Campaign creation error:', campaignError);
+        throw campaignError;
+      }
+
       const { error } = await supabase
         .from('campaign_participants')
         .insert({
-          campaign_id: selectedCampaign.id,
+          campaign_id: fbCampaign.id,
           user_id: user.id,
           consultant_name: consultantName,
           budget_contribution: monthlySpend
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Participant insertion error:', error);
+        throw error;
+      }
 
       toast({
         title: "Campaign Started! 🎉",
