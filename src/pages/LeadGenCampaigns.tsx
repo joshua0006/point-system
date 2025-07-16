@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Navigation } from "@/components/Navigation";
 import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft } from "lucide-react";
 import { ActiveCampaignCard } from "@/components/ActiveCampaignCard";
+import { TopUpModal } from "@/components/TopUpModal";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -172,6 +173,7 @@ const LeadGenCampaigns = () => {
   const [userBalance, setUserBalance] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeFbCampaigns, setActiveFbCampaigns] = useState([]);
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
 
   useEffect(() => {
     fetchActiveCampaigns();
@@ -179,6 +181,17 @@ const LeadGenCampaigns = () => {
     checkAdminStatus();
     fetchUserBalance();
     fetchActiveFbCampaigns();
+    
+    // Check for successful top-up
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('topup') === 'success') {
+      const points = urlParams.get('points');
+      if (points) {
+        handleTopUpSuccess(parseInt(points));
+      }
+      // Clean up URL
+      window.history.replaceState({}, '', '/lead-gen-campaigns');
+    }
   }, [user]);
 
   const checkAdminStatus = async () => {
@@ -411,6 +424,16 @@ const LeadGenCampaigns = () => {
     } catch (error) {
       console.error('Error fetching balance:', error);
     }
+  };
+
+  const handleTopUpSuccess = async (points: number) => {
+    toast({
+      title: "Top-up Successful! 🎉",
+      description: `${points} points have been added to your wallet.`,
+    });
+    
+    // Refresh user balance
+    await fetchUserBalance();
   };
 
   const fetchActiveFbCampaigns = async () => {
@@ -1426,7 +1449,17 @@ const LeadGenCampaigns = () => {
             <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Current Balance:</span>
-                <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setTopUpModalOpen(true)}
+                    className="text-xs"
+                  >
+                    Top Up
+                  </Button>
+                </div>
               </div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Amount to Deduct:</span>
@@ -1470,6 +1503,11 @@ const LeadGenCampaigns = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TopUpModal 
+        isOpen={topUpModalOpen}
+        onClose={() => setTopUpModalOpen(false)}
+      />
     </div>
   );
 };
