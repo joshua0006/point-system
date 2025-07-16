@@ -365,10 +365,10 @@ const LeadGenCampaigns = () => {
     e.preventDefault();
     if (!selectedCampaign || !user) return;
 
-    const pointsCost = parseInt(budgetAmount) * 4; // 4 points per hour for Facebook ads
+    const monthlySpend = parseInt(budgetAmount); // Monthly ad spend amount
 
     try {
-      // Check if user has enough points
+      // Check if user has enough points for first month
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('points_balance')
@@ -377,19 +377,19 @@ const LeadGenCampaigns = () => {
 
       if (profileError) throw profileError;
 
-      if (profile.points_balance < pointsCost) {
+      if (profile.points_balance < monthlySpend) {
         toast({
           title: "Insufficient Points",
-          description: `You need ${pointsCost} points but only have ${profile.points_balance}`,
+          description: `You need ${monthlySpend} points for the first month but only have ${profile.points_balance}`,
           variant: "destructive",
         });
         return;
       }
 
-      // Deduct points
+      // Deduct points for first month
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ points_balance: profile.points_balance - pointsCost })
+        .update({ points_balance: profile.points_balance - monthlySpend })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
@@ -399,9 +399,9 @@ const LeadGenCampaigns = () => {
         .from('points_transactions')
         .insert({
           user_id: user.id,
-          amount: -pointsCost,
+          amount: -monthlySpend,
           type: 'purchase',
-          description: `Facebook ads campaign - ${budgetAmount} hours targeting ${selectedTarget?.name}`
+          description: `Facebook ads monthly spend - ${selectedTarget?.name} (First month)`
         });
 
       if (transactionError) throw transactionError;
@@ -412,14 +412,14 @@ const LeadGenCampaigns = () => {
           campaign_id: selectedCampaign.id,
           user_id: user.id,
           consultant_name: consultantName,
-          budget_contribution: pointsCost
+          budget_contribution: monthlySpend
         });
 
       if (error) throw error;
 
       toast({
         title: "Campaign Started!",
-        description: `${pointsCost} points deducted. Your ${selectedTarget?.name} Facebook ads campaign is now active.`,
+        description: `${monthlySpend} points deducted for first month. Your ${selectedTarget?.name} Facebook ads campaign is now active.`,
       });
 
       setBudgetAmount("");
@@ -994,22 +994,23 @@ const LeadGenCampaigns = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="contribution">Campaign Hours</Label>
+                          <Label htmlFor="contribution">Monthly Ad Spend Budget</Label>
                           <Input
                             id="contribution"
                             type="number"
-                            placeholder="40"
+                            placeholder="500"
                             value={budgetAmount}
                             onChange={(e) => setBudgetAmount(e.target.value)}
                             required
                             min="1"
                           />
                           <p className="text-sm text-muted-foreground">
-                            Cost: 4 points per hour for Facebook ads targeting {selectedTarget.name.toLowerCase()}. Professional ad management and optimization included.
+                            Monthly budget for Facebook ads targeting {selectedTarget.name.toLowerCase()}. $1 = 1 point. This amount will be deducted monthly from your points balance.
                           </p>
                           {budgetAmount && (
                             <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
-                              <p className="text-sm"><strong>Total Cost:</strong> {parseInt(budgetAmount || "0") * 4} points</p>
+                              <p className="text-sm"><strong>Monthly Cost:</strong> {budgetAmount} points</p>
+                              <p className="text-sm text-muted-foreground">Expected 15-30 leads per month at this budget level</p>
                             </div>
                           )}
                         </div>
@@ -1017,7 +1018,7 @@ const LeadGenCampaigns = () => {
                         <div className="flex gap-2">
                           <Button type="submit" className="flex-1" size="lg">
                             <DollarSign className="h-5 w-5 mr-2" />
-                            Pay with Points & Start Campaign
+                            Start Monthly Campaign
                           </Button>
                           <Button 
                             type="button" 
