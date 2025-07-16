@@ -570,27 +570,22 @@ const LeadGenCampaigns = () => {
                     if (!user) return;
 
                     try {
-                      const totalCost = parseInt(coldCallHours) * 6;
-                      const { error } = await supabase
-                        .from('campaign_participants')
-                        .insert({
-                          campaign_id: 'cold-calling-campaign',
-                          user_id: user.id,
-                          consultant_name: coldCallConsultantName,
-                          budget_contribution: totalCost
-                        });
-
-                      if (error) throw error;
-
-                      toast({
-                        title: "Cold Calling Campaign Started!",
-                        description: `Your ${coldCallHours} hour telemarketing campaign (${totalCost} SGD) has been set up. Professional telemarketers will begin outreach soon.`,
+                      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+                        body: {
+                          campaignType: 'cold-calling',
+                          hours: parseInt(coldCallHours)
+                        }
                       });
 
-                      setColdCallHours("");
-                      setColdCallConsultantName("");
-                      setCampaignType(null);
-                      fetchUserParticipations();
+                      if (error) throw error;
+                      
+                      // Open Stripe checkout in new tab
+                      window.open(data.url, '_blank');
+                      
+                      toast({
+                        title: "Redirecting to Payment",
+                        description: `Setting up monthly subscription for ${coldCallHours} hours at $${parseInt(coldCallHours) * 6}/month.`,
+                      });
                     } catch (error) {
                       toast({
                         title: "Error",
@@ -621,9 +616,9 @@ const LeadGenCampaigns = () => {
                         required
                         min="1"
                       />
-                      <p className="text-sm text-muted-foreground">
-                        Each hour costs $6 SGD. Professional telemarketers will contact prospects on your behalf during business hours.
-                      </p>
+                       <p className="text-sm text-muted-foreground">
+                         Monthly subscription: $6 SGD per hour. Professional telemarketers will contact prospects on your behalf during business hours.
+                       </p>
                     </div>
 
                     {coldCallHours && (
@@ -631,8 +626,8 @@ const LeadGenCampaigns = () => {
                         <h4 className="font-semibold mb-2">Campaign Summary</h4>
                         <div className="space-y-1 text-sm">
                           <p><strong>Hours:</strong> {coldCallHours} hours</p>
-                          <p><strong>Rate:</strong> $6 SGD per hour</p>
-                          <p><strong>Total Cost:</strong> ${parseInt(coldCallHours || "0") * 6} SGD</p>
+                           <p><strong>Monthly Rate:</strong> $6 SGD per hour</p>
+                           <p><strong>Monthly Cost:</strong> ${parseInt(coldCallHours || "0") * 6} SGD</p>
                           <p><strong>Expected Calls:</strong> ~{parseInt(coldCallHours || "0") * 20} calls</p>
                           <p><strong>Expected Leads:</strong> ~{Math.round(parseInt(coldCallHours || "0") * 20 * 0.15)} qualified leads</p>
                         </div>
@@ -640,10 +635,10 @@ const LeadGenCampaigns = () => {
                     )}
 
                     <div className="flex gap-2">
-                      <Button type="submit" className="flex-1" size="lg" disabled={!coldCallHours || !coldCallConsultantName}>
-                        <Phone className="h-5 w-5 mr-2" />
-                        Start Cold Calling Campaign
-                      </Button>
+                       <Button type="submit" className="flex-1" size="lg" disabled={!coldCallHours || !coldCallConsultantName}>
+                         <Phone className="h-5 w-5 mr-2" />
+                         Subscribe & Start Campaign
+                       </Button>
                       <Button 
                         type="button" 
                         variant="outline" 
