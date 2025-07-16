@@ -941,7 +941,15 @@ const LeadGenCampaigns = () => {
               
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="campaigns">Set Budget & Choose Ads</TabsTrigger>
-                <TabsTrigger value="my-campaigns">My Active Budgets</TabsTrigger>
+                <TabsTrigger 
+                  value="my-campaigns" 
+                  onClick={() => {
+                    fetchUserParticipations();
+                    fetchActiveFbCampaigns();
+                  }}
+                >
+                  My Active Budgets
+                </TabsTrigger>
                 <TabsTrigger value="results">Performance Tracking</TabsTrigger>
               </TabsList>
 
