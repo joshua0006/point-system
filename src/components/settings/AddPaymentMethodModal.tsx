@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 
 // Replace with your actual Stripe publishable key from Stripe Dashboard
 // Get it from: https://dashboard.stripe.com/test/apikeys
-const stripePromise = loadStripe("pk_test_51H1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
+const stripePromise = loadStripe("pk_test_51HRUzmII7A7fKDtY9vTJRha7WdTLB37eFxTpSNGUHBRhVHwpJQF16yR4hZ7ZRksayBQd2Hm2wqW5FDhVsXyHHJvO00YdRacibh");
 
 interface AddPaymentMethodModalProps {
   open: boolean;
