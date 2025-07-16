@@ -71,16 +71,13 @@ serve(async (req) => {
     logStep("Payment intent created", { paymentIntentId: paymentIntent.id, status: paymentIntent.status });
 
     if (paymentIntent.status === "succeeded") {
-      // Update user's points balance
+      // Update user's points balance by incrementing current balance
       const { error: updateError } = await supabaseClient
-        .from("profiles")
-        .update({ 
-          points_balance: supabaseClient.rpc('increment_points', { user_id: user.id, amount: amount })
-        })
-        .eq("user_id", user.id);
+        .rpc('increment_points_balance', { user_id: user.id, points_to_add: amount });
 
       if (updateError) {
         logStep("Error updating points balance", { error: updateError });
+        // Continue with transaction recording even if balance update fails
       } else {
         logStep("Points balance updated successfully", { amount });
       }
