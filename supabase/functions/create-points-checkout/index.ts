@@ -78,6 +78,12 @@ serve(async (req) => {
       mode: "payment",
       success_url: `${req.headers.get("origin")}/lead-gen-campaigns?topup=success&points=${points}`,
       cancel_url: `${req.headers.get("origin")}/lead-gen-campaigns?topup=cancelled`,
+      // Enable Stripe Link for frictionless checkout
+      payment_method_options: {
+        link: {
+          persistent_token: "optional"
+        }
+      },
       metadata: {
         user_id: user.id,
         points: points.toString(),
