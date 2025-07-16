@@ -7,6 +7,7 @@ import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Plus, Trash2, Star, Loader2 } from "lucide-react";
+import { AddPaymentMethodModal } from "./AddPaymentMethodModal";
 
 export const PaymentMethodsTab = () => {
   const { paymentMethods, loading, fetchPaymentMethods, setupPaymentMethod } = usePaymentMethods();
@@ -14,15 +15,15 @@ export const PaymentMethodsTab = () => {
   const [deleteMethod, setDeleteMethod] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingMethod, setIsAddingMethod] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const handleDeletePaymentMethod = async (paymentMethodId: string) => {
     setIsDeleting(true);
     try {
-      // Delete from Supabase
-      const { error } = await supabase
-        .from('payment_methods')
-        .delete()
-        .eq('stripe_payment_method_id', paymentMethodId);
+      // Delete via edge function (handles both Stripe and Supabase)
+      const { error } = await supabase.functions.invoke('delete-payment-method', {
+        body: { payment_method_id: paymentMethodId }
+      });
 
       if (error) throw error;
 
@@ -45,23 +46,13 @@ export const PaymentMethodsTab = () => {
     }
   };
 
-  const handleAddPaymentMethod = async () => {
-    setIsAddingMethod(true);
-    try {
-      const clientSecret = await setupPaymentMethod();
-      if (clientSecret) {
-        // In a real implementation, you'd integrate Stripe Elements here
-        // For now, we'll show a message
-        toast({
-          title: "Add Payment Method",
-          description: "Stripe Elements integration would open here to add a new payment method.",
-        });
-      }
-    } catch (error) {
-      // Error handling is done in the hook
-    } finally {
-      setIsAddingMethod(false);
-    }
+  const handleAddPaymentMethod = () => {
+    setShowAddModal(true);
+  };
+
+  const handlePaymentMethodSuccess = () => {
+    fetchPaymentMethods();
+    setShowAddModal(false);
   };
 
   const handleSetDefault = async (paymentMethodId: string) => {
@@ -223,6 +214,12 @@ export const PaymentMethodsTab = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AddPaymentMethodModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSuccess={handlePaymentMethodSuccess}
+      />
     </>
   );
 };

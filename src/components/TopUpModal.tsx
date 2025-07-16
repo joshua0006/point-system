@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus, ChevronDown } from "lucide-react";
+import { AddPaymentMethodModal } from "@/components/settings/AddPaymentMethodModal";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
+  const [showAddMethodModal, setShowAddMethodModal] = useState(false);
   const { toast } = useToast();
   const { paymentMethods, loading: paymentMethodsLoading, instantCharge, fetchPaymentMethods } = usePaymentMethods();
 
@@ -372,6 +374,15 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
           </div>
         </div>
       </DialogContent>
+
+      <AddPaymentMethodModal
+        open={showAddMethodModal}
+        onOpenChange={setShowAddMethodModal}
+        onSuccess={() => {
+          fetchPaymentMethods();
+          setShowAddMethodModal(false);
+        }}
+      />
     </Dialog>
   );
 };

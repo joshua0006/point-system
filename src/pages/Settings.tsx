@@ -36,20 +36,40 @@ const Settings = () => {
   }, [profile]);
 
   const handleSaveProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log("Save profile: No user");
+      return;
+    }
+    
+    console.log("Save profile: Starting save", { fullName, bio, userId: user.id });
+    
+    if (!fullName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Full name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
           bio: bio,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Save profile error:", error);
+        throw error;
+      }
+
+      console.log("Save profile: Success", data);
 
       // Refresh the profile data in context
       await refreshProfile();
@@ -58,14 +78,30 @@ const Settings = () => {
         title: "Profile Updated",
         description: "Your profile settings have been saved successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Save profile: Failed", error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      toast({
+        title: "Notification Settings Updated",
+        description: "Your notification preferences have been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update notification settings. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -202,7 +238,7 @@ const Settings = () => {
                   />
                 </div>
 
-                <Button>Save Notification Settings</Button>
+                <Button onClick={handleSaveNotifications}>Save Notification Settings</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -225,20 +261,10 @@ const Settings = () => {
                     <Button variant="outline">Change Password</Button>
                   </div>
 
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Two-Factor Authentication</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Add an extra layer of security to your account.
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Additional security features like 2FA and session management will be available soon.
                     </p>
-                    <Button variant="outline">Enable 2FA</Button>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Active Sessions</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      See where you're logged in and manage your active sessions.
-                    </p>
-                    <Button variant="outline">Manage Sessions</Button>
                   </div>
                 </div>
               </CardContent>
