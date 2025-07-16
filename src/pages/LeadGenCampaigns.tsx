@@ -162,6 +162,8 @@ const LeadGenCampaigns = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
+  const [adMockups, setAdMockups] = useState(AD_MOCKUPS);
+  const [adminMode, setAdminMode] = useState(false);
 
   useEffect(() => {
     fetchActiveCampaigns();
@@ -184,6 +186,135 @@ const LeadGenCampaigns = () => {
     } catch (error) {
       console.error('Error checking admin status:', error);
     }
+  };
+
+  const updateAdContent = (targetId: string, adId: string, updates: any) => {
+    setAdMockups(prev => ({
+      ...prev,
+      [targetId]: prev[targetId].map(ad => 
+        ad.id === adId 
+          ? { ...ad, ...updates }
+          : ad
+      )
+    }));
+    
+    toast({
+      title: "Ad Updated",
+      description: "Ad content has been successfully updated.",
+    });
+  };
+
+  const AdminEditDialog = ({ ad, targetId, onClose }: any) => {
+    const [title, setTitle] = useState(ad.title);
+    const [description, setDescription] = useState(ad.description);
+    const [offer, setOffer] = useState(ad.offer);
+    const [adCopy, setAdCopy] = useState(ad.adCopy);
+    const [cta, setCta] = useState(ad.cta);
+
+    const handleSave = () => {
+      updateAdContent(targetId, ad.id, {
+        title,
+        description,
+        offer,
+        adCopy,
+        cta
+      });
+      onClose();
+    };
+
+    return (
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Edit3 className="h-5 w-5" />
+            Edit Ad Content
+          </DialogTitle>
+        </DialogHeader>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <Label>Ad Title</Label>
+              <Input 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label>Special Offer</Label>
+              <Textarea 
+                value={offer}
+                onChange={(e) => setOffer(e.target.value)}
+                rows={2}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label>Ad Copy</Label>
+              <Textarea 
+                value={adCopy}
+                onChange={(e) => setAdCopy(e.target.value)}
+                rows={8}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label>Call to Action</Label>
+              <Input 
+                value={cta}
+                onChange={(e) => setCta(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <Label className="text-lg font-semibold">Live Preview</Label>
+              <div className="mt-4 p-4 border rounded-lg bg-muted/20">
+                <h3 className="text-xl font-bold mb-2">{title}</h3>
+                <p className="text-muted-foreground mb-4">{description}</p>
+                
+                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-3 rounded-lg mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Gift className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-primary text-sm">Special Offer</span>
+                  </div>
+                  <p className="text-sm font-medium">{offer}</p>
+                </div>
+                
+                <div className="bg-background p-3 rounded border mb-4">
+                  <div className="text-sm whitespace-pre-line">{adCopy}</div>
+                </div>
+                
+                <Button size="sm" className="w-full">
+                  {cta}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex gap-2 pt-4">
+          <Button onClick={handleSave} className="flex-1">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </DialogContent>
+    );
   };
 
   const fetchActiveCampaigns = async () => {
@@ -305,6 +436,25 @@ const LeadGenCampaigns = () => {
       <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
+            <div className="flex justify-between items-center mb-6">
+              <div></div>
+              {isAdmin && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Admin Mode</span>
+                    <Button
+                      variant={adminMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAdminMode(!adminMode)}
+                    >
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      {adminMode ? "Exit Edit Mode" : "Edit Ads"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <h1 className="text-4xl font-bold text-foreground mb-4">
               Financial Advisory Lead Generation
             </h1>
@@ -379,7 +529,7 @@ const LeadGenCampaigns = () => {
                   </div>
                   
                   <div className="grid gap-8">
-                    {AD_MOCKUPS[selectedTarget.id].map((ad) => (
+                    {adMockups[selectedTarget.id].map((ad) => (
                       <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
                         <CardContent className="p-0">
                           <div className="md:flex">
@@ -393,33 +543,19 @@ const LeadGenCampaigns = () => {
                             <div className="md:w-1/2 p-8">
                               <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-2xl font-bold">{ad.title}</h3>
-                                {isAdmin && (
+                                {adminMode && (
                                   <Dialog>
                                     <DialogTrigger asChild>
-                                      <Button variant="ghost" size="sm" onClick={() => setEditingAd(ad)}>
-                                        <Edit3 className="h-4 w-4" />
+                                      <Button variant="secondary" size="sm">
+                                        <Edit3 className="h-4 w-4 mr-2" />
+                                        Edit
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle>Edit Ad Content</DialogTitle>
-                                      </DialogHeader>
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label>Ad Copy</Label>
-                                          <Textarea 
-                                            rows={8} 
-                                            defaultValue={ad.adCopy}
-                                            className="mt-2"
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label>Call to Action</Label>
-                                          <Input defaultValue={ad.cta} className="mt-2" />
-                                        </div>
-                                        <Button className="w-full">Save Changes</Button>
-                                      </div>
-                                    </DialogContent>
+                                    <AdminEditDialog 
+                                      ad={ad} 
+                                      targetId={selectedTarget.id}
+                                      onClose={() => setEditingAd(null)}
+                                    />
                                   </Dialog>
                                 )}
                               </div>
@@ -494,7 +630,7 @@ const LeadGenCampaigns = () => {
                         </h3>
                         <div className="grid gap-4 mb-6">
                           {selectedAds.map((adId) => {
-                            const ad = AD_MOCKUPS[selectedTarget.id].find(a => a.id === adId);
+                            const ad = adMockups[selectedTarget.id].find(a => a.id === adId);
                             return (
                               <div key={adId} className="flex items-center justify-between bg-background/80 backdrop-blur p-4 rounded-lg border">
                                 <div className="flex items-center gap-4">
@@ -565,15 +701,15 @@ const LeadGenCampaigns = () => {
                           <p className="text-sm text-muted-foreground">Target Audience</p>
                           <p className="font-medium">{selectedTarget.name}</p>
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Selected Ads</p>
-                          <div className="space-y-1">
-                            {selectedAds.map((adId) => {
-                              const ad = AD_MOCKUPS[selectedTarget.id].find(a => a.id === adId);
-                              return <p key={adId} className="font-medium text-sm">• {ad?.title}</p>
-                            })}
+                          <div>
+                            <p className="text-sm text-muted-foreground">Selected Ads</p>
+                            <div className="space-y-1">
+                              {selectedAds.map((adId) => {
+                                const ad = adMockups[selectedTarget.id].find(a => a.id === adId);
+                                return <p key={adId} className="font-medium text-sm">• {ad?.title}</p>
+                              })}
+                            </div>
                           </div>
-                        </div>
                       </div>
                       
                       <form onSubmit={handleJoinCampaign} className="space-y-4">
