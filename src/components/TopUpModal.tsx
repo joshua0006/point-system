@@ -18,10 +18,10 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
   const { toast } = useToast();
 
   const pointsPackages = [
+    { points: 250, price: 250 },
+    { points: 500, price: 500 },
+    { points: 750, price: 750 },
     { points: 1000, price: 1000 },
-    { points: 2500, price: 2500 },
-    { points: 5000, price: 5000 },
-    { points: 10000, price: 10000 },
   ];
 
   const handleTopUp = async (pointsAmount?: number) => {
