@@ -18,18 +18,18 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
   const { toast } = useToast();
 
   const pointsPackages = [
-    { points: 1000, price: 10 },
-    { points: 2500, price: 25 },
-    { points: 5000, price: 50 },
-    { points: 10000, price: 100 },
+    { points: 1000, price: 1000 },
+    { points: 2500, price: 2500 },
+    { points: 5000, price: 5000 },
+    { points: 10000, price: 10000 },
   ];
 
   const handleTopUp = async (pointsAmount?: number) => {
     const finalPoints = pointsAmount || parseInt(points);
-    if (!finalPoints || finalPoints < 100) {
+    if (!finalPoints || finalPoints < 1) {
       toast({
         title: "Invalid Amount",
-        description: "Minimum top-up is 100 points ($1.00)",
+        description: "Minimum top-up is 1 point ($1.00)",
         variant: "destructive",
       });
       return;
@@ -70,7 +70,7 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
         
         <div className="space-y-6">
           <div className="text-sm text-muted-foreground">
-            Add points to your wallet to participate in campaigns. Rate: 100 points = $1.00
+            Add points to your wallet to participate in campaigns. Rate: 1 point = $1.00
           </div>
 
           {/* Preset packages */}
@@ -98,11 +98,11 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
             <div className="flex gap-2">
               <Input
                 type="number"
-                placeholder="Enter points (min 100)"
+                placeholder="Enter points (min 1)"
                 value={points}
                 onChange={(e) => setPoints(e.target.value)}
-                min={100}
-                step={100}
+                min={1}
+                step={1}
               />
               <Button 
                 onClick={() => handleTopUp()}
@@ -110,12 +110,12 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
                 className="flex items-center gap-2"
               >
                 <CreditCard className="w-4 h-4" />
-                Pay ${(parseInt(points) / 100).toFixed(2)}
+                Pay ${parseInt(points || "0").toFixed(2)}
               </Button>
             </div>
-            {points && parseInt(points) >= 100 && (
+            {points && parseInt(points) >= 1 && (
               <div className="text-sm text-muted-foreground">
-                Cost: ${(parseInt(points) / 100).toFixed(2)}
+                Cost: ${parseInt(points).toFixed(2)}
               </div>
             )}
           </div>
