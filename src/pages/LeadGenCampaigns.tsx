@@ -365,22 +365,62 @@ const LeadGenCampaigns = () => {
     e.preventDefault();
     if (!selectedCampaign || !user) return;
 
+    const pointsCost = parseInt(budgetAmount) * 4; // 4 points per hour for Facebook ads
+
     try {
+      // Check if user has enough points
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('points_balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      if (profile.points_balance < pointsCost) {
+        toast({
+          title: "Insufficient Points",
+          description: `You need ${pointsCost} points but only have ${profile.points_balance}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Deduct points
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ points_balance: profile.points_balance - pointsCost })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Create points transaction record
+      const { error: transactionError } = await supabase
+        .from('points_transactions')
+        .insert({
+          user_id: user.id,
+          amount: -pointsCost,
+          type: 'purchase',
+          description: `Facebook ads campaign - ${budgetAmount} hours targeting ${selectedTarget?.name}`
+        });
+
+      if (transactionError) throw transactionError;
+
       const { error } = await supabase
         .from('campaign_participants')
         .insert({
           campaign_id: selectedCampaign.id,
           user_id: user.id,
           consultant_name: consultantName,
-          budget_contribution: parseInt(budgetAmount)
+          budget_contribution: pointsCost
         });
 
       if (error) throw error;
 
-                      toast({
-                        title: "Budget Allocated Successfully!",
-                        description: `Your ${selectedTarget?.name} campaign budget of $${budgetAmount} has been set. You can now track performance as leads come in.`,
-                      });
+      toast({
+        title: "Campaign Started!",
+        description: `${pointsCost} points deducted. Your ${selectedTarget?.name} Facebook ads campaign is now active.`,
+      });
 
       setBudgetAmount("");
       setConsultantName("");
@@ -391,7 +431,7 @@ const LeadGenCampaigns = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to join campaign. Please try again.",
+        description: "Failed to process payment. Please try again.",
         variant: "destructive",
       });
     }
@@ -954,24 +994,30 @@ const LeadGenCampaigns = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="contribution">Monthly Marketing Budget (SGD)</Label>
+                          <Label htmlFor="contribution">Campaign Hours</Label>
                           <Input
                             id="contribution"
                             type="number"
-                            placeholder="2500"
+                            placeholder="40"
                             value={budgetAmount}
                             onChange={(e) => setBudgetAmount(e.target.value)}
                             required
+                            min="1"
                           />
                           <p className="text-sm text-muted-foreground">
-                            This is the amount you're willing to allocate monthly for Facebook ads targeting {selectedTarget.name.toLowerCase()}. Based on performance data, expect 15-30 qualified leads per $1000 spent.
+                            Cost: 4 points per hour for Facebook ads targeting {selectedTarget.name.toLowerCase()}. Professional ad management and optimization included.
                           </p>
+                          {budgetAmount && (
+                            <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
+                              <p className="text-sm"><strong>Total Cost:</strong> {parseInt(budgetAmount || "0") * 4} points</p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex gap-2">
                           <Button type="submit" className="flex-1" size="lg">
                             <DollarSign className="h-5 w-5 mr-2" />
-                            Allocate Budget
+                            Pay with Points & Start Campaign
                           </Button>
                           <Button 
                             type="button" 
