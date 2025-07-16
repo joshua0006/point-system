@@ -18,6 +18,7 @@ import { ExpressCampaignTemplates } from "@/components/campaigns/ExpressCampaign
 import { SmartBudgetCalculator } from "@/components/campaigns/SmartBudgetCalculator";
 import { MobileCampaignWizard } from "@/components/campaigns/MobileCampaignWizard";
 import { EnhancedCampaignWizard } from "@/components/campaigns/EnhancedCampaignWizard";
+import { CampaignAngleSelector } from "@/components/campaigns/CampaignAngleSelector";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -1058,27 +1059,23 @@ const LeadGenCampaigns = () => {
                   <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-8 mb-8">
                     <h2 className="text-3xl font-bold mb-4">Choose Your Target Audience</h2>
                     <p className="text-lg text-muted-foreground mb-6">
-                      Select the demographic you want to focus your financial advisory services on. Each audience has specially crafted ad campaigns designed to maximize engagement and conversions.
+                      Select your target demographic, then choose the specific campaign angle for that audience.
                     </p>
-                    <Badge variant="secondary" className="mb-4">
-                      <Zap className="h-3 w-3 mr-1" />
-                      Or use Express Templates above for instant setup
-                    </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {CAMPAIGN_TARGETS.map((target) => {
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {CAMPAIGN_TARGETS.filter(t => t.id !== 'mothers').map((target) => {
                       const IconComponent = target.icon;
                       return (
                         <Card key={target.id} className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                          <CardContent className="p-8" onClick={() => setSelectedTarget(target)}>
+                          <CardContent className="p-6" onClick={() => setSelectedTarget(target)}>
                             <div className={`${target.bgColor} p-6 rounded-xl mb-6 w-fit group-hover:scale-110 transition-transform`}>
                               <IconComponent className={`h-10 w-10 ${target.iconColor}`} />
                             </div>
-                            <h3 className="text-2xl font-bold mb-3">{target.name}</h3>
-                            <p className="text-muted-foreground text-lg leading-relaxed">{target.description}</p>
-                            <div className="mt-6 flex items-center text-primary font-medium">
-                              <span>View ad campaigns</span>
+                            <h3 className="text-xl font-bold mb-2">{target.name}</h3>
+                            <p className="text-muted-foreground leading-relaxed">{target.description}</p>
+                            <div className="mt-4 flex items-center text-primary font-medium">
+                              <span>Choose campaign angle</span>
                               <Target className="h-4 w-4 ml-2" />
                             </div>
                           </CardContent>
@@ -1086,6 +1083,34 @@ const LeadGenCampaigns = () => {
                       );
                     })}
                   </div>
+                </div>
+              ) : selectedTarget.id !== 'enhanced-wizard' && !selectedAds.length ? (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <selectedTarget.icon className={`h-6 w-6 ${selectedTarget.iconColor}`} />
+                          <CardTitle>Choose Campaign Angle for {selectedTarget.name}</CardTitle>
+                        </div>
+                        <Button variant="outline" onClick={() => setSelectedTarget(null)}>
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Back to Audiences
+                        </Button>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                  
+                  <CampaignAngleSelector
+                    targetAudience={selectedTarget.id as any}
+                    onSelectAngle={(template) => {
+                      setBudgetAmount(template.template_config.budget.toString());
+                      setConsultantName(`${template.name} Campaign`);
+                      // Auto-proceed to ad selection
+                      setSelectedAds(['template-selected']);
+                    }}
+                    userBalance={userBalance}
+                  />
                 </div>
               ) : !selectedAds.length ? (
                 <div>
