@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
 import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft } from "lucide-react";
+import { ActiveCampaignCard } from "@/components/ActiveCampaignCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -169,11 +170,15 @@ const LeadGenCampaigns = () => {
   const [coldCallConsultantName, setColdCallConsultantName] = useState("");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeFbCampaigns, setActiveFbCampaigns] = useState([]);
 
   useEffect(() => {
     fetchActiveCampaigns();
     fetchUserParticipations();
     checkAdminStatus();
+    fetchUserBalance();
+    fetchActiveFbCampaigns();
   }, [user]);
 
   const checkAdminStatus = async () => {
@@ -388,10 +393,115 @@ const LeadGenCampaigns = () => {
     }
   };
 
+  const fetchUserBalance = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('points_balance')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      setUserBalance(data?.points_balance || 0);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+
+  const fetchActiveFbCampaigns = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('campaign_participants')
+        .select(`
+          *,
+          lead_gen_campaigns (
+            name,
+            total_budget,
+            start_date,
+            end_date,
+            status
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      // Filter for active Facebook ad campaigns
+      const fbCampaigns = data?.filter(p => 
+        p.lead_gen_campaigns?.status === 'active' && 
+        p.consultant_name // Facebook campaigns have consultant names
+      ) || [];
+      
+      setActiveFbCampaigns(fbCampaigns);
+    } catch (error) {
+      console.error('Error fetching FB campaigns:', error);
+    }
+  };
+
+  const pauseCampaign = async (participationId: string) => {
+    try {
+      setIsProcessing(true);
+      
+      // Update campaign status to paused
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({ notes: 'PAUSED' })
+        .eq('id', participationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign Paused",
+        description: "Your Facebook ads campaign has been paused. You won't be charged for the next month.",
+      });
+
+      fetchActiveFbCampaigns();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to pause campaign. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const resumeCampaign = async (participationId: string) => {
+    try {
+      setIsProcessing(true);
+      
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({ notes: null })
+        .eq('id', participationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign Resumed",
+        description: "Your Facebook ads campaign has been resumed. Monthly charges will continue.",
+      });
+
+      fetchActiveFbCampaigns();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to resume campaign. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const confirmCheckout = async () => {
     if (!selectedCampaign || !user) return;
 
     const monthlySpend = parseInt(budgetAmount);
+    setIsProcessing(true);
 
     try {
       if (userBalance < monthlySpend) {
@@ -450,6 +560,7 @@ const LeadGenCampaigns = () => {
       setSelectedAds([]);
       setShowCheckoutModal(false);
       fetchUserParticipations();
+      fetchActiveFbCampaigns();
     } catch (error) {
       toast({
         title: "Error",
@@ -457,6 +568,8 @@ const LeadGenCampaigns = () => {
         variant: "destructive",
       });
       setShowCheckoutModal(false);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
