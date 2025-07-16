@@ -12,6 +12,7 @@ import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
 import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { ServicesDetailsModal } from "@/components/dashboard/ServicesDetailsModal";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { TopUpModal } from "@/components/TopUpModal";
 import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
 import { ServicesBookedModal } from "@/components/dashboard/ServicesBookedModal";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -53,6 +54,7 @@ export default function ConsultantDashboard() {
   
   // Modal states
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [earningsModalOpen, setEarningsModalOpen] = useState(false);
   const [ordersModalOpen, setOrdersModalOpen] = useState(false);
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
@@ -734,6 +736,15 @@ export default function ConsultantDashboard() {
           open={balanceModalOpen}
           onOpenChange={setBalanceModalOpen}
           transactions={mockTransactions}
+          onTopUp={() => {
+            setBalanceModalOpen(false);
+            setTopUpModalOpen(true);
+          }}
+        />
+
+        <TopUpModal 
+          isOpen={topUpModalOpen}
+          onClose={() => setTopUpModalOpen(false)}
         />
 
         <EarningsModal

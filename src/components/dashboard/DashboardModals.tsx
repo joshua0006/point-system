@@ -5,6 +5,7 @@ import { CompletionRateModal } from "./CompletionRateModal";
 import { UpcomingSessionsModal } from "./UpcomingSessionsModal";
 import { RecentTransactionsModal } from "./RecentTransactionsModal";
 import { RecentBookingsModal } from "./RecentBookingsModal";
+import { TopUpModal } from "@/components/TopUpModal";
 import { Transaction, BookedService, UpcomingSession, UserStats } from "@/hooks/useDashboardData";
 
 interface DashboardModalsProps {
@@ -23,6 +24,8 @@ interface DashboardModalsProps {
   setRecentTransactionsModalOpen: (open: boolean) => void;
   recentBookingsModalOpen: boolean;
   setRecentBookingsModalOpen: (open: boolean) => void;
+  topUpModalOpen: boolean;
+  setTopUpModalOpen: (open: boolean) => void;
   
   // Data
   allTransactions: Transaction[];
@@ -47,6 +50,8 @@ export function DashboardModals({
   setRecentTransactionsModalOpen,
   recentBookingsModalOpen,
   setRecentBookingsModalOpen,
+  topUpModalOpen,
+  setTopUpModalOpen,
   allTransactions,
   spentTransactions,
   bookedServices,
@@ -59,6 +64,10 @@ export function DashboardModals({
         open={balanceModalOpen}
         onOpenChange={setBalanceModalOpen}
         transactions={allTransactions}
+        onTopUp={() => {
+          setBalanceModalOpen(false);
+          setTopUpModalOpen(true);
+        }}
       />
       
       <SpentDetailsModal
@@ -96,6 +105,11 @@ export function DashboardModals({
         open={recentBookingsModalOpen}
         onOpenChange={setRecentBookingsModalOpen}
         bookings={bookedServices}
+      />
+
+      <TopUpModal 
+        isOpen={topUpModalOpen}
+        onClose={() => setTopUpModalOpen(false)}
       />
     </>
   );

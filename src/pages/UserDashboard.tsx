@@ -32,6 +32,8 @@ export default function UserDashboard() {
     setRecentTransactionsModalOpen,
     recentBookingsModalOpen,
     setRecentBookingsModalOpen,
+    topUpModalOpen,
+    setTopUpModalOpen,
     userStats,
     allTransactions,
     spentTransactions,
@@ -375,6 +377,8 @@ export default function UserDashboard() {
         setRecentTransactionsModalOpen={setRecentTransactionsModalOpen}
         recentBookingsModalOpen={recentBookingsModalOpen}
         setRecentBookingsModalOpen={setRecentBookingsModalOpen}
+        topUpModalOpen={topUpModalOpen}
+        setTopUpModalOpen={setTopUpModalOpen}
         allTransactions={allTransactions}
         spentTransactions={spentTransactions}
         bookedServices={bookedServices}

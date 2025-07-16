@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMode } from "@/contexts/ModeContext";
 import { ModeToggle } from "@/components/ModeToggle";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
+import { TopUpModal } from "@/components/TopUpModal";
 import { useUnreadMessageCount } from "@/hooks/useMessages";
 import { useState } from "react";
 import { 
@@ -33,6 +34,7 @@ export function Navigation() {
   const { data: unreadCount = 0 } = useUnreadMessageCount();
   const userRole = profile?.role || "user";
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -224,6 +226,16 @@ export function Navigation() {
         open={balanceModalOpen}
         onOpenChange={setBalanceModalOpen}
         transactions={mockTransactions}
+        onTopUp={() => {
+          setBalanceModalOpen(false);
+          setTopUpModalOpen(true);
+        }}
+      />
+
+      {/* Top Up Modal */}
+      <TopUpModal 
+        isOpen={topUpModalOpen}
+        onClose={() => setTopUpModalOpen(false)}
       />
     </>
   );

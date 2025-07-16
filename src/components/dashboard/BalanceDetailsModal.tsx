@@ -1,8 +1,9 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Plus } from "lucide-react";
 
 interface Transaction {
   id: string;
@@ -18,9 +19,10 @@ interface BalanceDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transactions: Transaction[];
+  onTopUp?: () => void;
 }
 
-export function BalanceDetailsModal({ open, onOpenChange, transactions }: BalanceDetailsModalProps) {
+export function BalanceDetailsModal({ open, onOpenChange, transactions, onTopUp }: BalanceDetailsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
@@ -65,6 +67,14 @@ export function BalanceDetailsModal({ open, onOpenChange, transactions }: Balanc
             ))}
           </div>
         </ScrollArea>
+        {onTopUp && (
+          <DialogFooter className="pt-4">
+            <Button onClick={onTopUp} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Top Up Wallet
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
