@@ -40,6 +40,7 @@ export default function UserDashboard() {
     bookedServices,
     upcomingBookings,
     recentTransactions,
+    refreshData,
   } = useDashboardData();
   
   // Real data states
@@ -384,6 +385,7 @@ export default function UserDashboard() {
         bookedServices={bookedServices}
         upcomingBookings={upcomingBookings}
         userStats={userStats}
+        onTopUpSuccess={refreshData}
       />
     </div>
   );

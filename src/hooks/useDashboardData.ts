@@ -230,5 +230,8 @@ export function useDashboardData() {
     bookedServices,
     upcomingBookings,
     recentTransactions,
+    
+    // Refresh function
+    refreshData: fetchUserData,
   };
 }

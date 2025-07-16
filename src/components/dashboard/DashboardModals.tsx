@@ -33,6 +33,9 @@ interface DashboardModalsProps {
   bookedServices: BookedService[];
   upcomingBookings: UpcomingSession[];
   userStats: UserStats;
+  
+  // Callbacks
+  onTopUpSuccess?: () => void;
 }
 
 export function DashboardModals({
@@ -57,6 +60,7 @@ export function DashboardModals({
   bookedServices,
   upcomingBookings,
   userStats,
+  onTopUpSuccess,
 }: DashboardModalsProps) {
   return (
     <>
@@ -110,6 +114,7 @@ export function DashboardModals({
       <TopUpModal 
         isOpen={topUpModalOpen}
         onClose={() => setTopUpModalOpen(false)}
+        onSuccess={onTopUpSuccess}
       />
     </>
   );
