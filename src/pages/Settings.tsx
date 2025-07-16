@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,25 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Navigation } from "@/components/Navigation";
-import { Settings as SettingsIcon, User, Bell, Shield, CreditCard } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, Wallet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PaymentMethodsTab } from "@/components/settings/PaymentMethodsTab";
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   
   // Profile settings state
-  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
+  const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   
   // Notification settings state
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [campaignUpdates, setCampaignUpdates] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
+
+  // Load profile data when it's available
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || "");
+      setBio(profile.bio || "");
+    }
+  }, [profile]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -41,6 +50,9 @@ const Settings = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      // Refresh the profile data in context
+      await refreshProfile();
 
       toast({
         title: "Profile Updated",
@@ -68,7 +80,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -80,6 +92,10 @@ const Settings = () => {
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Security
+            </TabsTrigger>
+            <TabsTrigger value="payment-methods" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              Payment Methods
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
@@ -229,38 +245,46 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="payment-methods">
+            <PaymentMethodsTab />
+          </TabsContent>
+
           <TabsContent value="billing">
             <Card>
               <CardHeader>
-                <CardTitle>Billing & Payments</CardTitle>
+                <CardTitle>Billing & Account</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Manage your payment methods and billing information.
+                  View your account balance and transaction history.
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Payment Methods</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Add or update your payment methods for purchasing points.
+                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium">Current Points Balance</h4>
+                      <div className="text-2xl font-bold text-primary">
+                        {profile?.points_balance?.toLocaleString() || 0}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Points available for campaign participation
                     </p>
-                    <Button variant="outline">Manage Payment Methods</Button>
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Billing History</h4>
+                    <h4 className="text-sm font-medium mb-2">Transaction History</h4>
                     <p className="text-xs text-muted-foreground mb-3">
-                      View your past transactions and download receipts.
+                      View your past purchases and point usage.
                     </p>
-                    <Button variant="outline">View History</Button>
+                    <Button variant="outline">View Full History</Button>
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Points Balance</h4>
+                    <h4 className="text-sm font-medium mb-2">Download Receipts</h4>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Current balance and usage statistics.
+                      Download receipts for your purchases and tax records.
                     </p>
-                    <Button variant="outline">View Details</Button>
+                    <Button variant="outline">Download Receipts</Button>
                   </div>
                 </div>
               </CardContent>

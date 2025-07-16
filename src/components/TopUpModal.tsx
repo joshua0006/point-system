@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
-import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus } from "lucide-react";
+import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus, ChevronDown } from "lucide-react";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface TopUpModalProps {
 export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const { toast } = useToast();
   const { paymentMethods, loading: paymentMethodsLoading, instantCharge, fetchPaymentMethods } = usePaymentMethods();
 
@@ -66,10 +68,33 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
     }
   };
 
-  const handleInstantCharge = async (paymentMethodId: string, amount: number) => {
+  const handleInstantCharge = async (paymentMethodId?: string, amount?: number) => {
+    const methodId = paymentMethodId || selectedPaymentMethod;
+    const chargeAmount = amount || parseInt(customAmount);
+    
+    if (!methodId) {
+      toast({
+        title: "No Payment Method Selected",
+        description: "Please select a payment method for instant charge",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!chargeAmount || chargeAmount < 250) {
+      toast({
+        title: "Invalid Amount",
+        description: "Minimum amount is 250 points ($250)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await instantCharge(paymentMethodId, amount);
+      await instantCharge(methodId, chargeAmount);
       onClose();
+      setCustomAmount("");
+      setSelectedPaymentMethod("");
       // Refresh payment methods to update any changes
       fetchPaymentMethods();
     } catch (error) {
@@ -242,6 +267,31 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
                   POINTS
                 </div>
               </div>
+
+              {/* Payment Method Selection for Custom Amount */}
+              {paymentMethods.length > 0 && customAmount && parseInt(customAmount) >= 250 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Select Payment Method</Label>
+                  <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Choose a payment method for instant charge" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paymentMethods.map((method) => (
+                        <SelectItem key={method.id} value={method.id}>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            {method.brand} •••• {method.last4}
+                            {method.is_default && (
+                              <Badge variant="secondary" className="ml-2">Default</Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               
               {customAmount && parseInt(customAmount) >= 250 && (
                 <div className="p-4 bg-secondary/30 rounded-lg border">
@@ -261,12 +311,38 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
                 </div>
               )}
               
-              <Button 
-                onClick={() => handleTopUp()}
-                disabled={loading || !customAmount || parseInt(customAmount) < 250}
-                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
-                size="lg"
-              >
+              <div className="flex gap-2">
+                {/* Instant Charge Button */}
+                {selectedPaymentMethod && (
+                  <Button 
+                    onClick={() => handleInstantCharge()}
+                    disabled={loading || !customAmount || parseInt(customAmount) < 250}
+                    className="flex-1 h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                    size="lg"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-5 h-5" />
+                        Instant Charge
+                      </div>
+                    )}
+                  </Button>
+                )}
+
+                {/* Regular Checkout Button */}
+                <Button 
+                  onClick={() => handleTopUp()}
+                  disabled={loading || !customAmount || parseInt(customAmount) < 250}
+                  className={`h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary ${
+                    selectedPaymentMethod ? 'flex-1' : 'w-full'
+                  }`}
+                  size="lg"
+                >
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -279,7 +355,8 @@ export const TopUpModal = ({ isOpen, onClose }: TopUpModalProps) => {
                     <ArrowRight className="w-4 h-4" />
                   </div>
                 )}
-              </Button>
+                </Button>
+              </div>
             </div>
           </div>
 

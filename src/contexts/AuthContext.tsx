@@ -8,6 +8,7 @@ interface Profile {
   user_id: string;
   email: string;
   full_name: string | null;
+  bio: string | null;
   avatar_url: string | null;
   role: 'user' | 'consultant' | 'admin';
   points_balance: number;

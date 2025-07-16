@@ -8,6 +8,7 @@ export interface PaymentMethod {
   last4: string;
   exp_month: number;
   exp_year: number;
+  is_default?: boolean;
 }
 
 export const usePaymentMethods = () => {
