@@ -527,7 +527,7 @@ const LeadGenCampaigns = () => {
                     </p>
                     <div className="space-y-2 mb-6">
                       <div className="flex items-center justify-center gap-2 text-sm text-green-600">
-                        ✓ Professional telemarketers at $6/hour
+                        ✓ Professional telemarketers at 6 points/hour
                       </div>
                       <div className="flex items-center justify-center gap-2 text-sm text-green-600">
                         ✓ Direct personal engagement with prospects
@@ -565,35 +565,77 @@ const LeadGenCampaigns = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (!user) return;
+                   <form onSubmit={async (e) => {
+                     e.preventDefault();
+                     if (!user) return;
 
-                    try {
-                      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-                        body: {
-                          campaignType: 'cold-calling',
-                          hours: parseInt(coldCallHours)
-                        }
-                      });
+                     const hours = parseInt(coldCallHours);
+                     if (hours < 10) {
+                       toast({
+                         title: "Error",
+                         description: "Minimum 10 hours required",
+                         variant: "destructive",
+                       });
+                       return;
+                     }
 
-                      if (error) throw error;
-                      
-                      // Open Stripe checkout in new tab
-                      window.open(data.url, '_blank');
-                      
-                      toast({
-                        title: "Redirecting to Payment",
-                        description: `Setting up monthly subscription for ${coldCallHours} hours at $${parseInt(coldCallHours) * 6}/month.`,
-                      });
-                    } catch (error) {
-                      toast({
-                        title: "Error",
-                        description: "Failed to start cold calling campaign. Please try again.",
-                        variant: "destructive",
-                      });
-                    }
-                  }} className="space-y-6">
+                     const pointsCost = hours * 6; // 6 points per hour ($1 = 1 point, $6/hour)
+
+                     try {
+                       // Check if user has enough points
+                       const { data: profile, error: profileError } = await supabase
+                         .from('profiles')
+                         .select('points_balance')
+                         .eq('user_id', user?.id)
+                         .single();
+
+                       if (profileError) throw profileError;
+
+                       if (profile.points_balance < pointsCost) {
+                         toast({
+                           title: "Insufficient Points",
+                           description: `You need ${pointsCost} points but only have ${profile.points_balance}`,
+                           variant: "destructive",
+                         });
+                         return;
+                       }
+
+                       // Deduct points and create campaign participant
+                       const { error: updateError } = await supabase
+                         .from('profiles')
+                         .update({ points_balance: profile.points_balance - pointsCost })
+                         .eq('user_id', user?.id);
+
+                       if (updateError) throw updateError;
+
+                       // Create points transaction record
+                       const { error: transactionError } = await supabase
+                         .from('points_transactions')
+                         .insert({
+                           user_id: user?.id,
+                           amount: -pointsCost,
+                           type: 'purchase',
+                           description: `Cold calling campaign - ${hours} hours`
+                         });
+
+                       if (transactionError) throw transactionError;
+
+                       toast({
+                         title: "Campaign Started!",
+                         description: `${pointsCost} points deducted. Your cold calling campaign is now active.`,
+                       });
+                       
+                       // Reset form
+                       setColdCallHours("");
+                       setColdCallConsultantName("");
+                     } catch (error) {
+                       toast({
+                         title: "Error",
+                         description: "Failed to process payment. Please try again.",
+                         variant: "destructive",
+                       });
+                     }
+                   }} className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="coldCallConsultantName">Your Name</Label>
                       <Input
@@ -616,9 +658,9 @@ const LeadGenCampaigns = () => {
                         required
                         min="1"
                       />
-                       <p className="text-sm text-muted-foreground">
-                         Monthly subscription: $6 SGD per hour. Professional telemarketers will contact prospects on your behalf during business hours.
-                       </p>
+                        <p className="text-sm text-muted-foreground">
+                          Cost: 6 points per hour (Minimum 10 hours). Professional telemarketers will contact prospects on your behalf during business hours.
+                        </p>
                     </div>
 
                     {coldCallHours && (
@@ -626,8 +668,8 @@ const LeadGenCampaigns = () => {
                         <h4 className="font-semibold mb-2">Campaign Summary</h4>
                         <div className="space-y-1 text-sm">
                           <p><strong>Hours:</strong> {coldCallHours} hours</p>
-                           <p><strong>Monthly Rate:</strong> $6 SGD per hour</p>
-                           <p><strong>Monthly Cost:</strong> ${parseInt(coldCallHours || "0") * 6} SGD</p>
+                           <p><strong>Rate:</strong> 6 points per hour</p>
+                            <p><strong>Total Cost:</strong> {parseInt(coldCallHours || "0") * 6} points</p>
                           <p><strong>Expected Calls:</strong> ~{parseInt(coldCallHours || "0") * 20} calls</p>
                           <p><strong>Expected Leads:</strong> ~{Math.round(parseInt(coldCallHours || "0") * 20 * 0.15)} qualified leads</p>
                         </div>
@@ -635,10 +677,10 @@ const LeadGenCampaigns = () => {
                     )}
 
                     <div className="flex gap-2">
-                       <Button type="submit" className="flex-1" size="lg" disabled={!coldCallHours || !coldCallConsultantName}>
-                         <Phone className="h-5 w-5 mr-2" />
-                         Subscribe & Start Campaign
-                       </Button>
+                        <Button type="submit" className="flex-1" size="lg" disabled={!coldCallHours || !coldCallConsultantName}>
+                          <Phone className="h-5 w-5 mr-2" />
+                          Pay with Points & Start Campaign
+                        </Button>
                       <Button 
                         type="button" 
                         variant="outline" 
