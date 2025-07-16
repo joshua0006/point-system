@@ -502,7 +502,10 @@ const LeadGenCampaigns = () => {
   };
 
   const confirmCheckout = async () => {
-    if (!selectedCampaign || !user) return;
+    if (!user || !selectedTarget || !budgetAmount) {
+      console.log('Missing required data for checkout:', { user: !!user, selectedTarget: !!selectedTarget, budgetAmount });
+      return;
+    }
 
     const monthlySpend = parseInt(budgetAmount);
     setIsProcessing(true);
