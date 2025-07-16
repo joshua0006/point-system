@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_variants: {
+        Row: {
+          ad_content: Json
+          ad_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          performance_metrics: Json | null
+          template_id: string
+          updated_at: string
+          variant_name: string
+        }
+        Insert: {
+          ad_content: Json
+          ad_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          performance_metrics?: Json | null
+          template_id: string
+          updated_at?: string
+          variant_name: string
+        }
+        Update: {
+          ad_content?: Json
+          ad_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          performance_metrics?: Json | null
+          template_id?: string
+          updated_at?: string
+          variant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_variants_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           buyer_completed: boolean | null
@@ -74,6 +118,70 @@ export type Database = {
           },
         ]
       }
+      campaign_analytics: {
+        Row: {
+          ad_variant_id: string | null
+          campaign_id: string
+          clicks: number | null
+          conversions: number | null
+          cost_spent: number | null
+          created_at: string
+          date: string
+          id: string
+          impressions: number | null
+          leads_generated: number | null
+          template_id: string | null
+        }
+        Insert: {
+          ad_variant_id?: string | null
+          campaign_id: string
+          clicks?: number | null
+          conversions?: number | null
+          cost_spent?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          impressions?: number | null
+          leads_generated?: number | null
+          template_id?: string | null
+        }
+        Update: {
+          ad_variant_id?: string | null
+          campaign_id?: string
+          clicks?: number | null
+          conversions?: number | null
+          cost_spent?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          impressions?: number | null
+          leads_generated?: number | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_analytics_ad_variant_id_fkey"
+            columns: ["ad_variant_id"]
+            isOneToOne: false
+            referencedRelation: "ad_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "lead_gen_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_analytics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_participants: {
         Row: {
           budget_contribution: number
@@ -123,6 +231,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      campaign_templates: {
+        Row: {
+          campaign_angle: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          target_audience: string
+          template_config: Json
+          updated_at: string
+        }
+        Insert: {
+          campaign_angle: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          target_audience: string
+          template_config: Json
+          updated_at?: string
+        }
+        Update: {
+          campaign_angle?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          target_audience?: string
+          template_config?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       categories: {
         Row: {

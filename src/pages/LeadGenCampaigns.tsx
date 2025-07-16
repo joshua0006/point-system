@@ -17,6 +17,7 @@ import { TopUpModal } from "@/components/TopUpModal";
 import { ExpressCampaignTemplates } from "@/components/campaigns/ExpressCampaignTemplates";
 import { SmartBudgetCalculator } from "@/components/campaigns/SmartBudgetCalculator";
 import { MobileCampaignWizard } from "@/components/campaigns/MobileCampaignWizard";
+import { EnhancedCampaignWizard } from "@/components/campaigns/EnhancedCampaignWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -980,11 +981,11 @@ const LeadGenCampaigns = () => {
                   <ExpressCampaignTemplates 
                     onSelectTemplate={(template) => {
                       // Auto-fill campaign data based on template
-                      setBudgetAmount(template.budget.toString());
+                      setBudgetAmount(template.template_config.budget.toString());
                       setConsultantName("Quick Campaign");
                       // Find matching target
                       const matchingTarget = CAMPAIGN_TARGETS.find(t => 
-                        t.name.toLowerCase().includes(template.targetAudience.toLowerCase().split(' ')[0])
+                        t.name.toLowerCase().includes(template.target_audience.toLowerCase().split(' ')[0])
                       );
                       if (matchingTarget) {
                         setSelectedTarget(matchingTarget);
@@ -997,6 +998,33 @@ const LeadGenCampaigns = () => {
                     }}
                     userBalance={userBalance}
                   />
+                </div>
+
+                {/* Enhanced Campaign Wizard */}
+                <div className="mb-8">
+                  <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-5 w-5 text-primary" />
+                          <CardTitle className="text-lg">Enhanced Campaign Builder</CardTitle>
+                          <Badge variant="secondary" className="text-xs">
+                            NEW
+                          </Badge>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedTarget('enhanced-wizard' as any)}
+                        >
+                          Try Enhanced Builder
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Step-by-step campaign creation with multiple ad variants, audience targeting, and performance optimization
+                      </p>
+                    </CardHeader>
+                  </Card>
                 </div>
 
                 {/* Mobile Campaign Wizard for small screens */}
@@ -1012,7 +1040,20 @@ const LeadGenCampaigns = () => {
                   />
                 </div>
 
-                {!selectedTarget ? (
+                {selectedTarget === 'enhanced-wizard' ? (
+                  <div className="mb-8">
+                    <EnhancedCampaignWizard
+                      onComplete={(campaignData) => {
+                        toast({
+                          title: "Enhanced Campaign Launched! 🚀",
+                          description: `Your ${campaignData.template?.name} campaign with ${campaignData.selectedVariants.length} ad variants is now live.`,
+                        });
+                        setSelectedTarget(null);
+                      }}
+                      userBalance={userBalance}
+                    />
+                  </div>
+                ) : !selectedTarget ? (
                 <div className="hidden md:block">
                   <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-8 mb-8">
                     <h2 className="text-3xl font-bold mb-4">Choose Your Target Audience</h2>

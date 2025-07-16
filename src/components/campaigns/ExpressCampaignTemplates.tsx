@@ -1,77 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, Heart, Shield, Zap, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ExpressTemplate {
   id: string;
   name: string;
   description: string;
-  targetAudience: string;
-  budget: number;
-  duration: string;
-  expectedLeads: number;
-  costPerLead: number;
-  icon: any;
-  color: string;
-  bgColor: string;
+  target_audience: string;
+  campaign_angle: string;
+  template_config: {
+    budget: number;
+    duration_days: number;
+    expected_leads: number;
+    cost_per_lead: number;
+  };
 }
 
-const EXPRESS_TEMPLATES: ExpressTemplate[] = [
-  {
-    id: 'quick-nsf',
-    name: 'NSF Quick Start',
-    description: 'Ready-to-launch campaign targeting NSF personnel with financial planning',
-    targetAudience: 'NSF Personnel',
-    budget: 500,
-    duration: '7 days',
-    expectedLeads: 25,
-    costPerLead: 20,
-    icon: Shield,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 border-blue-200'
-  },
-  {
-    id: 'quick-mothers',
-    name: 'Family Protection Express',
-    description: 'High-converting campaign for mothers seeking family protection',
-    targetAudience: 'Working Mothers',
-    budget: 750,
-    duration: '10 days',
-    expectedLeads: 35,
-    costPerLead: 21.5,
-    icon: Heart,
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-50 border-pink-200'
-  },
-  {
-    id: 'quick-general',
-    name: 'Retirement Planning Booster',
-    description: 'Proven campaign template for general retirement planning services',
-    targetAudience: 'General Public',
-    budget: 600,
-    duration: '14 days',
-    expectedLeads: 40,
-    costPerLead: 15,
-    icon: TrendingUp,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 border-green-200'
-  },
-  {
-    id: 'quick-seniors',
-    name: 'Legacy Planning Express',
-    description: 'Estate planning campaign optimized for seniors and pre-retirees',
-    targetAudience: 'Seniors 55+',
-    budget: 800,
-    duration: '14 days',
-    expectedLeads: 30,
-    costPerLead: 26.7,
-    icon: Users,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50 border-purple-200'
-  }
-];
+const AUDIENCE_DISPLAY = {
+  nsf: { name: 'NSF Personnel', icon: Shield, color: 'text-blue-600', bgColor: 'bg-blue-50 border-blue-200' },
+  general: { name: 'General Public', icon: TrendingUp, color: 'text-green-600', bgColor: 'bg-green-50 border-green-200' },
+  seniors: { name: 'Seniors 55+', icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50 border-purple-200' }
+};
 
 interface ExpressCampaignTemplatesProps {
   onSelectTemplate: (template: ExpressTemplate) => void;
@@ -80,11 +32,46 @@ interface ExpressCampaignTemplatesProps {
 
 export const ExpressCampaignTemplates = ({ onSelectTemplate, userBalance }: ExpressCampaignTemplatesProps) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<ExpressTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('campaign_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('target_audience, campaign_angle');
+
+      if (error) throw error;
+      setTemplates((data || []) as unknown as ExpressTemplate[]);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleQuickLaunch = (template: ExpressTemplate) => {
     setSelectedTemplate(template.id);
     onSelectTemplate(template);
   };
+
+  if (loading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
@@ -103,25 +90,32 @@ export const ExpressCampaignTemplates = ({ onSelectTemplate, userBalance }: Expr
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          {EXPRESS_TEMPLATES.map((template) => {
-            const Icon = template.icon;
-            const canAfford = userBalance >= template.budget;
+          {templates.map((template) => {
+            const audienceInfo = AUDIENCE_DISPLAY[template.target_audience as keyof typeof AUDIENCE_DISPLAY];
+            const Icon = audienceInfo?.icon || Shield;
+            const canAfford = userBalance >= template.template_config.budget;
             
             return (
               <Card 
                 key={template.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${template.bgColor} ${
+                className={`cursor-pointer transition-all hover:shadow-md ${audienceInfo?.bgColor} ${
                   selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
                 } ${!canAfford ? 'opacity-60' : ''}`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Icon className={`h-5 w-5 ${template.color}`} />
+                      <Icon className={`h-5 w-5 ${audienceInfo?.color}`} />
                       <h3 className="font-semibold text-sm">{template.name}</h3>
                     </div>
                     <Badge variant="outline" className="text-xs">
-                      {template.duration}
+                      {template.template_config.duration_days} days
+                    </Badge>
+                  </div>
+                  
+                  <div className="mb-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {audienceInfo?.name}
                     </Badge>
                   </div>
                   
@@ -131,15 +125,15 @@ export const ExpressCampaignTemplates = ({ onSelectTemplate, userBalance }: Expr
                   
                   <div className="grid grid-cols-3 gap-2 text-xs mb-4">
                     <div className="text-center">
-                      <div className="font-semibold">{template.expectedLeads}</div>
+                      <div className="font-semibold">{template.template_config.expected_leads}</div>
                       <div className="text-muted-foreground">Leads</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-semibold">${template.costPerLead}</div>
+                      <div className="font-semibold">${template.template_config.cost_per_lead}</div>
                       <div className="text-muted-foreground">Per Lead</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-semibold">{template.budget}p</div>
+                      <div className="font-semibold">{template.template_config.budget}p</div>
                       <div className="text-muted-foreground">Budget</div>
                     </div>
                   </div>
