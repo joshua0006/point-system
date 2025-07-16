@@ -35,7 +35,7 @@ interface DashboardModalsProps {
   userStats: UserStats;
   
   // Callbacks
-  onTopUpSuccess?: () => void;
+  onTopUpSuccess?: (amount?: number, showSuccessModal?: boolean) => void;
 }
 
 export function DashboardModals({

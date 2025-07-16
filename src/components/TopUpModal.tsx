@@ -16,7 +16,7 @@ import { AddPaymentMethodModal } from "@/components/settings/AddPaymentMethodMod
 interface TopUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (amount?: number, showSuccessModal?: boolean) => void;
 }
 
 export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
@@ -100,8 +100,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       setSelectedPaymentMethod("");
       // Refresh payment methods to update any changes
       fetchPaymentMethods();
-      // Trigger dashboard data refresh
-      onSuccess?.();
+      // Trigger dashboard data refresh and show success modal
+      onSuccess?.(chargeAmount, true);
     } catch (error) {
       // Error handling is done in the hook
     }

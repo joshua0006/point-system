@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
 import { DashboardModals } from "@/components/dashboard/DashboardModals";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { SuccessModal } from "@/components/SuccessModal";
 import {
   TrendingUp,
   Calendar,
@@ -58,6 +59,8 @@ export default function UserDashboard() {
 
   const [transactions, setTransactions] = useState<any[]>([]);
   const [demoBookedServices, setDemoBookedServices] = useState<any[]>([]);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
 
   useEffect(() => {
     console.log('User state in dashboard:', user);
@@ -385,7 +388,20 @@ export default function UserDashboard() {
         bookedServices={bookedServices}
         upcomingBookings={upcomingBookings}
         userStats={userStats}
-        onTopUpSuccess={refreshData}
+        onTopUpSuccess={(amount, showSuccessModal) => {
+          refreshData();
+          if (showSuccessModal) {
+            setSuccessModalData({ type: "top-up", amount });
+            setSuccessModalOpen(true);
+          }
+        }}
+      />
+      
+      <SuccessModal
+        isOpen={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        type={successModalData.type}
+        amount={successModalData.amount}
       />
     </div>
   );

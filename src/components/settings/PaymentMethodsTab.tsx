@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Plus, Trash2, Star, Loader2 } from "lucide-react";
 import { AddPaymentMethodModal } from "./AddPaymentMethodModal";
+import { SuccessModal } from "../SuccessModal";
 
 export const PaymentMethodsTab = () => {
   const { paymentMethods, loading, fetchPaymentMethods, setupPaymentMethod } = usePaymentMethods();
@@ -16,6 +17,7 @@ export const PaymentMethodsTab = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAddingMethod, setIsAddingMethod] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleDeletePaymentMethod = async (paymentMethodId: string) => {
     setIsDeleting(true);
@@ -50,9 +52,12 @@ export const PaymentMethodsTab = () => {
     setShowAddModal(true);
   };
 
-  const handlePaymentMethodSuccess = () => {
+  const handlePaymentMethodSuccess = (showSuccessModal?: boolean) => {
     fetchPaymentMethods();
     setShowAddModal(false);
+    if (showSuccessModal) {
+      setShowSuccessModal(true);
+    }
   };
 
   const handleSetDefault = async (paymentMethodId: string) => {
@@ -219,6 +224,12 @@ export const PaymentMethodsTab = () => {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSuccess={handlePaymentMethodSuccess}
+      />
+
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        type="payment-method"
       />
     </>
   );

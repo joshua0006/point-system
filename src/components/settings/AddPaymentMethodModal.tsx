@@ -14,7 +14,7 @@ const stripePromise = loadStripe("pk_test_51HRUzmII7A7fKDtY9vTJRha7WdTLB37eFxTpS
 interface AddPaymentMethodModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (showSuccessModal?: boolean) => void;
 }
 
 export const AddPaymentMethodModal = ({ open, onOpenChange, onSuccess }: AddPaymentMethodModalProps) => {
@@ -112,12 +112,8 @@ export const AddPaymentMethodModal = ({ open, onOpenChange, onSuccess }: AddPaym
         // Continue anyway, as the payment method is saved in Stripe
       }
 
-      toast({
-        title: "Payment Method Added",
-        description: "Your payment method has been successfully added.",
-      });
-
-      onSuccess();
+      // Show success modal instead of just toast
+      onSuccess(true);
       onOpenChange(false);
     } catch (error: any) {
       console.error('Payment method setup error:', error);
