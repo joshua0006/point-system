@@ -370,7 +370,10 @@ const LeadGenCampaigns = () => {
 
   const handleJoinCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCampaign || !user || !budgetAmount) return;
+    if (!user || !budgetAmount || !selectedTarget) {
+      console.log('Missing required data:', { user: !!user, budgetAmount, selectedTarget: !!selectedTarget });
+      return;
+    }
 
     try {
       // Get user's current balance
@@ -385,6 +388,7 @@ const LeadGenCampaigns = () => {
       setUserBalance(profile.points_balance);
       setShowCheckoutModal(true);
     } catch (error) {
+      console.error('Error in handleJoinCampaign:', error);
       toast({
         title: "Error",
         description: "Failed to load account information. Please try again.",
