@@ -8,9 +8,113 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
-import { TrendingUp, DollarSign, Target, Users, Calendar, Plus } from "lucide-react";
+import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+// Campaign targeting options
+const CAMPAIGN_TARGETS = [
+  {
+    id: 'nsf',
+    name: 'NSF Personnel',
+    description: 'Target National Service personnel with financial planning services',
+    icon: Shield,
+    bgColor: 'bg-blue-500/10',
+    iconColor: 'text-blue-600'
+  },
+  {
+    id: 'general',
+    name: 'General Public',
+    description: 'Broad targeting for general financial consulting services',
+    icon: Users,
+    bgColor: 'bg-green-500/10',
+    iconColor: 'text-green-600'
+  },
+  {
+    id: 'mothers',
+    name: 'Mothers',
+    description: 'Target mothers with family financial planning and protection',
+    icon: Heart,
+    bgColor: 'bg-pink-500/10',
+    iconColor: 'text-pink-600'
+  },
+  {
+    id: 'seniors',
+    name: 'Seniors',
+    description: 'Target seniors with retirement and estate planning services',
+    icon: User,
+    bgColor: 'bg-purple-500/10',
+    iconColor: 'text-purple-600'
+  }
+];
+
+// Ad mockups for each target
+const AD_MOCKUPS = {
+  nsf: [
+    {
+      id: 'nsf-1',
+      title: 'Free Financial Health Check for NSF Personnel',
+      description: 'Get a complimentary financial consultation during your service period',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free 60-min consultation + Financial planning toolkit'
+    },
+    {
+      id: 'nsf-2',
+      title: 'Start Your Wealth Journey Early',
+      description: 'Learn investment basics while serving Singapore',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free investment workshop + Starter portfolio guide'
+    }
+  ],
+  general: [
+    {
+      id: 'general-1',
+      title: 'Free Retirement Planning Workshop',
+      description: 'Learn how to secure your financial future',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free workshop + Retirement planning checklist'
+    },
+    {
+      id: 'general-2',
+      title: 'Maximize Your CPF Returns',
+      description: 'Discover strategies to grow your CPF savings',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free CPF optimization guide + 30-min consultation'
+    }
+  ],
+  mothers: [
+    {
+      id: 'mothers-1',
+      title: 'Protect Your Family\'s Future',
+      description: 'Comprehensive family protection and savings plan',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free family protection review + Education savings guide'
+    },
+    {
+      id: 'mothers-2',
+      title: 'Smart Savings for Your Child\'s Education',
+      description: 'Start planning for your child\'s future today',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free education planning toolkit + University savings calculator'
+    }
+  ],
+  seniors: [
+    {
+      id: 'seniors-1',
+      title: 'Secure Your Golden Years',
+      description: 'Estate planning and legacy preservation services',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free will writing consultation + Estate planning guide'
+    },
+    {
+      id: 'seniors-2',
+      title: 'Healthcare Cost Protection',
+      description: 'Prepare for medical expenses in retirement',
+      imageUrl: '/placeholder.svg',
+      offer: 'Free healthcare planning session + Medical cost calculator'
+    }
+  ]
+};
 
 const LeadGenCampaigns = () => {
   const { user } = useAuth();
@@ -24,6 +128,8 @@ const LeadGenCampaigns = () => {
   const [activeCampaigns, setActiveCampaigns] = useState([]);
   const [userParticipations, setUserParticipations] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [selectedTarget, setSelectedTarget] = useState(null);
+  const [selectedAds, setSelectedAds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -89,13 +195,15 @@ const LeadGenCampaigns = () => {
       if (error) throw error;
 
       toast({
-        title: "Successfully Joined Campaign",
-        description: `You've joined "${selectedCampaign.name}" with a contribution of $${budgetAmount}.`,
+        title: "Campaign Launched Successfully!",
+        description: `Your ${selectedTarget?.name} campaign has been launched with a budget of $${budgetAmount}. Facebook ads are now running with your selected offers.`,
       });
 
       setBudgetAmount("");
       setConsultantName("");
       setSelectedCampaign(null);
+      setSelectedTarget(null);
+      setSelectedAds([]);
       fetchUserParticipations();
     } catch (error) {
       toast({
@@ -164,114 +272,194 @@ const LeadGenCampaigns = () => {
             </TabsList>
 
             <TabsContent value="campaigns" className="space-y-6">
-              {isLoading ? (
-                <div className="text-center py-8">Loading campaigns...</div>
-              ) : activeCampaigns.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Active Campaigns</h3>
-                    <p className="text-muted-foreground">There are currently no active lead generation campaigns available.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-6">
-                  {activeCampaigns.map((campaign) => (
-                    <Card key={campaign.id}>
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="flex items-center gap-2">
-                              <Target className="h-5 w-5 text-primary" />
-                              {campaign.name}
-                            </CardTitle>
-                            <p className="text-muted-foreground mt-1">{campaign.description}</p>
+              {!selectedTarget ? (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Choose Your Target Audience</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {CAMPAIGN_TARGETS.map((target) => {
+                      const IconComponent = target.icon;
+                      return (
+                        <Card key={target.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                          <CardContent className="p-6" onClick={() => setSelectedTarget(target)}>
+                            <div className={`${target.bgColor} p-4 rounded-lg mb-4 w-fit`}>
+                              <IconComponent className={`h-8 w-8 ${target.iconColor}`} />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-2">{target.name}</h3>
+                            <p className="text-muted-foreground">{target.description}</p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : !selectedAds.length ? (
+                <div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectedTarget(null)}
+                      className="flex items-center gap-2"
+                    >
+                      ← Back to Targets
+                    </Button>
+                    <h2 className="text-2xl font-bold">Choose Your Ads - {selectedTarget.name}</h2>
+                  </div>
+                  
+                  <div className="grid gap-6">
+                    {AD_MOCKUPS[selectedTarget.id].map((ad) => (
+                      <Card key={ad.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex gap-6">
+                            <div className="w-32 h-24 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                              <Gift className="h-8 w-8" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-xl font-semibold mb-2">{ad.title}</h3>
+                              <p className="text-muted-foreground mb-3">{ad.description}</p>
+                              <div className="bg-primary/10 p-3 rounded-lg mb-4">
+                                <p className="text-sm font-medium text-primary">{ad.offer}</p>
+                              </div>
+                              <Button 
+                                onClick={() => {
+                                  if (selectedAds.includes(ad.id)) {
+                                    setSelectedAds(selectedAds.filter(id => id !== ad.id));
+                                  } else {
+                                    setSelectedAds([...selectedAds, ad.id]);
+                                  }
+                                }}
+                                variant={selectedAds.includes(ad.id) ? "default" : "outline"}
+                                className="w-full"
+                              >
+                                {selectedAds.includes(ad.id) ? "Selected" : "Select This Ad"}
+                              </Button>
+                            </div>
                           </div>
-                          <Badge variant="secondary">
-                            ${campaign.total_budget.toLocaleString()} Total Budget
-                          </Badge>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  
+                  {selectedAds.length > 0 && (
+                    <Card className="mt-6">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Selected Ads ({selectedAds.length})</h3>
+                        <div className="space-y-2 mb-4">
+                          {selectedAds.map((adId) => {
+                            const ad = AD_MOCKUPS[selectedTarget.id].find(a => a.id === adId);
+                            return (
+                              <div key={adId} className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+                                <span className="font-medium">{ad?.title}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => setSelectedAds(selectedAds.filter(id => id !== adId))}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Start Date</p>
-                            <p className="font-medium">{new Date(campaign.start_date).toLocaleDateString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">End Date</p>
-                            <p className="font-medium">{new Date(campaign.end_date).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        
-                        {userParticipations.some(p => p.campaign_id === campaign.id) ? (
-                          <Badge variant="outline">Already Joined</Badge>
-                        ) : (
-                          <Button 
-                            onClick={() => setSelectedCampaign(campaign)}
-                            className="w-full"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Join Campaign
-                          </Button>
-                        )}
+                        <Button 
+                          onClick={() => {
+                            // Create a mock campaign for the budget step
+                            setSelectedCampaign({
+                              id: `${selectedTarget.id}-campaign`,
+                              name: `${selectedTarget.name} Financial Planning Campaign`,
+                              description: `Facebook ad campaign targeting ${selectedTarget.name.toLowerCase()} with selected financial services offers`
+                            });
+                          }}
+                          className="w-full"
+                        >
+                          Proceed to Budget Setting
+                        </Button>
                       </CardContent>
                     </Card>
-                  ))}
+                  )}
                 </div>
-              )}
-
-              {selectedCampaign && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-primary" />
-                      Join "{selectedCampaign.name}"
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleJoinCampaign} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="consultantName">Your Name</Label>
-                        <Input
-                          id="consultantName"
-                          placeholder="Enter your full name"
-                          value={consultantName}
-                          onChange={(e) => setConsultantName(e.target.value)}
-                          required
-                        />
+              ) : (
+                <div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectedAds([])}
+                      className="flex items-center gap-2"
+                    >
+                      ← Back to Ads
+                    </Button>
+                    <h2 className="text-2xl font-bold">Set Your Campaign Budget</h2>
+                  </div>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-primary" />
+                        Campaign Setup Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4 mb-6">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Target Audience</p>
+                          <p className="font-medium">{selectedTarget.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Selected Ads</p>
+                          <div className="space-y-1">
+                            {selectedAds.map((adId) => {
+                              const ad = AD_MOCKUPS[selectedTarget.id].find(a => a.id === adId);
+                              return <p key={adId} className="font-medium text-sm">• {ad?.title}</p>
+                            })}
+                          </div>
+                        </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="contribution">Budget Contribution (SGD)</Label>
-                        <Input
-                          id="contribution"
-                          type="number"
-                          placeholder="2500"
-                          value={budgetAmount}
-                          onChange={(e) => setBudgetAmount(e.target.value)}
-                          required
-                        />
-                        <p className="text-sm text-muted-foreground">
-                          Enter how much you want to contribute to this campaign
-                        </p>
-                      </div>
+                      <form onSubmit={handleJoinCampaign} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="consultantName">Your Name</Label>
+                          <Input
+                            id="consultantName"
+                            placeholder="Enter your full name"
+                            value={consultantName}
+                            onChange={(e) => setConsultantName(e.target.value)}
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="contribution">Campaign Budget (SGD)</Label>
+                          <Input
+                            id="contribution"
+                            type="number"
+                            placeholder="2500"
+                            value={budgetAmount}
+                            onChange={(e) => setBudgetAmount(e.target.value)}
+                            required
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            This budget will be used to run your selected Facebook ads targeting {selectedTarget.name.toLowerCase()}
+                          </p>
+                        </div>
 
-                      <div className="flex gap-2">
-                        <Button type="submit" className="flex-1">
-                          Join Campaign
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setSelectedCampaign(null)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
+                        <div className="flex gap-2">
+                          <Button type="submit" className="flex-1">
+                            Launch Campaign
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => {
+                              setSelectedTarget(null);
+                              setSelectedAds([]);
+                            }}
+                          >
+                            Start Over
+                          </Button>
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </div>
               )}
             </TabsContent>
 
