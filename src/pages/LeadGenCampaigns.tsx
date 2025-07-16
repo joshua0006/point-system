@@ -8,10 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 import { Navigation } from "@/components/Navigation";
-import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft } from "lucide-react";
+import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft, Zap } from "lucide-react";
 import { ActiveCampaignCard } from "@/components/ActiveCampaignCard";
 import { TopUpModal } from "@/components/TopUpModal";
+import { ExpressCampaignTemplates } from "@/components/campaigns/ExpressCampaignTemplates";
+import { SmartBudgetCalculator } from "@/components/campaigns/SmartBudgetCalculator";
+import { MobileCampaignWizard } from "@/components/campaigns/MobileCampaignWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -970,13 +975,54 @@ const LeadGenCampaigns = () => {
               </TabsList>
 
               <TabsContent value="campaigns" className="space-y-6">
+                {/* Express Templates Section */}
+                <div className="mb-8">
+                  <ExpressCampaignTemplates 
+                    onSelectTemplate={(template) => {
+                      // Auto-fill campaign data based on template
+                      setBudgetAmount(template.budget.toString());
+                      setConsultantName("Quick Campaign");
+                      // Find matching target
+                      const matchingTarget = CAMPAIGN_TARGETS.find(t => 
+                        t.name.toLowerCase().includes(template.targetAudience.toLowerCase().split(' ')[0])
+                      );
+                      if (matchingTarget) {
+                        setSelectedTarget(matchingTarget);
+                        // Auto-select first ad for this target
+                        const firstAd = adMockups[matchingTarget.id]?.[0];
+                        if (firstAd) {
+                          setSelectedAds([firstAd.id]);
+                        }
+                      }
+                    }}
+                    userBalance={userBalance}
+                  />
+                </div>
+
+                {/* Mobile Campaign Wizard for small screens */}
+                <div className="block md:hidden mb-8">
+                  <MobileCampaignWizard
+                    onComplete={(campaignData) => {
+                      toast({
+                        title: "Campaign Launched!",
+                        description: `Your ${campaignData.template?.name} campaign is now live.`,
+                      });
+                    }}
+                    userBalance={userBalance}
+                  />
+                </div>
+
                 {!selectedTarget ? (
-                <div>
+                <div className="hidden md:block">
                   <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-8 mb-8">
                     <h2 className="text-3xl font-bold mb-4">Choose Your Target Audience</h2>
                     <p className="text-lg text-muted-foreground mb-6">
                       Select the demographic you want to focus your financial advisory services on. Each audience has specially crafted ad campaigns designed to maximize engagement and conversions.
                     </p>
+                    <Badge variant="secondary" className="mb-4">
+                      <Zap className="h-3 w-3 mr-1" />
+                      Or use Express Templates above for instant setup
+                    </Badge>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1171,6 +1217,15 @@ const LeadGenCampaigns = () => {
                       ← Back to Ads
                     </Button>
                     <h2 className="text-2xl font-bold">Allocate Your Marketing Budget</h2>
+                  </div>
+                  
+                  {/* Smart Budget Calculator */}
+                  <div className="mb-6">
+                    <SmartBudgetCalculator
+                      selectedTarget={selectedTarget?.id}
+                      onBudgetChange={(budget) => setBudgetAmount(budget.toString())}
+                      userBalance={userBalance}
+                    />
                   </div>
                   
                   <Card>
