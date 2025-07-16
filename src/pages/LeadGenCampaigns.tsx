@@ -160,10 +160,10 @@ const LeadGenCampaigns = () => {
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [selectedAds, setSelectedAds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true); // Demo admin mode activated
   const [editingAd, setEditingAd] = useState(null);
   const [adMockups, setAdMockups] = useState(AD_MOCKUPS);
-  const [adminMode, setAdminMode] = useState(false);
+  const [adminMode, setAdminMode] = useState(true); // Demo admin mode activated
   const [campaignType, setCampaignType] = useState(null); // 'fb-ads' or 'cold-calling'
   const [coldCallHours, setColdCallHours] = useState("");
   const [coldCallConsultantName, setColdCallConsultantName] = useState("");
