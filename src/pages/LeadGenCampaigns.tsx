@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star } from "lucide-react";
+import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -164,6 +164,9 @@ const LeadGenCampaigns = () => {
   const [editingAd, setEditingAd] = useState(null);
   const [adMockups, setAdMockups] = useState(AD_MOCKUPS);
   const [adminMode, setAdminMode] = useState(false);
+  const [campaignType, setCampaignType] = useState(null); // 'fb-ads' or 'cold-calling'
+  const [coldCallHours, setColdCallHours] = useState("");
+  const [coldCallConsultantName, setColdCallConsultantName] = useState("");
 
   useEffect(() => {
     fetchActiveCampaigns();
@@ -459,7 +462,7 @@ const LeadGenCampaigns = () => {
               Financial Advisory Lead Generation
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Set your marketing budget and choose proven ad campaigns to generate high-quality leads for your financial consulting business in Singapore.
+              Choose your lead generation strategy to grow your financial consulting business in Singapore.
             </p>
             <div className="flex justify-center gap-4 mt-6">
               <Badge variant="secondary" className="text-sm">
@@ -477,15 +480,204 @@ const LeadGenCampaigns = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="campaigns" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="campaigns">Set Budget & Choose Ads</TabsTrigger>
-              <TabsTrigger value="my-campaigns">My Active Budgets</TabsTrigger>
-              <TabsTrigger value="results">Performance Tracking</TabsTrigger>
-            </TabsList>
+          {!campaignType ? (
+            <div className="space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold mb-4">Choose Your Campaign Type</h2>
+                <p className="text-lg text-muted-foreground mb-8">
+                  Select the lead generation strategy that best fits your business goals and budget.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                  <CardContent className="p-8 text-center" onClick={() => setCampaignType('fb-ads')}>
+                    <div className="bg-blue-500/10 p-6 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
+                      <Target className="h-12 w-12 text-blue-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4">Facebook Ad Campaigns</h3>
+                    <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                      Launch targeted Facebook ad campaigns with proven templates designed for financial advisors in Singapore. Choose from specialized audiences and track performance.
+                    </p>
+                    <div className="space-y-2 mb-6">
+                      <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        ✓ Targeted audiences (NSF, Seniors, Mothers, General)
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        ✓ Proven ad templates with performance data
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        ✓ Expected 15-30 leads per $1000 spent
+                      </div>
+                    </div>
+                    <Button className="w-full" size="lg">
+                      Start Facebook Campaign
+                    </Button>
+                  </CardContent>
+                </Card>
 
-            <TabsContent value="campaigns" className="space-y-6">
-              {!selectedTarget ? (
+                <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                  <CardContent className="p-8 text-center" onClick={() => setCampaignType('cold-calling')}>
+                    <div className="bg-green-500/10 p-6 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
+                      <Phone className="h-12 w-12 text-green-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4">Cold Calling Campaigns</h3>
+                    <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                      Hire professional telemarketers to generate leads through direct outreach. More personal approach with higher conversion rates for qualified prospects.
+                    </p>
+                    <div className="space-y-2 mb-6">
+                      <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        ✓ Professional telemarketers at $6/hour
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        ✓ Direct personal engagement with prospects
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        ✓ Higher conversion rates on qualified leads
+                      </div>
+                    </div>
+                    <Button className="w-full" size="lg">
+                      Start Cold Calling
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          ) : campaignType === 'cold-calling' ? (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 mb-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCampaignType(null)}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Campaign Types
+                </Button>
+                <h2 className="text-2xl font-bold">Cold Calling Campaign Setup</h2>
+              </div>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="h-5 w-5 text-primary" />
+                    Telemarketing Campaign Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!user) return;
+
+                    try {
+                      const totalCost = parseInt(coldCallHours) * 6;
+                      const { error } = await supabase
+                        .from('campaign_participants')
+                        .insert({
+                          campaign_id: 'cold-calling-campaign',
+                          user_id: user.id,
+                          consultant_name: coldCallConsultantName,
+                          budget_contribution: totalCost
+                        });
+
+                      if (error) throw error;
+
+                      toast({
+                        title: "Cold Calling Campaign Started!",
+                        description: `Your ${coldCallHours} hour telemarketing campaign (${totalCost} SGD) has been set up. Professional telemarketers will begin outreach soon.`,
+                      });
+
+                      setColdCallHours("");
+                      setColdCallConsultantName("");
+                      setCampaignType(null);
+                      fetchUserParticipations();
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to start cold calling campaign. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
+                  }} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="coldCallConsultantName">Your Name</Label>
+                      <Input
+                        id="coldCallConsultantName"
+                        placeholder="Enter your full name"
+                        value={coldCallConsultantName}
+                        onChange={(e) => setColdCallConsultantName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="coldCallHours">Number of Telemarketing Hours</Label>
+                      <Input
+                        id="coldCallHours"
+                        type="number"
+                        placeholder="40"
+                        value={coldCallHours}
+                        onChange={(e) => setColdCallHours(e.target.value)}
+                        required
+                        min="1"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Each hour costs $6 SGD. Professional telemarketers will contact prospects on your behalf during business hours.
+                      </p>
+                    </div>
+
+                    {coldCallHours && (
+                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                        <h4 className="font-semibold mb-2">Campaign Summary</h4>
+                        <div className="space-y-1 text-sm">
+                          <p><strong>Hours:</strong> {coldCallHours} hours</p>
+                          <p><strong>Rate:</strong> $6 SGD per hour</p>
+                          <p><strong>Total Cost:</strong> ${parseInt(coldCallHours || "0") * 6} SGD</p>
+                          <p><strong>Expected Calls:</strong> ~{parseInt(coldCallHours || "0") * 20} calls</p>
+                          <p><strong>Expected Leads:</strong> ~{Math.round(parseInt(coldCallHours || "0") * 20 * 0.15)} qualified leads</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button type="submit" className="flex-1" size="lg" disabled={!coldCallHours || !coldCallConsultantName}>
+                        <Phone className="h-5 w-5 mr-2" />
+                        Start Cold Calling Campaign
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setCampaignType(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Tabs defaultValue="campaigns" className="space-y-6">
+              <div className="flex items-center gap-4 mb-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCampaignType(null)}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Campaign Types
+                </Button>
+                <h2 className="text-xl font-semibold">Facebook Ad Campaigns</h2>
+              </div>
+              
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="campaigns">Set Budget & Choose Ads</TabsTrigger>
+                <TabsTrigger value="my-campaigns">My Active Budgets</TabsTrigger>
+                <TabsTrigger value="results">Performance Tracking</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="campaigns" className="space-y-6">
+                {!selectedTarget ? (
                 <div>
                   <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-8 mb-8">
                     <h2 className="text-3xl font-bold mb-4">Choose Your Target Audience</h2>
@@ -941,8 +1133,9 @@ const LeadGenCampaigns = () => {
                   ))}
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
       </div>
     </div>
