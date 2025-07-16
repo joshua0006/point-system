@@ -20,6 +20,7 @@ import ConsultantProfile from "./pages/ConsultantProfile";
 import BuyerProfile from "./pages/BuyerProfile";
 import SellerProfile from "./pages/SellerProfile";
 import LeadGenCampaigns from "./pages/LeadGenCampaigns";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <LeadGenCampaigns />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 }
               />

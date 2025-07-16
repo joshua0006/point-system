@@ -194,9 +194,11 @@ export function Navigation() {
                           <span>Profile</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Settings className="w-4 h-4 mr-2" />
-                        <span>Settings</span>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings" className="flex items-center space-x-2 cursor-pointer">
+                          <Settings className="w-4 h-4" />
+                          <span>Settings</span>
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
