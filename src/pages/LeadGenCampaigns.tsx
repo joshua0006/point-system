@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
 import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -167,6 +167,8 @@ const LeadGenCampaigns = () => {
   const [campaignType, setCampaignType] = useState(null); // 'fb-ads' or 'cold-calling'
   const [coldCallHours, setColdCallHours] = useState("");
   const [coldCallConsultantName, setColdCallConsultantName] = useState("");
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
 
   useEffect(() => {
     fetchActiveCampaigns();
@@ -363,12 +365,10 @@ const LeadGenCampaigns = () => {
 
   const handleJoinCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCampaign || !user) return;
-
-    const monthlySpend = parseInt(budgetAmount); // Monthly ad spend amount
+    if (!selectedCampaign || !user || !budgetAmount) return;
 
     try {
-      // Check if user has enough points for first month
+      // Get user's current balance
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('points_balance')
@@ -377,19 +377,37 @@ const LeadGenCampaigns = () => {
 
       if (profileError) throw profileError;
 
-      if (profile.points_balance < monthlySpend) {
+      setUserBalance(profile.points_balance);
+      setShowCheckoutModal(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load account information. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmCheckout = async () => {
+    if (!selectedCampaign || !user) return;
+
+    const monthlySpend = parseInt(budgetAmount);
+
+    try {
+      if (userBalance < monthlySpend) {
         toast({
           title: "Insufficient Points",
-          description: `You need ${monthlySpend} points for the first month but only have ${profile.points_balance}`,
+          description: `You need ${monthlySpend} points for the first month but only have ${userBalance}`,
           variant: "destructive",
         });
+        setShowCheckoutModal(false);
         return;
       }
 
       // Deduct points for first month
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ points_balance: profile.points_balance - monthlySpend })
+        .update({ points_balance: userBalance - monthlySpend })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
@@ -427,6 +445,7 @@ const LeadGenCampaigns = () => {
       setSelectedCampaign(null);
       setSelectedTarget(null);
       setSelectedAds([]);
+      setShowCheckoutModal(false);
       fetchUserParticipations();
     } catch (error) {
       toast({
@@ -434,6 +453,7 @@ const LeadGenCampaigns = () => {
         description: "Failed to process payment. Please try again.",
         variant: "destructive",
       });
+      setShowCheckoutModal(false);
     }
   };
 
@@ -1222,6 +1242,85 @@ const LeadGenCampaigns = () => {
           )}
         </div>
       </div>
+
+      {/* Checkout Confirmation Modal */}
+      <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Confirm Your Purchase
+            </DialogTitle>
+            <DialogDescription>
+              Review your campaign details and confirm the payment
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Campaign Summary */}
+            <div className="bg-muted/20 p-4 rounded-lg space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Campaign Type:</span>
+                <span className="text-sm">Facebook Ads</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Target Audience:</span>
+                <span className="text-sm">{selectedTarget?.name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Monthly Budget:</span>
+                <span className="text-sm font-bold">{budgetAmount} points</span>
+              </div>
+            </div>
+
+            {/* Wallet Information */}
+            <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Current Balance:</span>
+                <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Amount to Deduct:</span>
+                <span className="text-sm font-bold text-red-600">-{budgetAmount} points</span>
+              </div>
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Balance After:</span>
+                  <span className="text-lg font-bold text-primary">
+                    {(userBalance - parseInt(budgetAmount || "0")).toLocaleString()} points
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Important Notice */}
+            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+              <p className="text-xs text-yellow-800">
+                <strong>Note:</strong> This amount will be deducted monthly for as long as your campaign is active. 
+                You can cancel anytime from your campaign dashboard.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCheckoutModal(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmCheckout}
+              className="flex-1"
+              disabled={userBalance < parseInt(budgetAmount || "0")}
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
+              Confirm & Start Campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
