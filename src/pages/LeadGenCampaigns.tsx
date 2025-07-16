@@ -696,6 +696,22 @@ const LeadGenCampaigns = () => {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Choose your lead generation strategy to grow your financial consulting business in Singapore.
             </p>
+            
+            {/* Wallet Balance Display */}
+            <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-6 rounded-lg border border-primary/20 mt-6 mb-6 max-w-md mx-auto">
+              <div className="text-center">
+                <h2 className="text-lg font-semibold mb-2">Your Campaign Wallet</h2>
+                <p className="text-2xl font-bold text-primary mb-2">{userBalance.toLocaleString()} points</p>
+                <p className="text-sm text-muted-foreground mb-3">Available for campaigns</p>
+                <Button 
+                  onClick={() => setTopUpModalOpen(true)}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Top Up Wallet
+                </Button>
+              </div>
+            </div>
             <div className="flex justify-center gap-4 mt-6">
               <Badge variant="secondary" className="text-sm">
                 <Target className="h-3 w-3 mr-1" />
