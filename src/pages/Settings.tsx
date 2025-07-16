@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentMethodsTab } from "@/components/settings/PaymentMethodsTab";
+import { TransactionHistoryModal } from "@/components/settings/TransactionHistoryModal";
 
 const Settings = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -26,6 +27,9 @@ const Settings = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [campaignUpdates, setCampaignUpdates] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
+  
+  // Modal states
+  const [transactionHistoryOpen, setTransactionHistoryOpen] = useState(false);
 
   // Load profile data when it's available
   useEffect(() => {
@@ -302,7 +306,9 @@ const Settings = () => {
                     <p className="text-xs text-muted-foreground mb-3">
                       View your past purchases and point usage.
                     </p>
-                    <Button variant="outline">View Full History</Button>
+                    <Button variant="outline" onClick={() => setTransactionHistoryOpen(true)}>
+                      View Full History
+                    </Button>
                   </div>
 
                   <div>
@@ -317,6 +323,11 @@ const Settings = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        <TransactionHistoryModal
+          isOpen={transactionHistoryOpen}
+          onClose={() => setTransactionHistoryOpen(false)}
+        />
       </div>
     </div>
   );
