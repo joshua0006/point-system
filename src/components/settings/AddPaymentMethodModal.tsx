@@ -7,8 +7,9 @@ import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-// Note: In production, replace with your actual Stripe publishable key
-const stripePromise = loadStripe("pk_test_51H7VgaII7A7fKDtYXeKoT9aF29jBjqNVuOCzUMT4gKBKqLI8eWNsQ0xV4LKb4CZHrAyLOJjv2eVq4t9EyXOOKl0t00FxpJJTZA");
+// Replace with your actual Stripe publishable key from Stripe Dashboard
+// Get it from: https://dashboard.stripe.com/test/apikeys
+const stripePromise = loadStripe("pk_test_51H1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
 
 interface AddPaymentMethodModalProps {
   open: boolean;
