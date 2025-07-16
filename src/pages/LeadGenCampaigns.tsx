@@ -7,10 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift } from "lucide-react";
+import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import adNsf1 from "@/assets/ad-nsf-1.jpg";
+import adMothers1 from "@/assets/ad-mothers-1.jpg";
+import adSeniors1 from "@/assets/ad-seniors-1.jpg";
+import adGeneral1 from "@/assets/ad-general-1.jpg";
 
 // Campaign targeting options
 const CAMPAIGN_TARGETS = [
@@ -54,64 +59,88 @@ const AD_MOCKUPS = {
     {
       id: 'nsf-1',
       title: 'Free Financial Health Check for NSF Personnel',
-      description: 'Get a complimentary financial consultation during your service period',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free 60-min consultation + Financial planning toolkit'
+      description: 'Get a complimentary financial consultation during your service period. Perfect for young servicemen starting their financial journey.',
+      imageUrl: adNsf1,
+      offer: 'Free 60-min consultation + Financial planning toolkit',
+      adCopy: "🛡️ Serving Singapore? Secure Your Future Too!\n\nGet expert financial advice tailored for NSF personnel. Start building wealth while you serve.\n\n✅ Free 60-minute consultation\n✅ Personalized financial roadmap\n✅ Investment basics workshop\n\nBook now - Limited spots available!",
+      cta: "Claim Your Free Session",
+      performance: { ctr: "3.2%", cpm: "$4.50", conversions: 24 }
     },
     {
       id: 'nsf-2',
       title: 'Start Your Wealth Journey Early',
-      description: 'Learn investment basics while serving Singapore',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free investment workshop + Starter portfolio guide'
+      description: 'Learn investment basics while serving Singapore. Build financial literacy that lasts a lifetime.',
+      imageUrl: adNsf1,
+      offer: 'Free investment workshop + Starter portfolio guide',
+      adCopy: "💰 Young & Ready to Invest?\n\nLearn the fundamentals of wealth building during your NS. Get ahead of your peers with smart financial planning.\n\n✅ Investment basics workshop\n✅ Risk assessment guide\n✅ Long-term planning strategies\n\nLimited time offer for NSF personnel!",
+      cta: "Start Learning Today",
+      performance: { ctr: "2.8%", cpm: "$3.90", conversions: 18 }
     }
   ],
   general: [
     {
       id: 'general-1',
       title: 'Free Retirement Planning Workshop',
-      description: 'Learn how to secure your financial future',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free workshop + Retirement planning checklist'
+      description: 'Learn how to secure your financial future with comprehensive retirement strategies.',
+      imageUrl: adGeneral1,
+      offer: 'Free workshop + Retirement planning checklist',
+      adCopy: "🏆 Ready to Retire Comfortably?\n\nJoin our exclusive workshop and learn proven strategies to build your retirement nest egg.\n\n✅ CPF optimization techniques\n✅ Investment portfolio planning\n✅ Risk management strategies\n\nSpaces filling up fast - Register today!",
+      cta: "Reserve Your Seat",
+      performance: { ctr: "4.1%", cpm: "$5.20", conversions: 32 }
     },
     {
       id: 'general-2',
       title: 'Maximize Your CPF Returns',
-      description: 'Discover strategies to grow your CPF savings',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free CPF optimization guide + 30-min consultation'
+      description: 'Discover strategies to grow your CPF savings and optimize your retirement funds.',
+      imageUrl: adGeneral1,
+      offer: 'Free CPF optimization guide + 30-min consultation',
+      adCopy: "📈 Boost Your CPF Returns by 40%!\n\nDiscover little-known strategies to maximize your CPF growth. Our experts reveal the secrets.\n\n✅ CPF optimization strategies\n✅ Top-up timing guidance\n✅ Investment scheme options\n\nFree guide worth $200 - Download now!",
+      cta: "Get Free Guide",
+      performance: { ctr: "3.7%", cpm: "$4.80", conversions: 28 }
     }
   ],
   mothers: [
     {
       id: 'mothers-1',
       title: 'Protect Your Family\'s Future',
-      description: 'Comprehensive family protection and savings plan',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free family protection review + Education savings guide'
+      description: 'Comprehensive family protection and savings plan designed specifically for working mothers.',
+      imageUrl: adMothers1,
+      offer: 'Free family protection review + Education savings guide',
+      adCopy: "💝 Protecting What Matters Most\n\nAs a mother, your family's security is everything. Get a comprehensive protection plan that gives you peace of mind.\n\n✅ Family income protection\n✅ Children's education planning\n✅ Emergency fund strategies\n\nFree consultation for caring mothers!",
+      cta: "Protect My Family",
+      performance: { ctr: "5.2%", cpm: "$6.10", conversions: 41 }
     },
     {
       id: 'mothers-2',
       title: 'Smart Savings for Your Child\'s Education',
-      description: 'Start planning for your child\'s future today',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free education planning toolkit + University savings calculator'
+      description: 'Start planning for your child\'s future today with our education savings strategies.',
+      imageUrl: adMothers1,
+      offer: 'Free education planning toolkit + University savings calculator',
+      adCopy: "🎓 Your Child's Education = Their Future\n\nStart saving smart for university costs. Our calculator shows exactly how much you need to save monthly.\n\n✅ Education inflation calculator\n✅ Best savings vehicles comparison\n✅ Government schemes guide\n\nEvery month counts - Start today!",
+      cta: "Calculate Now",
+      performance: { ctr: "4.8%", cpm: "$5.60", conversions: 35 }
     }
   ],
   seniors: [
     {
       id: 'seniors-1',
       title: 'Secure Your Golden Years',
-      description: 'Estate planning and legacy preservation services',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free will writing consultation + Estate planning guide'
+      description: 'Estate planning and legacy preservation services for retirees and pre-retirees.',
+      imageUrl: adSeniors1,
+      offer: 'Free will writing consultation + Estate planning guide',
+      adCopy: "🌟 Your Legacy Matters\n\nEnsure your hard-earned assets are protected and passed on according to your wishes. Expert guidance for peace of mind.\n\n✅ Will writing assistance\n✅ Estate tax planning\n✅ Asset protection strategies\n\nSecure your family's future today!",
+      cta: "Plan My Legacy",
+      performance: { ctr: "3.9%", cpm: "$7.20", conversions: 22 }
     },
     {
       id: 'seniors-2',
       title: 'Healthcare Cost Protection',
-      description: 'Prepare for medical expenses in retirement',
-      imageUrl: '/placeholder.svg',
-      offer: 'Free healthcare planning session + Medical cost calculator'
+      description: 'Prepare for medical expenses in retirement with comprehensive healthcare planning.',
+      imageUrl: adSeniors1,
+      offer: 'Free healthcare planning session + Medical cost calculator',
+      adCopy: "🏥 Healthcare Costs Rising?\n\nProtect yourself from unexpected medical bills in retirement. Plan ahead with our comprehensive healthcare strategies.\n\n✅ Medisave optimization\n✅ Insurance gap analysis\n✅ Long-term care planning\n\nDon't let medical bills drain your savings!",
+      cta: "Get Protected",
+      performance: { ctr: "4.3%", cpm: "$6.80", conversions: 29 }
     }
   ]
 };
@@ -131,11 +160,31 @@ const LeadGenCampaigns = () => {
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [selectedAds, setSelectedAds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingAd, setEditingAd] = useState(null);
 
   useEffect(() => {
     fetchActiveCampaigns();
     fetchUserParticipations();
+    checkAdminStatus();
   }, [user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data && data.role === 'admin') {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const fetchActiveCampaigns = async () => {
     try {
@@ -194,10 +243,10 @@ const LeadGenCampaigns = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Campaign Launched Successfully!",
-        description: `Your ${selectedTarget?.name} campaign has been launched with a budget of $${budgetAmount}. Facebook ads are now running with your selected offers.`,
-      });
+                      toast({
+                        title: "Budget Allocated Successfully!",
+                        description: `Your ${selectedTarget?.name} campaign budget of $${budgetAmount} has been set. You can now track performance as leads come in.`,
+                      });
 
       setBudgetAmount("");
       setConsultantName("");
@@ -257,35 +306,59 @@ const LeadGenCampaigns = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Lead Generation Campaign Management
+              Financial Advisory Lead Generation
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Join active campaigns and track your lead generation performance to optimize your ROI.
+              Set your marketing budget and choose proven ad campaigns to generate high-quality leads for your financial consulting business in Singapore.
             </p>
+            <div className="flex justify-center gap-4 mt-6">
+              <Badge variant="secondary" className="text-sm">
+                <Target className="h-3 w-3 mr-1" />
+                Targeted Audiences
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                <Star className="h-3 w-3 mr-1" />
+                Proven Ad Templates
+              </Badge>
+              <Badge variant="secondary" className="text-sm">
+                <DollarSign className="h-3 w-3 mr-1" />
+                Flexible Budgets
+              </Badge>
+            </div>
           </div>
 
           <Tabs defaultValue="campaigns" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="campaigns">Available Campaigns</TabsTrigger>
-              <TabsTrigger value="my-campaigns">My Campaigns</TabsTrigger>
-              <TabsTrigger value="results">Track Results</TabsTrigger>
+              <TabsTrigger value="campaigns">Set Budget & Choose Ads</TabsTrigger>
+              <TabsTrigger value="my-campaigns">My Active Budgets</TabsTrigger>
+              <TabsTrigger value="results">Performance Tracking</TabsTrigger>
             </TabsList>
 
             <TabsContent value="campaigns" className="space-y-6">
               {!selectedTarget ? (
                 <div>
-                  <h2 className="text-2xl font-bold mb-6">Choose Your Target Audience</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-8 mb-8">
+                    <h2 className="text-3xl font-bold mb-4">Choose Your Target Audience</h2>
+                    <p className="text-lg text-muted-foreground mb-6">
+                      Select the demographic you want to focus your financial advisory services on. Each audience has specially crafted ad campaigns designed to maximize engagement and conversions.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {CAMPAIGN_TARGETS.map((target) => {
                       const IconComponent = target.icon;
                       return (
-                        <Card key={target.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                          <CardContent className="p-6" onClick={() => setSelectedTarget(target)}>
-                            <div className={`${target.bgColor} p-4 rounded-lg mb-4 w-fit`}>
-                              <IconComponent className={`h-8 w-8 ${target.iconColor}`} />
+                        <Card key={target.id} className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                          <CardContent className="p-8" onClick={() => setSelectedTarget(target)}>
+                            <div className={`${target.bgColor} p-6 rounded-xl mb-6 w-fit group-hover:scale-110 transition-transform`}>
+                              <IconComponent className={`h-10 w-10 ${target.iconColor}`} />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2">{target.name}</h3>
-                            <p className="text-muted-foreground">{target.description}</p>
+                            <h3 className="text-2xl font-bold mb-3">{target.name}</h3>
+                            <p className="text-muted-foreground text-lg leading-relaxed">{target.description}</p>
+                            <div className="mt-6 flex items-center text-primary font-medium">
+                              <span>View ad campaigns</span>
+                              <Target className="h-4 w-4 ml-2" />
+                            </div>
                           </CardContent>
                         </Card>
                       );
@@ -305,20 +378,92 @@ const LeadGenCampaigns = () => {
                     <h2 className="text-2xl font-bold">Choose Your Ads - {selectedTarget.name}</h2>
                   </div>
                   
-                  <div className="grid gap-6">
+                  <div className="grid gap-8">
                     {AD_MOCKUPS[selectedTarget.id].map((ad) => (
-                      <Card key={ad.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex gap-6">
-                            <div className="w-32 h-24 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-                              <Gift className="h-8 w-8" />
+                      <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                        <CardContent className="p-0">
+                          <div className="md:flex">
+                            <div className="md:w-1/2">
+                              <img 
+                                src={ad.imageUrl} 
+                                alt={ad.title}
+                                className="w-full h-64 md:h-full object-cover"
+                              />
                             </div>
-                            <div className="flex-1">
-                              <h3 className="text-xl font-semibold mb-2">{ad.title}</h3>
-                              <p className="text-muted-foreground mb-3">{ad.description}</p>
-                              <div className="bg-primary/10 p-3 rounded-lg mb-4">
-                                <p className="text-sm font-medium text-primary">{ad.offer}</p>
+                            <div className="md:w-1/2 p-8">
+                              <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-2xl font-bold">{ad.title}</h3>
+                                {isAdmin && (
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="ghost" size="sm" onClick={() => setEditingAd(ad)}>
+                                        <Edit3 className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle>Edit Ad Content</DialogTitle>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <div>
+                                          <Label>Ad Copy</Label>
+                                          <Textarea 
+                                            rows={8} 
+                                            defaultValue={ad.adCopy}
+                                            className="mt-2"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label>Call to Action</Label>
+                                          <Input defaultValue={ad.cta} className="mt-2" />
+                                        </div>
+                                        <Button className="w-full">Save Changes</Button>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                )}
                               </div>
+                              
+                              <p className="text-muted-foreground mb-4 text-lg">{ad.description}</p>
+                              
+                              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg mb-6">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Gift className="h-5 w-5 text-primary" />
+                                  <span className="font-semibold text-primary">Special Offer</span>
+                                </div>
+                                <p className="font-medium">{ad.offer}</p>
+                              </div>
+                              
+                              <div className="bg-muted/30 p-4 rounded-lg mb-6">
+                                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                                  <Eye className="h-4 w-4" />
+                                  Ad Preview
+                                </h4>
+                                <div className="text-sm whitespace-pre-line text-muted-foreground bg-background p-3 rounded border">
+                                  {ad.adCopy}
+                                </div>
+                                <div className="mt-3">
+                                  <Button size="sm" className="w-full">
+                                    {ad.cta}
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-3 mb-6 text-center">
+                                <div className="bg-green-500/10 p-3 rounded-lg">
+                                  <div className="text-sm text-muted-foreground">CTR</div>
+                                  <div className="font-bold text-green-600">{ad.performance.ctr}</div>
+                                </div>
+                                <div className="bg-blue-500/10 p-3 rounded-lg">
+                                  <div className="text-sm text-muted-foreground">CPM</div>
+                                  <div className="font-bold text-blue-600">{ad.performance.cpm}</div>
+                                </div>
+                                <div className="bg-purple-500/10 p-3 rounded-lg">
+                                  <div className="text-sm text-muted-foreground">Leads</div>
+                                  <div className="font-bold text-purple-600">{ad.performance.conversions}</div>
+                                </div>
+                              </div>
+                              
                               <Button 
                                 onClick={() => {
                                   if (selectedAds.includes(ad.id)) {
@@ -329,8 +474,9 @@ const LeadGenCampaigns = () => {
                                 }}
                                 variant={selectedAds.includes(ad.id) ? "default" : "outline"}
                                 className="w-full"
+                                size="lg"
                               >
-                                {selectedAds.includes(ad.id) ? "Selected" : "Select This Ad"}
+                                {selectedAds.includes(ad.id) ? "✓ Selected for Campaign" : "Select This Ad"}
                               </Button>
                             </div>
                           </div>
@@ -340,19 +486,33 @@ const LeadGenCampaigns = () => {
                   </div>
                   
                   {selectedAds.length > 0 && (
-                    <Card className="mt-6">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Selected Ads ({selectedAds.length})</h3>
-                        <div className="space-y-2 mb-4">
+                    <Card className="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+                      <CardContent className="p-8">
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                          <Target className="h-6 w-6 text-primary" />
+                          Campaign Summary ({selectedAds.length} ads selected)
+                        </h3>
+                        <div className="grid gap-4 mb-6">
                           {selectedAds.map((adId) => {
                             const ad = AD_MOCKUPS[selectedTarget.id].find(a => a.id === adId);
                             return (
-                              <div key={adId} className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
-                                <span className="font-medium">{ad?.title}</span>
+                              <div key={adId} className="flex items-center justify-between bg-background/80 backdrop-blur p-4 rounded-lg border">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-16 h-12 rounded overflow-hidden">
+                                    <img src={ad?.imageUrl} alt={ad?.title} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold">{ad?.title}</span>
+                                    <div className="text-sm text-muted-foreground">
+                                      Expected CTR: {ad?.performance.ctr} • CPM: {ad?.performance.cpm}
+                                    </div>
+                                  </div>
+                                </div>
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
                                   onClick={() => setSelectedAds(selectedAds.filter(id => id !== adId))}
+                                  className="text-destructive hover:text-destructive"
                                 >
                                   Remove
                                 </Button>
@@ -370,8 +530,10 @@ const LeadGenCampaigns = () => {
                             });
                           }}
                           className="w-full"
+                          size="lg"
                         >
-                          Proceed to Budget Setting
+                          <DollarSign className="h-5 w-5 mr-2" />
+                          Set Campaign Budget
                         </Button>
                       </CardContent>
                     </Card>
@@ -387,7 +549,7 @@ const LeadGenCampaigns = () => {
                     >
                       ← Back to Ads
                     </Button>
-                    <h2 className="text-2xl font-bold">Set Your Campaign Budget</h2>
+                    <h2 className="text-2xl font-bold">Allocate Your Marketing Budget</h2>
                   </div>
                   
                   <Card>
@@ -427,7 +589,7 @@ const LeadGenCampaigns = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="contribution">Campaign Budget (SGD)</Label>
+                          <Label htmlFor="contribution">Monthly Marketing Budget (SGD)</Label>
                           <Input
                             id="contribution"
                             type="number"
@@ -437,13 +599,14 @@ const LeadGenCampaigns = () => {
                             required
                           />
                           <p className="text-sm text-muted-foreground">
-                            This budget will be used to run your selected Facebook ads targeting {selectedTarget.name.toLowerCase()}
+                            This is the amount you're willing to allocate monthly for Facebook ads targeting {selectedTarget.name.toLowerCase()}. Based on performance data, expect 15-30 qualified leads per $1000 spent.
                           </p>
                         </div>
 
                         <div className="flex gap-2">
-                          <Button type="submit" className="flex-1">
-                            Launch Campaign
+                          <Button type="submit" className="flex-1" size="lg">
+                            <DollarSign className="h-5 w-5 mr-2" />
+                            Allocate Budget
                           </Button>
                           <Button 
                             type="button" 
