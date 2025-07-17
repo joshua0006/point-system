@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Navigation } from "@/components/Navigation";
-import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft, Zap } from "lucide-react";
+import { TrendingUp, DollarSign, Target, Users, Calendar, Plus, User, Baby, Heart, Shield, Gift, Edit3, Eye, Star, Phone, ArrowLeft, Zap, Settings } from "lucide-react";
 import { ActiveCampaignCard } from "@/components/ActiveCampaignCard";
 import { TopUpModal } from "@/components/TopUpModal";
 import { ExpressCampaignTemplates } from "@/components/campaigns/ExpressCampaignTemplates";
@@ -30,27 +30,21 @@ import adGeneral1 from "@/assets/ad-general-1.jpg";
 const CAMPAIGN_TARGETS = [
   {
     id: 'nsf',
-    name: 'NSF Personnel',
+    name: 'NSFs',
     description: 'Target National Service personnel with financial planning services',
     icon: Shield,
     bgColor: 'bg-blue-500/10',
-    iconColor: 'text-blue-600'
+    iconColor: 'text-blue-600',
+    campaignTypes: ['Financial Planning Basics', 'Investment Fundamentals', 'Savings Strategies', 'Insurance Basics']
   },
   {
-    id: 'general',
-    name: 'General Public',
-    description: 'Broad targeting for general financial consulting services',
+    id: 'public',
+    name: 'Public',
+    description: 'General public seeking comprehensive financial services',
     icon: Users,
     bgColor: 'bg-green-500/10',
-    iconColor: 'text-green-600'
-  },
-  {
-    id: 'mothers',
-    name: 'Mothers',
-    description: 'Target mothers with family financial planning and protection',
-    icon: Heart,
-    bgColor: 'bg-pink-500/10',
-    iconColor: 'text-pink-600'
+    iconColor: 'text-green-600',
+    campaignTypes: ['Retirement Planning', 'CPF Optimization', 'Investment Portfolio', 'Estate Planning', 'Tax Planning']
   },
   {
     id: 'seniors',
@@ -58,7 +52,8 @@ const CAMPAIGN_TARGETS = [
     description: 'Target seniors with retirement and estate planning services',
     icon: User,
     bgColor: 'bg-purple-500/10',
-    iconColor: 'text-purple-600'
+    iconColor: 'text-purple-600',
+    campaignTypes: ['Legacy Planning', 'Healthcare Protection', 'Estate Distribution', 'Long-term Care']
   }
 ];
 
@@ -187,6 +182,8 @@ const LeadGenCampaigns = () => {
   const [editingTargetAudience, setEditingTargetAudience] = useState(null);
   const [campaignTargets, setCampaignTargets] = useState(CAMPAIGN_TARGETS);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [selectedAdminTarget, setSelectedAdminTarget] = useState(null);
+  const [selectedCampaignType, setSelectedCampaignType] = useState(null);
 
   useEffect(() => {
     fetchActiveCampaigns();
@@ -293,7 +290,8 @@ const LeadGenCampaigns = () => {
       description: 'Description for new target audience',
       icon: Users,
       bgColor: 'bg-gray-500/10',
-      iconColor: 'text-gray-600'
+      iconColor: 'text-gray-600',
+      campaignTypes: ['General Campaign']
     };
     
     setCampaignTargets(prev => [...prev, newTarget]);
@@ -302,6 +300,32 @@ const LeadGenCampaigns = () => {
     toast({
       title: "Audience Added",
       description: "New target audience has been created.",
+    });
+  };
+
+  const addCampaignType = (targetId: string, campaignType: string) => {
+    setCampaignTargets(prev => prev.map(target => 
+      target.id === targetId 
+        ? { ...target, campaignTypes: [...(target.campaignTypes || []), campaignType] }
+        : target
+    ));
+    
+    toast({
+      title: "Campaign Type Added",
+      description: `Added "${campaignType}" to campaign types.`,
+    });
+  };
+
+  const removeCampaignType = (targetId: string, campaignType: string) => {
+    setCampaignTargets(prev => prev.map(target => 
+      target.id === targetId 
+        ? { ...target, campaignTypes: target.campaignTypes?.filter(type => type !== campaignType) || [] }
+        : target
+    ));
+    
+    toast({
+      title: "Campaign Type Removed",
+      description: `Removed "${campaignType}" from campaign types.`,
     });
   };
 
@@ -415,6 +439,116 @@ const LeadGenCampaigns = () => {
           </Button>
         </div>
       </DialogContent>
+    );
+  };
+
+  // Admin Campaign Management Panel
+  const AdminCampaignManagement = () => {
+    const [newCampaignType, setNewCampaignType] = useState("");
+
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Campaign Management Dashboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {campaignTargets.map((target) => (
+              <div key={target.id} className={`p-6 rounded-lg border ${target.bgColor}`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`p-2 rounded-lg ${target.bgColor}`}>
+                    <target.icon className={`h-6 w-6 ${target.iconColor}`} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{target.name}</h3>
+                    <p className="text-sm text-muted-foreground">{target.description}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium">Campaign Types</Label>
+                    <Badge variant="secondary">{target.campaignTypes?.length || 0}</Badge>
+                  </div>
+
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {target.campaignTypes?.map((type, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-background rounded border">
+                        <span className="text-sm">{type}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeCampaignType(target.id, type)}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="New campaign type"
+                      value={newCampaignType}
+                      onChange={(e) => setNewCampaignType(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && newCampaignType.trim()) {
+                          addCampaignType(target.id, newCampaignType.trim());
+                          setNewCampaignType("");
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (newCampaignType.trim()) {
+                          addCampaignType(target.id, newCampaignType.trim());
+                          setNewCampaignType("");
+                        }
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      setSelectedAdminTarget(target);
+                      setEditingTargetAudience(target);
+                    }}
+                  >
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Edit Audience
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="font-medium mb-4">Quick Actions</h4>
+            <div className="flex gap-3">
+              <Button onClick={addNewTargetAudience} variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Audience
+              </Button>
+              <Button 
+                onClick={() => setShowAdminPanel(false)}
+                variant="secondary"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Campaigns
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -933,27 +1067,44 @@ const LeadGenCampaigns = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
-        {isAdmin && <AdminPanel />}
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="flex justify-between items-center mb-6">
-              <div></div>
-              {isAdmin && (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Admin Mode</span>
-                    <Button
-                      variant={adminMode ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAdminMode(!adminMode)}
-                    >
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      {adminMode ? "Exit Edit Mode" : "Edit Ads"}
-                    </Button>
-                  </div>
-                </div>
-              )}
+        <div className="max-w-7xl mx-auto">
+          {/* Admin Campaign Management Panel */}
+          {isAdmin && showAdminPanel && (
+            <div className="mb-8">
+              <AdminCampaignManagement />
             </div>
+          )}
+
+          {/* Main Campaign Interface */}
+          {!showAdminPanel && (
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <div className="flex justify-between items-center mb-6">
+                  <div></div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setShowAdminPanel(true)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Campaign Management
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Edit Mode</span>
+                        <Button
+                          variant={adminMode ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setAdminMode(!adminMode)}
+                        >
+                          <Edit3 className="h-4 w-4 mr-2" />
+                          {adminMode ? "Exit Edit" : "Edit Ads"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
             
             <h1 className="text-4xl font-bold text-foreground mb-4">
               Financial Advisory Lead Generation
@@ -1814,6 +1965,8 @@ const LeadGenCampaigns = () => {
               )}
               </TabsContent>
             </Tabs>
+          )}
+            </div>
           )}
         </div>
       </div>
