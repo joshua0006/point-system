@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TierBadge } from "@/components/TierBadge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserManagement } from "@/components/admin/UserManagement";
 import { 
   Users, 
   DollarSign, 
@@ -11,10 +14,13 @@ import {
   Activity,
   UserCheck,
   Star,
-  ArrowUpDown
+  ArrowUpDown,
+  Settings
 } from "lucide-react";
 
 export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState("overview");
+  
   // Mock admin data
   const platformStats = {
     totalUsers: 1247,
@@ -112,9 +118,24 @@ export default function AdminDashboard() {
             Admin Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Monitor platform performance and manage consultants
+            Monitor platform performance and manage users
           </p>
         </div>
+
+        {/* Navigation Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              User Management
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">{/* Overview content will go here */}
 
         {/* Platform Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -295,7 +316,13 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
+          </div>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
