@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { useAuth } from "@/contexts/AuthContext";
 import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus, ChevronDown, Wallet, AlertCircle } from "lucide-react";
 import { AddPaymentMethodModal } from "@/components/settings/AddPaymentMethodModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -32,6 +33,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     isInstant: boolean;
   } | null>(null);
   const { toast } = useToast();
+  const { profile } = useAuth();
   const { paymentMethods, loading: paymentMethodsLoading, instantCharge, fetchPaymentMethods } = usePaymentMethods();
 
   const quickPackages = [
@@ -410,11 +412,26 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     +{confirmationData?.amount.toLocaleString()} points
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-foreground">Total cost:</span>
                   <span className="text-lg font-semibold text-foreground">
                     ${confirmationData?.amount.toLocaleString()}
                   </span>
+                </div>
+                <Separator className="my-3" />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Current wallet balance:</span>
+                    <span className="font-medium text-foreground">
+                      {profile?.points_balance?.toLocaleString() || '0'} points
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">New wallet balance:</span>
+                    <span className="text-lg font-bold text-primary">
+                      {((profile?.points_balance || 0) + (confirmationData?.amount || 0)).toLocaleString()} points
+                    </span>
+                  </div>
                 </div>
               </div>
               
