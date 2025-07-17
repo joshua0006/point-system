@@ -3,7 +3,6 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TierBadge } from "@/components/TierBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { 
@@ -35,7 +34,6 @@ export default function AdminDashboard() {
     {
       id: "1",
       name: "Sarah Chen",
-      tier: "platinum" as const,
       earnings: 15750,
       sessions: 42,
       rating: 4.8
@@ -43,7 +41,6 @@ export default function AdminDashboard() {
     {
       id: "2", 
       name: "Marcus Rodriguez",
-      tier: "gold" as const,
       earnings: 12300,
       sessions: 35,
       rating: 4.7
@@ -51,7 +48,6 @@ export default function AdminDashboard() {
     {
       id: "3",
       name: "Emily Johnson", 
-      tier: "silver" as const,
       earnings: 8900,
       sessions: 28,
       rating: 4.6
@@ -83,7 +79,7 @@ export default function AdminDashboard() {
     {
       id: "4",
       type: "registration",
-      description: "New consultant Lisa Thompson registered (Bronze tier)",
+      description: "New consultant Lisa Thompson registered",
       points: 0,
       timestamp: "1 day ago"
     },
@@ -97,13 +93,6 @@ export default function AdminDashboard() {
       title: "Advanced Financial Modeling",
       category: "Finance",
       points: 600
-    },
-    {
-      id: "2",
-      type: "tier_upgrade",
-      consultant: "Lisa Thompson",
-      currentTier: "bronze",
-      requestedTier: "silver"
     },
   ];
 
@@ -210,10 +199,7 @@ export default function AdminDashboard() {
                         #{index + 1}
                       </div>
                       <div>
-                        <div className="flex items-center space-x-2">
-                          <p className="font-medium text-sm text-foreground">{consultant.name}</p>
-                          <TierBadge tier={consultant.tier} size="sm" />
-                        </div>
+                        <p className="font-medium text-sm text-foreground">{consultant.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {consultant.sessions} sessions • {consultant.rating} rating
                         </p>
@@ -273,46 +259,24 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingApprovals.map((item) => (
-                  <div key={item.id} className="p-4 rounded-lg border bg-card">
-                    {item.type === 'service' ? (
-                      <>
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h4 className="font-semibold text-sm text-foreground">{item.title}</h4>
-                            <p className="text-xs text-muted-foreground">by {item.consultant}</p>
-                          </div>
-                          <Badge variant="secondary">{item.category}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-accent">{item.points} points</span>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">Reject</Button>
-                            <Button size="sm">Approve</Button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="mb-3">
-                          <h4 className="font-semibold text-sm text-foreground">Tier Upgrade Request</h4>
-                          <p className="text-xs text-muted-foreground">{item.consultant}</p>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <TierBadge tier={item.currentTier as any} size="sm" />
-                            <span className="text-xs text-muted-foreground">→</span>
-                            <TierBadge tier={item.requestedTier as any} size="sm" />
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">Reject</Button>
-                            <Button size="sm">Approve</Button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
+                 {pendingApprovals.map((item) => (
+                   <div key={item.id} className="p-4 rounded-lg border bg-card">
+                     <div className="flex items-start justify-between mb-3">
+                       <div>
+                         <h4 className="font-semibold text-sm text-foreground">{item.title}</h4>
+                         <p className="text-xs text-muted-foreground">by {item.consultant}</p>
+                       </div>
+                       <Badge variant="secondary">{item.category}</Badge>
+                     </div>
+                     <div className="flex items-center justify-between">
+                       <span className="text-sm font-medium text-accent">{item.points} points</span>
+                       <div className="flex space-x-2">
+                         <Button size="sm" variant="outline">Reject</Button>
+                         <Button size="sm">Approve</Button>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
               </div>
             </CardContent>
           </Card>
