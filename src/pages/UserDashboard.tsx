@@ -390,6 +390,7 @@ export default function UserDashboard() {
         userStats={userStats}
         onTopUpSuccess={(amount, showSuccessModal) => {
           refreshData();
+          fetchConsultantData(); // Also refresh local dashboard data
           if (showSuccessModal) {
             setSuccessModalData({ type: "top-up", amount });
             setSuccessModalOpen(true);
