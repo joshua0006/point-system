@@ -181,6 +181,12 @@ const LeadGenCampaigns = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeFbCampaigns, setActiveFbCampaigns] = useState([]);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+  
+  // Admin editing states
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [editingTargetAudience, setEditingTargetAudience] = useState(null);
+  const [campaignTargets, setCampaignTargets] = useState(CAMPAIGN_TARGETS);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   useEffect(() => {
     fetchActiveCampaigns();
@@ -231,6 +237,71 @@ const LeadGenCampaigns = () => {
     toast({
       title: "Ad Updated",
       description: "Ad content has been successfully updated.",
+    });
+  };
+
+  // Admin editing functions
+  const updateTargetAudience = (targetId: string, updates: any) => {
+    setCampaignTargets(prev => prev.map(target => 
+      target.id === targetId ? { ...target, ...updates } : target
+    ));
+    toast({
+      title: "Audience Updated",
+      description: "Target audience has been successfully updated.",
+    });
+  };
+
+  const addNewAd = (targetId: string) => {
+    const newAd = {
+      id: `${targetId}-${Date.now()}`,
+      title: 'New Campaign',
+      description: 'Campaign description',
+      imageUrl: adGeneral1,
+      offer: 'Special offer',
+      adCopy: 'Ad copy content goes here...',
+      cta: 'Call to Action',
+      performance: { ctr: "0%", cpm: "$0", conversions: 0 }
+    };
+    
+    setAdMockups(prev => ({
+      ...prev,
+      [targetId]: [...(prev[targetId] || []), newAd]
+    }));
+    
+    toast({
+      title: "Ad Added",
+      description: "New ad campaign has been created.",
+    });
+  };
+
+  const deleteAd = (targetId: string, adId: string) => {
+    setAdMockups(prev => ({
+      ...prev,
+      [targetId]: prev[targetId].filter(ad => ad.id !== adId)
+    }));
+    
+    toast({
+      title: "Ad Deleted",
+      description: "Ad campaign has been removed.",
+    });
+  };
+
+  const addNewTargetAudience = () => {
+    const newTarget = {
+      id: `target-${Date.now()}`,
+      name: 'New Audience',
+      description: 'Description for new target audience',
+      icon: Users,
+      bgColor: 'bg-gray-500/10',
+      iconColor: 'text-gray-600'
+    };
+    
+    setCampaignTargets(prev => [...prev, newTarget]);
+    setAdMockups(prev => ({ ...prev, [newTarget.id]: [] }));
+    
+    toast({
+      title: "Audience Added",
+      description: "New target audience has been created.",
     });
   };
 
@@ -344,6 +415,192 @@ const LeadGenCampaigns = () => {
           </Button>
         </div>
       </DialogContent>
+    );
+  };
+
+  // Admin Target Audience Edit Dialog
+  const AdminTargetEditDialog = ({ target, onClose }: any) => {
+    const [name, setName] = useState(target.name);
+    const [description, setDescription] = useState(target.description);
+
+    const handleSave = () => {
+      updateTargetAudience(target.id, { name, description });
+      onClose();
+    };
+
+    return (
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Edit Target Audience
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Audience Name</Label>
+            <Input 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea 
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="mt-2"
+            />
+          </div>
+        </div>
+        
+        <div className="flex gap-2 pt-4">
+          <Button onClick={handleSave} className="flex-1">
+            Save Changes
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </DialogContent>
+    );
+  };
+
+  // Admin Panel Component
+  const AdminPanel = () => {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Admin Controls
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdminPanel(!showAdminPanel)}
+              className="flex items-center gap-2"
+            >
+              <Edit3 className="h-4 w-4" />
+              {showAdminPanel ? 'Hide' : 'Show'} Admin Panel
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={addNewTargetAudience}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Target Audience
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Reset to default data
+                setCampaignTargets(CAMPAIGN_TARGETS);
+                setAdMockups(AD_MOCKUPS);
+                toast({ title: "Reset Complete", description: "All data reset to defaults." });
+              }}
+              className="flex items-center gap-2"
+            >
+              <Target className="h-4 w-4" />
+              Reset to Defaults
+            </Button>
+          </div>
+          
+          {showAdminPanel && (
+            <div className="mt-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Target Audiences Management</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {campaignTargets.map((target) => (
+                    <Card key={target.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium">{target.name}</h4>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Edit3 className="h-3 w-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <AdminTargetEditDialog 
+                              target={target} 
+                              onClose={() => {}} 
+                            />
+                          </Dialog>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{target.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {adMockups[target.id]?.length || 0} ads
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => addNewAd(target.id)}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Ad
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Ad Campaigns Management</h3>
+                {campaignTargets.map((target) => (
+                  <div key={target.id} className="mb-6">
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <target.icon className={`h-4 w-4 ${target.iconColor}`} />
+                      {target.name} Ads
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {(adMockups[target.id] || []).map((ad) => (
+                        <Card key={ad.id} className="relative">
+                          <CardContent className="p-3">
+                            <div className="absolute top-2 right-2 flex gap-1">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                    <Edit3 className="h-3 w-3" />
+                                  </Button>
+                                </DialogTrigger>
+                                <AdminEditDialog 
+                                  ad={ad} 
+                                  targetId={target.id} 
+                                  onClose={() => {}} 
+                                />
+                              </Dialog>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-6 w-6 p-0 text-red-500"
+                                onClick={() => deleteAd(target.id, ad.id)}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                            <h5 className="font-medium text-sm mb-1 pr-12">{ad.title}</h5>
+                            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{ad.description}</p>
+                            <div className="text-xs text-green-600 font-medium">{ad.performance.ctr} CTR</div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     );
   };
 
@@ -676,6 +933,7 @@ const LeadGenCampaigns = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 pt-24 pb-12">
+        {isAdmin && <AdminPanel />}
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="flex justify-between items-center mb-6">
@@ -1064,7 +1322,7 @@ const LeadGenCampaigns = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {CAMPAIGN_TARGETS.filter(t => t.id !== 'mothers').map((target) => {
+                    {campaignTargets.filter(t => t.id !== 'mothers').map((target) => {
                       const IconComponent = target.icon;
                       return (
                         <Card key={target.id} className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
