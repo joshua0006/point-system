@@ -36,6 +36,12 @@ const CAMPAIGN_TARGETS = [
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
     campaignTypes: ['Financial Planning Basics', 'Investment Fundamentals', 'Savings Strategies', 'Insurance Basics'],
+    campaignTypeCPL: {
+      'Financial Planning Basics': 20,
+      'Investment Fundamentals': 25,
+      'Savings Strategies': 18,
+      'Insurance Basics': 22
+    } as Record<string, number>,
     budgetRange: {
       min: 200,
       max: 1500,
@@ -60,6 +66,13 @@ const CAMPAIGN_TARGETS = [
     bgColor: 'bg-green-500/10',
     iconColor: 'text-green-600',
     campaignTypes: ['Retirement Planning', 'CPF Optimization', 'Investment Portfolio', 'Estate Planning', 'Tax Planning'],
+    campaignTypeCPL: {
+      'Retirement Planning': 35,
+      'CPF Optimization': 30,
+      'Investment Portfolio': 40,
+      'Estate Planning': 45,
+      'Tax Planning': 32
+    } as Record<string, number>,
     budgetRange: {
       min: 300,
       max: 2500,
@@ -84,6 +97,12 @@ const CAMPAIGN_TARGETS = [
     bgColor: 'bg-purple-500/10',
     iconColor: 'text-purple-600',
     campaignTypes: ['Legacy Planning', 'Healthcare Protection', 'Estate Distribution', 'Long-term Care'],
+    campaignTypeCPL: {
+      'Legacy Planning': 55,
+      'Healthcare Protection': 50,
+      'Estate Distribution': 60,
+      'Long-term Care': 45
+    } as Record<string, number>,
     budgetRange: {
       min: 400,
       max: 3000,
@@ -342,6 +361,7 @@ const LeadGenCampaigns = () => {
       bgColor: 'bg-gray-500/10',
       iconColor: 'text-gray-600',
       campaignTypes: ['General Campaign'],
+      campaignTypeCPL: { 'General Campaign': 25 } as Record<string, number>,
       budgetRange: { min: 100, max: 1000, recommended: 300 },
       costPerLead: { min: 10, max: 40, average: 25 },
       expectedLeads: { lowBudget: '5-10 leads/month', medBudget: '10-20 leads/month', highBudget: '20-35 leads/month' }
@@ -359,7 +379,14 @@ const LeadGenCampaigns = () => {
   const addCampaignType = (targetId: string, campaignType: string) => {
     setCampaignTargets(prev => prev.map(target => 
       target.id === targetId 
-        ? { ...target, campaignTypes: [...(target.campaignTypes || []), campaignType] }
+        ? { 
+            ...target, 
+            campaignTypes: [...(target.campaignTypes || []), campaignType],
+            campaignTypeCPL: {
+              ...target.campaignTypeCPL,
+              [campaignType]: 25 // Default CPL
+            }
+          }
         : target
     ));
     
@@ -372,7 +399,13 @@ const LeadGenCampaigns = () => {
   const removeCampaignType = (targetId: string, campaignType: string) => {
     setCampaignTargets(prev => prev.map(target => 
       target.id === targetId 
-        ? { ...target, campaignTypes: target.campaignTypes?.filter(type => type !== campaignType) || [] }
+        ? { 
+            ...target, 
+            campaignTypes: target.campaignTypes?.filter(type => type !== campaignType) || [],
+            campaignTypeCPL: Object.fromEntries(
+              Object.entries(target.campaignTypeCPL).filter(([key]) => key !== campaignType)
+            )
+          }
         : target
     ));
     
@@ -405,6 +438,25 @@ const LeadGenCampaigns = () => {
     toast({
       title: "Cost Per Lead Updated", 
       description: "Lead cost estimates have been updated.",
+    });
+  };
+
+  const updateCampaignTypeCPL = (targetId: string, campaignType: string, cpl: number) => {
+    setCampaignTargets(prev => prev.map(target => 
+      target.id === targetId 
+        ? { 
+            ...target, 
+            campaignTypeCPL: {
+              ...target.campaignTypeCPL,
+              [campaignType]: cpl
+            }
+          }
+        : target
+    ));
+    
+    toast({
+      title: "Campaign CPL Updated",
+      description: `Updated cost per lead for "${campaignType}".`,
     });
   };
 
@@ -742,37 +794,105 @@ const LeadGenCampaigns = () => {
   const AdminTargetEditDialog = ({ target, onClose }: any) => {
     const [name, setName] = useState(target.name);
     const [description, setDescription] = useState(target.description);
+    const [newCampaignType, setNewCampaignType] = useState("");
 
     const handleSave = () => {
       updateTargetAudience(target.id, { name, description });
       onClose();
     };
 
+    const handleAddCampaignType = () => {
+      if (newCampaignType.trim()) {
+        addCampaignType(target.id, newCampaignType.trim());
+        setNewCampaignType("");
+      }
+    };
+
+    const handleCPLChange = (campaignType: string, value: string) => {
+      const cpl = parseFloat(value);
+      if (!isNaN(cpl) && cpl > 0) {
+        updateCampaignTypeCPL(target.id, campaignType, cpl);
+      }
+    };
+
     return (
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Edit Target Audience
+            Edit Target Audience: {target.name}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label>Audience Name</Label>
-            <Input 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-2"
-            />
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Audience Name</Label>
+              <Input 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="mt-2"
+              />
+            </div>
           </div>
+
+          {/* Campaign Types and CPL Management */}
           <div>
-            <Label>Description</Label>
-            <Textarea 
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="mt-2"
-            />
+            <Label className="text-base font-semibold">Campaign Types & Cost Per Lead</Label>
+            <div className="mt-3 space-y-3">
+              {target.campaignTypes?.map((campaignType: string) => (
+                <div key={campaignType} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <span className="font-medium">{campaignType}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm">CPL:</Label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">$</span>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={target.campaignTypeCPL?.[campaignType] || 25}
+                        onChange={(e) => handleCPLChange(campaignType, e.target.value)}
+                        className="w-20 h-8"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => removeCampaignType(target.id, campaignType)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              
+              {/* Add new campaign type */}
+              <div className="flex items-center gap-2 p-3 border border-dashed rounded-lg">
+                <Input
+                  placeholder="New campaign type name"
+                  value={newCampaignType}
+                  onChange={(e) => setNewCampaignType(e.target.value)}
+                  className="flex-1"
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddCampaignType()}
+                />
+                <Button onClick={handleAddCampaignType} size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
         
