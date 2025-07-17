@@ -33,7 +33,7 @@ export const SmartBudgetCalculator = ({
   userBalance 
 }: SmartBudgetCalculatorProps) => {
   const [budget, setBudget] = useState(500);
-  const [duration, setDuration] = useState(7);
+  const [duration, setDuration] = useState(30);
   const [projection, setProjection] = useState<BudgetProjection | null>(null);
 
   useEffect(() => {
@@ -96,20 +96,20 @@ export const SmartBudgetCalculator = ({
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium">Campaign Budget</label>
             <div className="text-sm text-muted-foreground">
-              {budget} points (${(budget * 0.1).toFixed(0)})
+              {budget} points (S${budget})
             </div>
           </div>
           <Slider
             value={[budget]}
             onValueChange={handleBudgetChange}
-            max={Math.min(userBalance, 2000)}
-            min={100}
-            step={50}
+            max={Math.min(userBalance, 3000)}
+            min={500}
+            step={100}
             className="w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>100p</span>
-            <span>{Math.min(userBalance, 2000)}p</span>
+            <span>S$500</span>
+            <span>S${Math.min(userBalance, 3000)}</span>
           </div>
           {budget > userBalance && (
             <div className="flex items-center gap-1 text-xs text-red-600">
@@ -148,9 +148,9 @@ export const SmartBudgetCalculator = ({
                 <div className="text-sm font-medium">Expected Leads</div>
               </div>
               <div className="text-2xl font-bold">{projection.expectedLeads}</div>
-              <div className="text-xs text-muted-foreground">
-                ${projection.costPerLead}/lead
-              </div>
+               <div className="text-xs text-muted-foreground">
+                 S${projection.costPerLead}/lead
+               </div>
             </div>
             
             <div className="text-center">
@@ -158,9 +158,9 @@ export const SmartBudgetCalculator = ({
                 <DollarSign className="h-4 w-4 text-green-500" />
                 <div className="text-sm font-medium">Est. Revenue</div>
               </div>
-              <div className="text-2xl font-bold">
-                ${projection.estimatedRevenue.toFixed(0)}
-              </div>
+               <div className="text-2xl font-bold">
+                 S${projection.estimatedRevenue.toFixed(0)}
+               </div>
               <div className="text-xs text-muted-foreground">
                 Based on benchmarks
               </div>
@@ -179,9 +179,9 @@ export const SmartBudgetCalculator = ({
                   {getRoiLabel(projection.roi)}
                 </Badge>
               </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                Daily spend: ${projection.dailySpend.toFixed(0)}
-              </div>
+               <div className="text-xs text-muted-foreground mt-1">
+                 Daily spend: S${projection.dailySpend.toFixed(0)}
+               </div>
             </div>
           </div>
         )}
