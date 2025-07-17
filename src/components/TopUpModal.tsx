@@ -47,7 +47,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     if (!amount || amount < 250) {
       toast({
         title: "Invalid Amount",
-        description: "Minimum amount is 250 points ($250)",
+        description: "Minimum amount is 250 points (S$250)",
         variant: "destructive",
       });
       return;
@@ -163,16 +163,16 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                         </div>
                         <div className="flex gap-2">
                           {quickPackages.map((pkg) => (
-                            <Button
-                              key={pkg.points}
-                              size="sm"
-                              variant="outline"
-                              className="text-xs px-2 py-1 h-7"
-                              onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
-                              disabled={loading || paymentMethodsLoading}
-                            >
-                              ${pkg.points}
-                            </Button>
+                             <Button
+                               key={pkg.points}
+                               size="sm"
+                               variant="outline"
+                               className="text-xs px-2 py-1 h-7"
+                               onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
+                               disabled={loading || paymentMethodsLoading}
+                             >
+                               S${pkg.points}
+                             </Button>
                           ))}
                         </div>
                       </div>
@@ -203,7 +203,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
           {/* Rate Information */}
           <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="text-lg font-semibold text-primary">1 Point = $1.00 USD</div>
+            <div className="text-lg font-semibold text-primary">1 Point = S$1.00 SGD</div>
             <p className="text-sm text-muted-foreground mt-1">
               Points are used to participate in lead generation campaigns
             </p>
@@ -253,7 +253,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                       {pkg.points.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground mb-3">POINTS</div>
-                    <div className="text-xl font-semibold">${pkg.price}</div>
+                    <div className="text-xl font-semibold">S${pkg.price}</div>
                     <div className="text-xs text-muted-foreground mt-2">
                       {paymentMethods.length > 0 ? 'Add to saved methods' : 'One-time purchase'}
                     </div>
@@ -270,7 +270,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               <div className="relative">
                 <Input
                   type="number"
-                  placeholder="Minimum 250 points ($250)"
+                  placeholder="Minimum 250 points (S$250)"
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
                   min={250}
@@ -312,7 +312,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Total Amount:</span>
                     <span className="font-bold text-xl text-primary">
-                      ${parseInt(customAmount).toLocaleString()}
+                      S${parseInt(customAmount).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
@@ -415,7 +415,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-foreground">Total cost:</span>
                   <span className="text-lg font-semibold text-foreground">
-                    ${confirmationData?.amount.toLocaleString()}
+                    S${confirmationData?.amount.toLocaleString()}
                   </span>
                 </div>
                 <Separator className="my-3" />
