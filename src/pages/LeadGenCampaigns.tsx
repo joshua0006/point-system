@@ -35,7 +35,22 @@ const CAMPAIGN_TARGETS = [
     icon: Shield,
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
-    campaignTypes: ['Financial Planning Basics', 'Investment Fundamentals', 'Savings Strategies', 'Insurance Basics']
+    campaignTypes: ['Financial Planning Basics', 'Investment Fundamentals', 'Savings Strategies', 'Insurance Basics'],
+    budgetRange: {
+      min: 200,
+      max: 1500,
+      recommended: 500
+    },
+    costPerLead: {
+      min: 15,
+      max: 35,
+      average: 25
+    },
+    expectedLeads: {
+      lowBudget: '8-15 leads/month',
+      medBudget: '20-35 leads/month', 
+      highBudget: '40-70 leads/month'
+    }
   },
   {
     id: 'public',
@@ -44,7 +59,22 @@ const CAMPAIGN_TARGETS = [
     icon: Users,
     bgColor: 'bg-green-500/10',
     iconColor: 'text-green-600',
-    campaignTypes: ['Retirement Planning', 'CPF Optimization', 'Investment Portfolio', 'Estate Planning', 'Tax Planning']
+    campaignTypes: ['Retirement Planning', 'CPF Optimization', 'Investment Portfolio', 'Estate Planning', 'Tax Planning'],
+    budgetRange: {
+      min: 300,
+      max: 2500,
+      recommended: 800
+    },
+    costPerLead: {
+      min: 20,
+      max: 50,
+      average: 35
+    },
+    expectedLeads: {
+      lowBudget: '6-12 leads/month',
+      medBudget: '15-25 leads/month',
+      highBudget: '30-55 leads/month'
+    }
   },
   {
     id: 'seniors',
@@ -53,7 +83,22 @@ const CAMPAIGN_TARGETS = [
     icon: User,
     bgColor: 'bg-purple-500/10',
     iconColor: 'text-purple-600',
-    campaignTypes: ['Legacy Planning', 'Healthcare Protection', 'Estate Distribution', 'Long-term Care']
+    campaignTypes: ['Legacy Planning', 'Healthcare Protection', 'Estate Distribution', 'Long-term Care'],
+    budgetRange: {
+      min: 400,
+      max: 3000,
+      recommended: 1000
+    },
+    costPerLead: {
+      min: 30,
+      max: 70,
+      average: 50
+    },
+    expectedLeads: {
+      lowBudget: '5-10 leads/month',
+      medBudget: '12-20 leads/month',
+      highBudget: '25-40 leads/month'
+    }
   }
 ];
 
@@ -296,7 +341,10 @@ const LeadGenCampaigns = () => {
       icon: Users,
       bgColor: 'bg-gray-500/10',
       iconColor: 'text-gray-600',
-      campaignTypes: ['General Campaign']
+      campaignTypes: ['General Campaign'],
+      budgetRange: { min: 100, max: 1000, recommended: 300 },
+      costPerLead: { min: 10, max: 40, average: 25 },
+      expectedLeads: { lowBudget: '5-10 leads/month', medBudget: '10-20 leads/month', highBudget: '20-35 leads/month' }
     };
     
     setCampaignTargets(prev => [...prev, newTarget]);
@@ -331,6 +379,32 @@ const LeadGenCampaigns = () => {
     toast({
       title: "Campaign Type Removed",
       description: `Removed "${campaignType}" from campaign types.`,
+    });
+  };
+
+  const updateBudgetRange = (targetId: string, budgetData: any) => {
+    setCampaignTargets(prev => prev.map(target => 
+      target.id === targetId 
+        ? { ...target, budgetRange: { ...target.budgetRange, ...budgetData } }
+        : target
+    ));
+    
+    toast({
+      title: "Budget Range Updated",
+      description: "Campaign budget parameters have been updated.",
+    });
+  };
+
+  const updateCostPerLead = (targetId: string, costData: any) => {
+    setCampaignTargets(prev => prev.map(target => 
+      target.id === targetId 
+        ? { ...target, costPerLead: { ...target.costPerLead, ...costData } }
+        : target
+    ));
+    
+    toast({
+      title: "Cost Per Lead Updated", 
+      description: "Lead cost estimates have been updated.",
     });
   };
 
@@ -450,6 +524,7 @@ const LeadGenCampaigns = () => {
   // Admin Campaign Management Panel
   const AdminCampaignManagement = () => {
     const [newCampaignType, setNewCampaignType] = useState("");
+    const [editingBudget, setEditingBudget] = useState<string | null>(null);
 
     return (
       <Card className="w-full">
@@ -460,10 +535,11 @@ const LeadGenCampaigns = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             {campaignTargets.map((target) => (
-              <div key={target.id} className={`p-6 rounded-lg border ${target.bgColor}`}>
-                <div className="flex items-center gap-3 mb-4">
+              <div key={target.id} className={`p-6 rounded-lg border ${target.bgColor} space-y-6`}>
+                {/* Header */}
+                <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${target.bgColor}`}>
                     <target.icon className={`h-6 w-6 ${target.iconColor}`} />
                   </div>
@@ -473,13 +549,118 @@ const LeadGenCampaigns = () => {
                   </div>
                 </div>
 
+                {/* Budget Information */}
+                <div className="bg-background/50 p-4 rounded-lg border">
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="font-medium">Monthly Budget Range</Label>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingBudget(editingBudget === target.id ? null : target.id)}
+                    >
+                      <Edit3 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  {editingBudget === target.id ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Min Budget</Label>
+                          <Input
+                            type="number"
+                            value={target.budgetRange?.min || 0}
+                            onChange={(e) => updateBudgetRange(target.id, { min: parseInt(e.target.value) })}
+                            className="text-xs"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Max Budget</Label>
+                          <Input
+                            type="number"
+                            value={target.budgetRange?.max || 0}
+                            onChange={(e) => updateBudgetRange(target.id, { max: parseInt(e.target.value) })}
+                            className="text-xs"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Recommended</Label>
+                        <Input
+                          type="number"
+                          value={target.budgetRange?.recommended || 0}
+                          onChange={(e) => updateBudgetRange(target.id, { recommended: parseInt(e.target.value) })}
+                          className="text-xs"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span>Min:</span>
+                        <span className="font-medium">${target.budgetRange?.min || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max:</span>
+                        <span className="font-medium">${target.budgetRange?.max || 0}</span>
+                      </div>
+                      <div className="flex justify-between text-primary">
+                        <span>Recommended:</span>
+                        <span className="font-bold">${target.budgetRange?.recommended || 0}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Cost Per Lead */}
+                <div className="bg-background/50 p-4 rounded-lg border">
+                  <Label className="font-medium">Cost Per Lead</Label>
+                  <div className="text-sm space-y-1 mt-2">
+                    <div className="flex justify-between">
+                      <span>Best Case:</span>
+                      <span className="font-medium text-green-600">${target.costPerLead?.min || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Average:</span>
+                      <span className="font-medium">${target.costPerLead?.average || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Worst Case:</span>
+                      <span className="font-medium text-red-600">${target.costPerLead?.max || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expected Leads Scale */}
+                <div className="bg-background/50 p-4 rounded-lg border">
+                  <Label className="font-medium">Expected Lead Volume</Label>
+                  <div className="text-xs space-y-2 mt-2">
+                    <div className="flex justify-between">
+                      <span>Low Budget:</span>
+                      <span className="font-medium">{target.expectedLeads?.lowBudget}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Med Budget:</span>
+                      <span className="font-medium">{target.expectedLeads?.medBudget}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>High Budget:</span>
+                      <span className="font-medium text-primary">{target.expectedLeads?.highBudget}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                    💡 <strong>Note:</strong> Lead volume scales directly with budget investment
+                  </div>
+                </div>
+
+                {/* Campaign Types */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="font-medium">Campaign Types</Label>
                     <Badge variant="secondary">{target.campaignTypes?.length || 0}</Badge>
                   </div>
 
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
                     {target.campaignTypes?.map((type, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-background rounded border">
                         <span className="text-sm">{type}</span>
@@ -529,14 +710,14 @@ const LeadGenCampaigns = () => {
                     }}
                   >
                     <Edit3 className="h-4 w-4 mr-2" />
-                    Edit Audience
+                    Edit Audience Details
                   </Button>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 pt-6 border-t">
+          <div className="mt-8 pt-6 border-t">
             <h4 className="font-medium mb-4">Quick Actions</h4>
             <div className="flex gap-3">
               <Button onClick={addNewTargetAudience} variant="outline">
