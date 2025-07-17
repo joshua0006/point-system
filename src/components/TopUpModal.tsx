@@ -10,8 +10,9 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
-import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus, ChevronDown } from "lucide-react";
+import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus, ChevronDown, Wallet, AlertCircle } from "lucide-react";
 import { AddPaymentMethodModal } from "@/components/settings/AddPaymentMethodModal";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -24,6 +25,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [loading, setLoading] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{
+    amount: number;
+    paymentMethod?: string;
+    isInstant: boolean;
+  } | null>(null);
   const { toast } = useToast();
   const { paymentMethods, loading: paymentMethodsLoading, instantCharge, fetchPaymentMethods } = usePaymentMethods();
 
@@ -34,18 +41,39 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     { points: 1000, price: 1000, popular: false },
   ];
 
-  const handleTopUp = async (pointsAmount?: number) => {
-    const amount = pointsAmount || parseInt(customAmount);
-    
+  const showConfirmationDialog = (amount: number, paymentMethodId?: string, isInstant = false) => {
     if (!amount || amount < 250) {
       toast({
         title: "Invalid Amount",
-        description: "Minimum top-up amount is 250 points ($250)",
+        description: "Minimum amount is 250 points ($250)",
         variant: "destructive",
       });
       return;
     }
 
+    setConfirmationData({
+      amount,
+      paymentMethod: paymentMethodId,
+      isInstant
+    });
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmedPayment = async () => {
+    if (!confirmationData) return;
+
+    const { amount, paymentMethod, isInstant } = confirmationData;
+    setShowConfirmDialog(false);
+    setConfirmationData(null);
+
+    if (isInstant && paymentMethod) {
+      await executeInstantCharge(paymentMethod, amount);
+    } else {
+      await executeTopUp(amount);
+    }
+  };
+
+  const executeTopUp = async (amount: number) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-points-checkout', {
@@ -71,37 +99,16 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     }
   };
 
-  const handleInstantCharge = async (paymentMethodId?: string, amount?: number) => {
-    const methodId = paymentMethodId || selectedPaymentMethod;
-    const chargeAmount = amount || parseInt(customAmount);
-    
-    if (!methodId) {
-      toast({
-        title: "No Payment Method Selected",
-        description: "Please select a payment method for instant charge",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!chargeAmount || chargeAmount < 250) {
-      toast({
-        title: "Invalid Amount",
-        description: "Minimum amount is 250 points ($250)",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const executeInstantCharge = async (paymentMethodId: string, amount: number) => {
     try {
-      await instantCharge(methodId, chargeAmount);
+      await instantCharge(paymentMethodId, amount);
       onClose();
       setCustomAmount("");
       setSelectedPaymentMethod("");
       // Refresh payment methods to update any changes
       fetchPaymentMethods();
       // Trigger dashboard data refresh and show success modal
-      onSuccess?.(chargeAmount, true);
+      onSuccess?.(amount, true);
     } catch (error) {
       // Error handling is done in the hook
     }
@@ -159,7 +166,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                               size="sm"
                               variant="outline"
                               className="text-xs px-2 py-1 h-7"
-                              onClick={() => handleInstantCharge(method.id, pkg.points)}
+                              onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
                               disabled={loading || paymentMethodsLoading}
                             >
                               ${pkg.points}
@@ -229,7 +236,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                       ? 'border-primary/50 bg-primary/5' 
                       : 'border-border hover:border-primary/30'
                   }`}
-                  onClick={() => handleTopUp(pkg.points)}
+                  onClick={() => showConfirmationDialog(pkg.points)}
                 >
                   {pkg.popular && (
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2">
@@ -320,7 +327,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 {/* Instant Charge Button */}
                 {selectedPaymentMethod && (
                   <Button 
-                    onClick={() => handleInstantCharge()}
+                    onClick={() => showConfirmationDialog(parseInt(customAmount), selectedPaymentMethod, true)}
                     disabled={loading || !customAmount || parseInt(customAmount) < 250}
                     className="flex-1 h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
                     size="lg"
@@ -341,7 +348,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
                 {/* Regular Checkout Button */}
                 <Button 
-                  onClick={() => handleTopUp()}
+                  onClick={() => showConfirmationDialog(parseInt(customAmount))}
                   disabled={loading || !customAmount || parseInt(customAmount) < 250}
                   className={`h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary ${
                     selectedPaymentMethod ? 'flex-1' : 'w-full'
@@ -386,6 +393,54 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           setShowAddMethodModal(false);
         }}
       />
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-primary" />
+              Confirm Points Purchase
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-foreground">Points to add:</span>
+                  <span className="text-xl font-bold text-primary">
+                    +{confirmationData?.amount.toLocaleString()} points
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">Total cost:</span>
+                  <span className="text-lg font-semibold text-foreground">
+                    ${confirmationData?.amount.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  These points will be {confirmationData?.isInstant ? 'instantly added' : 'added after payment completion'} to your wallet and can be used for lead generation campaigns.
+                </div>
+              </div>
+
+              {confirmationData?.isInstant && (
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded border border-green-200">
+                  <Zap className="h-4 w-4" />
+                  <span>Instant charge using saved payment method</span>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedPayment} className="bg-primary hover:bg-primary/90">
+              {confirmationData?.isInstant ? 'Charge Now' : 'Proceed to Checkout'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
