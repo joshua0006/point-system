@@ -13,7 +13,6 @@ import {
   Activity,
   UserCheck,
   Star,
-  ArrowUpDown,
   Settings
 } from "lucide-react";
 
@@ -85,16 +84,6 @@ export default function AdminDashboard() {
     },
   ];
 
-  const pendingApprovals = [
-    {
-      id: "1",
-      type: "service",
-      consultant: "David Kim",
-      title: "Advanced Financial Modeling",
-      category: "Finance",
-      points: 600
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -181,7 +170,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Top Consultants */}
           <Card>
             <CardHeader>
@@ -245,38 +234,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pending Approvals */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <ArrowUpDown className="w-5 h-5" />
-                <span>Pending Approvals</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                 {pendingApprovals.map((item) => (
-                   <div key={item.id} className="p-4 rounded-lg border bg-card">
-                     <div className="flex items-start justify-between mb-3">
-                       <div>
-                         <h4 className="font-semibold text-sm text-foreground">{item.title}</h4>
-                         <p className="text-xs text-muted-foreground">by {item.consultant}</p>
-                       </div>
-                       <Badge variant="secondary">{item.category}</Badge>
-                     </div>
-                     <div className="flex items-center justify-between">
-                       <span className="text-sm font-medium text-accent">{item.points} points</span>
-                       <div className="flex space-x-2">
-                         <Button size="sm" variant="outline">Reject</Button>
-                         <Button size="sm">Approve</Button>
-                       </div>
-                     </div>
-                   </div>
-                 ))}
               </div>
             </CardContent>
           </Card>
