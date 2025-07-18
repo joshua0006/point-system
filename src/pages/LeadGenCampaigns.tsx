@@ -951,7 +951,10 @@ const LeadGenCampaigns = () => {
                       className={`cursor-pointer transition-all duration-200 hover:scale-105 select-none h-full w-full ${
                         isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'
                       }`}
-                      onClick={() => setSelectedHours(hours)}
+                      onClick={() => {
+                        console.log('Cold calling box clicked, hours:', hours);
+                        setSelectedHours(hours);
+                      }}
                     >
                       <CardContent className="p-4 text-center h-full flex flex-col justify-center">
                         <div className="text-2xl font-bold text-primary mb-1 select-none">{hours}h</div>
