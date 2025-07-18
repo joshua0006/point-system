@@ -915,7 +915,10 @@ const LeadGenCampaigns = () => {
       </Dialog>
 
       {/* Cold Calling Hours Selection Modal */}
-      <Dialog open={showColdCallingModal} onOpenChange={setShowColdCallingModal}>
+      <Dialog open={showColdCallingModal} onOpenChange={(open) => {
+        console.log('Cold calling modal state changed:', open);
+        setShowColdCallingModal(open);
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
