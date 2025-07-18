@@ -209,6 +209,10 @@ const LeadGenCampaigns = () => {
   const [showTargetDialog, setShowTargetDialog] = useState(false);
   const [showAdDialog, setShowAdDialog] = useState(false);
   
+  // Cold calling state
+  const [showColdCallingModal, setShowColdCallingModal] = useState(false);
+  const [selectedHours, setSelectedHours] = useState<number | null>(null);
+  
   // Flow navigation functions
   const startFacebookCampaign = () => {
     setCampaignType('fb-ads');
@@ -235,6 +239,87 @@ const LeadGenCampaigns = () => {
     setSelectedCampaignType(null);
     setSelectedAds([]);
     setCurrentStep('campaign-type');
+  };
+
+  const confirmColdCallingCheckout = async () => {
+    if (!user || !selectedHours || !consultantName) return;
+
+    try {
+      const monthlyCost = selectedHours * 6; // 6 points per hour
+      
+      // Check sufficient balance
+      if (userBalance < monthlyCost) {
+        toast({
+          title: "Insufficient Balance",
+          description: "Please top up your wallet to proceed.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Deduct points and create transaction
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ points_balance: userBalance - monthlyCost })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      const { error: transactionError } = await supabase
+        .from('points_transactions')
+        .insert({
+          user_id: user.id,
+          amount: -monthlyCost,
+          type: 'purchase',
+          description: `Cold Calling Campaign - ${selectedHours} hours/month`
+        });
+
+      if (transactionError) throw transactionError;
+
+      // Create campaign entry
+      const { data: coldCallingCampaign, error: campaignError } = await supabase
+        .from('lead_gen_campaigns')
+        .upsert({
+          name: `Cold Calling Campaign - ${selectedHours} hours/month`,
+          description: `Professional cold calling service for ${selectedHours} hours per month`,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          total_budget: monthlyCost * 12,
+          status: 'active',
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (campaignError) throw campaignError;
+
+      const { error } = await supabase
+        .from('campaign_participants')
+        .insert({
+          campaign_id: coldCallingCampaign.id,
+          user_id: user.id,
+          consultant_name: consultantName,
+          budget_contribution: monthlyCost
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Cold Calling Campaign Started! 🎉",
+        description: `${monthlyCost} points deducted. Your ${selectedHours}-hour monthly campaign is now active.`,
+      });
+
+      setUserBalance(prev => prev - monthlyCost);
+      setShowColdCallingModal(false);
+      setSelectedHours(null);
+      setConsultantName("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
@@ -477,7 +562,11 @@ const LeadGenCampaigns = () => {
                           ✓ Higher conversion rates on qualified leads
                         </div>
                       </div>
-                      <Button className="w-full" size="lg">
+                      <Button 
+                        className="w-full" 
+                        size="lg"
+                        onClick={() => setShowColdCallingModal(true)}
+                      >
                         Start Cold Calling
                       </Button>
                     </CardContent>
@@ -820,6 +909,110 @@ const LeadGenCampaigns = () => {
             >
               <DollarSign className="h-4 w-4 mr-2" />
               Confirm & Start Campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cold Calling Hours Selection Modal */}
+      <Dialog open={showColdCallingModal} onOpenChange={setShowColdCallingModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-green-600" />
+              Choose Your Cold Calling Plan
+            </DialogTitle>
+            <DialogDescription>
+              Select how many hours of professional cold calling you want per month. Our trained telemarketers will generate leads for your financial advisory business.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="consultant-name-cold">Your Name</Label>
+              <Input
+                id="consultant-name-cold"
+                placeholder="Enter your full name"
+                value={consultantName}
+                onChange={(e) => setConsultantName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label className="text-base font-medium mb-4 block">Select Monthly Hours</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {[20, 40, 60, 80].map((hours) => {
+                  const monthlyCost = hours * 6;
+                  const isSelected = selectedHours === hours;
+                  return (
+                    <Card 
+                      key={hours}
+                      className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
+                        isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'
+                      }`}
+                      onClick={() => setSelectedHours(hours)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-primary mb-1">{hours}h</div>
+                        <div className="text-sm text-muted-foreground mb-2">per month</div>
+                        <div className="text-lg font-semibold text-foreground">{monthlyCost} points</div>
+                        <div className="text-xs text-muted-foreground">~{Math.round(hours * 2.5)} leads expected</div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedHours && (
+              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                <h4 className="font-semibold mb-2 text-green-800 dark:text-green-300">Plan Summary</h4>
+                <div className="space-y-1 text-sm text-green-700 dark:text-green-400">
+                  <p><strong>Hours per month:</strong> {selectedHours}</p>
+                  <p><strong>Monthly cost:</strong> {selectedHours * 6} points</p>
+                  <p><strong>Expected leads:</strong> ~{Math.round(selectedHours * 2.5)} per month</p>
+                  <p><strong>Cost per lead:</strong> ~{Math.round((selectedHours * 6) / (selectedHours * 2.5))} points</p>
+                </div>
+              </div>
+            )}
+
+            {selectedHours && userBalance < (selectedHours * 6) && (
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                <p className="text-red-700 dark:text-red-400 text-sm">
+                  <strong>Insufficient balance:</strong> You need {selectedHours * 6} points but only have {userBalance} points. 
+                  Please top up your wallet first.
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setTopUpModalOpen(true)}
+                  className="mt-2"
+                >
+                  Top Up Wallet
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowColdCallingModal(false);
+                setSelectedHours(null);
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmColdCallingCheckout}
+              className="flex-1"
+              disabled={!selectedHours || !consultantName || userBalance < (selectedHours * 6)}
+            >
+              <Phone className="h-4 w-4 mr-2" />
+              Start Cold Calling Campaign
             </Button>
           </DialogFooter>
         </DialogContent>
