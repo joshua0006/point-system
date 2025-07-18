@@ -77,6 +77,8 @@ export const AdminInterface = ({
 
   const [newCampaignType, setNewCampaignType] = useState('');
   const [newCampaignTypeCPL, setNewCampaignTypeCPL] = useState('');
+  const [editingCampaignType, setEditingCampaignType] = useState<string | null>(null);
+  const [editingCampaignTypeCPL, setEditingCampaignTypeCPL] = useState('');
 
   const openEditTarget = (target: any) => {
     setTargetForm({
@@ -242,6 +244,30 @@ export const AdminInterface = ({
         Object.entries(prev.campaignTypeCPL).filter(([key]) => key !== campaignType)
       )
     }));
+  };
+
+  const startEditCampaignType = (campaignType: string) => {
+    setEditingCampaignType(campaignType);
+    setEditingCampaignTypeCPL(targetForm.campaignTypeCPL[campaignType]?.toString() || '');
+  };
+
+  const saveEditCampaignType = () => {
+    if (editingCampaignType && editingCampaignTypeCPL) {
+      setTargetForm(prev => ({
+        ...prev,
+        campaignTypeCPL: {
+          ...prev.campaignTypeCPL,
+          [editingCampaignType]: parseInt(editingCampaignTypeCPL)
+        }
+      }));
+      setEditingCampaignType(null);
+      setEditingCampaignTypeCPL('');
+    }
+  };
+
+  const cancelEditCampaignType = () => {
+    setEditingCampaignType(null);
+    setEditingCampaignTypeCPL('');
   };
 
   return (
@@ -466,16 +492,55 @@ export const AdminInterface = ({
                     <div key={type} className="flex items-center justify-between p-2 bg-muted rounded">
                       <span className="text-sm">{type}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          CPL: ${targetForm.campaignTypeCPL[type]}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => removeCampaignType(type)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        {editingCampaignType === type ? (
+                          <>
+                            <Input
+                              value={editingCampaignTypeCPL}
+                              onChange={(e) => setEditingCampaignTypeCPL(e.target.value)}
+                              placeholder="CPL"
+                              type="number"
+                              className="w-20 h-6 text-xs"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={saveEditCampaignType}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Save className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEditCampaignType}
+                              className="h-6 w-6 p-0"
+                            >
+                              ×
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-muted-foreground">
+                              CPL: ${targetForm.campaignTypeCPL[type]}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => startEditCampaignType(type)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Edit3 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeCampaignType(type)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
