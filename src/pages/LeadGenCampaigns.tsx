@@ -213,6 +213,7 @@ const LeadGenCampaigns = () => {
   const [showColdCallingModal, setShowColdCallingModal] = useState(false);
   const [showColdCallingCheckoutModal, setShowColdCallingCheckoutModal] = useState(false);
   const [selectedHours, setSelectedHours] = useState<number | null>(null);
+  const [userCampaigns, setUserCampaigns] = useState([]);
   
   // Flow navigation functions
   const startFacebookCampaign = () => {
@@ -314,6 +315,7 @@ const LeadGenCampaigns = () => {
       setShowColdCallingModal(false);
       setSelectedHours(null);
       setConsultantName("");
+      fetchUserCampaigns(); // Refresh campaigns list
     } catch (error) {
       toast({
         title: "Error",
@@ -326,7 +328,36 @@ const LeadGenCampaigns = () => {
   useEffect(() => {
     fetchUserBalance();
     checkAdminStatus();
+    fetchUserCampaigns();
   }, [user]);
+
+  const fetchUserCampaigns = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('campaign_participants')
+        .select(`
+          *,
+          lead_gen_campaigns (
+            id,
+            name,
+            description,
+            status,
+            start_date,
+            end_date,
+            total_budget
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('joined_at', { ascending: false });
+      
+      if (error) throw error;
+      setUserCampaigns(data || []);
+    } catch (error) {
+      console.error('Error fetching user campaigns:', error);
+    }
+  };
 
   const checkAdminStatus = async () => {
     if (!user) return;
@@ -431,6 +462,7 @@ const LeadGenCampaigns = () => {
       setUserBalance(prev => prev - monthlySpend);
       resetFlow();
       setShowCheckoutModal(false);
+      fetchUserCampaigns(); // Refresh campaigns list
     } catch (error) {
       toast({
         title: "Error",
@@ -485,8 +517,67 @@ const LeadGenCampaigns = () => {
                     Top Up Wallet
                   </Button>
                 </div>
-              </div>
             </div>
+
+            {/* Active Campaigns Section */}
+            {!adminMode && userCampaigns.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold mb-6 text-center">Your Active Campaigns</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  {userCampaigns.map((participation) => {
+                    const campaign = participation.lead_gen_campaigns;
+                    const isColdCalling = campaign.name.includes('Cold Calling');
+                    const IconComponent = isColdCalling ? Phone : Target;
+                    const iconColor = isColdCalling ? 'text-green-600' : 'text-blue-600';
+                    const bgColor = isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10';
+                    
+                    return (
+                      <Card key={participation.id} className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className={`${bgColor} p-3 rounded-lg`}>
+                              <IconComponent className={`h-6 w-6 ${iconColor}`} />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg">{campaign.name}</h3>
+                              <p className="text-sm text-muted-foreground">{campaign.description}</p>
+                            </div>
+                            <Badge 
+                              variant={campaign.status === 'active' ? 'default' : 'secondary'}
+                              className="capitalize"
+                            >
+                              {campaign.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Budget Contributed:</span>
+                              <p className="font-semibold">{participation.budget_contribution.toLocaleString()} points</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Leads Received:</span>
+                              <p className="font-semibold">{participation.leads_received || 0}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Joined:</span>
+                              <p className="font-semibold">
+                                {new Date(participation.joined_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Revenue Generated:</span>
+                              <p className="font-semibold">${participation.revenue_generated || 0}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
             {/* Admin Mode Interface */}
             {adminMode ? (
