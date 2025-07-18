@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Navigation } from "@/components/Navigation";
 import { TrendingUp, DollarSign, Target, Users, Plus, User, Shield, Phone, ArrowLeft, Settings, Edit3 } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
+import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import adNsf1 from "@/assets/ad-nsf-1.jpg";
@@ -201,6 +202,13 @@ const LeadGenCampaigns = () => {
   const [campaignType, setCampaignType] = useState(null);
   const [selectedCampaignType, setSelectedCampaignType] = useState(null);
   
+  // Admin mode state
+  const [adminMode, setAdminMode] = useState(false);
+  const [editingTarget, setEditingTarget] = useState(null);
+  const [editingAd, setEditingAd] = useState(null);
+  const [showTargetDialog, setShowTargetDialog] = useState(false);
+  const [showAdDialog, setShowAdDialog] = useState(false);
+  
   // Flow navigation functions
   const startFacebookCampaign = () => {
     setCampaignType('fb-ads');
@@ -358,9 +366,13 @@ const LeadGenCampaigns = () => {
                 <div></div>
                 {isAdmin && (
                   <div className="flex items-center gap-4">
-                    <Button variant="secondary" size="sm">
+                    <Button 
+                      variant={adminMode ? "default" : "secondary"} 
+                      size="sm"
+                      onClick={() => setAdminMode(!adminMode)}
+                    >
                       <Settings className="h-4 w-4 mr-2" />
-                      Campaign Management
+                      {adminMode ? "Exit Admin Mode" : "Admin Mode"}
                     </Button>
                   </div>
                 )}
@@ -390,8 +402,26 @@ const LeadGenCampaigns = () => {
               </div>
             </div>
 
-            {/* New Streamlined Flow */}
-            {currentStep === 'campaign-type' && (
+            {/* Admin Mode Interface */}
+            {adminMode ? (
+              <AdminInterface 
+                campaignTargets={campaignTargets}
+                setCampaignTargets={setCampaignTargets}
+                adMockups={adMockups}
+                setAdMockups={setAdMockups}
+                editingTarget={editingTarget}
+                setEditingTarget={setEditingTarget}
+                editingAd={editingAd}
+                setEditingAd={setEditingAd}
+                showTargetDialog={showTargetDialog}
+                setShowTargetDialog={setShowTargetDialog}
+                showAdDialog={showAdDialog}
+                setShowAdDialog={setShowAdDialog}
+              />
+            ) : (
+              <>
+                {/* New Streamlined Flow */}
+                {currentStep === 'campaign-type' && (
               <div className="space-y-8">
                 <div className="text-center">
                   <h2 className="text-3xl font-bold mb-4">Choose Your Campaign Type</h2>
@@ -709,6 +739,8 @@ const LeadGenCampaigns = () => {
                   </Card>
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
         </div>
