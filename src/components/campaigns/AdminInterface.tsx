@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit3, Trash2, Upload, Save, Shield, Users, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUpload } from "@/components/forms/ImageUpload";
 
 const ICON_OPTIONS = [
   { name: 'Shield', component: Shield, value: 'Shield' },
@@ -611,12 +612,10 @@ export const AdminInterface = ({
               </div>
 
               <div>
-                <Label htmlFor="ad-image">Image URL</Label>
-                <Input
-                  id="ad-image"
+                <Label>Ad Image</Label>
+                <ImageUpload
                   value={adForm.imageUrl}
-                  onChange={(e) => setAdForm(prev => ({ ...prev, imageUrl: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
+                  onChange={(url) => setAdForm(prev => ({ ...prev, imageUrl: url }))}
                 />
               </div>
 
