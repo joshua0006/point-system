@@ -948,12 +948,12 @@ const LeadGenCampaigns = () => {
                   return (
                     <Card 
                       key={hours}
-                      className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
+                      className={`cursor-pointer transition-all duration-200 hover:scale-105 select-none ${
                         isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'
                       }`}
                       onClick={() => setSelectedHours(hours)}
                     >
-                      <CardContent className="p-4 text-center">
+                      <CardContent className="p-4 text-center pointer-events-none">
                         <div className="text-2xl font-bold text-primary mb-1">{hours}h</div>
                         <div className="text-sm text-muted-foreground mb-2">per month</div>
                         <div className="text-lg font-semibold text-foreground">{monthlyCost} points</div>
