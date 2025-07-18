@@ -953,11 +953,11 @@ const LeadGenCampaigns = () => {
                       }`}
                       onClick={() => setSelectedHours(hours)}
                     >
-                      <CardContent className="p-4 text-center pointer-events-none">
-                        <div className="text-2xl font-bold text-primary mb-1">{hours}h</div>
-                        <div className="text-sm text-muted-foreground mb-2">per month</div>
-                        <div className="text-lg font-semibold text-foreground">{monthlyCost} points</div>
-                        <div className="text-xs text-muted-foreground">~{Math.round(hours * 2.5)} leads expected</div>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-primary mb-1 select-none">{hours}h</div>
+                        <div className="text-sm text-muted-foreground mb-2 select-none">per month</div>
+                        <div className="text-lg font-semibold text-foreground select-none">{monthlyCost} points</div>
+                        <div className="text-xs text-muted-foreground select-none">~{Math.round(hours * 2.5)} leads expected</div>
                       </CardContent>
                     </Card>
                   );
