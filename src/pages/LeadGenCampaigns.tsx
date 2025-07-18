@@ -542,8 +542,11 @@ const LeadGenCampaigns = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                    <CardContent className="p-8 text-center" onClick={() => setCampaignType('cold-calling')}>
+                  <Card 
+                    className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                    onClick={() => setShowColdCallingModal(true)}
+                  >
+                    <CardContent className="p-8 text-center">
                       <div className="bg-green-500/10 p-6 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
                         <Phone className="h-12 w-12 text-green-600" />
                       </div>
@@ -563,9 +566,8 @@ const LeadGenCampaigns = () => {
                         </div>
                       </div>
                       <Button 
-                        className="w-full" 
+                        className="w-full pointer-events-none" 
                         size="lg"
-                        onClick={() => setShowColdCallingModal(true)}
                       >
                         Start Cold Calling
                       </Button>
