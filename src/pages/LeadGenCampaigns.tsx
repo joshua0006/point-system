@@ -211,6 +211,7 @@ const LeadGenCampaigns = () => {
   
   // Cold calling state
   const [showColdCallingModal, setShowColdCallingModal] = useState(false);
+  const [showColdCallingCheckoutModal, setShowColdCallingCheckoutModal] = useState(false);
   const [selectedHours, setSelectedHours] = useState<number | null>(null);
   
   // Flow navigation functions
@@ -1015,12 +1016,101 @@ const LeadGenCampaigns = () => {
               Cancel
             </Button>
             <Button 
-              onClick={confirmColdCallingCheckout}
+              onClick={() => {
+                setShowColdCallingModal(false);
+                setShowColdCallingCheckoutModal(true);
+              }}
               className="flex-1"
               disabled={!selectedHours || !consultantName || userBalance < (selectedHours * 6)}
             >
               <Phone className="h-4 w-4 mr-2" />
-              Start Cold Calling Campaign
+              Continue to Checkout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cold Calling Checkout Confirmation Modal */}
+      <Dialog open={showColdCallingCheckoutModal} onOpenChange={setShowColdCallingCheckoutModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-green-600" />
+              Confirm Your Cold Calling Campaign
+            </DialogTitle>
+            <DialogDescription>
+              Review your campaign details and confirm the payment
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-muted/20 p-4 rounded-lg space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Campaign Type:</span>
+                <span className="text-sm">Cold Calling</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Monthly Hours:</span>
+                <span className="text-sm">{selectedHours}h</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Expected Leads:</span>
+                <span className="text-sm">~{selectedHours ? Math.round(selectedHours * 2.5) : 0} per month</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Monthly Cost:</span>
+                <span className="text-sm font-bold">{selectedHours ? selectedHours * 6 : 0} points</span>
+              </div>
+            </div>
+
+            <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Current Balance:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setTopUpModalOpen(true)}
+                    className="text-xs"
+                  >
+                    Top Up
+                  </Button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Amount to Deduct:</span>
+                <span className="text-sm font-bold text-red-600">-{selectedHours ? selectedHours * 6 : 0} points</span>
+              </div>
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Balance After:</span>
+                  <span className="text-lg font-bold text-primary">
+                    {(userBalance - (selectedHours ? selectedHours * 6 : 0)).toLocaleString()} points
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowColdCallingCheckoutModal(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                confirmColdCallingCheckout();
+                setShowColdCallingCheckoutModal(false);
+              }}
+              className="flex-1"
+              disabled={!selectedHours || userBalance < (selectedHours * 6)}
+            >
+              <Phone className="h-4 w-4 mr-2" />
+              Confirm & Start Campaign
             </Button>
           </DialogFooter>
         </DialogContent>
