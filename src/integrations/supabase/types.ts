@@ -184,39 +184,51 @@ export type Database = {
       }
       campaign_participants: {
         Row: {
+          billing_cycle_day: number | null
+          billing_status: string | null
           budget_contribution: number
           campaign_id: string
           consultant_name: string
           conversions: number | null
           id: string
           joined_at: string
+          last_billed_date: string | null
           leads_received: number | null
+          next_billing_date: string | null
           notes: string | null
           revenue_generated: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          billing_cycle_day?: number | null
+          billing_status?: string | null
           budget_contribution: number
           campaign_id: string
           consultant_name: string
           conversions?: number | null
           id?: string
           joined_at?: string
+          last_billed_date?: string | null
           leads_received?: number | null
+          next_billing_date?: string | null
           notes?: string | null
           revenue_generated?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          billing_cycle_day?: number | null
+          billing_status?: string | null
           budget_contribution?: number
           campaign_id?: string
           consultant_name?: string
           conversions?: number | null
           id?: string
           joined_at?: string
+          last_billed_date?: string | null
           leads_received?: number | null
+          next_billing_date?: string | null
           notes?: string | null
           revenue_generated?: number | null
           updated_at?: string
@@ -464,6 +476,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      monthly_billing_transactions: {
+        Row: {
+          amount: number
+          billing_date: string
+          campaign_id: string
+          created_at: string
+          id: string
+          participant_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_date: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+          participant_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_date?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          participant_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_billing_transactions_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_participants"
+            referencedColumns: ["id"]
           },
         ]
       }

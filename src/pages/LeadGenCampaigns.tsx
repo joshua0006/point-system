@@ -325,6 +325,66 @@ const LeadGenCampaigns = () => {
     }
   };
 
+  const handleStopCampaign = async (participantId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({ 
+          billing_status: 'stopped',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', participantId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign Stopped",
+        description: "Monthly billing has been stopped for this campaign.",
+      });
+
+      // Refresh campaigns
+      fetchUserCampaigns();
+    } catch (error) {
+      console.error('Error stopping campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to stop campaign. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReactivateCampaign = async (participantId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({ 
+          billing_status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', participantId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign Reactivated", 
+        description: "Monthly billing has been reactivated for this campaign.",
+      });
+
+      // Refresh campaigns
+      fetchUserCampaigns();
+    } catch (error) {
+      console.error('Error reactivating campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reactivate campaign. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchUserBalance();
     checkAdminStatus();
@@ -550,24 +610,68 @@ const LeadGenCampaigns = () => {
                             </Badge>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">Budget Contributed:</span>
-                              <p className="font-semibold">{participation.budget_contribution.toLocaleString()} points</p>
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex gap-2">
+                                <Badge variant="outline" className="bg-blue-50">
+                                  ${participation.budget_contribution} Monthly
+                                </Badge>
+                                <Badge variant={
+                                  participation.billing_status === 'active' ? 'default' : 
+                                  participation.billing_status === 'stopped' ? 'destructive' : 'secondary'
+                                }>
+                                  {participation.billing_status === 'active' ? 'Active Billing' :
+                                   participation.billing_status === 'stopped' ? 'Billing Stopped' :
+                                   participation.billing_status === 'paused_insufficient_funds' ? 'Paused - Low Balance' :
+                                   'Unknown Status'}
+                                </Badge>
+                              </div>
+                              <div className="flex space-x-2">
+                                {participation.billing_status === 'active' ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStopCampaign(participation.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    Stop Billing
+                                  </Button>
+                                ) : participation.billing_status === 'stopped' ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleReactivateCampaign(participation.id)}
+                                    className="text-green-600 hover:text-green-700"
+                                  >
+                                    Reactivate
+                                  </Button>
+                                ) : null}
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-muted-foreground">Leads Received:</span>
-                              <p className="font-semibold">{participation.leads_received || 0}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Joined:</span>
-                              <p className="font-semibold">
-                                {new Date(participation.joined_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Revenue Generated:</span>
-                              <p className="font-semibold">${participation.revenue_generated || 0}</p>
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Leads Received:</span>
+                                <p className="font-semibold">{participation.leads_received || 0}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Revenue Generated:</span>
+                                <p className="font-semibold">${participation.revenue_generated || 0}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Joined:</span>
+                                <p className="font-semibold">
+                                  {new Date(participation.joined_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                              {participation.next_billing_date && (
+                                <div>
+                                  <span className="text-muted-foreground">Next Billing:</span>
+                                  <p className="font-semibold">
+                                    {new Date(participation.next_billing_date).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </CardContent>
