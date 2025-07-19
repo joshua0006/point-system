@@ -27,13 +27,6 @@ const CAMPAIGN_TARGETS = [
     icon: Shield,
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
-    campaignTypes: ['Financial Planning Basics', 'Investment Fundamentals', 'Savings Strategies', 'Insurance Basics'],
-    campaignTypeCPL: {
-      'Financial Planning Basics': 20,
-      'Investment Fundamentals': 25,
-      'Savings Strategies': 18,
-      'Insurance Basics': 22
-    } as Record<string, number>,
     budgetRange: {
       min: 200,
       max: 1500,
@@ -57,14 +50,6 @@ const CAMPAIGN_TARGETS = [
     icon: Users,
     bgColor: 'bg-green-500/10',
     iconColor: 'text-green-600',
-    campaignTypes: ['Retirement Planning', 'CPF Optimization', 'Investment Portfolio', 'Estate Planning', 'Tax Planning'],
-    campaignTypeCPL: {
-      'Retirement Planning': 35,
-      'CPF Optimization': 30,
-      'Investment Portfolio': 40,
-      'Estate Planning': 45,
-      'Tax Planning': 32
-    } as Record<string, number>,
     budgetRange: {
       min: 300,
       max: 2500,
@@ -88,13 +73,6 @@ const CAMPAIGN_TARGETS = [
     icon: User,
     bgColor: 'bg-purple-500/10',
     iconColor: 'text-purple-600',
-    campaignTypes: ['Legacy Planning', 'Healthcare Protection', 'Estate Distribution', 'Long-term Care'],
-    campaignTypeCPL: {
-      'Legacy Planning': 55,
-      'Healthcare Protection': 50,
-      'Estate Distribution': 60,
-      'Long-term Care': 45
-    } as Record<string, number>,
     budgetRange: {
       min: 400,
       max: 3000,
@@ -198,9 +176,7 @@ const LeadGenCampaigns = () => {
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   
   // New flow state management
-  const [currentStep, setCurrentStep] = useState('campaign-type');
-  const [campaignType, setCampaignType] = useState(null);
-  const [selectedCampaignType, setSelectedCampaignType] = useState(null);
+  const [currentStep, setCurrentStep] = useState('audience-selection');
   
   // Admin mode state
   const [adminMode, setAdminMode] = useState(false);
@@ -216,18 +192,8 @@ const LeadGenCampaigns = () => {
   const [userCampaigns, setUserCampaigns] = useState([]);
   
   // Flow navigation functions
-  const startFacebookCampaign = () => {
-    setCampaignType('fb-ads');
-    setCurrentStep('audience-selection');
-  };
-  
   const selectAudience = (target) => {
     setSelectedTarget(target);
-    setCurrentStep('campaign-type-selection');
-  };
-  
-  const selectCampaignTypeFromAudience = (campaignType) => {
-    setSelectedCampaignType(campaignType);
     setCurrentStep('ad-selection');
   };
   
@@ -236,11 +202,9 @@ const LeadGenCampaigns = () => {
   };
   
   const resetFlow = () => {
-    setCampaignType(null);
     setSelectedTarget(null);
-    setSelectedCampaignType(null);
     setSelectedAds([]);
-    setCurrentStep('campaign-type');
+    setCurrentStep('audience-selection');
   };
 
   const confirmColdCallingCheckout = async () => {
@@ -481,7 +445,7 @@ const LeadGenCampaigns = () => {
           user_id: user.id,
           amount: -monthlySpend,
           type: 'purchase',
-          description: `Facebook Ads Campaign - ${selectedTarget.name} - ${selectedCampaignType}`
+          description: `Facebook Ads Campaign - ${selectedTarget.name}`
         });
 
       if (transactionError) throw transactionError;
@@ -490,8 +454,8 @@ const LeadGenCampaigns = () => {
       const { data: fbCampaign, error: campaignError } = await supabase
         .from('lead_gen_campaigns')
         .upsert({
-          name: `Facebook Ads - ${selectedTarget.name} - ${selectedCampaignType}`,
-          description: `Facebook advertising campaign targeting ${selectedTarget.name} for ${selectedCampaignType}`,
+          name: `Facebook Ads - ${selectedTarget.name}`,
+          description: `Facebook advertising campaign targeting ${selectedTarget.name}`,
           start_date: new Date().toISOString(),
           end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           total_budget: monthlySpend * 12,
@@ -713,7 +677,7 @@ const LeadGenCampaigns = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                   <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                    <CardContent className="p-8 text-center" onClick={startFacebookCampaign}>
+                    <CardContent className="p-8 text-center" onClick={() => setCurrentStep('audience-selection')}>
                       <div className="bg-blue-500/10 p-6 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
                         <Target className="h-12 w-12 text-blue-600" />
                       </div>
@@ -814,7 +778,7 @@ const LeadGenCampaigns = () => {
                           <div className="space-y-2 text-xs text-muted-foreground">
                             <div>Budget: ${target.budgetRange.min} - ${target.budgetRange.max}/month</div>
                             <div>Cost per lead: ${target.costPerLead.min} - ${target.costPerLead.max}</div>
-                            <div>{target.campaignTypes.length} campaign types available</div>
+                            <div>{target.expectedLeads.lowBudget} - {target.expectedLeads.highBudget}</div>
                           </div>
                           <Button className="w-full mt-4" size="sm">
                             Select {target.name}
@@ -827,8 +791,9 @@ const LeadGenCampaigns = () => {
               </div>
             )}
 
-            {/* Campaign Type Selection Step */}
-            {currentStep === 'campaign-type-selection' && selectedTarget && (
+
+            {/* Ad Selection Step */}
+            {currentStep === 'ad-selection' && selectedTarget && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4 mb-6">
                   <Button 
@@ -837,63 +802,14 @@ const LeadGenCampaigns = () => {
                     className="flex items-center gap-2"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Audiences
+                    Back to Audience Selection
                   </Button>
-                  <h2 className="text-2xl font-bold">Choose Campaign Type for {selectedTarget.name}</h2>
+                  <h2 className="text-2xl font-bold">Choose Your Ads - {selectedTarget.name}</h2>
                 </div>
                 
                 <div className="text-center mb-8">
                   <p className="text-lg text-muted-foreground">
-                    Select the specific campaign focus that aligns with your expertise and target market.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                  {selectedTarget.campaignTypes.map((campaignType) => {
-                    const cpl = selectedTarget.campaignTypeCPL[campaignType] || 25;
-                    return (
-                      <Card 
-                        key={campaignType} 
-                        className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-                        onClick={() => selectCampaignTypeFromAudience(campaignType)}
-                      >
-                        <CardContent className="p-6">
-                          <div className="text-center">
-                            <h3 className="text-lg font-bold mb-3">{campaignType}</h3>
-                            <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                              <div>Cost per lead: <span className="font-semibold text-primary">${cpl}</span></div>
-                              <div>Target audience: <span className="font-semibold">{selectedTarget.name}</span></div>
-                            </div>
-                            <Button className="w-full" size="sm">
-                              Select {campaignType}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Ad Selection Step */}
-            {currentStep === 'ad-selection' && selectedTarget && selectedCampaignType && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCurrentStep('campaign-type-selection')}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Campaign Types
-                  </Button>
-                  <h2 className="text-2xl font-bold">Choose Your Ads - {selectedCampaignType}</h2>
-                </div>
-                
-                <div className="text-center mb-8">
-                  <p className="text-lg text-muted-foreground">
-                    Select from our proven ad templates for {selectedTarget.name} targeting {selectedCampaignType}.
+                    Select from our proven ad templates for {selectedTarget.name}.
                   </p>
                 </div>
 
@@ -946,7 +862,7 @@ const LeadGenCampaigns = () => {
             )}
 
             {/* Budget and Launch Step */}
-            {currentStep === 'budget-launch' && selectedTarget && selectedCampaignType && (
+            {currentStep === 'budget-launch' && selectedTarget && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4 mb-6">
                   <Button 
@@ -968,9 +884,8 @@ const LeadGenCampaigns = () => {
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div><strong>Target Audience:</strong> {selectedTarget.name}</div>
-                        <div><strong>Campaign Type:</strong> {selectedCampaignType}</div>
                         <div><strong>Ads Selected:</strong> {selectedAds.length}</div>
-                        <div><strong>Expected CPL:</strong> ${selectedTarget.campaignTypeCPL[selectedCampaignType] || 25}</div>
+                        <div><strong>Expected CPL:</strong> ${selectedTarget.costPerLead.average}</div>
                       </div>
                       
                       <div className="space-y-4 mt-6">
@@ -1007,8 +922,8 @@ const LeadGenCampaigns = () => {
                             <h4 className="font-semibold mb-2">Expected Results</h4>
                             <div className="space-y-1 text-sm">
                               <p><strong>Monthly Budget:</strong> {budgetAmount} points</p>
-                              <p><strong>Expected Leads:</strong> ~{Math.round(parseInt(budgetAmount) / (selectedTarget.campaignTypeCPL[selectedCampaignType] || 25))} leads/month</p>
-                              <p><strong>Cost Per Lead:</strong> ${selectedTarget.campaignTypeCPL[selectedCampaignType] || 25}</p>
+                              <p><strong>Expected Leads:</strong> ~{Math.round(parseInt(budgetAmount) / selectedTarget.costPerLead.average)} leads/month</p>
+                              <p><strong>Cost Per Lead:</strong> ${selectedTarget.costPerLead.average}</p>
                             </div>
                           </div>
                         )}
