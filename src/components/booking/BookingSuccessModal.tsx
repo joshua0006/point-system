@@ -7,6 +7,7 @@ import { BookingProgressTracker } from "./BookingProgressTracker";
 import { MockSessionInterface } from "./MockSessionInterface";
 import { Check, Calendar, MessageCircle, Star, Clock, User, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useSendMessage } from '@/hooks/useMessages';
 
 interface BookingDetails {
   id: string;
@@ -22,12 +23,14 @@ interface BookingSuccessModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bookingDetails: BookingDetails | null;
+  conversationId?: string;
   onMessageConsultant?: () => void;
 }
 
-export function BookingSuccessModal({ open, onOpenChange, bookingDetails, onMessageConsultant }: BookingSuccessModalProps) {
+export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conversationId, onMessageConsultant }: BookingSuccessModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showSessionDemo, setShowSessionDemo] = useState(false);
+  const sendMessage = useSendMessage();
 
   useEffect(() => {
     if (open && bookingDetails) {
@@ -191,37 +194,48 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, onMess
                 
                 <Button 
                   variant="outline" 
-                  className="w-full text-left justify-start h-auto p-3"
+                  className="w-full text-left justify-start h-auto p-3 whitespace-normal"
                   onClick={() => {
+                    const message = "Hi! I'm excited about our upcoming session. What should I prepare beforehand?";
+                    if (conversationId) {
+                      sendMessage.mutate({ conversationId, messageText: message });
+                    }
                     onMessageConsultant?.();
-                    // You could pass the message content here if needed
                   }}
                 >
-                  <div className="text-sm">
+                  <div className="text-sm leading-relaxed break-words">
                     "Hi! I'm excited about our upcoming session. What should I prepare beforehand?"
                   </div>
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full text-left justify-start h-auto p-3"
+                  className="w-full text-left justify-start h-auto p-3 whitespace-normal"
                   onClick={() => {
+                    const message = "Hello! Could you share some background materials or resources before we meet?";
+                    if (conversationId) {
+                      sendMessage.mutate({ conversationId, messageText: message });
+                    }
                     onMessageConsultant?.();
                   }}
                 >
-                  <div className="text-sm">
+                  <div className="text-sm leading-relaxed break-words">
                     "Hello! Could you share some background materials or resources before we meet?"
                   </div>
                 </Button>
                 
                 <Button 
                   variant="outline" 
-                  className="w-full text-left justify-start h-auto p-3"
+                  className="w-full text-left justify-start h-auto p-3 whitespace-normal"
                   onClick={() => {
+                    const message = "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?";
+                    if (conversationId) {
+                      sendMessage.mutate({ conversationId, messageText: message });
+                    }
                     onMessageConsultant?.();
                   }}
                 >
-                  <div className="text-sm">
+                  <div className="text-sm leading-relaxed break-words">
                     "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?"
                   </div>
                 </Button>
