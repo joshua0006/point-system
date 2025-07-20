@@ -241,20 +241,17 @@ export default function ConsultantDashboard() {
       const totalBuyerSessions = buyerBookings?.length || 0;
       const completedSellerSessions = sellerBookings?.filter(b => b.status === 'completed').length || 0;
 
-      setConsultantProfile({
+      setConsultantProfile(prev => ({
+        ...prev, // Preserve existing values (like review stats)
         name: profile?.full_name || "John Consultant",
         tier: (consultant?.tier as "bronze" | "silver" | "gold" | "platinum") || "bronze",
         totalEarnings: earnings,
         totalSpendings: spendings,
         totalSessions: totalSellerSessions,
         totalPurchases: totalBuyerSessions,
-        sellerRating: 0, // Will be updated by useEffect when review stats load
-        buyerRating: 0, // Will be updated by useEffect when review stats load
-        totalSellerReviews: 0, // Will be updated by useEffect when review stats load
-        totalBuyerReviews: 0, // Will be updated by useEffect when review stats load
         conversionRate: totalSellerSessions > 0 ? Math.round((completedSellerSessions / totalSellerSessions) * 100) : 0,
         pointsBalance: profile?.points_balance || 0
-      });
+      }));
 
       // Transform transactions for BalanceDetailsModal
       const transformedTransactions = (transactions || []).map(t => ({
