@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBuyerRatingStats } from "@/hooks/useBuyerReviews";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
 import { DashboardModals } from "@/components/dashboard/DashboardModals";
@@ -61,6 +62,9 @@ export default function UserDashboard() {
   const [demoBookedServices, setDemoBookedServices] = useState<any[]>([]);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
+
+  // Get real review data
+  const { data: buyerReviewStats } = useBuyerRatingStats(user?.id || '');
 
   useEffect(() => {
     console.log('User state in dashboard:', user);

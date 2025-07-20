@@ -18,6 +18,8 @@ import { ServicesBookedModal } from "@/components/dashboard/ServicesBookedModal"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
+import { useConsultantRatingStats } from "@/hooks/useConsultantReviews";
+import { useBuyerRatingStats } from "@/hooks/useBuyerReviews";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -97,6 +99,10 @@ export default function ConsultantDashboard() {
   const createService = useCreateService();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
+  
+  // Get real review data
+  const { data: consultantReviewStats } = useConsultantRatingStats(user?.id || '');
+  const { data: buyerReviewStats } = useBuyerRatingStats(user?.id || '');
 
   useEffect(() => {
     if (user) {
@@ -130,6 +136,18 @@ export default function ConsultantDashboard() {
           (payload) => {
             console.log('Booking updated:', payload);
             fetchConsultantData(); // Refresh data for any booking change
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'reviews'
+          },
+          (payload) => {
+            console.log('Review updated:', payload);
+            fetchConsultantData(); // Refresh data for any review change
           }
         )
         .subscribe();
@@ -217,10 +235,10 @@ export default function ConsultantDashboard() {
         totalSpendings: spendings,
         totalSessions: totalSellerSessions,
         totalPurchases: totalBuyerSessions,
-        sellerRating: 4.3, // Keep demo for now
-        buyerRating: 4.1, // Keep demo for now
-        totalSellerReviews: 6, // Keep demo for now
-        totalBuyerReviews: 2, // Keep demo for now
+        sellerRating: consultantReviewStats?.averageRating || 0,
+        buyerRating: buyerReviewStats?.averageRating || 0,
+        totalSellerReviews: consultantReviewStats?.totalReviews || 0,
+        totalBuyerReviews: buyerReviewStats?.totalReviews || 0,
         conversionRate: totalSellerSessions > 0 ? Math.round((completedSellerSessions / totalSellerSessions) * 100) : 0,
         pointsBalance: profile?.points_balance || 0
       });
