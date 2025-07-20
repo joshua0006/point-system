@@ -107,7 +107,7 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                   )}
                 </div>
                 
-                <div className="flex-1 min-w-0 flex justify-between">
+                <div className="flex-1 min-w-0 flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
@@ -150,8 +150,8 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                     </div>
                   </div>
                   
-                  <div className="flex items-start justify-between ml-4 min-w-0 max-w-[40%]">
-                    <div className="flex flex-col items-end">
+                  <div className="flex items-start justify-between ml-4 min-w-0 max-w-[50%] flex-shrink-0">
+                    <div className="flex flex-col items-end w-full">
                       {conversation.last_message_at && (
                         <span className="text-xs text-muted-foreground mb-2">
                           {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
@@ -159,8 +159,8 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                       )}
                       
                       {lastMessage && (
-                        <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full overflow-hidden">
-                          <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} overflow-hidden whitespace-nowrap text-ellipsis`}>
+                        <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border max-w-full">
+                          <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} truncate max-w-full`}>
                             {messageText}
                           </p>
                         </div>
