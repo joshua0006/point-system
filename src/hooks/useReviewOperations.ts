@@ -40,6 +40,10 @@ export function useCreateReview() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['consultant-reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-reviews'] });
+      queryClient.invalidateQueries({ queryKey: ['consultant-rating-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['buyer-rating-stats'] });
       toast({
         title: "Review Submitted",
         description: "Your review has been submitted successfully.",

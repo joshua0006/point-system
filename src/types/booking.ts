@@ -26,6 +26,7 @@ export interface BookingWithDetails {
     full_name: string | null;
     email: string;
     avatar_url: string | null;
+    user_id: string;
   };
 }
 

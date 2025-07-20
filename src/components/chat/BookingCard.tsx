@@ -19,7 +19,7 @@ export function BookingCard({ booking }: BookingCardProps) {
 
   const isConsultant = user?.id !== booking.user_id;
   const otherParty = isConsultant ? booking.buyer_profile : booking.consultant_profile;
-  const otherPartyId = isConsultant ? booking.user_id : booking.consultant_id;
+  const otherPartyId = isConsultant ? booking.user_id : booking.consultant_profile.user_id;
 
   const getStatusColor = (status: string) => {
     switch (status) {

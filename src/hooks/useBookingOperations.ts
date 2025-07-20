@@ -59,13 +59,13 @@ export function useBookingForConversation(conversationId: string) {
           .select('full_name, email, avatar_url')
           .eq('user_id', consultant.user_id)
           .single();
-        consultantProfile = profile;
+        consultantProfile = profile ? { ...profile, user_id: consultant.user_id } : null;
       }
 
       return {
         ...booking,
         buyer_profile: buyerProfile || { full_name: null, email: '', avatar_url: null },
-        consultant_profile: consultantProfile || { full_name: null, email: '', avatar_url: null }
+        consultant_profile: consultantProfile || { full_name: null, email: '', avatar_url: null, user_id: '' }
       } as BookingWithDetails;
     },
     enabled: !!user && !!conversationId,
