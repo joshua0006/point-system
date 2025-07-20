@@ -434,6 +434,117 @@ export type Database = {
         }
         Relationships: []
       }
+      memories: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_favorite: boolean | null
+          location: string | null
+          rating: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean | null
+          location?: string | null
+          rating?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean | null
+          location?: string | null
+          rating?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      memory_album_items: {
+        Row: {
+          added_at: string
+          album_id: string
+          id: string
+          memory_id: string
+        }
+        Insert: {
+          added_at?: string
+          album_id: string
+          id?: string
+          memory_id: string
+        }
+        Update: {
+          added_at?: string
+          album_id?: string
+          id?: string
+          memory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_album_items_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "memory_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memory_album_items_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memory_albums: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           conversation_id: string
@@ -740,6 +851,108 @@ export type Database = {
           },
         ]
       }
+      singapore_events: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          end_date: string | null
+          event_date: string
+          external_url: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          location: string | null
+          price_info: string | null
+          source: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          external_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          location?: string | null
+          price_info?: string | null
+          source: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          external_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          location?: string | null
+          price_info?: string | null
+          source?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          category: Database["public"]["Enums"]["wishlist_category"]
+          completed_date: string | null
+          created_at: string
+          description: string | null
+          estimated_cost: number | null
+          id: string
+          location: string | null
+          notes: string | null
+          priority: Database["public"]["Enums"]["priority_level"]
+          status: Database["public"]["Enums"]["item_status"]
+          target_date: string | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["wishlist_category"]
+          completed_date?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          status?: Database["public"]["Enums"]["item_status"]
+          target_date?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["wishlist_category"]
+          completed_date?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          status?: Database["public"]["Enums"]["item_status"]
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -754,7 +967,9 @@ export type Database = {
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"
       consultant_tier: "bronze" | "silver" | "gold" | "platinum"
       conversation_status: "active" | "archived" | "closed"
+      item_status: "pending" | "completed" | "in_progress"
       message_type: "text" | "system_notification"
+      priority_level: "low" | "medium" | "high"
       transaction_type:
         | "purchase"
         | "refund"
@@ -762,6 +977,11 @@ export type Database = {
         | "initial_credit"
         | "earning"
       user_role: "user" | "consultant" | "admin"
+      wishlist_category:
+        | "things_to_do"
+        | "places_to_go"
+        | "food_to_try"
+        | "things_to_buy"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -892,7 +1112,9 @@ export const Constants = {
       booking_status: ["pending", "confirmed", "completed", "cancelled"],
       consultant_tier: ["bronze", "silver", "gold", "platinum"],
       conversation_status: ["active", "archived", "closed"],
+      item_status: ["pending", "completed", "in_progress"],
       message_type: ["text", "system_notification"],
+      priority_level: ["low", "medium", "high"],
       transaction_type: [
         "purchase",
         "refund",
@@ -901,6 +1123,12 @@ export const Constants = {
         "earning",
       ],
       user_role: ["user", "consultant", "admin"],
+      wishlist_category: [
+        "things_to_do",
+        "places_to_go",
+        "food_to_try",
+        "things_to_buy",
+      ],
     },
   },
 } as const
