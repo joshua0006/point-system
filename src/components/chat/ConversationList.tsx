@@ -95,8 +95,9 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
             onClick={() => onSelectConversation(conversation)}
           >
             <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="relative">
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <div className="relative flex-shrink-0">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {participantName.charAt(0).toUpperCase()}
@@ -107,9 +108,10 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                   )}
                 </div>
                 
-                <div className="flex-1 min-w-0 flex justify-between items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                {/* Main content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
                         {participantName}
                       </h4>
@@ -119,80 +121,78 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                         <Badge 
                           variant={conversation.booking.status === 'confirmed' ? 'default' : 
                                    conversation.booking.status === 'pending' ? 'secondary' : 'outline'}
-                          className="text-xs"
+                          className="text-xs flex-shrink-0"
                         >
                           {conversation.booking.status}
                         </Badge>
                       )}
                       
                       {conversation.manual_archive && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
                           <Archive className="w-3 h-3 mr-1" />
                           Archived
                         </Badge>
                       )}
                       
                       {hasUnreadMessages && (
-                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">
+                        <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5 flex-shrink-0">
                           {conversation.unread_count}
                         </Badge>
                       )}
                     </div>
                     
-                    <p className="text-sm text-muted-foreground truncate mb-1">
-                      {conversation.service?.title}
-                    </p>
-                    
-                    <div className="flex items-center">
-                      <Badge variant="secondary" className="text-xs">
-                        {isSellerChat ? 'Customer' : 'Service Provider'}
-                      </Badge>
-                    </div>
+                    {/* Timestamp */}
+                    {conversation.last_message_at && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                      </span>
+                    )}
                   </div>
                   
-                  <div className="flex items-start gap-2">
-                    <div className="flex flex-col items-end justify-start min-w-0 max-w-[50%] flex-shrink-0">
-                      {conversation.last_message_at && (
-                        <span className="text-xs text-muted-foreground mb-2">
-                          {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
-                        </span>
-                      )}
-                      
-                      {lastMessage && (
-                        <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border max-w-full">
-                          <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} truncate max-w-full`}>
-                            {messageText}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                      
-                    {/* Archive/Unarchive dropdown */}
-                    <DropdownMenu 
-                      open={selectedDropdown === conversation.id} 
-                      onOpenChange={(open) => setSelectedDropdown(open ? conversation.id : null)}
-                    >
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-background border shadow-md">
-                        {conversation.manual_archive ? (
-                          <DropdownMenuItem onClick={(e) => handleUnarchive(conversation.id, e)}>
-                            <ArchiveX className="w-4 h-4 mr-2" />
-                            Unarchive
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem onClick={(e) => handleArchive(conversation.id, e)}>
-                            <Archive className="w-4 h-4 mr-2" />
-                            Archive
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <p className="text-sm text-muted-foreground truncate mb-2">
+                    {conversation.service?.title}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
+                      {isSellerChat ? 'Customer' : 'Service Provider'}
+                    </Badge>
+                    
+                    {/* Message preview */}
+                    {lastMessage && (
+                      <div className="bg-muted/30 rounded-lg px-3 py-1 border max-w-[60%] ml-2">
+                        <p className={`text-xs ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} truncate`}>
+                          {messageText}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
+                
+                {/* Archive/Unarchive dropdown */}
+                <DropdownMenu 
+                  open={selectedDropdown === conversation.id} 
+                  onOpenChange={(open) => setSelectedDropdown(open ? conversation.id : null)}
+                >
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border shadow-md">
+                    {conversation.manual_archive ? (
+                      <DropdownMenuItem onClick={(e) => handleUnarchive(conversation.id, e)}>
+                        <ArchiveX className="w-4 h-4 mr-2" />
+                        Unarchive
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={(e) => handleArchive(conversation.id, e)}>
+                        <Archive className="w-4 h-4 mr-2" />
+                        Archive
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
