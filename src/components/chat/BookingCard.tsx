@@ -7,6 +7,7 @@ import { Calendar, Clock, DollarSign, Star, User } from 'lucide-react';
 import { BookingWithDetails, useUpdateBookingStatus } from '@/hooks/useBookingManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReviewModal } from './ReviewModal';
+import { useBookingReviews } from '@/hooks/useReviewOperations';
 
 interface BookingCardProps {
   booking: BookingWithDetails;
@@ -16,10 +17,14 @@ export function BookingCard({ booking }: BookingCardProps) {
   const { user } = useAuth();
   const updateStatus = useUpdateBookingStatus();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const { data: existingReviews = [] } = useBookingReviews(booking.id);
 
   const isConsultant = user?.id !== booking.user_id;
   const otherParty = isConsultant ? booking.buyer_profile : booking.consultant_profile;
   const otherPartyId = isConsultant ? booking.user_id : booking.consultant_profile.user_id;
+
+  // Check if current user has already submitted a review for this booking
+  const hasUserReviewed = existingReviews.some(review => review.reviewer_id === user?.id);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -87,7 +92,7 @@ export function BookingCard({ booking }: BookingCardProps) {
       );
     }
 
-    if (booking.status === 'completed') {
+    if (booking.status === 'completed' && !hasUserReviewed) {
       return (
         <Button 
           size="sm" 
