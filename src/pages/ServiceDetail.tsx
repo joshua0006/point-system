@@ -33,7 +33,7 @@ const ServiceDetail = () => {
   console.log('ServiceDetail - serviceId from params:', serviceId);
   console.log('ServiceDetail - services data:', services);
   
-  const bookServiceMutation = useBookService((booking, serviceData) => {
+  const bookServiceMutation = useBookService(async (booking, serviceData) => {
     showSuccessModal({
       id: booking.id,
       serviceTitle: serviceData.title,
@@ -43,6 +43,19 @@ const ServiceDetail = () => {
       duration: serviceData.duration_minutes,
       description: serviceData.description,
     });
+
+    // Create conversation if it doesn't exist for the booking success modal
+    if (!existingConversation && service?.consultant?.user_id) {
+      try {
+        const newConversation = await createConversationMutation.mutateAsync({
+          serviceId: service.id,
+          sellerUserId: service.consultant.user_id,
+        });
+        setSelectedConversation(newConversation);
+      } catch (error) {
+        console.error('Failed to create conversation for booking:', error);
+      }
+    }
   });
 
   const service = services.find(s => s.id === serviceId);
@@ -440,6 +453,7 @@ const ServiceDetail = () => {
         open={isSuccessModalOpen}
         onOpenChange={hideSuccessModal}
         bookingDetails={bookingDetails}
+        conversationId={existingConversation?.id || selectedConversation?.id}
         onMessageConsultant={handleMessageClick}
       />
     </div>
