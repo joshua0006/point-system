@@ -160,7 +160,7 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                       
                       {lastMessage && (
                         <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full overflow-hidden">
-                          <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} overflow-hidden whitespace-nowrap`}>
+                          <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} overflow-hidden whitespace-nowrap text-ellipsis`}>
                             {messageText}
                           </p>
                         </div>
