@@ -178,34 +178,53 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, onMess
               </CardContent>
             </Card>
 
-            {/* Mock Communication */}
+            {/* Recommended Messages */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
-                  Recent Messages
+                  Recommended Messages
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="p-3 rounded-lg bg-muted/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <span className="text-sm font-medium">{bookingDetails.consultantName}</span>
-                    <span className="text-xs text-muted-foreground">2 min ago</span>
-                  </div>
-                  <p className="text-sm">Hi! I've received your booking request and I'm excited to work with you. I'll send you a calendar invite shortly with all the details.</p>
-                </div>
+                <p className="text-xs text-muted-foreground mb-3">Click to send a message and start the conversation:</p>
                 
-                {currentStep >= 2 && (
-                  <div className="p-3 rounded-lg bg-muted/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 bg-success rounded-full"></div>
-                      <span className="text-sm font-medium">{bookingDetails.consultantName}</span>
-                      <span className="text-xs text-muted-foreground">Just now</span>
-                    </div>
-                    <p className="text-sm">Calendar invite sent! Please let me know if you'd like to reschedule or have any questions before our session.</p>
+                <Button 
+                  variant="outline" 
+                  className="w-full text-left justify-start h-auto p-3"
+                  onClick={() => {
+                    onMessageConsultant?.();
+                    // You could pass the message content here if needed
+                  }}
+                >
+                  <div className="text-sm">
+                    "Hi! I'm excited about our upcoming session. What should I prepare beforehand?"
                   </div>
-                )}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full text-left justify-start h-auto p-3"
+                  onClick={() => {
+                    onMessageConsultant?.();
+                  }}
+                >
+                  <div className="text-sm">
+                    "Hello! Could you share some background materials or resources before we meet?"
+                  </div>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full text-left justify-start h-auto p-3"
+                  onClick={() => {
+                    onMessageConsultant?.();
+                  }}
+                >
+                  <div className="text-sm">
+                    "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?"
+                  </div>
+                </Button>
               </CardContent>
             </Card>
 
