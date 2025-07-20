@@ -158,6 +158,19 @@ export default function ConsultantDashboard() {
     }
   }, [user]);
 
+  // Update review stats when they change
+  useEffect(() => {
+    if (consultantReviewStats || buyerReviewStats) {
+      setConsultantProfile(prev => ({
+        ...prev,
+        sellerRating: consultantReviewStats?.averageRating || 0,
+        buyerRating: buyerReviewStats?.averageRating || 0,
+        totalSellerReviews: consultantReviewStats?.totalReviews || 0,
+        totalBuyerReviews: buyerReviewStats?.totalReviews || 0,
+      }));
+    }
+  }, [consultantReviewStats, buyerReviewStats]);
+
   const fetchConsultantData = async () => {
     if (!user) return;
 
@@ -235,10 +248,10 @@ export default function ConsultantDashboard() {
         totalSpendings: spendings,
         totalSessions: totalSellerSessions,
         totalPurchases: totalBuyerSessions,
-        sellerRating: consultantReviewStats?.averageRating || 0,
-        buyerRating: buyerReviewStats?.averageRating || 0,
-        totalSellerReviews: consultantReviewStats?.totalReviews || 0,
-        totalBuyerReviews: buyerReviewStats?.totalReviews || 0,
+        sellerRating: 0, // Will be updated by useEffect when review stats load
+        buyerRating: 0, // Will be updated by useEffect when review stats load
+        totalSellerReviews: 0, // Will be updated by useEffect when review stats load
+        totalBuyerReviews: 0, // Will be updated by useEffect when review stats load
         conversionRate: totalSellerSessions > 0 ? Math.round((completedSellerSessions / totalSellerSessions) * 100) : 0,
         pointsBalance: profile?.points_balance || 0
       });
