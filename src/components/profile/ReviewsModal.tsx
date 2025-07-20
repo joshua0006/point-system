@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,43 +5,33 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Star, Calendar, User } from "lucide-react";
 import { useState } from "react";
-
-interface Review {
-  id: string;
-  buyerName: string;
-  service: string;
-  rating: number;
-  comment: string;
-  date: string;
-}
+import { useConsultantReviews } from '@/hooks/useConsultantReviews';
 
 interface ReviewsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  consultantName: string;
+  consultantUserId: string;
 }
 
 type StarFilter = "all" | "5" | "4" | "3" | "2" | "1";
 
-export function ReviewsModal({ open, onOpenChange, consultantName }: ReviewsModalProps) {
+export function ReviewsModal({ open, onOpenChange, consultantUserId }: ReviewsModalProps) {
   const [starFilter, setStarFilter] = useState<StarFilter>("all");
-
-  // No mock data - reviews should come from real database
-  const allReviews: Review[] = [];
+  const { data: reviews = [] } = useConsultantReviews(consultantUserId);
 
   const filteredReviews = starFilter === "all" 
-    ? allReviews 
-    : allReviews.filter(review => review.rating === parseInt(starFilter));
+    ? reviews 
+    : reviews.filter(review => review.rating === parseInt(starFilter));
 
-  const averageRating = allReviews.length > 0 
-    ? allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length 
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
     : 0;
   
   const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
     rating,
-    count: allReviews.filter(review => review.rating === rating).length,
-    percentage: allReviews.length > 0 
-      ? (allReviews.filter(review => review.rating === rating).length / allReviews.length) * 100 
+    count: reviews.filter(review => review.rating === rating).length,
+    percentage: reviews.length > 0 
+      ? (reviews.filter(review => review.rating === rating).length / reviews.length) * 100 
       : 0
   }));
 
@@ -52,12 +41,12 @@ export function ReviewsModal({ open, onOpenChange, consultantName }: ReviewsModa
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Star className="w-5 h-5 text-yellow-500" />
-            <span>Reviews for {consultantName}</span>
+            <span>Reviews</span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {allReviews.length > 0 ? (
+          {reviews.length > 0 ? (
             <>
               {/* Review Summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -76,7 +65,7 @@ export function ReviewsModal({ open, onOpenChange, consultantName }: ReviewsModa
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Based on {allReviews.length} reviews
+                        Based on {reviews.length} reviews
                       </p>
                     </div>
                   </CardContent>
@@ -107,7 +96,7 @@ export function ReviewsModal({ open, onOpenChange, consultantName }: ReviewsModa
               {/* Filter Controls */}
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">
-                  {starFilter === "all" ? `All Reviews (${allReviews.length})` : `${starFilter} Star Reviews (${filteredReviews.length})`}
+                  {starFilter === "all" ? `All Reviews (${reviews.length})` : `${starFilter} Star Reviews (${filteredReviews.length})`}
                 </h3>
                 <Select value={starFilter} onValueChange={(value: StarFilter) => setStarFilter(value)}>
                   <SelectTrigger className="w-[180px]">
@@ -138,8 +127,8 @@ export function ReviewsModal({ open, onOpenChange, consultantName }: ReviewsModa
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <h5 className="font-medium text-sm">{review.buyerName}</h5>
-                              <p className="text-xs text-muted-foreground">{review.service}</p>
+                              <h5 className="font-medium text-sm">{review.reviewer_profile?.full_name || 'Anonymous'}</h5>
+                              <p className="text-xs text-muted-foreground">Service Review</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-1">
@@ -152,12 +141,12 @@ export function ReviewsModal({ open, onOpenChange, consultantName }: ReviewsModa
                           </div>
                         </div>
                         
-                        <p className="text-sm text-foreground mb-3">{review.comment}</p>
+                        <p className="text-sm text-foreground mb-3">{review.comment || 'No comment provided'}</p>
                         
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <Calendar className="w-3 h-3" />
-                            <span>{new Date(review.date).toLocaleDateString()}</span>
+                            <span>{new Date(review.created_at).toLocaleDateString()}</span>
                           </div>
                           <Badge variant="outline" className="text-xs">
                             Verified Purchase

@@ -174,8 +174,7 @@ export default function ConsultantProfile() {
 
           <ConsultantReviewsSection
             onReviewsClick={() => setReviewsModalOpen(true)}
-            rating={4.8}
-            reviewCount={15}
+            consultantUserId={userId!}
           />
         </div>
       </div>
@@ -190,7 +189,7 @@ export default function ConsultantProfile() {
       <ReviewsModal
         open={reviewsModalOpen}
         onOpenChange={setReviewsModalOpen}
-        consultantName={profile?.full_name || 'Professional Consultant'}
+        consultantUserId={userId!}
       />
 
       <AllServicesModal

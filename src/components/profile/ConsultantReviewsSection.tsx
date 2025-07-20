@@ -1,18 +1,21 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
+import { useConsultantRatingStats } from '@/hooks/useConsultantReviews';
 
 interface ConsultantReviewsSectionProps {
   onReviewsClick: () => void;
-  rating?: number;
-  reviewCount?: number;
+  consultantUserId: string;
 }
 
 export function ConsultantReviewsSection({ 
   onReviewsClick, 
-  rating = 4.8, 
-  reviewCount = 15 
+  consultantUserId 
 }: ConsultantReviewsSectionProps) {
+  const { data: ratingStats } = useConsultantRatingStats(consultantUserId);
+  
+  const rating = ratingStats?.averageRating || 0;
+  const reviewCount = ratingStats?.totalReviews || 0;
   return (
     <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={onReviewsClick}>
       <CardHeader>
