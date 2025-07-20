@@ -5,60 +5,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Star, MessageCircle, Calendar, User } from "lucide-react";
 import { useState } from "react";
+import { useConsultantReviews } from '@/hooks/useConsultantReviews';
+import { useBuyerReviews } from '@/hooks/useBuyerReviews';
 
 interface BuyerReviewsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  reviews: Array<{
-    id: string;
-    buyer: string;
-    service: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }>;
+  userId: string;
+  mode: "seller" | "buyer";
 }
 
 type SortFilter = "newest" | "oldest" | "rating_high" | "rating_low";
 
-export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsModalProps) {
+export function BuyerReviewsModal({ open, onOpenChange, userId, mode }: BuyerReviewsModalProps) {
   const [sortFilter, setSortFilter] = useState<SortFilter>("newest");
+  
+  // Get real review data based on mode
+  const { data: consultantReviews = [] } = useConsultantReviews(userId);
+  const { data: buyerReviews = [] } = useBuyerReviews(userId);
+  
+  const reviews = mode === "seller" ? consultantReviews : buyerReviews;
 
-  // Extended mock reviews for better demonstration
-  const allReviews = [
-    ...reviews,
-    {
-      id: "4",
-      buyer: "Sarah L.",
-      service: "Growth Strategy Workshop",
-      rating: 5,
-      comment: "Outstanding workshop! The strategies provided were immediately actionable and helped us increase our revenue by 40% in just 3 months.",
-      date: "2024-01-17"
-    },
-    {
-      id: "5",
-      buyer: "Mike R.",
-      service: "Strategic Business Consultation",
-      rating: 4,
-      comment: "Very professional and knowledgeable. Provided great insights into market positioning.",
-      date: "2024-01-16"
-    },
-    {
-      id: "6",
-      buyer: "Emily K.",
-      service: "Growth Strategy Workshop",
-      rating: 5,
-      comment: "Exceeded expectations! The personalized approach and follow-up materials were incredibly valuable.",
-      date: "2024-01-15"
-    }
-  ];
-
-  const sortedReviews = [...allReviews].sort((a, b) => {
+  
+  const sortedReviews = [...reviews].sort((a, b) => {
     switch (sortFilter) {
       case "newest":
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       case "oldest":
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       case "rating_high":
         return b.rating - a.rating;
       case "rating_low":
@@ -68,11 +42,11 @@ export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsM
     }
   });
 
-  const averageRating = allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length;
+  const averageRating = reviews.length > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
   const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
     rating,
-    count: allReviews.filter(review => review.rating === rating).length,
-    percentage: (allReviews.filter(review => review.rating === rating).length / allReviews.length) * 100
+    count: reviews.filter(review => review.rating === rating).length,
+    percentage: reviews.length > 0 ? (reviews.filter(review => review.rating === rating).length / reviews.length) * 100 : 0
   }));
 
   return (
@@ -81,7 +55,7 @@ export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsM
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <MessageCircle className="w-5 h-5" />
-            <span>Buyer Reviews</span>
+            <span>{mode === "seller" ? "Consultant" : "Buyer"} Reviews</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -107,7 +81,7 @@ export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsM
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Based on {allReviews.length} reviews
+                  Based on {reviews.length} reviews
                 </p>
               </CardContent>
             </Card>
@@ -140,7 +114,7 @@ export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsM
 
           {/* Filter Controls */}
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">All Reviews ({allReviews.length})</h3>
+            <h3 className="text-lg font-semibold">All Reviews ({reviews.length})</h3>
             <Select value={sortFilter} onValueChange={(value: SortFilter) => setSortFilter(value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
@@ -165,8 +139,8 @@ export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsM
                         <User className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <h5 className="font-medium text-sm">{review.buyer}</h5>
-                        <p className="text-xs text-muted-foreground">{review.service}</p>
+                        <h5 className="font-medium text-sm">{review.reviewer_profile?.full_name || 'Anonymous'}</h5>
+                        <p className="text-xs text-muted-foreground">Service Review</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -181,12 +155,12 @@ export function BuyerReviewsModal({ open, onOpenChange, reviews }: BuyerReviewsM
                     </div>
                   </div>
                   
-                  <p className="text-sm text-foreground mb-3">{review.comment}</p>
+                  <p className="text-sm text-foreground mb-3">{review.comment || 'No comment provided'}</p>
                   
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-3 h-3" />
-                      <span>{new Date(review.date).toLocaleDateString()}</span>
+                      <span>{new Date(review.created_at).toLocaleDateString()}</span>
                     </div>
                     <Badge variant="outline" className="text-xs">
                       Verified Purchase

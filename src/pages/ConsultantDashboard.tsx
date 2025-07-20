@@ -785,7 +785,8 @@ export default function ConsultantDashboard() {
         <BuyerReviewsModal
           open={reviewsModalOpen}
           onOpenChange={setReviewsModalOpen}
-          reviews={[]}
+          userId={user?.id || ''}
+          mode={reviewsMode}
         />
 
         <UpcomingSessionsModal

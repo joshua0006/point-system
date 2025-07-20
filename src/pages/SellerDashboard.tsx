@@ -13,6 +13,7 @@ import { PerformanceModal } from "@/components/dashboard/PerformanceModal";
 import { BuyerReviewsModal } from "@/components/dashboard/BuyerReviewsModal";
 import { UpcomingSessionsModal } from "@/components/dashboard/UpcomingSessionsModal";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { useConsultantServices, useCreateService, useUpdateService, useDeleteService } from "@/hooks/useServiceOperations";
 import { 
   Plus, 
@@ -33,6 +34,7 @@ type TimeScale = "lifetime" | "yearly" | "monthly";
 
 export default function SellerDashboard() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showAddService, setShowAddService] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   
@@ -534,7 +536,8 @@ export default function SellerDashboard() {
         <BuyerReviewsModal
           open={reviewsModalOpen}
           onOpenChange={setReviewsModalOpen}
-          reviews={buyerReviews}
+          userId={user?.id || ''}
+          mode="buyer"
         />
 
         {/* Upcoming Sessions Modal */}
