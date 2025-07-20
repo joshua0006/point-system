@@ -4,6 +4,8 @@ import { Navigation } from '@/components/Navigation';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { BuyerProfileHeader } from '@/components/profile/BuyerProfileHeader';
 import { BuyerProfileStats } from '@/components/profile/BuyerProfileStats';
+import { BuyerReviewsSection } from '@/components/profile/BuyerReviewsSection';
+import { BuyerReviewsModal } from '@/components/profile/BuyerReviewsModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +15,7 @@ export default function BuyerProfile() {
   const { userId } = useParams();
   const { profile: currentUserProfile } = useAuth();
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['buyer-profile', userId],
@@ -90,14 +93,29 @@ export default function BuyerProfile() {
         />
 
         <BuyerProfileStats profileStats={profileStats} />
+        
+        <div className="mt-8">
+          <BuyerReviewsSection
+            onReviewsClick={() => setReviewsModalOpen(true)}
+            buyerUserId={userId!}
+          />
+        </div>
       </div>
 
       {profile && (
-        <EditProfileModal
-          open={editModalOpen}
-          onOpenChange={setEditModalOpen}
-          profile={profile}
-        />
+        <>
+          <EditProfileModal
+            open={editModalOpen}
+            onOpenChange={setEditModalOpen}
+            profile={profile}
+          />
+          
+          <BuyerReviewsModal
+            open={reviewsModalOpen}
+            onOpenChange={setReviewsModalOpen}
+            buyerUserId={userId!}
+          />
+        </>
       )}
     </div>
   );
