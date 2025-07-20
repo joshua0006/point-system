@@ -9,10 +9,13 @@ export interface Conversation {
   service_id: string;
   buyer_id: string;
   seller_id: string;
-  status: 'active' | 'archived' | 'closed';
+  status: 'active' | 'archived' | 'closed' | 'waiting_acceptance';
   last_message_at: string | null;
   created_at: string;
   updated_at: string;
+  manual_archive: boolean;
+  archived_by: string | null;
+  archived_at: string | null;
   service?: {
     title: string;
     description: string;
@@ -24,6 +27,12 @@ export interface Conversation {
   seller_profile?: {
     full_name: string | null;
     email: string;
+  };
+  booking?: {
+    id: string;
+    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    buyer_completed: boolean;
+    consultant_completed: boolean;
   };
   last_message?: {
     message_text: string;
@@ -54,7 +63,7 @@ export function useConversations() {
 
       if (error) throw error;
 
-      // Get last message and unread count for each conversation
+      // Get last message, unread count, and booking info for each conversation
       const conversationsWithMessages = await Promise.all(
         (data || []).map(async (conversation) => {
           // Get last message
@@ -62,6 +71,16 @@ export function useConversations() {
             .from('messages')
             .select('message_text, sender_id, created_at')
             .eq('conversation_id', conversation.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          // Get booking info for this conversation/service
+          const { data: booking } = await supabase
+            .from('bookings')
+            .select('id, status, buyer_completed, consultant_completed')
+            .eq('service_id', conversation.service_id)
+            .or(`user_id.eq.${user.id},consultant_id.in.(select id from consultants where user_id = '${user.id}')`)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -84,6 +103,7 @@ export function useConversations() {
             ...conversation,
             last_message: lastMessage,
             unread_count: unreadCount,
+            booking: booking || undefined,
           };
         })
       );
@@ -170,5 +190,82 @@ export function useExistingConversation(serviceId: string, sellerUserId: string)
       return data;
     },
     enabled: !!user && !!serviceId && !!sellerUserId,
+  });
+}
+
+export function useArchiveConversation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('conversations')
+        .update({
+          manual_archive: true,
+          archived_by: user.id,
+          archived_at: new Date().toISOString(),
+        })
+        .eq('id', conversationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({
+        title: "Success",
+        description: "Conversation archived successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error", 
+        description: error.message || "Failed to archive conversation",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+export function useUnarchiveConversation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      const { data, error } = await supabase
+        .from('conversations')
+        .update({
+          manual_archive: false,
+          archived_by: null,
+          archived_at: null,
+        })
+        .eq('id', conversationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({
+        title: "Success",
+        description: "Conversation unarchived successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to unarchive conversation", 
+        variant: "destructive",
+      });
+    },
   });
 }

@@ -342,30 +342,39 @@ export type Database = {
       }
       conversations: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           buyer_id: string
           created_at: string
           id: string
           last_message_at: string | null
+          manual_archive: boolean | null
           seller_id: string
           service_id: string
           status: Database["public"]["Enums"]["conversation_status"]
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           buyer_id: string
           created_at?: string
           id?: string
           last_message_at?: string | null
+          manual_archive?: boolean | null
           seller_id: string
           service_id: string
           status?: Database["public"]["Enums"]["conversation_status"]
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           buyer_id?: string
           created_at?: string
           id?: string
           last_message_at?: string | null
+          manual_archive?: boolean | null
           seller_id?: string
           service_id?: string
           status?: Database["public"]["Enums"]["conversation_status"]
@@ -966,7 +975,11 @@ export type Database = {
     Enums: {
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"
       consultant_tier: "bronze" | "silver" | "gold" | "platinum"
-      conversation_status: "active" | "archived" | "closed"
+      conversation_status:
+        | "active"
+        | "archived"
+        | "closed"
+        | "waiting_acceptance"
       item_status: "pending" | "completed" | "in_progress"
       message_type: "text" | "system_notification"
       priority_level: "low" | "medium" | "high"
@@ -1111,7 +1124,12 @@ export const Constants = {
     Enums: {
       booking_status: ["pending", "confirmed", "completed", "cancelled"],
       consultant_tier: ["bronze", "silver", "gold", "platinum"],
-      conversation_status: ["active", "archived", "closed"],
+      conversation_status: [
+        "active",
+        "archived",
+        "closed",
+        "waiting_acceptance",
+      ],
       item_status: ["pending", "completed", "in_progress"],
       message_type: ["text", "system_notification"],
       priority_level: ["low", "medium", "high"],

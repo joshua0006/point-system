@@ -1,25 +1,71 @@
 
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Conversation } from '@/hooks/useConversations';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Conversation, useArchiveConversation, useUnarchiveConversation } from '@/hooks/useConversations';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { MoreVertical, Archive, ArchiveX } from 'lucide-react';
 
 interface ConversationListProps {
   conversations: Conversation[];
   onSelectConversation: (conversation: Conversation) => void;
+  activeFilter: string;
 }
 
-export function ConversationList({ conversations, onSelectConversation }: ConversationListProps) {
+export function ConversationList({ conversations, onSelectConversation, activeFilter }: ConversationListProps) {
   const { user } = useAuth();
+  const archiveConversation = useArchiveConversation();
+  const unarchiveConversation = useUnarchiveConversation();
+  const [selectedDropdown, setSelectedDropdown] = useState<string | null>(null);
+
+  const handleArchive = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    archiveConversation.mutate(conversationId);
+    setSelectedDropdown(null);
+  };
+
+  const handleUnarchive = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    unarchiveConversation.mutate(conversationId);
+    setSelectedDropdown(null);
+  };
+
+  const getEmptyMessage = () => {
+    switch (activeFilter) {
+      case 'active':
+        return {
+          title: 'No active conversations',
+          subtitle: 'Active conversations will appear here when bookings are confirmed'
+        };
+      case 'waiting_acceptance':
+        return {
+          title: 'No pending conversations', 
+          subtitle: 'Conversations awaiting booking confirmation will appear here'
+        };
+      case 'archive':
+        return {
+          title: 'No archived conversations',
+          subtitle: 'Conversations you archive will appear here'
+        };
+      default:
+        return {
+          title: 'No conversations yet',
+          subtitle: 'Start chatting with sellers about their services'
+        };
+    }
+  };
 
   if (conversations.length === 0) {
+    const emptyMessage = getEmptyMessage();
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No conversations yet</p>
+        <p className="text-muted-foreground">{emptyMessage.title}</p>
         <p className="text-sm text-muted-foreground mt-2">
-          Start chatting with sellers about their services
+          {emptyMessage.subtitle}
         </p>
       </div>
     );
@@ -67,12 +113,25 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                       <h4 className={`font-semibold text-sm truncate ${hasUnreadMessages ? 'text-foreground' : 'text-foreground/80'}`}>
                         {participantName}
                       </h4>
-                      <Badge 
-                        variant={conversation.status === 'active' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {conversation.status}
-                      </Badge>
+                      
+                      {/* Show booking status badge if available */}
+                      {conversation.booking && (
+                        <Badge 
+                          variant={conversation.booking.status === 'confirmed' ? 'default' : 
+                                   conversation.booking.status === 'pending' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {conversation.booking.status}
+                        </Badge>
+                      )}
+                      
+                      {conversation.manual_archive && (
+                        <Badge variant="outline" className="text-xs">
+                          <Archive className="w-3 h-3 mr-1" />
+                          Archived
+                        </Badge>
+                      )}
+                      
                       {hasUnreadMessages && (
                         <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">
                           {conversation.unread_count}
@@ -91,20 +150,47 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                     </div>
                   </div>
                   
-                  <div className="flex flex-col items-end justify-between ml-4 min-w-0 max-w-[40%]">
-                    {conversation.last_message_at && (
-                      <span className="text-xs text-muted-foreground mb-2">
-                        {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
-                      </span>
-                    )}
+                  <div className="flex items-start justify-between ml-4 min-w-0 max-w-[40%]">
+                    <div className="flex flex-col items-end">
+                      {conversation.last_message_at && (
+                        <span className="text-xs text-muted-foreground mb-2">
+                          {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                        </span>
+                      )}
+                      
+                      {lastMessage && (
+                        <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full overflow-hidden">
+                          <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} overflow-hidden whitespace-nowrap`}>
+                            {messageText}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                     
-                    {lastMessage && (
-                      <div className="text-right bg-muted/30 rounded-lg px-3 py-2 border w-full overflow-hidden">
-                        <p className={`text-sm ${hasUnreadMessages ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'} overflow-hidden whitespace-nowrap`}>
-                          {messageText}
-                        </p>
-                      </div>
-                    )}
+                    {/* Archive/Unarchive dropdown */}
+                    <DropdownMenu 
+                      open={selectedDropdown === conversation.id} 
+                      onOpenChange={(open) => setSelectedDropdown(open ? conversation.id : null)}
+                    >
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-2">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-background border shadow-md">
+                        {conversation.manual_archive ? (
+                          <DropdownMenuItem onClick={(e) => handleUnarchive(conversation.id, e)}>
+                            <ArchiveX className="w-4 h-4 mr-2" />
+                            Unarchive
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={(e) => handleArchive(conversation.id, e)}>
+                            <Archive className="w-4 h-4 mr-2" />
+                            Archive
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
