@@ -139,7 +139,7 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                       )}
                     </div>
                     
-                    <p className="text-sm text-muted-foreground truncate mb-2">
+                    <p className="text-sm text-muted-foreground truncate mb-1">
                       {conversation.service?.title}
                     </p>
                     
@@ -150,8 +150,8 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                     </div>
                   </div>
                   
-                  <div className="flex items-start justify-between ml-4 min-w-0 max-w-[50%] flex-shrink-0">
-                    <div className="flex flex-col items-end w-full">
+                  <div className="flex items-start gap-2">
+                    <div className="flex flex-col items-end justify-start min-w-0 max-w-[50%] flex-shrink-0">
                       {conversation.last_message_at && (
                         <span className="text-xs text-muted-foreground mb-2">
                           {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
@@ -166,14 +166,14 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                         </div>
                       )}
                     </div>
-                    
+                      
                     {/* Archive/Unarchive dropdown */}
                     <DropdownMenu 
                       open={selectedDropdown === conversation.id} 
                       onOpenChange={(open) => setSelectedDropdown(open ? conversation.id : null)}
                     >
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
