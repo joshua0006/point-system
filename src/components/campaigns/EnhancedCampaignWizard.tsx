@@ -29,8 +29,7 @@ interface CampaignTemplate {
 const STEPS = [
   { id: 1, name: 'Target Audience', description: 'Choose your target market' },
   { id: 2, name: 'Campaign Types', description: 'Select your campaign approach' },
-  { id: 3, name: 'Campaign Angle', description: 'Select strategy approach' },
-  { id: 4, name: 'Budget & Review', description: 'Finalize campaign settings' }
+  { id: 3, name: 'Budget & Review', description: 'Finalize campaign settings' }
 ];
 
 const AUDIENCE_OPTIONS = [
@@ -132,8 +131,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
     switch (currentStep) {
       case 1: return !!campaignData.targetAudience;
       case 2: return !!campaignData.campaignType;
-      case 3: return !!campaignData.template;
-      case 4: return campaignData.budget > 0 && userBalance >= campaignData.budget;
+      case 3: return campaignData.budget > 0 && userBalance >= campaignData.budget;
       default: return false;
     }
   };
@@ -291,15 +289,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
           </Card>
         )}
 
-        {currentStep === 3 && campaignData.targetAudience && campaignData.campaignType && (
-          <CampaignAngleSelector
-            targetAudience={campaignData.targetAudience as any}
-            onSelectAngle={handleTemplateSelect}
-            userBalance={userBalance}
-          />
-        )}
-
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <div className="space-y-6">
             <SmartBudgetCalculator
               onBudgetChange={handleBudgetChange}
@@ -326,16 +316,8 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
                     <div className="font-semibold">{campaignData.campaignType}</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Strategy:</span>
-                    <div className="font-semibold">{campaignData.template?.name}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Expected Leads:</span>
-                    <div className="font-semibold">{campaignData.template?.template_config.expected_leads} leads</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Duration:</span>
-                    <div className="font-semibold">{campaignData.template?.template_config.duration_days} days</div>
+                    <span className="text-muted-foreground">Budget:</span>
+                    <div className="font-semibold">{campaignData.budget}p</div>
                   </div>
                 </div>
               </CardContent>

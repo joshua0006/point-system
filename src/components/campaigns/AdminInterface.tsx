@@ -121,10 +121,12 @@ export const AdminInterface = ({
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Target Audiences</CardTitle>
-            <Button onClick={createNewTarget}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Audience
-            </Button>
+            <div className="space-x-2">
+              <Button onClick={createNewTarget}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Audience
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
