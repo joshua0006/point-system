@@ -500,145 +500,149 @@ const LeadGenCampaigns = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 pt-24 pb-12">
+      <div className="container mx-auto px-4 pt-20 pb-12">
         <div className="max-w-7xl mx-auto">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="flex justify-between items-center mb-6">
-                <div></div>
-                {isAdmin && (
-                  <div className="flex items-center gap-4">
-                    <Button 
-                      variant={adminMode ? "default" : "secondary"} 
-                      size="sm"
-                      onClick={() => setAdminMode(!adminMode)}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      {adminMode ? "Exit Admin Mode" : "Admin Mode"}
-                    </Button>
-                  </div>
-                )}
-              </div>
-          
-              <h1 className="text-4xl font-bold text-foreground mb-4">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="flex justify-end items-center mb-6">
+              {isAdmin && (
+                <Button 
+                  variant={adminMode ? "default" : "secondary"} 
+                  size="sm"
+                  onClick={() => setAdminMode(!adminMode)}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  {adminMode ? "Exit Admin Mode" : "Admin Mode"}
+                </Button>
+              )}
+            </div>
+        
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
                 Financial Advisory Lead Generation
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Choose your lead generation strategy to grow your financial consulting business in Singapore.
               </p>
-              
-              {/* Wallet Balance Display */}
-              <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-6 rounded-lg border border-primary/20 mt-6 mb-6 max-w-md mx-auto">
-                <div className="text-center">
-                  <h2 className="text-lg font-semibold mb-2">Your Campaign Wallet</h2>
-                  <p className="text-2xl font-bold text-primary mb-2">{userBalance.toLocaleString()} points</p>
-                  <p className="text-sm text-muted-foreground mb-3">Available for campaigns</p>
-                  <Button 
-                    onClick={() => setTopUpModalOpen(true)}
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    Top Up Wallet
-                  </Button>
-                </div>
             </div>
+          </div>
 
-            {/* Active Campaigns Section */}
-            {!adminMode && userCampaigns.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-2xl font-bold mb-6 text-center">Your Active Campaigns</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                  {userCampaigns.map((participation) => {
-                    const campaign = participation.lead_gen_campaigns;
-                    const isColdCalling = campaign.name.includes('Cold Calling');
-                    const IconComponent = isColdCalling ? Phone : Target;
-                    const iconColor = isColdCalling ? 'text-green-600' : 'text-blue-600';
-                    const bgColor = isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10';
-                    
-                    return (
-                      <Card key={participation.id} className="hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-4 mb-4">
-                            <div className={`${bgColor} p-3 rounded-lg`}>
-                              <IconComponent className={`h-6 w-6 ${iconColor}`} />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg">{campaign.name}</h3>
-                              <p className="text-sm text-muted-foreground">{campaign.description}</p>
-                            </div>
-                            <Badge 
-                              variant={campaign.status === 'active' ? 'default' : 'secondary'}
-                              className="capitalize"
-                            >
-                              {campaign.status}
+          {/* Wallet Balance Card */}
+          <div className="flex justify-center mb-8">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-6 text-center bg-gradient-to-r from-primary/5 to-primary/10">
+                <h2 className="text-lg font-semibold mb-2">Campaign Wallet</h2>
+                <p className="text-3xl font-bold text-primary mb-2">{userBalance.toLocaleString()} points</p>
+                <p className="text-sm text-muted-foreground mb-4">Available for campaigns</p>
+                <Button 
+                  onClick={() => setTopUpModalOpen(true)}
+                  size="sm"
+                  className="w-full"
+                >
+                  Top Up Wallet
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Active Campaigns Section */}
+          {!adminMode && userCampaigns.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold mb-8 text-center">Your Active Campaigns</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+                {userCampaigns.map((participation) => {
+                  const campaign = participation.lead_gen_campaigns;
+                  const isColdCalling = campaign.name.includes('Cold Calling');
+                  const IconComponent = isColdCalling ? Phone : Target;
+                  const iconColor = isColdCalling ? 'text-green-600' : 'text-blue-600';
+                  const bgColor = isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10';
+                  
+                  return (
+                    <Card key={participation.id} className="hover:shadow-lg transition-all duration-300">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4 mb-6">
+                          <div className={`${bgColor} p-3 rounded-lg flex-shrink-0`}>
+                            <IconComponent className={`h-6 w-6 ${iconColor}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg mb-1">{campaign.name}</h3>
+                            <p className="text-sm text-muted-foreground">{campaign.description}</p>
+                          </div>
+                          <Badge 
+                            variant={campaign.status === 'active' ? 'default' : 'secondary'}
+                            className="capitalize flex-shrink-0"
+                          >
+                            {campaign.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="flex flex-wrap gap-3">
+                            <Badge variant="outline" className="bg-primary/5">
+                              ${participation.budget_contribution} Monthly
+                            </Badge>
+                            <Badge variant={
+                              participation.billing_status === 'active' ? 'default' : 
+                              participation.billing_status === 'stopped' ? 'destructive' : 'secondary'
+                            }>
+                              {participation.billing_status === 'active' ? 'Active Billing' :
+                               participation.billing_status === 'stopped' ? 'Billing Stopped' :
+                               participation.billing_status === 'paused_insufficient_funds' ? 'Paused - Low Balance' :
+                               'Unknown Status'}
                             </Badge>
                           </div>
-                          
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex gap-2">
-                                <Badge variant="outline" className="bg-blue-50">
-                                  ${participation.budget_contribution} Monthly
-                                </Badge>
-                                <Badge variant={
-                                  participation.billing_status === 'active' ? 'default' : 
-                                  participation.billing_status === 'stopped' ? 'destructive' : 'secondary'
-                                }>
-                                  {participation.billing_status === 'active' ? 'Active Billing' :
-                                   participation.billing_status === 'stopped' ? 'Billing Stopped' :
-                                   participation.billing_status === 'paused_insufficient_funds' ? 'Paused - Low Balance' :
-                                   'Unknown Status'}
-                                </Badge>
-                              </div>
-                              <div className="flex space-x-2">
-                                {participation.billing_status === 'active' ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleStopCampaign(participation.id)}
-                                    className="text-red-600 hover:text-red-700"
-                                  >
-                                    Stop Billing
-                                  </Button>
-                                ) : participation.billing_status === 'stopped' ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleReactivateCampaign(participation.id)}
-                                    className="text-green-600 hover:text-green-700"
-                                  >
-                                    Reactivate
-                                  </Button>
-                                ) : null}
-                              </div>
-                            </div>
 
-                            <div className="space-y-3 text-sm">
+                          <div className="flex flex-col sm:flex-row justify-between gap-4">
+                            <div className="space-y-2 text-sm">
                               <div>
-                                <span className="text-muted-foreground">Joined:</span>
-                                <p className="font-semibold">
+                                <span className="text-muted-foreground">Joined: </span>
+                                <span className="font-semibold">
                                   {new Date(participation.joined_at).toLocaleDateString()}
-                                </p>
+                                </span>
                               </div>
                               {participation.next_billing_date && (
                                 <div>
-                                  <span className="text-muted-foreground">Next Billing:</span>
-                                  <p className="font-semibold">
+                                  <span className="text-muted-foreground">Next Billing: </span>
+                                  <span className="font-semibold">
                                     {new Date(participation.next_billing_date).toLocaleDateString()}
-                                  </p>
+                                  </span>
                                 </div>
                               )}
                             </div>
+                            
+                            <div className="flex gap-2">
+                              {participation.billing_status === 'active' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleStopCampaign(participation.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  Stop Billing
+                                </Button>
+                              ) : participation.billing_status === 'stopped' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleReactivateCampaign(participation.id)}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  Reactivate
+                                </Button>
+                              ) : null}
+                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
+          {/* Main Content Area */}
+          <div className="max-w-6xl mx-auto">
             {/* Admin Mode Interface */}
             {adminMode ? (
               <AdminInterface 
@@ -657,34 +661,34 @@ const LeadGenCampaigns = () => {
               />
             ) : (
               <>
-                {/* New Streamlined Flow */}
-                {currentStep === 'campaign-type' && (
-              <div className="space-y-8">
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold mb-4">Choose Your Campaign Type</h2>
-                  <p className="text-lg text-muted-foreground mb-8">
+            {/* Campaign Type Selection */}
+            {currentStep === 'campaign-type' && (
+              <div className="space-y-12">
+                <div className="text-center max-w-3xl mx-auto">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6">Choose Your Campaign Type</h2>
+                  <p className="text-xl text-muted-foreground">
                     Select the lead generation strategy that best fits your business goals and budget.
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                  <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                  <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20">
                     <CardContent className="p-8 text-center" onClick={() => setCurrentStep('audience-selection')}>
-                      <div className="bg-blue-500/10 p-6 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
+                      <div className="bg-blue-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
                         <Target className="h-12 w-12 text-blue-600" />
                       </div>
                       <h3 className="text-2xl font-bold mb-4">Facebook Ad Campaigns</h3>
                       <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                         Launch targeted Facebook ad campaigns with proven templates designed for financial advisors in Singapore. Choose from specialized audiences and track performance.
                       </p>
-                      <div className="space-y-2 mb-6">
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                      <div className="space-y-3 mb-8">
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
                           ✓ Targeted audiences (NSF, Seniors, General Public)
                         </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
                           ✓ Proven ad templates with performance data
                         </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
                           ✓ Expected 15-30 leads per $1000 spent
                         </div>
                       </div>
@@ -695,25 +699,25 @@ const LeadGenCampaigns = () => {
                   </Card>
 
                   <Card 
-                    className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                    className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
                     onClick={() => setShowColdCallingModal(true)}
                   >
                     <CardContent className="p-8 text-center">
-                      <div className="bg-green-500/10 p-6 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
+                      <div className="bg-green-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
                         <Phone className="h-12 w-12 text-green-600" />
                       </div>
                       <h3 className="text-2xl font-bold mb-4">Cold Calling Campaigns</h3>
                       <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                         Hire professional telemarketers to generate leads through direct outreach. More personal approach with higher conversion rates for qualified prospects.
                       </p>
-                      <div className="space-y-2 mb-6">
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                      <div className="space-y-3 mb-8">
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
                           ✓ Professional telemarketers at 6 points/hour
                         </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
                           ✓ Direct personal engagement with prospects
                         </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
                           ✓ Higher conversion rates on qualified leads
                         </div>
                       </div>
@@ -731,48 +735,58 @@ const LeadGenCampaigns = () => {
 
             {/* Audience Selection Step */}
             {currentStep === 'audience-selection' && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 mb-6">
+              <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
                   <Button 
                     variant="outline" 
                     onClick={resetFlow}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-fit"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Campaign Types
                   </Button>
-                  <h2 className="text-2xl font-bold">Choose Your Target Audience</h2>
+                  <div className="flex-1">
+                    <h2 className="text-2xl md:text-3xl font-bold">Choose Your Target Audience</h2>
+                  </div>
                 </div>
                 
-                <div className="text-center mb-8">
+                <div className="text-center mb-10 max-w-3xl mx-auto">
                   <p className="text-lg text-muted-foreground">
                     Select the audience that best matches your ideal clients. Each audience has specialized campaign types and proven ad templates.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                   {campaignTargets.map((target) => {
                     const IconComponent = target.icon;
                     return (
                       <Card 
                         key={target.id} 
-                        className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                        className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20 h-full"
                         onClick={() => selectAudience(target)}
                       >
-                        <CardContent className="p-6 text-center">
-                          <div className={`${target.bgColor} p-4 rounded-xl mb-4 w-fit mx-auto group-hover:scale-110 transition-transform`}>
+                        <CardContent className="p-6 text-center h-full flex flex-col">
+                          <div className={`${target.bgColor} p-4 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform`}>
                             <IconComponent className={`h-8 w-8 ${target.iconColor}`} />
                           </div>
                           <h3 className="text-xl font-bold mb-3">{target.name}</h3>
-                          <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                          <p className="text-muted-foreground mb-6 text-sm leading-relaxed flex-1">
                             {target.description}
                           </p>
-                          <div className="space-y-2 text-xs text-muted-foreground">
-                            <div>Budget: ${target.budgetRange.min} - ${target.budgetRange.max}/month</div>
-                            <div>Cost per lead: ${target.costPerLead.min} - ${target.costPerLead.max}</div>
-                            <div>{target.expectedLeads.lowBudget} - {target.expectedLeads.highBudget}</div>
+                          <div className="space-y-3 text-xs text-muted-foreground mb-6 bg-muted/30 p-4 rounded-lg">
+                            <div className="flex justify-between">
+                              <span>Budget:</span>
+                              <span className="font-medium">${target.budgetRange.min} - ${target.budgetRange.max}/mo</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Cost per lead:</span>
+                              <span className="font-medium">${target.costPerLead.min} - ${target.costPerLead.max}</span>
+                            </div>
+                            <div className="text-center pt-2 border-t border-border/50">
+                              <span className="font-medium text-primary">{target.expectedLeads.lowBudget} - {target.expectedLeads.highBudget}</span>
+                            </div>
                           </div>
-                          <Button className="w-full mt-4" size="sm">
+                          <Button className="w-full mt-auto" size="sm">
                             Select {target.name}
                           </Button>
                         </CardContent>
