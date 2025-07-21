@@ -27,16 +27,6 @@ const CAMPAIGN_TARGETS = [
       min: 200,
       max: 1500,
       recommended: 500
-    },
-    costPerLead: {
-      min: 15,
-      max: 35,
-      average: 25
-    },
-    expectedLeads: {
-      lowBudget: '8-15 leads/month',
-      medBudget: '20-35 leads/month', 
-      highBudget: '40-70 leads/month'
     }
   },
   {
@@ -50,16 +40,6 @@ const CAMPAIGN_TARGETS = [
       min: 300,
       max: 2500,
       recommended: 800
-    },
-    costPerLead: {
-      min: 20,
-      max: 50,
-      average: 35
-    },
-    expectedLeads: {
-      lowBudget: '6-12 leads/month',
-      medBudget: '15-25 leads/month',
-      highBudget: '30-55 leads/month'
     }
   },
   {
@@ -73,16 +53,6 @@ const CAMPAIGN_TARGETS = [
       min: 400,
       max: 3000,
       recommended: 1000
-    },
-    costPerLead: {
-      min: 30,
-      max: 70,
-      average: 50
-    },
-    expectedLeads: {
-      lowBudget: '5-10 leads/month',
-      medBudget: '12-20 leads/month',
-      highBudget: '25-40 leads/month'
     }
   }
 ];
@@ -692,12 +662,8 @@ const LeadGenCampaigns = () => {
                               <span>Budget:</span>
                               <span className="font-medium">${target.budgetRange.min} - ${target.budgetRange.max}/mo</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span>Cost per lead:</span>
-                              <span className="font-medium">${target.costPerLead.min} - ${target.costPerLead.max}</span>
-                            </div>
                             <div className="text-center pt-2 border-t border-border/50">
-                              <span className="font-medium text-primary">{target.expectedLeads.lowBudget} - {target.expectedLeads.highBudget}</span>
+                              <span className="font-medium text-primary">Optimized for quality leads</span>
                             </div>
                           </div>
                           <Button className="w-full mt-auto" size="sm">
@@ -736,7 +702,7 @@ const LeadGenCampaigns = () => {
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div><strong>Target Audience:</strong> {selectedTarget.name}</div>
-                        <div><strong>Expected CPL:</strong> ${selectedTarget.costPerLead.average}</div>
+                        <div><strong>Campaign Type:</strong> Facebook Ads</div>
                       </div>
                       
                       <div className="space-y-4 mt-6">
@@ -773,8 +739,8 @@ const LeadGenCampaigns = () => {
                             <h4 className="font-semibold mb-2">Expected Results</h4>
                             <div className="space-y-1 text-sm">
                               <p><strong>Monthly Budget:</strong> {budgetAmount} points</p>
-                              <p><strong>Expected Leads:</strong> ~{Math.round(parseInt(budgetAmount) / selectedTarget.costPerLead.average)} leads/month</p>
-                              <p><strong>Cost Per Lead:</strong> ${selectedTarget.costPerLead.average}</p>
+                              <p><strong>Target Audience:</strong> {selectedTarget.name}</p>
+                              <p><strong>Campaign Duration:</strong> 30 days</p>
                             </div>
                           </div>
                         )}

@@ -149,7 +149,7 @@ export const SmartBudgetCalculator = ({
               </div>
               <div className="text-2xl font-bold">{projection.expectedLeads}</div>
                <div className="text-xs text-muted-foreground">
-                 S${projection.costPerLead}/lead
+                 Quality leads
                </div>
             </div>
             

@@ -38,21 +38,21 @@ const AUDIENCE_OPTIONS = [
     name: 'NSF Personnel',
     description: 'National Service personnel seeking financial guidance',
     icon: '🛡️',
-    stats: { avgCTR: '3.4%', avgConversions: 26, avgCostPerLead: 20 }
+    stats: { avgCTR: '3.4%', avgConversions: 26 }
   },
   {
     id: 'general',
     name: 'General Public',
     description: 'Working professionals optimizing their finances',
     icon: '👥',
-    stats: { avgCTR: '3.8%', avgConversions: 35, avgCostPerLead: 18 }
+    stats: { avgCTR: '3.8%', avgConversions: 35 }
   },
   {
     id: 'seniors',
     name: 'Seniors 55+',
     description: 'Pre-retirees and retirees planning their legacy',
     icon: '💜',
-    stats: { avgCTR: '4.2%', avgConversions: 28, avgCostPerLead: 28 }
+    stats: { avgCTR: '4.2%', avgConversions: 28 }
   }
 ];
 
@@ -219,7 +219,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
                       )}
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="text-center">
                         <div className="font-semibold text-green-600">{audience.stats.avgCTR}</div>
                         <div className="text-muted-foreground">Avg CTR</div>
@@ -227,10 +227,6 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
                       <div className="text-center">
                         <div className="font-semibold">{audience.stats.avgConversions}</div>
                         <div className="text-muted-foreground">Avg Conversions</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold">${audience.stats.avgCostPerLead}</div>
-                        <div className="text-muted-foreground">Avg Cost/Lead</div>
                       </div>
                     </div>
                   </CardContent>
