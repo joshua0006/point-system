@@ -182,50 +182,18 @@ export const AdVariantSelector = ({ templateId, onSelectVariants }: AdVariantSel
                           }`}
                         >
                           <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div>
-                                <h4 className="font-semibold">{variant.variant_name}</h4>
-                                <p className="text-sm text-muted-foreground">{variant.ad_content.title}</p>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-semibold mb-1">{variant.variant_name}</h4>
+                                <p className="text-sm text-muted-foreground">{variant.ad_content.description}</p>
                               </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPreviewVariant(variant);
-                                  }}
-                                >
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  Preview
-                                </Button>
-                                <Button
-                                  variant={isSelected ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => handleVariantToggle(variant)}
-                                >
-                                  {isSelected ? 'Selected' : 'Select'}
-                                </Button>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-3 gap-4 text-sm">
-                              <div className="text-center">
-                                <div className={`font-semibold ${getPerformanceColor('ctr', variant.performance_metrics.ctr)}`}>
-                                  {variant.performance_metrics.ctr}%
-                                </div>
-                                <div className="text-muted-foreground">CTR</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="font-semibold">${variant.performance_metrics.cpm}</div>
-                                <div className="text-muted-foreground">CPM</div>
-                              </div>
-                              <div className="text-center">
-                                <div className={`font-semibold ${getPerformanceColor('conversions', variant.performance_metrics.conversions)}`}>
-                                  {variant.performance_metrics.conversions}
-                                </div>
-                                <div className="text-muted-foreground">Conversions</div>
-                              </div>
+                              <Button
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleVariantToggle(variant)}
+                              >
+                                {isSelected ? 'Selected' : 'Select'}
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
