@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Trash2, Save, Shield, Users, User } from "lucide-react";
+import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -34,6 +34,8 @@ export const AdminInterface = ({
   setShowTargetDialog
 }: AdminInterfaceProps) => {
   const { toast } = useToast();
+  const [showCampaignTypesDialog, setShowCampaignTypesDialog] = useState(false);
+  const [editingTargetForTypes, setEditingTargetForTypes] = useState<any>(null);
   const [targetForm, setTargetForm] = useState({
     id: '',
     name: '',
@@ -41,7 +43,8 @@ export const AdminInterface = ({
     icon: 'Users',
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
-    budgetRange: { min: 200, max: 1500, recommended: 500 }
+    budgetRange: { min: 200, max: 1500, recommended: 500 },
+    campaignTypes: ['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing']
   });
 
 
@@ -54,7 +57,8 @@ export const AdminInterface = ({
       icon: target.icon.name || 'Users',
       bgColor: target.bgColor,
       iconColor: target.iconColor,
-      budgetRange: target.budgetRange ? { ...target.budgetRange } : { min: 200, max: 1500, recommended: 500 }
+      budgetRange: target.budgetRange ? { ...target.budgetRange } : { min: 200, max: 1500, recommended: 500 },
+      campaignTypes: target.campaignTypes || ['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing']
     });
     setEditingTarget(target);
     setShowTargetDialog(true);
@@ -69,7 +73,8 @@ export const AdminInterface = ({
       icon: 'Users',
       bgColor: 'bg-blue-500/10',
       iconColor: 'text-blue-600',
-      budgetRange: { min: 200, max: 1500, recommended: 500 }
+      budgetRange: { min: 200, max: 1500, recommended: 500 },
+      campaignTypes: ['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing']
     });
     setEditingTarget(null);
     setShowTargetDialog(true);
@@ -105,6 +110,47 @@ export const AdminInterface = ({
   const deleteTarget = (targetId: string) => {
     setCampaignTargets(prev => prev.filter(target => target.id !== targetId));
     toast({ title: "Target audience deleted successfully!" });
+  };
+
+  const openCampaignTypesDialog = (target: any) => {
+    setEditingTargetForTypes(target);
+    setShowCampaignTypesDialog(true);
+  };
+
+  const saveCampaignTypes = () => {
+    if (editingTargetForTypes) {
+      setCampaignTargets(prev => 
+        prev.map(target => 
+          target.id === editingTargetForTypes.id 
+            ? { ...target, campaignTypes: editingTargetForTypes.campaignTypes }
+            : target
+        )
+      );
+      toast({ title: "Campaign types updated successfully!" });
+      setShowCampaignTypesDialog(false);
+      setEditingTargetForTypes(null);
+    }
+  };
+
+  const addCampaignType = () => {
+    setEditingTargetForTypes(prev => ({
+      ...prev,
+      campaignTypes: [...(prev.campaignTypes || []), '']
+    }));
+  };
+
+  const removeCampaignType = (index: number) => {
+    setEditingTargetForTypes(prev => ({
+      ...prev,
+      campaignTypes: prev.campaignTypes.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateCampaignType = (index: number, value: string) => {
+    setEditingTargetForTypes(prev => ({
+      ...prev,
+      campaignTypes: prev.campaignTypes.map((type, i) => i === index ? value : type)
+    }));
   };
 
   return (
@@ -151,6 +197,13 @@ export const AdminInterface = ({
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => openCampaignTypesDialog(target)}
+                        >
+                          <Settings className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => deleteTarget(target.id)}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -159,9 +212,24 @@ export const AdminInterface = ({
                     </div>
                     <h3 className="font-semibold mb-2">{target.name}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{target.description}</p>
-                     <div className="space-y-1 text-xs">
-                       <div>Budget: ${target.budgetRange?.min || 0} - ${target.budgetRange?.max || 0}</div>
-                     </div>
+                    <div className="space-y-2 text-xs">
+                      <div>Budget: ${target.budgetRange?.min || 0} - ${target.budgetRange?.max || 0}</div>
+                      <div>
+                        <div className="font-medium mb-1">Campaign Types:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {(target.campaignTypes || []).slice(0, 3).map((type, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {type}
+                            </Badge>
+                          ))}
+                          {(target.campaignTypes || []).length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{(target.campaignTypes || []).length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -268,6 +336,57 @@ export const AdminInterface = ({
             <Button onClick={saveTarget}>
               <Save className="h-4 w-4 mr-2" />
               Save Target Audience
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Campaign Types Dialog */}
+      <Dialog open={showCampaignTypesDialog} onOpenChange={setShowCampaignTypesDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Campaign Types for {editingTargetForTypes?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Configure which campaign types are available for this target audience.
+            </p>
+            
+            <div className="space-y-2">
+              {(editingTargetForTypes?.campaignTypes || []).map((type, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    value={type}
+                    onChange={(e) => updateCampaignType(index, e.target.value)}
+                    placeholder="Campaign type name"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => removeCampaignType(index)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            
+            <Button onClick={addCampaignType} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Campaign Type
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCampaignTypesDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveCampaignTypes}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Campaign Types
             </Button>
           </DialogFooter>
         </DialogContent>
