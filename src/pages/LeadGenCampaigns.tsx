@@ -241,7 +241,8 @@ const LeadGenCampaigns = () => {
         description: `${budget} points deducted. Your campaign is now active.`,
       });
 
-      setUserBalance(prev => prev - budget);
+      // Refresh balance from database to ensure accuracy
+      await fetchUserBalance();
       setShowCheckoutModal(false);
       setPendingCampaign(null);
       setCurrentFlow('method-selection');
