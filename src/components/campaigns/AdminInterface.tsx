@@ -89,11 +89,15 @@ export const AdminInterface = ({
       icon: target.icon.name || 'Users',
       bgColor: target.bgColor,
       iconColor: target.iconColor,
-      campaignTypes: [...target.campaignTypes],
-      campaignTypeCPL: { ...target.campaignTypeCPL },
-      budgetRange: { ...target.budgetRange },
-      costPerLead: { ...target.costPerLead },
-      expectedLeads: { ...target.expectedLeads }
+      campaignTypes: target.campaignTypes ? [...target.campaignTypes] : [],
+      campaignTypeCPL: target.campaignTypeCPL ? { ...target.campaignTypeCPL } : {},
+      budgetRange: target.budgetRange ? { ...target.budgetRange } : { min: 200, max: 1500, recommended: 500 },
+      costPerLead: target.costPerLead ? { ...target.costPerLead } : { min: 50, max: 150, average: 75 },
+      expectedLeads: target.expectedLeads ? { ...target.expectedLeads } : {
+        lowBudget: '8-15 leads/month',
+        medBudget: '20-35 leads/month',
+        highBudget: '40-70 leads/month'
+      }
     });
     setEditingTarget(target);
     setShowTargetDialog(true);
@@ -321,11 +325,11 @@ export const AdminInterface = ({
                     </div>
                     <h3 className="font-semibold mb-2">{target.name}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{target.description}</p>
-                    <div className="space-y-1 text-xs">
-                      <div>Campaign Types: {target.campaignTypes.length}</div>
-                      <div>Budget: ${target.budgetRange.min} - ${target.budgetRange.max}</div>
-                      <div>Avg CPL: ${target.costPerLead.average}</div>
-                    </div>
+                     <div className="space-y-1 text-xs">
+                       <div>Campaign Types: {target.campaignTypes?.length || 0}</div>
+                       <div>Budget: ${target.budgetRange?.min || 0} - ${target.budgetRange?.max || 0}</div>
+                       <div>Avg CPL: ${target.costPerLead?.average || 0}</div>
+                     </div>
                   </CardContent>
                 </Card>
               );
@@ -489,7 +493,7 @@ export const AdminInterface = ({
               <div>
                 <Label>Campaign Types</Label>
                 <div className="space-y-2 mt-2">
-                  {targetForm.campaignTypes.map((type: string) => (
+                  {(targetForm.campaignTypes || []).map((type: string) => (
                     <div key={type} className="flex items-center justify-between p-2 bg-muted rounded">
                       <span className="text-sm">{type}</span>
                       <div className="flex items-center gap-2">
