@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Trash2, Upload, Save, Shield, Users, User } from "lucide-react";
+import { Plus, Edit3, Trash2, Save, Shield, Users, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ImageUpload } from "@/components/forms/ImageUpload";
+
 
 const ICON_OPTIONS = [
   { name: 'Shield', component: Shield, value: 'Shield' },
@@ -41,22 +41,10 @@ export const AdminInterface = ({
     icon: 'Users',
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
-    campaignTypes: [],
-    campaignTypeCPL: {},
-    budgetRange: { min: 200, max: 1500, recommended: 500 },
-    costPerLead: { min: 15, max: 35, average: 25 },
-    expectedLeads: {
-      lowBudget: '8-15 leads/month',
-      medBudget: '20-35 leads/month',
-      highBudget: '40-70 leads/month'
-    }
+    budgetRange: { min: 200, max: 1500, recommended: 500 }
   });
 
 
-  const [newCampaignType, setNewCampaignType] = useState('');
-  const [newCampaignTypeCPL, setNewCampaignTypeCPL] = useState('');
-  const [editingCampaignType, setEditingCampaignType] = useState<string | null>(null);
-  const [editingCampaignTypeCPL, setEditingCampaignTypeCPL] = useState('');
 
   const openEditTarget = (target: any) => {
     setTargetForm({
@@ -66,15 +54,7 @@ export const AdminInterface = ({
       icon: target.icon.name || 'Users',
       bgColor: target.bgColor,
       iconColor: target.iconColor,
-      campaignTypes: target.campaignTypes ? [...target.campaignTypes] : [],
-      campaignTypeCPL: target.campaignTypeCPL ? { ...target.campaignTypeCPL } : {},
-      budgetRange: target.budgetRange ? { ...target.budgetRange } : { min: 200, max: 1500, recommended: 500 },
-      costPerLead: target.costPerLead ? { ...target.costPerLead } : { min: 50, max: 150, average: 75 },
-      expectedLeads: target.expectedLeads ? { ...target.expectedLeads } : {
-        lowBudget: '8-15 leads/month',
-        medBudget: '20-35 leads/month',
-        highBudget: '40-70 leads/month'
-      }
+      budgetRange: target.budgetRange ? { ...target.budgetRange } : { min: 200, max: 1500, recommended: 500 }
     });
     setEditingTarget(target);
     setShowTargetDialog(true);
@@ -89,15 +69,7 @@ export const AdminInterface = ({
       icon: 'Users',
       bgColor: 'bg-blue-500/10',
       iconColor: 'text-blue-600',
-      campaignTypes: [],
-      campaignTypeCPL: {},
-      budgetRange: { min: 200, max: 1500, recommended: 500 },
-      costPerLead: { min: 15, max: 35, average: 25 },
-      expectedLeads: {
-        lowBudget: '8-15 leads/month',
-        medBudget: '20-35 leads/month',
-        highBudget: '40-70 leads/month'
-      }
+      budgetRange: { min: 200, max: 1500, recommended: 500 }
     });
     setEditingTarget(null);
     setShowTargetDialog(true);
@@ -135,61 +107,12 @@ export const AdminInterface = ({
     toast({ title: "Target audience deleted successfully!" });
   };
 
-  const addCampaignType = () => {
-    if (newCampaignType && newCampaignTypeCPL) {
-      setTargetForm(prev => ({
-        ...prev,
-        campaignTypes: [...prev.campaignTypes, newCampaignType],
-        campaignTypeCPL: {
-          ...prev.campaignTypeCPL,
-          [newCampaignType]: parseInt(newCampaignTypeCPL)
-        }
-      }));
-      setNewCampaignType('');
-      setNewCampaignTypeCPL('');
-    }
-  };
-
-  const removeCampaignType = (campaignType: string) => {
-    setTargetForm(prev => ({
-      ...prev,
-      campaignTypes: prev.campaignTypes.filter((type: string) => type !== campaignType),
-      campaignTypeCPL: Object.fromEntries(
-        Object.entries(prev.campaignTypeCPL).filter(([key]) => key !== campaignType)
-      )
-    }));
-  };
-
-  const startEditCampaignType = (campaignType: string) => {
-    setEditingCampaignType(campaignType);
-    setEditingCampaignTypeCPL(targetForm.campaignTypeCPL[campaignType]?.toString() || '');
-  };
-
-  const saveEditCampaignType = () => {
-    if (editingCampaignType && editingCampaignTypeCPL) {
-      setTargetForm(prev => ({
-        ...prev,
-        campaignTypeCPL: {
-          ...prev.campaignTypeCPL,
-          [editingCampaignType]: parseInt(editingCampaignTypeCPL)
-        }
-      }));
-      setEditingCampaignType(null);
-      setEditingCampaignTypeCPL('');
-    }
-  };
-
-  const cancelEditCampaignType = () => {
-    setEditingCampaignType(null);
-    setEditingCampaignTypeCPL('');
-  };
-
   return (
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">Campaign Administration</h2>
         <p className="text-lg text-muted-foreground mb-8">
-          Manage target audiences, campaign types, and ad creative content.
+          Manage target audiences and campaign settings.
         </p>
       </div>
 
@@ -235,9 +158,7 @@ export const AdminInterface = ({
                     <h3 className="font-semibold mb-2">{target.name}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{target.description}</p>
                      <div className="space-y-1 text-xs">
-                       <div>Campaign Types: {target.campaignTypes?.length || 0}</div>
                        <div>Budget: ${target.budgetRange?.min || 0} - ${target.budgetRange?.max || 0}</div>
-                       <div>Avg CPL: ${target.costPerLead?.average || 0}</div>
                      </div>
                   </CardContent>
                 </Card>
@@ -333,87 +254,6 @@ export const AdminInterface = ({
                       budgetRange: { ...prev.budgetRange, recommended: parseInt(e.target.value) }
                     }))}
                   />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label>Campaign Types</Label>
-                <div className="space-y-2 mt-2">
-                  {(targetForm.campaignTypes || []).map((type: string) => (
-                    <div key={type} className="flex items-center justify-between p-2 bg-muted rounded">
-                      <span className="text-sm">{type}</span>
-                      <div className="flex items-center gap-2">
-                        {editingCampaignType === type ? (
-                          <>
-                            <Input
-                              value={editingCampaignTypeCPL}
-                              onChange={(e) => setEditingCampaignTypeCPL(e.target.value)}
-                              placeholder="CPL"
-                              type="number"
-                              className="w-20 h-6 text-xs"
-                            />
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={saveEditCampaignType}
-                              className="h-6 w-6 p-0"
-                            >
-                              <Save className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={cancelEditCampaignType}
-                              className="h-6 w-6 p-0"
-                            >
-                              ×
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-xs text-muted-foreground">
-                              CPL: ${targetForm.campaignTypeCPL[type]}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => startEditCampaignType(type)}
-                              className="h-6 w-6 p-0"
-                            >
-                              <Edit3 className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => removeCampaignType(type)}
-                              className="h-6 w-6 p-0"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="flex gap-2 mt-3">
-                  <Input
-                    placeholder="Campaign type name"
-                    value={newCampaignType}
-                    onChange={(e) => setNewCampaignType(e.target.value)}
-                  />
-                  <Input
-                    placeholder="CPL"
-                    type="number"
-                    value={newCampaignTypeCPL}
-                    onChange={(e) => setNewCampaignTypeCPL(e.target.value)}
-                  />
-                  <Button onClick={addCampaignType} size="sm">
-                    <Plus className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             </div>
