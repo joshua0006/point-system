@@ -19,10 +19,6 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
   const [showResumeDialog, setShowResumeDialog] = useState(false);
 
   const isPaused = campaign.notes === 'PAUSED';
-  const conversionRate = campaign.leads_received > 0 ? 
-    ((campaign.conversions || 0) / campaign.leads_received * 100).toFixed(1) : 0;
-  const roi = campaign.budget_contribution > 0 ? 
-    (((campaign.revenue_generated || 0) - campaign.budget_contribution) / campaign.budget_contribution * 100).toFixed(1) : 0;
 
   const pauseCampaign = async () => {
     try {
@@ -116,23 +112,16 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
       
       <CardContent className="pt-0">
         {/* Performance Metrics */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center p-3 bg-background rounded-lg border">
             <TrendingUp className="h-4 w-4 text-green-600 mx-auto mb-1" />
             <p className="text-xl font-bold">{campaign.conversions || 0}</p>
             <p className="text-xs text-muted-foreground">Conversions</p>
           </div>
           <div className="text-center p-3 bg-background rounded-lg border">
-            <Target className="h-4 w-4 text-purple-600 mx-auto mb-1" />
-            <p className="text-xl font-bold">{conversionRate}%</p>
-            <p className="text-xs text-muted-foreground">Conv. Rate</p>
-          </div>
-          <div className="text-center p-3 bg-background rounded-lg border">
-            <DollarSign className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
-            <p className={`text-xl font-bold ${Number(roi) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {roi}%
-            </p>
-            <p className="text-xs text-muted-foreground">ROI</p>
+            <Users className="h-4 w-4 text-blue-600 mx-auto mb-1" />
+            <p className="text-xl font-bold">{campaign.impressions || 0}</p>
+            <p className="text-xs text-muted-foreground">Impressions</p>
           </div>
         </div>
 
