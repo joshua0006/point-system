@@ -1,243 +1,82 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { TrendingUp, DollarSign, Target, Users, Plus, User, Shield, Phone, ArrowLeft, Settings, Edit3 } from "lucide-react";
+import { DollarSign, Target, Phone, Settings } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
+import { CampaignMethodSelector } from "@/components/campaigns/CampaignMethodSelector";
+import { FacebookAdsWizard } from "@/components/campaigns/FacebookAdsWizard";
+import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// Campaign targeting options
-const CAMPAIGN_TARGETS = [
+// Default campaign targets
+const DEFAULT_CAMPAIGN_TARGETS = [
   {
     id: 'nsf',
     name: 'NSFs',
     description: 'Target National Service personnel with financial planning services',
-    icon: Shield,
+    icon: Target,
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
     budgetRange: {
       min: 200,
       max: 1500,
       recommended: 500
-    }
+    },
+    campaignTypes: ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
   },
   {
     id: 'public',
     name: 'General Public',
     description: 'General public seeking comprehensive financial services',
-    icon: Users,
+    icon: Target,
     bgColor: 'bg-green-500/10',
     iconColor: 'text-green-600',
     budgetRange: {
       min: 300,
       max: 2500,
       recommended: 800
-    }
+    },
+    campaignTypes: ['Facebook Lead Ads', 'Facebook Traffic Ads', 'Facebook Brand Awareness']
   },
   {
     id: 'seniors',
     name: 'Seniors',
     description: 'Target seniors with retirement and estate planning services',
-    icon: User,
+    icon: Target,
     bgColor: 'bg-purple-500/10',
     iconColor: 'text-purple-600',
     budgetRange: {
       min: 400,
       max: 3000,
       recommended: 1000
-    }
+    },
+    campaignTypes: ['Facebook Lead Ads', 'Facebook Video Ads', 'Facebook Retargeting Ads']
   }
 ];
-
 
 const LeadGenCampaigns = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [budgetAmount, setBudgetAmount] = useState("");
-  const [consultantName, setConsultantName] = useState("");
-  const [selectedTarget, setSelectedTarget] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(true);
-  const [campaignTargets, setCampaignTargets] = useState(CAMPAIGN_TARGETS);
+  const [currentFlow, setCurrentFlow] = useState<'method-selection' | 'facebook-ads' | 'cold-calling'>('method-selection');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [campaignTargets, setCampaignTargets] = useState(DEFAULT_CAMPAIGN_TARGETS);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [pendingCampaign, setPendingCampaign] = useState<any>(null);
   const [userBalance, setUserBalance] = useState(0);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
-  
-  // New flow state management
-  const [currentStep, setCurrentStep] = useState('audience-selection');
+  const [userCampaigns, setUserCampaigns] = useState([]);
   
   // Admin mode state
   const [adminMode, setAdminMode] = useState(false);
   const [editingTarget, setEditingTarget] = useState(null);
-  const [editingAd, setEditingAd] = useState(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
-  const [showAdDialog, setShowAdDialog] = useState(false);
-  
-  // Cold calling state
-  const [showColdCallingModal, setShowColdCallingModal] = useState(false);
-  const [showColdCallingCheckoutModal, setShowColdCallingCheckoutModal] = useState(false);
-  const [selectedHours, setSelectedHours] = useState<number | null>(null);
-  const [userCampaigns, setUserCampaigns] = useState([]);
-  
-  // Flow navigation functions
-  const selectAudience = (target) => {
-    setSelectedTarget(target);
-    setCurrentStep('budget-launch');
-  };
-  
-  const resetFlow = () => {
-    setSelectedTarget(null);
-    setCurrentStep('audience-selection');
-  };
-
-  const confirmColdCallingCheckout = async () => {
-    if (!user || !selectedHours || !consultantName) return;
-
-    try {
-      const monthlyCost = selectedHours * 6; // 6 points per hour
-      
-      // Check sufficient balance
-      if (userBalance < monthlyCost) {
-        toast({
-          title: "Insufficient Balance",
-          description: "Please top up your wallet to proceed.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Deduct points and create transaction
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ points_balance: userBalance - monthlyCost })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      const { error: transactionError } = await supabase
-        .from('points_transactions')
-        .insert({
-          user_id: user.id,
-          amount: -monthlyCost,
-          type: 'purchase',
-          description: `Cold Calling Campaign - ${selectedHours} hours/month`
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Create campaign entry
-      const { data: coldCallingCampaign, error: campaignError } = await supabase
-        .from('lead_gen_campaigns')
-        .upsert({
-          name: `Cold Calling Campaign - ${selectedHours} hours/month`,
-          description: `Professional cold calling service for ${selectedHours} hours per month`,
-          start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          total_budget: monthlyCost * 12,
-          status: 'active',
-          created_by: user.id
-        })
-        .select()
-        .single();
-
-      if (campaignError) throw campaignError;
-
-      const { error } = await supabase
-        .from('campaign_participants')
-        .insert({
-          campaign_id: coldCallingCampaign.id,
-          user_id: user.id,
-          consultant_name: consultantName,
-          budget_contribution: monthlyCost
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Cold Calling Campaign Started! 🎉",
-        description: `${monthlyCost} points deducted. Your ${selectedHours}-hour monthly campaign is now active.`,
-      });
-
-      setUserBalance(prev => prev - monthlyCost);
-      setShowColdCallingModal(false);
-      setSelectedHours(null);
-      setConsultantName("");
-      fetchUserCampaigns(); // Refresh campaigns list
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process payment. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleStopCampaign = async (participantId: string) => {
-    try {
-      const { error } = await supabase
-        .from('campaign_participants')
-        .update({ 
-          billing_status: 'stopped',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', participantId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Campaign Stopped",
-        description: "Monthly billing has been stopped for this campaign.",
-      });
-
-      // Refresh campaigns
-      fetchUserCampaigns();
-    } catch (error) {
-      console.error('Error stopping campaign:', error);
-      toast({
-        title: "Error",
-        description: "Failed to stop campaign. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReactivateCampaign = async (participantId: string) => {
-    try {
-      const { error } = await supabase
-        .from('campaign_participants')
-        .update({ 
-          billing_status: 'active',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', participantId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Campaign Reactivated", 
-        description: "Monthly billing has been reactivated for this campaign.",
-      });
-
-      // Refresh campaigns
-      fetchUserCampaigns();
-    } catch (error) {
-      console.error('Error reactivating campaign:', error);
-      toast({
-        title: "Error",
-        description: "Failed to reactivate campaign. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   useEffect(() => {
     fetchUserBalance();
@@ -315,16 +154,39 @@ const LeadGenCampaigns = () => {
     });
   };
 
+  const handleMethodSelect = (method: 'facebook-ads' | 'cold-calling') => {
+    setCurrentFlow(method);
+  };
+
+  const handleBackToMethods = () => {
+    setCurrentFlow('method-selection');
+  };
+
+  const handleCampaignComplete = (campaignData: any) => {
+    setPendingCampaign(campaignData);
+    setShowCheckoutModal(true);
+  };
+
   const confirmCheckout = async () => {
-    if (!user || !selectedTarget || !budgetAmount || !consultantName) return;
+    if (!user || !pendingCampaign) return;
 
     try {
-      const monthlySpend = parseInt(budgetAmount);
+      const budget = pendingCampaign.budget;
       
+      // Check sufficient balance
+      if (userBalance < budget) {
+        toast({
+          title: "Insufficient Balance",
+          description: "Please top up your wallet to proceed.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Deduct points and create transaction
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ points_balance: userBalance - monthlySpend })
+        .update({ points_balance: userBalance - budget })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
@@ -333,22 +195,28 @@ const LeadGenCampaigns = () => {
         .from('points_transactions')
         .insert({
           user_id: user.id,
-          amount: -monthlySpend,
+          amount: -budget,
           type: 'purchase',
-          description: `Facebook Ads Campaign - ${selectedTarget.name}`
+          description: `${pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : 'Cold Calling'} Campaign`
         });
 
       if (transactionError) throw transactionError;
 
       // Create campaign entry
-      const { data: fbCampaign, error: campaignError } = await supabase
+      const campaignName = pendingCampaign.method === 'facebook-ads' 
+        ? `Facebook Ads - ${pendingCampaign.targetAudience?.name} - ${pendingCampaign.campaignType}`
+        : `Cold Calling Campaign - ${pendingCampaign.hours} hours/month`;
+
+      const { data: campaign, error: campaignError } = await supabase
         .from('lead_gen_campaigns')
         .upsert({
-          name: `Facebook Ads - ${selectedTarget.name}`,
-          description: `Facebook advertising campaign targeting ${selectedTarget.name}`,
+          name: campaignName,
+          description: pendingCampaign.method === 'facebook-ads' 
+            ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
+            : `Professional cold calling service for ${pendingCampaign.hours} hours per month`,
           start_date: new Date().toISOString(),
           end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          total_budget: monthlySpend * 12,
+          total_budget: budget * 12,
           status: 'active',
           created_by: user.id
         })
@@ -360,27 +228,86 @@ const LeadGenCampaigns = () => {
       const { error } = await supabase
         .from('campaign_participants')
         .insert({
-          campaign_id: fbCampaign.id,
+          campaign_id: campaign.id,
           user_id: user.id,
-          consultant_name: consultantName,
-          budget_contribution: monthlySpend
+          consultant_name: pendingCampaign.consultantName,
+          budget_contribution: budget
         });
 
       if (error) throw error;
 
       toast({
-        title: "Campaign Started! 🎉",
-        description: `${monthlySpend} points deducted. Your ${selectedTarget?.name} campaign is now live.`,
+        title: "Campaign Launched! 🎉",
+        description: `${budget} points deducted. Your campaign is now active.`,
       });
 
-      setUserBalance(prev => prev - monthlySpend);
-      resetFlow();
+      setUserBalance(prev => prev - budget);
       setShowCheckoutModal(false);
-      fetchUserCampaigns(); // Refresh campaigns list
+      setPendingCampaign(null);
+      setCurrentFlow('method-selection');
+      fetchUserCampaigns();
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStopCampaign = async (participantId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({ 
+          billing_status: 'stopped',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', participantId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign Stopped",
+        description: "Monthly billing has been stopped for this campaign.",
+      });
+
+      fetchUserCampaigns();
+    } catch (error) {
+      console.error('Error stopping campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to stop campaign. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReactivateCampaign = async (participantId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({ 
+          billing_status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', participantId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Campaign Reactivated", 
+        description: "Monthly billing has been reactivated for this campaign.",
+      });
+
+      fetchUserCampaigns();
+    } catch (error) {
+      console.error('Error reactivating campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reactivate campaign. Please try again.",
         variant: "destructive",
       });
     }
@@ -469,7 +396,7 @@ const LeadGenCampaigns = () => {
                         <div className="space-y-4">
                           <div className="flex flex-wrap gap-3">
                             <Badge variant="outline" className="bg-primary/5">
-                              ${participation.budget_contribution} Monthly
+                              {participation.budget_contribution} points Monthly
                             </Badge>
                             <Badge variant={
                               participation.billing_status === 'active' ? 'default' : 
@@ -545,220 +472,27 @@ const LeadGenCampaigns = () => {
               />
             ) : (
               <>
-            {/* Campaign Type Selection */}
-            {currentStep === 'campaign-type' && (
-              <div className="space-y-12">
-                <div className="text-center max-w-3xl mx-auto">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6">Choose Your Campaign Type</h2>
-                  <p className="text-xl text-muted-foreground">
-                    Select the lead generation strategy that best fits your business goals and budget.
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                  <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20">
-                    <CardContent className="p-8 text-center" onClick={() => setCurrentStep('audience-selection')}>
-                      <div className="bg-blue-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                        <Target className="h-12 w-12 text-blue-600" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Facebook Ad Campaigns</h3>
-                      <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                        Launch targeted Facebook ad campaigns with proven templates designed for financial advisors in Singapore. Choose from specialized audiences and track performance.
-                      </p>
-                      <div className="space-y-3 mb-8">
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                          ✓ Targeted audiences (NSF, Seniors, General Public)
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                          ✓ Proven ad templates with performance data
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                          ✓ Expected 15-30 leads per $1000 spent
-                        </div>
-                      </div>
-                      <Button className="w-full" size="lg">
-                        Start Facebook Campaign
-                      </Button>
-                    </CardContent>
-                  </Card>
+                {/* Campaign Flow */}
+                {currentFlow === 'method-selection' && (
+                  <CampaignMethodSelector onMethodSelect={handleMethodSelect} />
+                )}
 
-                  <Card 
-                    className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
-                    onClick={() => setShowColdCallingModal(true)}
-                  >
-                    <CardContent className="p-8 text-center">
-                      <div className="bg-green-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
-                        <Phone className="h-12 w-12 text-green-600" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Cold Calling Campaigns</h3>
-                      <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                        Hire professional telemarketers to generate leads through direct outreach. More personal approach with higher conversion rates for qualified prospects.
-                      </p>
-                      <div className="space-y-3 mb-8">
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                          ✓ Professional telemarketers at 6 points/hour
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                          ✓ Direct personal engagement with prospects
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                          ✓ Higher conversion rates on qualified leads
-                        </div>
-                      </div>
-                      <Button 
-                        className="w-full pointer-events-none" 
-                        size="lg"
-                      >
-                        Start Cold Calling
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
+                {currentFlow === 'facebook-ads' && (
+                  <FacebookAdsWizard
+                    onComplete={handleCampaignComplete}
+                    onBack={handleBackToMethods}
+                    userBalance={userBalance}
+                    campaignTargets={campaignTargets}
+                  />
+                )}
 
-            {/* Audience Selection Step */}
-            {currentStep === 'audience-selection' && (
-              <div className="space-y-8">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-                  <Button 
-                    variant="outline" 
-                    onClick={resetFlow}
-                    className="flex items-center gap-2 w-fit"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Campaign Types
-                  </Button>
-                  <div className="flex-1">
-                    <h2 className="text-2xl md:text-3xl font-bold">Choose Your Target Audience</h2>
-                  </div>
-                </div>
-                
-                <div className="text-center mb-10 max-w-3xl mx-auto">
-                  <p className="text-lg text-muted-foreground">
-                    Select the audience that best matches your ideal clients. Each audience has specialized campaign types and proven ad templates.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                  {campaignTargets.map((target) => {
-                    const IconComponent = target.icon;
-                    return (
-                      <Card 
-                        key={target.id} 
-                        className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20 h-full"
-                        onClick={() => selectAudience(target)}
-                      >
-                        <CardContent className="p-6 text-center h-full flex flex-col">
-                          <div className={`${target.bgColor} p-4 rounded-xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform`}>
-                            <IconComponent className={`h-8 w-8 ${target.iconColor}`} />
-                          </div>
-                          <h3 className="text-xl font-bold mb-3">{target.name}</h3>
-                          <p className="text-muted-foreground mb-6 text-sm leading-relaxed flex-1">
-                            {target.description}
-                          </p>
-                          <div className="space-y-3 text-xs text-muted-foreground mb-6 bg-muted/30 p-4 rounded-lg">
-                            <div className="flex justify-between">
-                              <span>Budget:</span>
-                              <span className="font-medium">${target.budgetRange.min} - ${target.budgetRange.max}/mo</span>
-                            </div>
-                            <div className="text-center pt-2 border-t border-border/50">
-                              <span className="font-medium text-primary">Optimized for quality leads</span>
-                            </div>
-                          </div>
-                          <Button className="w-full mt-auto" size="sm">
-                            Select {target.name}
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-
-
-            {/* Budget and Launch Step */}
-            {currentStep === 'budget-launch' && selectedTarget && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCurrentStep('audience-selection')}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Audience Selection
-                  </Button>
-                  <h2 className="text-2xl font-bold">Set Budget & Launch Campaign</h2>
-                </div>
-
-                <div className="max-w-2xl mx-auto">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Campaign Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div><strong>Target Audience:</strong> {selectedTarget.name}</div>
-                        <div><strong>Campaign Type:</strong> Facebook Ads</div>
-                      </div>
-                      
-                      <div className="space-y-4 mt-6">
-                        <div>
-                          <Label htmlFor="consultant-name">Your Name</Label>
-                          <Input
-                            id="consultant-name"
-                            placeholder="Enter your full name"
-                            value={consultantName}
-                            onChange={(e) => setConsultantName(e.target.value)}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="budget">Monthly Budget (Points)</Label>
-                          <Input
-                            id="budget"
-                            type="number"
-                            placeholder={`Recommended: ${selectedTarget.budgetRange.recommended}`}
-                            value={budgetAmount}
-                            onChange={(e) => setBudgetAmount(e.target.value)}
-                            min={selectedTarget.budgetRange.min}
-                            max={selectedTarget.budgetRange.max}
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Range: {selectedTarget.budgetRange.min} - {selectedTarget.budgetRange.max} points/month
-                          </p>
-                        </div>
-
-                        {budgetAmount && (
-                          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                            <h4 className="font-semibold mb-2">Expected Results</h4>
-                            <div className="space-y-1 text-sm">
-                              <p><strong>Monthly Budget:</strong> {budgetAmount} points</p>
-                              <p><strong>Target Audience:</strong> {selectedTarget.name}</p>
-                              <p><strong>Campaign Duration:</strong> 30 days</p>
-                            </div>
-                          </div>
-                        )}
-
-                        <Button 
-                          onClick={() => setShowCheckoutModal(true)}
-                          className="w-full" 
-                          size="lg"
-                          disabled={!consultantName || !budgetAmount}
-                        >
-                          Launch Campaign
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
+                {currentFlow === 'cold-calling' && (
+                  <ColdCallingWizard
+                    onComplete={handleCampaignComplete}
+                    onBack={handleBackToMethods}
+                    userBalance={userBalance}
+                  />
+                )}
               </>
             )}
           </div>
@@ -771,58 +505,64 @@ const LeadGenCampaigns = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
-              Confirm Your Purchase
+              Confirm Your Campaign
             </DialogTitle>
             <DialogDescription>
               Review your campaign details and confirm the payment
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="bg-muted/20 p-4 rounded-lg space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Campaign Type:</span>
-                <span className="text-sm">Facebook Ads</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Target Audience:</span>
-                <span className="text-sm">{selectedTarget?.name}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Monthly Budget:</span>
-                <span className="text-sm font-bold">{budgetAmount} points</span>
-              </div>
-            </div>
-
-            <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Current Balance:</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => setTopUpModalOpen(true)}
-                    className="text-xs"
-                  >
-                    Top Up
-                  </Button>
-                </div>
-              </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Amount to Deduct:</span>
-                <span className="text-sm font-bold text-red-600">-{budgetAmount} points</span>
-              </div>
-              <div className="border-t pt-2 mt-2">
+          {pendingCampaign && (
+            <div className="space-y-4">
+              <div className="bg-muted/20 p-4 rounded-lg space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Balance After:</span>
-                  <span className="text-lg font-bold text-primary">
-                    {(userBalance - parseInt(budgetAmount || "0")).toLocaleString()} points
-                  </span>
+                  <span className="text-sm font-medium">Campaign Type:</span>
+                  <span className="text-sm">{pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : 'Cold Calling'}</span>
+                </div>
+                {pendingCampaign.targetAudience && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Target Audience:</span>
+                    <span className="text-sm">{pendingCampaign.targetAudience.name}</span>
+                  </div>
+                )}
+                {pendingCampaign.campaignType && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Campaign Type:</span>
+                    <span className="text-sm">{pendingCampaign.campaignType}</span>
+                  </div>
+                )}
+                {pendingCampaign.hours && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Hours/Month:</span>
+                    <span className="text-sm">{pendingCampaign.hours}h</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Monthly Cost:</span>
+                  <span className="text-sm font-bold">{pendingCampaign.budget} points</span>
+                </div>
+              </div>
+
+              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Current Balance:</span>
+                  <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Amount to Deduct:</span>
+                  <span className="text-sm font-bold text-red-600">-{pendingCampaign.budget} points</span>
+                </div>
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Balance After:</span>
+                    <span className="text-lg font-bold text-primary">
+                      {(userBalance - pendingCampaign.budget).toLocaleString()} points
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           <DialogFooter className="gap-2">
             <Button 
@@ -835,209 +575,10 @@ const LeadGenCampaigns = () => {
             <Button 
               onClick={confirmCheckout}
               className="flex-1"
-              disabled={userBalance < parseInt(budgetAmount || "0")}
+              disabled={!pendingCampaign || userBalance < pendingCampaign.budget}
             >
               <DollarSign className="h-4 w-4 mr-2" />
-              Confirm & Start Campaign
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Cold Calling Hours Selection Modal */}
-      <Dialog open={showColdCallingModal} onOpenChange={(open) => {
-        console.log('Cold calling modal state changed:', open);
-        setShowColdCallingModal(open);
-      }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Phone className="h-5 w-5 text-green-600" />
-              Choose Your Cold Calling Plan
-            </DialogTitle>
-            <DialogDescription>
-              Select how many hours of professional cold calling you want per month. Our trained telemarketers will generate leads for your financial advisory business.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="consultant-name-cold">Your Name</Label>
-              <Input
-                id="consultant-name-cold"
-                placeholder="Enter your full name"
-                value={consultantName}
-                onChange={(e) => setConsultantName(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label className="text-base font-medium mb-4 block">Select Monthly Hours</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {[20, 40, 60, 80].map((hours) => {
-                  const monthlyCost = hours * 6;
-                  const isSelected = selectedHours === hours;
-                  return (
-                    <Card 
-                      key={hours}
-                      className={`cursor-pointer transition-all duration-200 hover:scale-105 select-none h-full w-full ${
-                        isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'
-                      }`}
-                      onClick={() => {
-                        console.log('Cold calling box clicked, hours:', hours);
-                        setSelectedHours(hours);
-                      }}
-                    >
-                      <CardContent className="p-4 text-center h-full flex flex-col justify-center">
-                        <div className="text-2xl font-bold text-primary mb-1 select-none">{hours}h</div>
-                        <div className="text-sm text-muted-foreground mb-2 select-none">per month</div>
-                        <div className="text-lg font-semibold text-foreground select-none">{monthlyCost} points</div>
-                        <div className="text-xs text-muted-foreground select-none">~{Math.round(hours * 2.5)} leads expected</div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-
-            {selectedHours && (
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                <h4 className="font-semibold mb-2 text-green-800 dark:text-green-300">Plan Summary</h4>
-                <div className="space-y-1 text-sm text-green-700 dark:text-green-400">
-                  <p><strong>Hours per month:</strong> {selectedHours}</p>
-                  <p><strong>Monthly cost:</strong> {selectedHours * 6} points</p>
-                  <p><strong>Expected leads:</strong> ~{Math.round(selectedHours * 2.5)} per month</p>
-                  <p><strong>Cost per lead:</strong> ~{Math.round((selectedHours * 6) / (selectedHours * 2.5))} points</p>
-                </div>
-              </div>
-            )}
-
-            {selectedHours && userBalance < (selectedHours * 6) && (
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                <p className="text-red-700 dark:text-red-400 text-sm">
-                  <strong>Insufficient balance:</strong> You need {selectedHours * 6} points but only have {userBalance} points. 
-                  Please top up your wallet first.
-                </p>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setTopUpModalOpen(true)}
-                  className="mt-2"
-                >
-                  Top Up Wallet
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowColdCallingModal(false);
-                setSelectedHours(null);
-              }}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                setShowColdCallingModal(false);
-                setShowColdCallingCheckoutModal(true);
-              }}
-              className="flex-1"
-              disabled={!selectedHours || !consultantName || userBalance < (selectedHours * 6)}
-            >
-              <Phone className="h-4 w-4 mr-2" />
-              Continue to Checkout
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Cold Calling Checkout Confirmation Modal */}
-      <Dialog open={showColdCallingCheckoutModal} onOpenChange={setShowColdCallingCheckoutModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Phone className="h-5 w-5 text-green-600" />
-              Confirm Your Cold Calling Campaign
-            </DialogTitle>
-            <DialogDescription>
-              Review your campaign details and confirm the payment
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="bg-muted/20 p-4 rounded-lg space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Campaign Type:</span>
-                <span className="text-sm">Cold Calling</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Monthly Hours:</span>
-                <span className="text-sm">{selectedHours}h</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Expected Leads:</span>
-                <span className="text-sm">~{selectedHours ? Math.round(selectedHours * 2.5) : 0} per month</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Monthly Cost:</span>
-                <span className="text-sm font-bold">{selectedHours ? selectedHours * 6 : 0} points</span>
-              </div>
-            </div>
-
-            <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Current Balance:</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => setTopUpModalOpen(true)}
-                    className="text-xs"
-                  >
-                    Top Up
-                  </Button>
-                </div>
-              </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium">Amount to Deduct:</span>
-                <span className="text-sm font-bold text-red-600">-{selectedHours ? selectedHours * 6 : 0} points</span>
-              </div>
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Balance After:</span>
-                  <span className="text-lg font-bold text-primary">
-                    {(userBalance - (selectedHours ? selectedHours * 6 : 0)).toLocaleString()} points
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowColdCallingCheckoutModal(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                confirmColdCallingCheckout();
-                setShowColdCallingCheckoutModal(false);
-              }}
-              className="flex-1"
-              disabled={!selectedHours || userBalance < (selectedHours * 6)}
-            >
-              <Phone className="h-4 w-4 mr-2" />
-              Confirm & Start Campaign
+              Confirm & Launch
             </Button>
           </DialogFooter>
         </DialogContent>

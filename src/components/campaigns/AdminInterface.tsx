@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
 
 const ICON_OPTIONS = [
   { name: 'Shield', component: Shield, value: 'Shield' },
@@ -44,10 +44,8 @@ export const AdminInterface = ({
     bgColor: 'bg-blue-500/10',
     iconColor: 'text-blue-600',
     budgetRange: { min: 200, max: 1500, recommended: 500 },
-    campaignTypes: ['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing']
+    campaignTypes: ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
   });
-
-
 
   const openEditTarget = (target: any) => {
     setTargetForm({
@@ -58,12 +56,11 @@ export const AdminInterface = ({
       bgColor: target.bgColor,
       iconColor: target.iconColor,
       budgetRange: target.budgetRange ? { ...target.budgetRange } : { min: 200, max: 1500, recommended: 500 },
-      campaignTypes: target.campaignTypes || ['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing']
+      campaignTypes: target.campaignTypes || ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
     });
     setEditingTarget(target);
     setShowTargetDialog(true);
   };
-
 
   const createNewTarget = () => {
     setTargetForm({
@@ -74,12 +71,11 @@ export const AdminInterface = ({
       bgColor: 'bg-blue-500/10',
       iconColor: 'text-blue-600',
       budgetRange: { min: 200, max: 1500, recommended: 500 },
-      campaignTypes: ['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing']
+      campaignTypes: ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
     });
     setEditingTarget(null);
     setShowTargetDialog(true);
   };
-
 
   const saveTarget = () => {
     try {
@@ -105,7 +101,6 @@ export const AdminInterface = ({
       toast({ title: "Error saving target", variant: "destructive" });
     }
   };
-
 
   const deleteTarget = (targetId: string) => {
     setCampaignTargets(prev => prev.filter(target => target.id !== targetId));
@@ -158,7 +153,7 @@ export const AdminInterface = ({
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">Campaign Administration</h2>
         <p className="text-lg text-muted-foreground mb-8">
-          Manage target audiences and campaign settings.
+          Manage target audiences and campaign types for each audience.
         </p>
       </div>
 
@@ -167,12 +162,10 @@ export const AdminInterface = ({
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Target Audiences</CardTitle>
-            <div className="space-x-2">
-              <Button onClick={createNewTarget}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Audience
-              </Button>
-            </div>
+            <Button onClick={createNewTarget}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Audience
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -213,18 +206,18 @@ export const AdminInterface = ({
                     <h3 className="font-semibold mb-2">{target.name}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{target.description}</p>
                     <div className="space-y-2 text-xs">
-                      <div>Budget: ${target.budgetRange?.min || 0} - ${target.budgetRange?.max || 0}</div>
+                      <div>Budget: {target.budgetRange?.min || 0} - {target.budgetRange?.max || 0} points</div>
                       <div>
                         <div className="font-medium mb-1">Campaign Types:</div>
                         <div className="flex flex-wrap gap-1">
-                          {(target.campaignTypes || []).slice(0, 3).map((type, index) => (
+                          {(target.campaignTypes || []).slice(0, 2).map((type, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
                               {type}
                             </Badge>
                           ))}
-                          {(target.campaignTypes || []).length > 3 && (
+                          {(target.campaignTypes || []).length > 2 && (
                             <Badge variant="outline" className="text-xs">
-                              +{(target.campaignTypes || []).length - 3} more
+                              +{(target.campaignTypes || []).length - 2} more
                             </Badge>
                           )}
                         </div>
@@ -238,93 +231,131 @@ export const AdminInterface = ({
         </CardContent>
       </Card>
 
-
       {/* Target Editing Dialog */}
       <Dialog open={showTargetDialog} onOpenChange={setShowTargetDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editingTarget ? 'Edit Target Audience' : 'Create New Target Audience'}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="target-name">Audience Name</Label>
+              <Input
+                id="target-name"
+                value={targetForm.name}
+                onChange={(e) => setTargetForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., NSFs, Seniors"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="target-description">Description</Label>
+              <Textarea
+                id="target-description"
+                value={targetForm.description}
+                onChange={(e) => setTargetForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe this target audience..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label>Icon</Label>
+              <div className="flex gap-2 mt-2">
+                {ICON_OPTIONS.map((icon) => (
+                  <Button
+                    key={icon.value}
+                    variant={targetForm.icon === icon.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTargetForm(prev => ({ ...prev, icon: icon.value }))}
+                  >
+                    <icon.component className="h-4 w-4 mr-1" />
+                    {icon.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label htmlFor="target-name">Audience Name</Label>
+                <Label htmlFor="budget-min">Min Budget</Label>
                 <Input
-                  id="target-name"
-                  value={targetForm.name}
-                  onChange={(e) => setTargetForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., NSFs, Seniors"
+                  id="budget-min"
+                  type="number"
+                  value={targetForm.budgetRange.min}
+                  onChange={(e) => setTargetForm(prev => ({
+                    ...prev,
+                    budgetRange: { ...prev.budgetRange, min: parseInt(e.target.value) }
+                  }))}
                 />
               </div>
-              
               <div>
-                <Label htmlFor="target-description">Description</Label>
-                <Textarea
-                  id="target-description"
-                  value={targetForm.description}
-                  onChange={(e) => setTargetForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe this target audience..."
-                  rows={3}
+                <Label htmlFor="budget-max">Max Budget</Label>
+                <Input
+                  id="budget-max"
+                  type="number"
+                  value={targetForm.budgetRange.max}
+                  onChange={(e) => setTargetForm(prev => ({
+                    ...prev,
+                    budgetRange: { ...prev.budgetRange, max: parseInt(e.target.value) }
+                  }))}
                 />
               </div>
+              <div>
+                <Label htmlFor="budget-recommended">Recommended</Label>
+                <Input
+                  id="budget-recommended"
+                  type="number"
+                  value={targetForm.budgetRange.recommended}
+                  onChange={(e) => setTargetForm(prev => ({
+                    ...prev,
+                    budgetRange: { ...prev.budgetRange, recommended: parseInt(e.target.value) }
+                  }))}
+                />
+              </div>
+            </div>
 
-              <div>
-                <Label>Icon</Label>
-                <div className="flex gap-2 mt-2">
-                  {ICON_OPTIONS.map((icon) => (
+            <div>
+              <Label>Campaign Types</Label>
+              <div className="space-y-2 mt-2">
+                {targetForm.campaignTypes.map((type, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      value={type}
+                      onChange={(e) => {
+                        const newTypes = [...targetForm.campaignTypes];
+                        newTypes[index] = e.target.value;
+                        setTargetForm(prev => ({ ...prev, campaignTypes: newTypes }));
+                      }}
+                      placeholder="Campaign type name"
+                    />
                     <Button
-                      key={icon.value}
-                      variant={targetForm.icon === icon.value ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setTargetForm(prev => ({ ...prev, icon: icon.value }))}
+                      variant="outline"
+                      onClick={() => {
+                        const newTypes = targetForm.campaignTypes.filter((_, i) => i !== index);
+                        setTargetForm(prev => ({ ...prev, campaignTypes: newTypes }));
+                      }}
                     >
-                      <icon.component className="h-4 w-4 mr-1" />
-                      {icon.name}
+                      <Trash2 className="h-3 w-3" />
                     </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label htmlFor="budget-min">Min Budget</Label>
-                  <Input
-                    id="budget-min"
-                    type="number"
-                    value={targetForm.budgetRange.min}
-                    onChange={(e) => setTargetForm(prev => ({
-                      ...prev,
-                      budgetRange: { ...prev.budgetRange, min: parseInt(e.target.value) }
-                    }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget-max">Max Budget</Label>
-                  <Input
-                    id="budget-max"
-                    type="number"
-                    value={targetForm.budgetRange.max}
-                    onChange={(e) => setTargetForm(prev => ({
-                      ...prev,
-                      budgetRange: { ...prev.budgetRange, max: parseInt(e.target.value) }
-                    }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget-recommended">Recommended</Label>
-                  <Input
-                    id="budget-recommended"
-                    type="number"
-                    value={targetForm.budgetRange.recommended}
-                    onChange={(e) => setTargetForm(prev => ({
-                      ...prev,
-                      budgetRange: { ...prev.budgetRange, recommended: parseInt(e.target.value) }
-                    }))}
-                  />
-                </div>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTargetForm(prev => ({ 
+                      ...prev, 
+                      campaignTypes: [...prev.campaignTypes, ''] 
+                    }));
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Campaign Type
+                </Button>
               </div>
             </div>
           </div>
@@ -391,7 +422,6 @@ export const AdminInterface = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
