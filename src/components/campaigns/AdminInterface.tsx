@@ -7,8 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
+import { AdminAnalyticsDashboard } from "./AdminAnalyticsDashboard";
 
 const ICON_OPTIONS = [
   { name: 'Shield', component: Shield, value: 'Shield' },
@@ -153,12 +156,30 @@ export const AdminInterface = ({
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">Campaign Administration</h2>
         <p className="text-lg text-muted-foreground mb-8">
-          Manage target audiences and campaign types for each audience.
+          Complete platform management and monitoring dashboard
         </p>
       </div>
 
-      {/* Target Audiences Management */}
-      <Card>
+      {/* Admin Dashboard Tabs */}
+      <Tabs defaultValue="audiences" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="audiences" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Target Management
+          </TabsTrigger>
+          <TabsTrigger value="campaigns" className="flex items-center gap-2">
+            <Monitor className="h-4 w-4" />
+            Campaign Monitor
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="audiences" className="mt-8">
+          {/* Target Audiences Management */}
+          <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Target Audiences</CardTitle>
@@ -228,8 +249,18 @@ export const AdminInterface = ({
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        </TabsContent>
+
+        <TabsContent value="campaigns" className="mt-8">
+          <AdminCampaignMonitor />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-8">
+          <AdminAnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
 
       {/* Target Editing Dialog */}
       <Dialog open={showTargetDialog} onOpenChange={setShowTargetDialog}>
