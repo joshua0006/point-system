@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, CheckCircle, Target, Zap } from "lucide-react";
 import { CampaignAngleSelector } from "./CampaignAngleSelector";
-import { AdVariantSelector } from "./AdVariantSelector";
 import { SmartBudgetCalculator } from "./SmartBudgetCalculator";
 
 interface EnhancedCampaignWizardProps {
@@ -30,8 +29,7 @@ interface CampaignTemplate {
 const STEPS = [
   { id: 1, name: 'Target Audience', description: 'Choose your target market' },
   { id: 2, name: 'Campaign Angle', description: 'Select strategy approach' },
-  { id: 3, name: 'Ad Variants', description: 'Pick ad creatives' },
-  { id: 4, name: 'Budget & Review', description: 'Finalize campaign settings' }
+  { id: 3, name: 'Budget & Review', description: 'Finalize campaign settings' }
 ];
 
 const AUDIENCE_OPTIONS = [
@@ -122,8 +120,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
     switch (currentStep) {
       case 1: return !!campaignData.targetAudience;
       case 2: return !!campaignData.template;
-      case 3: return campaignData.selectedVariants.length > 0;
-      case 4: return campaignData.budget > 0 && userBalance >= campaignData.budget;
+      case 3: return campaignData.budget > 0 && userBalance >= campaignData.budget;
       default: return false;
     }
   };
@@ -135,8 +132,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Campaign Launched Successfully!</h2>
           <p className="text-muted-foreground mb-6">
-            Your enhanced campaign is now live with {campaignData.selectedVariants.length} ad variants 
-            targeting {AUDIENCE_OPTIONS.find(a => a.id === campaignData.targetAudience)?.name}.
+            Your enhanced campaign is now live targeting {AUDIENCE_OPTIONS.find(a => a.id === campaignData.targetAudience)?.name}.
           </p>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center">
@@ -148,8 +144,8 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
               <div className="text-muted-foreground">Days Duration</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-lg">{campaignData.selectedVariants.length}</div>
-              <div className="text-muted-foreground">Ad Variants</div>
+              <div className="font-semibold text-lg">{campaignData.template?.template_config.expected_leads}</div>
+              <div className="text-muted-foreground">Expected Leads</div>
             </div>
           </div>
         </CardContent>
@@ -252,14 +248,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
           />
         )}
 
-        {currentStep === 3 && campaignData.template && (
-          <AdVariantSelector
-            templateId={campaignData.template.id}
-            onSelectVariants={handleVariantsSelect}
-          />
-        )}
-
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <div className="space-y-6">
             <SmartBudgetCalculator
               onBudgetChange={handleBudgetChange}
@@ -286,8 +275,8 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
                     <div className="font-semibold">{campaignData.template?.name}</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Ad Variants:</span>
-                    <div className="font-semibold">{campaignData.selectedVariants.length} variants</div>
+                    <span className="text-muted-foreground">Expected Leads:</span>
+                    <div className="font-semibold">{campaignData.template?.template_config.expected_leads} leads</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Duration:</span>

@@ -13,10 +13,6 @@ import { TopUpModal } from "@/components/TopUpModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import adNsf1 from "@/assets/ad-nsf-1.jpg";
-import adMothers1 from "@/assets/ad-mothers-1.jpg";
-import adSeniors1 from "@/assets/ad-seniors-1.jpg";
-import adGeneral1 from "@/assets/ad-general-1.jpg";
 
 // Campaign targeting options
 const CAMPAIGN_TARGETS = [
@@ -91,75 +87,6 @@ const CAMPAIGN_TARGETS = [
   }
 ];
 
-// Ad mockups for each target
-const AD_MOCKUPS = {
-  nsf: [
-    {
-      id: 'nsf-1',
-      title: 'Free Financial Health Check for NSF Personnel',
-      description: 'Get a complimentary financial consultation during your service period. Perfect for young servicemen starting their financial journey.',
-      imageUrl: adNsf1,
-      offer: 'Free 60-min consultation + Financial planning toolkit',
-      adCopy: "🛡️ Serving Singapore? Secure Your Future Too!\n\nGet expert financial advice tailored for NSF personnel. Start building wealth while you serve.\n\n✅ Free 60-minute consultation\n✅ Personalized financial roadmap\n✅ Investment basics workshop\n\nBook now - Limited spots available!",
-      cta: "Claim Your Free Session",
-      performance: { ctr: "3.2%", cpm: "$4.50", conversions: 24 }
-    },
-    {
-      id: 'nsf-2',
-      title: 'Start Your Wealth Journey Early',
-      description: 'Learn investment basics while serving Singapore. Build financial literacy that lasts a lifetime.',
-      imageUrl: adNsf1,
-      offer: 'Free investment workshop + Starter portfolio guide',
-      adCopy: "💰 Young & Ready to Invest?\n\nLearn the fundamentals of wealth building during your NS. Get ahead of your peers with smart financial planning.\n\n✅ Investment basics workshop\n✅ Risk assessment guide\n✅ Long-term planning strategies\n\nLimited time offer for NSF personnel!",
-      cta: "Start Learning Today",
-      performance: { ctr: "2.8%", cpm: "$3.90", conversions: 18 }
-    }
-  ],
-  public: [
-    {
-      id: 'general-1',
-      title: 'Free Retirement Planning Workshop',
-      description: 'Learn how to secure your financial future with comprehensive retirement strategies.',
-      imageUrl: adGeneral1,
-      offer: 'Free workshop + Retirement planning checklist',
-      adCopy: "🏆 Ready to Retire Comfortably?\n\nJoin our exclusive workshop and learn proven strategies to build your retirement nest egg.\n\n✅ CPF optimization techniques\n✅ Investment portfolio planning\n✅ Risk management strategies\n\nSpaces filling up fast - Register today!",
-      cta: "Reserve Your Seat",
-      performance: { ctr: "4.1%", cpm: "$5.20", conversions: 32 }
-    },
-    {
-      id: 'general-2',
-      title: 'Maximize Your CPF Returns',
-      description: 'Discover strategies to grow your CPF savings and optimize your retirement funds.',
-      imageUrl: adGeneral1,
-      offer: 'Free CPF optimization guide + 30-min consultation',
-      adCopy: "📈 Boost Your CPF Returns by 40%!\n\nDiscover little-known strategies to maximize your CPF growth. Our experts reveal the secrets.\n\n✅ CPF optimization strategies\n✅ Top-up timing guidance\n✅ Investment scheme options\n\nFree guide worth $200 - Download now!",
-      cta: "Get Free Guide",
-      performance: { ctr: "3.7%", cpm: "$4.80", conversions: 28 }
-    }
-  ],
-  seniors: [
-    {
-      id: 'seniors-1',
-      title: 'Secure Your Golden Years',
-      description: 'Estate planning and legacy preservation services for retirees and pre-retirees.',
-      imageUrl: adSeniors1,
-      offer: 'Free will writing consultation + Estate planning guide',
-      adCopy: "🌟 Your Legacy Matters\n\nEnsure your hard-earned assets are protected and passed on according to your wishes. Expert guidance for peace of mind.\n\n✅ Will writing assistance\n✅ Estate tax planning\n✅ Asset protection strategies\n\nSecure your family's future today!",
-      cta: "Plan My Legacy",
-      performance: { ctr: "3.9%", cpm: "$7.20", conversions: 22 }
-    },
-    {
-      id: 'seniors-2',
-      title: 'Healthcare Cost Protection',
-      description: 'Prepare for medical expenses in retirement with comprehensive healthcare planning.',
-      imageUrl: adSeniors1,
-      offer: 'Free healthcare planning session + Medical cost calculator',
-      adCopy: "🏥 Healthcare Costs Rising?\n\nProtect yourself from unexpected medical bills in retirement. Plan ahead with our comprehensive healthcare strategies.\n\n✅ Medisave optimization\n✅ Insurance gap analysis\n✅ Long-term care planning\n\nDon't let medical bills drain your savings!",
-      cta: "Get Protected",
-      performance: { ctr: "4.3%", cpm: "$6.80", conversions: 29 }
-    }
-  ]
-};
 
 const LeadGenCampaigns = () => {
   const { user } = useAuth();
@@ -167,10 +94,8 @@ const LeadGenCampaigns = () => {
   const [budgetAmount, setBudgetAmount] = useState("");
   const [consultantName, setConsultantName] = useState("");
   const [selectedTarget, setSelectedTarget] = useState(null);
-  const [selectedAds, setSelectedAds] = useState([]);
   const [isAdmin, setIsAdmin] = useState(true);
   const [campaignTargets, setCampaignTargets] = useState(CAMPAIGN_TARGETS);
-  const [adMockups, setAdMockups] = useState(AD_MOCKUPS);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
@@ -194,16 +119,11 @@ const LeadGenCampaigns = () => {
   // Flow navigation functions
   const selectAudience = (target) => {
     setSelectedTarget(target);
-    setCurrentStep('ad-selection');
-  };
-  
-  const proceedToBudgetLaunch = () => {
     setCurrentStep('budget-launch');
   };
   
   const resetFlow = () => {
     setSelectedTarget(null);
-    setSelectedAds([]);
     setCurrentStep('audience-selection');
   };
 
@@ -648,16 +568,10 @@ const LeadGenCampaigns = () => {
               <AdminInterface 
                 campaignTargets={campaignTargets}
                 setCampaignTargets={setCampaignTargets}
-                adMockups={adMockups}
-                setAdMockups={setAdMockups}
                 editingTarget={editingTarget}
                 setEditingTarget={setEditingTarget}
-                editingAd={editingAd}
-                setEditingAd={setEditingAd}
                 showTargetDialog={showTargetDialog}
                 setShowTargetDialog={setShowTargetDialog}
-                showAdDialog={showAdDialog}
-                setShowAdDialog={setShowAdDialog}
               />
             ) : (
               <>
@@ -798,8 +712,9 @@ const LeadGenCampaigns = () => {
             )}
 
 
-            {/* Ad Selection Step */}
-            {currentStep === 'ad-selection' && selectedTarget && (
+
+            {/* Budget and Launch Step */}
+            {currentStep === 'budget-launch' && selectedTarget && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4 mb-6">
                   <Button 
@@ -809,75 +724,6 @@ const LeadGenCampaigns = () => {
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Audience Selection
-                  </Button>
-                  <h2 className="text-2xl font-bold">Choose Your Ads - {selectedTarget.name}</h2>
-                </div>
-                
-                <div className="text-center mb-8">
-                  <p className="text-lg text-muted-foreground">
-                    Select from our proven ad templates for {selectedTarget.name}.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                  {(adMockups[selectedTarget.id] || []).map((ad) => (
-                    <Card 
-                      key={ad.id} 
-                      className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
-                        selectedAds.includes(ad.id) ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-xl'
-                      }`}
-                      onClick={() => {
-                        setSelectedAds(prev => 
-                          prev.includes(ad.id) 
-                            ? prev.filter(id => id !== ad.id)
-                            : [...prev, ad.id]
-                        );
-                      }}
-                    >
-                      <CardContent className="p-6">
-                        <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden">
-                          <img 
-                            src={ad.imageUrl} 
-                            alt={ad.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2">{ad.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-3">{ad.description}</p>
-                        <div className="text-xs space-y-1 mb-3">
-                          <div><strong>CTR:</strong> {ad.performance.ctr}</div>
-                          <div><strong>CPM:</strong> {ad.performance.cpm}</div>
-                          <div><strong>Conversions:</strong> {ad.performance.conversions}</div>
-                        </div>
-                        <Badge variant={selectedAds.includes(ad.id) ? "default" : "secondary"} className="w-full justify-center">
-                          {selectedAds.includes(ad.id) ? "Selected" : "Select Ad"}
-                        </Badge>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {selectedAds.length > 0 && (
-                  <div className="text-center mt-8">
-                    <Button onClick={proceedToBudgetLaunch} size="lg" className="px-8">
-                      Proceed to Budget & Launch ({selectedAds.length} ads selected)
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Budget and Launch Step */}
-            {currentStep === 'budget-launch' && selectedTarget && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCurrentStep('ad-selection')}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Ad Selection
                   </Button>
                   <h2 className="text-2xl font-bold">Set Budget & Launch Campaign</h2>
                 </div>
@@ -890,7 +736,6 @@ const LeadGenCampaigns = () => {
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div><strong>Target Audience:</strong> {selectedTarget.name}</div>
-                        <div><strong>Ads Selected:</strong> {selectedAds.length}</div>
                         <div><strong>Expected CPL:</strong> ${selectedTarget.costPerLead.average}</div>
                       </div>
                       

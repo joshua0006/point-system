@@ -19,31 +19,19 @@ const ICON_OPTIONS = [
 interface AdminInterfaceProps {
   campaignTargets: any[];
   setCampaignTargets: React.Dispatch<React.SetStateAction<any[]>>;
-  adMockups: any;
-  setAdMockups: React.Dispatch<React.SetStateAction<any>>;
   editingTarget: any;
   setEditingTarget: (target: any) => void;
-  editingAd: any;
-  setEditingAd: (ad: any) => void;
   showTargetDialog: boolean;
   setShowTargetDialog: (show: boolean) => void;
-  showAdDialog: boolean;
-  setShowAdDialog: (show: boolean) => void;
 }
 
 export const AdminInterface = ({
   campaignTargets,
   setCampaignTargets,
-  adMockups,
-  setAdMockups,
   editingTarget,
   setEditingTarget,
-  editingAd,
-  setEditingAd,
   showTargetDialog,
-  setShowTargetDialog,
-  showAdDialog,
-  setShowAdDialog
+  setShowTargetDialog
 }: AdminInterfaceProps) => {
   const { toast } = useToast();
   const [targetForm, setTargetForm] = useState({
@@ -64,17 +52,6 @@ export const AdminInterface = ({
     }
   });
 
-  const [adForm, setAdForm] = useState({
-    id: '',
-    title: '',
-    description: '',
-    imageUrl: '',
-    offer: '',
-    adCopy: '',
-    cta: '',
-    performance: { ctr: '0%', cpm: '$0', conversions: 0 },
-    targetId: ''
-  });
 
   const [newCampaignType, setNewCampaignType] = useState('');
   const [newCampaignTypeCPL, setNewCampaignTypeCPL] = useState('');
@@ -103,21 +80,6 @@ export const AdminInterface = ({
     setShowTargetDialog(true);
   };
 
-  const openEditAd = (ad: any, targetId: string) => {
-    setAdForm({
-      id: ad.id,
-      title: ad.title,
-      description: ad.description,
-      imageUrl: ad.imageUrl,
-      offer: ad.offer,
-      adCopy: ad.adCopy,
-      cta: ad.cta,
-      performance: { ...ad.performance },
-      targetId
-    });
-    setEditingAd(ad);
-    setShowAdDialog(true);
-  };
 
   const createNewTarget = () => {
     setTargetForm({
@@ -141,21 +103,6 @@ export const AdminInterface = ({
     setShowTargetDialog(true);
   };
 
-  const createNewAd = (targetId: string) => {
-    setAdForm({
-      id: `ad-${Date.now()}`,
-      title: '',
-      description: '',
-      imageUrl: '',
-      offer: '',
-      adCopy: '',
-      cta: '',
-      performance: { ctr: '0%', cpm: '$0', conversions: 0 },
-      targetId
-    });
-    setEditingAd(null);
-    setShowAdDialog(true);
-  };
 
   const saveTarget = () => {
     try {
@@ -182,48 +129,10 @@ export const AdminInterface = ({
     }
   };
 
-  const saveAd = () => {
-    try {
-      const updatedAds = { ...adMockups };
-      
-      if (!updatedAds[adForm.targetId]) {
-        updatedAds[adForm.targetId] = [];
-      }
-
-      if (editingAd) {
-        updatedAds[adForm.targetId] = updatedAds[adForm.targetId].map((ad: any) =>
-          ad.id === editingAd.id ? { ...adForm, targetId: undefined } : ad
-        );
-        toast({ title: "Ad updated successfully!" });
-      } else {
-        updatedAds[adForm.targetId].push({ ...adForm, targetId: undefined });
-        toast({ title: "New ad created successfully!" });
-      }
-
-      setAdMockups(updatedAds);
-      setShowAdDialog(false);
-      setEditingAd(null);
-    } catch (error) {
-      toast({ title: "Error saving ad", variant: "destructive" });
-    }
-  };
 
   const deleteTarget = (targetId: string) => {
     setCampaignTargets(prev => prev.filter(target => target.id !== targetId));
-    
-    // Also remove ads for this target
-    const updatedAds = { ...adMockups };
-    delete updatedAds[targetId];
-    setAdMockups(updatedAds);
-    
     toast({ title: "Target audience deleted successfully!" });
-  };
-
-  const deleteAd = (adId: string, targetId: string) => {
-    const updatedAds = { ...adMockups };
-    updatedAds[targetId] = updatedAds[targetId].filter((ad: any) => ad.id !== adId);
-    setAdMockups(updatedAds);
-    toast({ title: "Ad deleted successfully!" });
   };
 
   const addCampaignType = () => {
@@ -338,67 +247,6 @@ export const AdminInterface = ({
         </CardContent>
       </Card>
 
-      {/* Ad Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ad Creative Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {campaignTargets.map((target) => (
-            <div key={target.id} className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">{target.name} Ads</h3>
-                <Button onClick={() => createNewAd(target.id)} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Ad for {target.name}
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(adMockups?.[target.id] || []).map((ad: any) => (
-                  <Card key={ad.id} className="relative">
-                    <CardContent className="p-4">
-                      <div className="aspect-video bg-muted rounded mb-3 overflow-hidden">
-                        {ad.imageUrl && (
-                          <img 
-                            src={ad.imageUrl} 
-                            alt={ad.title}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-sm">{ad.title}</h4>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEditAd(ad, target.id)}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => deleteAd(ad.id, target.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">{ad.description}</p>
-                      <div className="flex gap-2 text-xs">
-                        <Badge variant="secondary">CTR: {ad.performance.ctr}</Badge>
-                        <Badge variant="secondary">CPM: {ad.performance.cpm}</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       {/* Target Editing Dialog */}
       <Dialog open={showTargetDialog} onOpenChange={setShowTargetDialog}>
@@ -583,132 +431,6 @@ export const AdminInterface = ({
         </DialogContent>
       </Dialog>
 
-      {/* Ad Editing Dialog */}
-      <Dialog open={showAdDialog} onOpenChange={setShowAdDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingAd ? 'Edit Ad Creative' : 'Create New Ad Creative'}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="ad-title">Ad Title</Label>
-                <Input
-                  id="ad-title"
-                  value={adForm.title}
-                  onChange={(e) => setAdForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="e.g., Free Financial Health Check"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="ad-description">Description</Label>
-                <Textarea
-                  id="ad-description"
-                  value={adForm.description}
-                  onChange={(e) => setAdForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Brief description of the ad..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label>Ad Image</Label>
-                <ImageUpload
-                  value={adForm.imageUrl}
-                  onChange={(url) => setAdForm(prev => ({ ...prev, imageUrl: url }))}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="ad-offer">Offer</Label>
-                <Input
-                  id="ad-offer"
-                  value={adForm.offer}
-                  onChange={(e) => setAdForm(prev => ({ ...prev, offer: e.target.value }))}
-                  placeholder="e.g., Free 60-min consultation"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="ad-cta">Call to Action</Label>
-                <Input
-                  id="ad-cta"
-                  value={adForm.cta}
-                  onChange={(e) => setAdForm(prev => ({ ...prev, cta: e.target.value }))}
-                  placeholder="e.g., Claim Your Free Session"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="ad-copy">Ad Copy</Label>
-                <Textarea
-                  id="ad-copy"
-                  value={adForm.adCopy}
-                  onChange={(e) => setAdForm(prev => ({ ...prev, adCopy: e.target.value }))}
-                  placeholder="Full ad copy text..."
-                  rows={8}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label htmlFor="ad-ctr">CTR</Label>
-                  <Input
-                    id="ad-ctr"
-                    value={adForm.performance.ctr}
-                    onChange={(e) => setAdForm(prev => ({
-                      ...prev,
-                      performance: { ...prev.performance, ctr: e.target.value }
-                    }))}
-                    placeholder="3.2%"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ad-cpm">CPM</Label>
-                  <Input
-                    id="ad-cpm"
-                    value={adForm.performance.cpm}
-                    onChange={(e) => setAdForm(prev => ({
-                      ...prev,
-                      performance: { ...prev.performance, cpm: e.target.value }
-                    }))}
-                    placeholder="$4.50"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ad-conversions">Conversions</Label>
-                  <Input
-                    id="ad-conversions"
-                    type="number"
-                    value={adForm.performance.conversions}
-                    onChange={(e) => setAdForm(prev => ({
-                      ...prev,
-                      performance: { ...prev.performance, conversions: parseInt(e.target.value) }
-                    }))}
-                    placeholder="24"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={saveAd}>
-              <Save className="h-4 w-4 mr-2" />
-              Save Ad Creative
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
