@@ -28,8 +28,9 @@ interface CampaignTemplate {
 
 const STEPS = [
   { id: 1, name: 'Target Audience', description: 'Choose your target market' },
-  { id: 2, name: 'Campaign Angle', description: 'Select strategy approach' },
-  { id: 3, name: 'Budget & Review', description: 'Finalize campaign settings' }
+  { id: 2, name: 'Campaign Types', description: 'Select your campaign approach' },
+  { id: 3, name: 'Campaign Angle', description: 'Select strategy approach' },
+  { id: 4, name: 'Budget & Review', description: 'Finalize campaign settings' }
 ];
 
 const AUDIENCE_OPTIONS = [
@@ -61,6 +62,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
   const [isComplete, setIsComplete] = useState(false);
   const [campaignData, setCampaignData] = useState({
     targetAudience: null as string | null,
+    campaignType: null as string | null,
     template: null as CampaignTemplate | null,
     selectedVariants: [] as any[],
     budget: 0,
@@ -83,6 +85,16 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
     setCampaignData(prev => ({
       ...prev,
       targetAudience: audienceId,
+      campaignType: null,
+      template: null,
+      selectedVariants: []
+    }));
+  };
+
+  const handleCampaignTypeSelect = (campaignType: string) => {
+    setCampaignData(prev => ({
+      ...prev,
+      campaignType,
       template: null,
       selectedVariants: []
     }));
@@ -119,8 +131,9 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
   const canProceed = () => {
     switch (currentStep) {
       case 1: return !!campaignData.targetAudience;
-      case 2: return !!campaignData.template;
-      case 3: return campaignData.budget > 0 && userBalance >= campaignData.budget;
+      case 2: return !!campaignData.campaignType;
+      case 3: return !!campaignData.template;
+      case 4: return campaignData.budget > 0 && userBalance >= campaignData.budget;
       default: return false;
     }
   };
@@ -237,6 +250,48 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
         )}
 
         {currentStep === 2 && campaignData.targetAudience && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Campaign Type</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Choose the type of campaign that best fits your marketing goals.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {['Facebook Ads', 'Google Ads', 'LinkedIn Ads', 'Email Marketing', 'Content Marketing'].map((type) => (
+                <Card 
+                  key={type}
+                  className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+                    campaignData.campaignType === type 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-muted hover:border-primary/50'
+                  }`}
+                  onClick={() => handleCampaignTypeSelect(type)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg">{type}</h3>
+                        <p className="text-muted-foreground">
+                          {type === 'Facebook Ads' && 'Reach your audience on Facebook and Instagram'}
+                          {type === 'Google Ads' && 'Target users searching for financial services'}
+                          {type === 'LinkedIn Ads' && 'Connect with professionals and decision makers'}
+                          {type === 'Email Marketing' && 'Direct communication with potential clients'}
+                          {type === 'Content Marketing' && 'Build trust through valuable content'}
+                        </p>
+                      </div>
+                      {campaignData.campaignType === type && (
+                        <CheckCircle className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {currentStep === 3 && campaignData.targetAudience && campaignData.campaignType && (
           <CampaignAngleSelector
             targetAudience={campaignData.targetAudience as any}
             onSelectAngle={handleTemplateSelect}
@@ -244,7 +299,7 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
           />
         )}
 
-        {currentStep === 3 && (
+        {currentStep === 4 && (
           <div className="space-y-6">
             <SmartBudgetCalculator
               onBudgetChange={handleBudgetChange}
@@ -268,6 +323,10 @@ export const EnhancedCampaignWizard = ({ onComplete, userBalance }: EnhancedCamp
                   </div>
                   <div>
                     <span className="text-muted-foreground">Campaign Type:</span>
+                    <div className="font-semibold">{campaignData.campaignType}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Strategy:</span>
                     <div className="font-semibold">{campaignData.template?.name}</div>
                   </div>
                   <div>
