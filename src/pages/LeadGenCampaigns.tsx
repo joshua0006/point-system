@@ -613,15 +613,7 @@ const LeadGenCampaigns = () => {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">Leads Received:</span>
-                                <p className="font-semibold">{participation.leads_received || 0}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Revenue Generated:</span>
-                                <p className="font-semibold">${participation.revenue_generated || 0}</p>
-                              </div>
+                            <div className="grid grid-cols-1 gap-4 text-sm">
                               <div>
                                 <span className="text-muted-foreground">Joined:</span>
                                 <p className="font-semibold">
