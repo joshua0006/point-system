@@ -116,12 +116,7 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
       
       <CardContent className="pt-0">
         {/* Performance Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="text-center p-3 bg-background rounded-lg border">
-            <Users className="h-4 w-4 text-blue-600 mx-auto mb-1" />
-            <p className="text-xl font-bold">{campaign.leads_received || 0}</p>
-            <p className="text-xs text-muted-foreground">Leads</p>
-          </div>
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center p-3 bg-background rounded-lg border">
             <TrendingUp className="h-4 w-4 text-green-600 mx-auto mb-1" />
             <p className="text-xl font-bold">{campaign.conversions || 0}</p>
