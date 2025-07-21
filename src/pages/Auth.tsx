@@ -59,7 +59,7 @@ const Auth = () => {
     });
   };
 
-  const handleQuickDemo = async (accountType: 'buyer' | 'consultant') => {
+  const handleQuickDemo = async (accountType: 'buyer' | 'consultant' | 'admin') => {
     if (isLoading) return;
     
     setIsLoading(true);
@@ -70,7 +70,8 @@ const Auth = () => {
       
       const demoEmail = `demo-${accountType}@demo.com`;
       const demoPassword = 'demo123456';
-      const fullName = accountType === 'consultant' ? 'Demo Consultant' : 'Demo Buyer';
+      const fullName = accountType === 'consultant' ? 'Demo Consultant' : 
+                      accountType === 'admin' ? 'Demo Admin' : 'Demo Buyer';
       
       console.log(`Setting up demo account: ${demoEmail}`);
       
@@ -81,6 +82,7 @@ const Auth = () => {
           password: demoPassword,
           fullName: fullName,
           isConsultant: accountType === 'consultant',
+          isAdmin: accountType === 'admin',
           autoConfirm: true
         }
       });
@@ -427,7 +429,7 @@ const Auth = () => {
             <p className="text-xs text-muted-foreground mb-3 text-center">
               Or try with demo accounts:
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -445,6 +447,15 @@ const Auth = () => {
                 className="text-xs"
               >
                 Demo Consultant
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleQuickDemo('admin')}
+                disabled={isLoading}
+                className="text-xs"
+              >
+                Demo Admin
               </Button>
             </div>
           </div>
