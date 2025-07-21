@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Users, DollarSign, TrendingUp, Phone, Target } from "lucide-react";
+import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,6 +14,7 @@ export const AdminCampaignMonitor = () => {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
 
   useEffect(() => {
     fetchAllCampaigns();
@@ -60,6 +61,13 @@ export const AdminCampaignMonitor = () => {
   const openCampaignDetails = (campaign) => {
     setSelectedCampaign(campaign);
     setShowDetailsModal(true);
+  };
+
+  const getFilteredCampaigns = () => {
+    if (showActiveOnly) {
+      return campaigns.filter(c => c.billing_status === 'active');
+    }
+    return campaigns;
   };
 
   const getTotalActiveCampaigns = () => {
@@ -136,8 +144,28 @@ export const AdminCampaignMonitor = () => {
 
       {/* Campaigns Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Campaign Participations</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>Campaign Participations</CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {showActiveOnly ? 'Active' : 'All'} Campaigns
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowActiveOnly(!showActiveOnly)}
+              className="flex items-center gap-2"
+            >
+              {showActiveOnly ? (
+                <ToggleRight className="h-4 w-4 text-green-600" />
+              ) : (
+                <ToggleLeft className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="text-sm">
+                {showActiveOnly ? 'Show All' : 'Active Only'}
+              </span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {campaigns.length === 0 ? (
@@ -158,7 +186,7 @@ export const AdminCampaignMonitor = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {campaigns.map((participation) => {
+                {getFilteredCampaigns().map((participation) => {
                   const campaign = participation.lead_gen_campaigns;
                   const profile = participation.profiles;
                   const isColdCalling = campaign.name.includes('Cold Calling');
