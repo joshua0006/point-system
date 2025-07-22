@@ -28,16 +28,19 @@ const Messages = () => {
       return 'archive';
     }
     
-    // Check conversation status first
+    // Check booking status first - any pending booking goes to waiting
+    if (conversation.booking && conversation.booking.status === 'pending') {
+      return 'waiting_acceptance';
+    }
+    
+    // Check conversation status
     if (conversation.status === 'waiting_acceptance') {
       return 'waiting_acceptance';
     }
     
-    // Check booking status for filtering
+    // Check other booking statuses
     if (conversation.booking) {
       switch (conversation.booking.status) {
-        case 'pending':
-          return 'waiting_acceptance';
         case 'confirmed':
         case 'completed':
           return 'active';
