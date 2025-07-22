@@ -75,12 +75,12 @@ export function useConversations() {
             .limit(1)
             .maybeSingle();
 
-          // Get booking info for this conversation/service
+          // Get booking info for this conversation - match by service_id and buyer_id
           const { data: booking } = await supabase
             .from('bookings')
             .select('id, status, buyer_completed, consultant_completed')
             .eq('service_id', conversation.service_id)
-            .or(`user_id.eq.${user.id},consultant_id.in.(select id from consultants where user_id = '${user.id}')`)
+            .eq('user_id', conversation.buyer_id)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
