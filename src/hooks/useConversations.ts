@@ -287,12 +287,19 @@ export function useDeleteConversation() {
     onSuccess: (deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       
-      // Show simple toast without action for now
-      toast({
-        title: "Conversation deleted",
-        description: "The conversation has been permanently deleted",
-        duration: 10000,
-      });
+      // Custom event to trigger undo toast
+      window.dispatchEvent(new CustomEvent('showUndoToast', {
+        detail: {
+          message: 'Conversation permanently deleted',
+          onUndo: () => {
+            toast({
+              title: "Cannot restore",
+              description: "Deleted conversations cannot be restored",
+              variant: "destructive"
+            });
+          }
+        }
+      }));
     },
     onError: (error) => {
       toast({

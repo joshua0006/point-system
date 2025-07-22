@@ -4,6 +4,7 @@ import { Navigation } from '@/components/Navigation';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { ChatModeToggle } from '@/components/chat/ChatModeToggle';
+import { UndoToast } from '@/components/ui/undo-toast';
 import { useConversations, Conversation } from '@/hooks/useConversations';
 import { useMarkMessagesAsRead } from '@/hooks/useMessages';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,9 +18,27 @@ const Messages = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [isSellingMode, setIsSellingMode] = useState(true); // Default to selling mode for consultants
   const [activeFilter, setActiveFilter] = useState('active');
+  const [undoToastOpen, setUndoToastOpen] = useState(false);
+  const [undoToastMessage, setUndoToastMessage] = useState('');
+  const [undoAction, setUndoAction] = useState<(() => void) | null>(null);
   
   const { data: conversations = [], isLoading } = useConversations();
   const markAsReadMutation = useMarkMessagesAsRead();
+
+  // Listen for undo toast events
+  useEffect(() => {
+    const handleUndoToast = (event: CustomEvent) => {
+      setUndoToastMessage(event.detail.message);
+      setUndoAction(() => event.detail.onUndo);
+      setUndoToastOpen(true);
+    };
+
+    window.addEventListener('showUndoToast', handleUndoToast as EventListener);
+    
+    return () => {
+      window.removeEventListener('showUndoToast', handleUndoToast as EventListener);
+    };
+  }, []);
 
   // Helper function to determine conversation filter category
   const getConversationCategory = (conversation: Conversation) => {
@@ -173,6 +192,18 @@ const Messages = () => {
         conversation={selectedConversation}
         open={chatOpen}
         onOpenChange={handleChatClose}
+      />
+      
+      <UndoToast
+        open={undoToastOpen}
+        onClose={() => setUndoToastOpen(false)}
+        onUndo={() => {
+          if (undoAction) {
+            undoAction();
+          }
+          setUndoToastOpen(false);
+        }}
+        message={undoToastMessage}
       />
     </div>
   );

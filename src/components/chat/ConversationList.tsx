@@ -5,10 +5,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Conversation, useArchiveConversation, useUnarchiveConversation } from '@/hooks/useConversations';
+import { Conversation, useArchiveConversation, useUnarchiveConversation, useDeleteConversation } from '@/hooks/useConversations';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { MoreVertical, Archive, ArchiveX } from 'lucide-react';
+import { MoreVertical, Archive, ArchiveX, Trash2 } from 'lucide-react';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -20,6 +20,7 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
   const { user } = useAuth();
   const archiveConversation = useArchiveConversation();
   const unarchiveConversation = useUnarchiveConversation();
+  const deleteConversation = useDeleteConversation();
   const [selectedDropdown, setSelectedDropdown] = useState<string | null>(null);
 
   const handleArchive = (conversationId: string, e: React.MouseEvent) => {
@@ -31,6 +32,12 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
   const handleUnarchive = (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     unarchiveConversation.mutate(conversationId);
+    setSelectedDropdown(null);
+  };
+
+  const handleDelete = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteConversation.mutate(conversationId);
     setSelectedDropdown(null);
   };
 
@@ -191,6 +198,13 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
                         Archive
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem 
+                      onClick={(e) => handleDelete(conversation.id, e)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      DELETE
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
