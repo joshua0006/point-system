@@ -445,7 +445,10 @@ const ServiceDetail = () => {
         onOpenChange={hideSuccessModal}
         bookingDetails={bookingDetails}
         conversationId={selectedConversation?.id}
-        onMessageConsultant={handleMessageClick}
+        onMessageConsultant={() => {
+          setSelectedConversation(selectedConversation);
+          setChatOpen(true);
+        }}
       />
     </div>
   );

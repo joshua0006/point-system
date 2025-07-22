@@ -215,7 +215,7 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                             setTimeout(() => {
                               onOpenChange(false);
                               onMessageConsultant?.();
-                            }, 1000);
+                            }, 500);
                           } catch (error) {
                             console.error('Failed to send message:', error);
                           }
@@ -242,7 +242,7 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                             setTimeout(() => {
                               onOpenChange(false);
                               onMessageConsultant?.();
-                            }, 1000);
+                            }, 500);
                           } catch (error) {
                             console.error('Failed to send message:', error);
                           }
@@ -269,7 +269,7 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                             setTimeout(() => {
                               onOpenChange(false);
                               onMessageConsultant?.();
-                            }, 1000);
+                            }, 500);
                           } catch (error) {
                             console.error('Failed to send message:', error);
                           }
