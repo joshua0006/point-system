@@ -201,16 +201,20 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                     <Button 
                       variant="outline" 
                       className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                      onClick={() => {
+                      onClick={async () => {
                         const message = "Hi! I'm excited about our upcoming session. What should I prepare beforehand?";
                         if (conversationId) {
-                          sendMessage.mutate({ conversationId, messageText: message });
-                          setMessageSent(true);
-                          // Close modal and open chat immediately
-                          setTimeout(() => {
-                            onOpenChange(false);
-                            onMessageConsultant?.();
-                          }, 1000);
+                          try {
+                            await sendMessage.mutateAsync({ conversationId, messageText: message });
+                            setMessageSent(true);
+                            // Close modal and open chat after message is successfully sent
+                            setTimeout(() => {
+                              onOpenChange(false);
+                              onMessageConsultant?.();
+                            }, 500);
+                          } catch (error) {
+                            console.error('Failed to send message:', error);
+                          }
                         }
                       }}
                     >
@@ -222,16 +226,20 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                     <Button 
                       variant="outline" 
                       className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                      onClick={() => {
+                      onClick={async () => {
                         const message = "Hello! Could you share some background materials or resources before we meet?";
                         if (conversationId) {
-                          sendMessage.mutate({ conversationId, messageText: message });
-                          setMessageSent(true);
-                          // Close modal and open chat immediately
-                          setTimeout(() => {
-                            onOpenChange(false);
-                            onMessageConsultant?.();
-                          }, 1000);
+                          try {
+                            await sendMessage.mutateAsync({ conversationId, messageText: message });
+                            setMessageSent(true);
+                            // Close modal and open chat after message is successfully sent
+                            setTimeout(() => {
+                              onOpenChange(false);
+                              onMessageConsultant?.();
+                            }, 500);
+                          } catch (error) {
+                            console.error('Failed to send message:', error);
+                          }
                         }
                       }}
                     >
@@ -243,16 +251,20 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                     <Button 
                       variant="outline" 
                       className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                      onClick={() => {
+                      onClick={async () => {
                         const message = "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?";
                         if (conversationId) {
-                          sendMessage.mutate({ conversationId, messageText: message });
-                          setMessageSent(true);
-                          // Close modal and open chat immediately
-                          setTimeout(() => {
-                            onOpenChange(false);
-                            onMessageConsultant?.();
-                          }, 1000);
+                          try {
+                            await sendMessage.mutateAsync({ conversationId, messageText: message });
+                            setMessageSent(true);
+                            // Close modal and open chat after message is successfully sent
+                            setTimeout(() => {
+                              onOpenChange(false);
+                              onMessageConsultant?.();
+                            }, 500);
+                          } catch (error) {
+                            console.error('Failed to send message:', error);
+                          }
                         }
                       }}
                     >
