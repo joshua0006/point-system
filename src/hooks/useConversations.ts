@@ -259,3 +259,47 @@ export function useUnarchiveConversation() {
     },
   });
 }
+
+export function useDeleteConversation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      // First delete all messages in the conversation
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      if (messagesError) throw messagesError;
+
+      // Then delete the conversation
+      const { error: conversationError } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (conversationError) throw conversationError;
+
+      return conversationId;
+    },
+    onSuccess: (deletedId) => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      
+      // Show simple toast without action for now
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been permanently deleted",
+        duration: 10000,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete conversation",
+        variant: "destructive",
+      });
+    },
+  });
+}
