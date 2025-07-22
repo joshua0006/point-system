@@ -8,6 +8,7 @@ import { MockSessionInterface } from "./MockSessionInterface";
 import { Check, Calendar, MessageCircle, Star, Clock, User, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSendMessage } from '@/hooks/useMessages';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface BookingDetails {
   id: string;
@@ -32,6 +33,7 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
   const [showSessionDemo, setShowSessionDemo] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
   const sendMessage = useSendMessage();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (open && bookingDetails) {
@@ -207,11 +209,13 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                           try {
                             await sendMessage.mutateAsync({ conversationId, messageText: message });
                             setMessageSent(true);
-                            // Close modal and open chat after message is successfully sent
+                            // Force refresh messages before opening chat
+                            await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+                            // Give a moment for the query to refresh
                             setTimeout(() => {
                               onOpenChange(false);
                               onMessageConsultant?.();
-                            }, 500);
+                            }, 1000);
                           } catch (error) {
                             console.error('Failed to send message:', error);
                           }
@@ -232,11 +236,13 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                           try {
                             await sendMessage.mutateAsync({ conversationId, messageText: message });
                             setMessageSent(true);
-                            // Close modal and open chat after message is successfully sent
+                            // Force refresh messages before opening chat
+                            await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+                            // Give a moment for the query to refresh
                             setTimeout(() => {
                               onOpenChange(false);
                               onMessageConsultant?.();
-                            }, 500);
+                            }, 1000);
                           } catch (error) {
                             console.error('Failed to send message:', error);
                           }
@@ -257,11 +263,13 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                           try {
                             await sendMessage.mutateAsync({ conversationId, messageText: message });
                             setMessageSent(true);
-                            // Close modal and open chat after message is successfully sent
+                            // Force refresh messages before opening chat
+                            await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+                            // Give a moment for the query to refresh
                             setTimeout(() => {
                               onOpenChange(false);
                               onMessageConsultant?.();
-                            }, 500);
+                            }, 1000);
                           } catch (error) {
                             console.error('Failed to send message:', error);
                           }
