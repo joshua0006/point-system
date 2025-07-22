@@ -129,18 +129,8 @@ export function useCreateConversation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check for existing conversation with this specific service
-      const { data: existingConversation } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('service_id', serviceId)
-        .eq('seller_id', sellerUserId)
-        .eq('buyer_id', user.id)
-        .maybeSingle();
-
-      if (existingConversation) {
-        return existingConversation;
-      }
+      // Always create a new conversation for each purchase/booking
+      // This ensures separate conversations for each transaction
 
       // Create new conversation
       const { data, error } = await supabase
