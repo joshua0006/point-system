@@ -28,6 +28,11 @@ const Messages = () => {
       return 'archive';
     }
     
+    // Check conversation status first
+    if (conversation.status === 'waiting_acceptance') {
+      return 'waiting_acceptance';
+    }
+    
     // Check booking status for filtering
     if (conversation.booking) {
       switch (conversation.booking.status) {
