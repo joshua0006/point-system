@@ -213,7 +213,6 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                             await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
                             // Give a moment for the query to refresh
                             setTimeout(() => {
-                              onOpenChange(false);
                               onMessageConsultant?.();
                             }, 500);
                           } catch (error) {
@@ -240,7 +239,6 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                             await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
                             // Give a moment for the query to refresh
                             setTimeout(() => {
-                              onOpenChange(false);
                               onMessageConsultant?.();
                             }, 500);
                           } catch (error) {
@@ -267,7 +265,6 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                             await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
                             // Give a moment for the query to refresh
                             setTimeout(() => {
-                              onOpenChange(false);
                               onMessageConsultant?.();
                             }, 500);
                           } catch (error) {
