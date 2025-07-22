@@ -30,10 +30,14 @@ interface BookingSuccessModalProps {
 export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conversationId, onMessageConsultant }: BookingSuccessModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showSessionDemo, setShowSessionDemo] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
   const sendMessage = useSendMessage();
 
   useEffect(() => {
     if (open && bookingDetails) {
+      // Reset message sent state when modal opens
+      setMessageSent(false);
+      
       // Simulate booking progress for demo
       const timer = setTimeout(() => setCurrentStep(1), 2000);
       const timer2 = setTimeout(() => setCurrentStep(2), 4000);
@@ -190,55 +194,82 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-xs text-muted-foreground mb-3">Click to send a message and start the conversation:</p>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                  onClick={() => {
-                    const message = "Hi! I'm excited about our upcoming session. What should I prepare beforehand?";
-                    if (conversationId) {
-                      sendMessage.mutate({ conversationId, messageText: message });
-                    }
-                    onMessageConsultant?.();
-                  }}
-                >
-                  <div className="text-sm leading-relaxed break-words">
-                    "Hi! I'm excited about our upcoming session. What should I prepare beforehand?"
+                {!messageSent ? (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-3">Click to send a message and start the conversation:</p>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-left justify-start h-auto p-3 whitespace-normal"
+                      onClick={() => {
+                        const message = "Hi! I'm excited about our upcoming session. What should I prepare beforehand?";
+                        if (conversationId) {
+                          sendMessage.mutate({ conversationId, messageText: message });
+                          setMessageSent(true);
+                          // Close modal and open chat immediately
+                          setTimeout(() => {
+                            onOpenChange(false);
+                            onMessageConsultant?.();
+                          }, 1000);
+                        }
+                      }}
+                    >
+                      <div className="text-sm leading-relaxed break-words">
+                        "Hi! I'm excited about our upcoming session. What should I prepare beforehand?"
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-left justify-start h-auto p-3 whitespace-normal"
+                      onClick={() => {
+                        const message = "Hello! Could you share some background materials or resources before we meet?";
+                        if (conversationId) {
+                          sendMessage.mutate({ conversationId, messageText: message });
+                          setMessageSent(true);
+                          // Close modal and open chat immediately
+                          setTimeout(() => {
+                            onOpenChange(false);
+                            onMessageConsultant?.();
+                          }, 1000);
+                        }
+                      }}
+                    >
+                      <div className="text-sm leading-relaxed break-words">
+                        "Hello! Could you share some background materials or resources before we meet?"
+                      </div>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-left justify-start h-auto p-3 whitespace-normal"
+                      onClick={() => {
+                        const message = "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?";
+                        if (conversationId) {
+                          sendMessage.mutate({ conversationId, messageText: message });
+                          setMessageSent(true);
+                          // Close modal and open chat immediately
+                          setTimeout(() => {
+                            onOpenChange(false);
+                            onMessageConsultant?.();
+                          }, 1000);
+                        }
+                      }}
+                    >
+                      <div className="text-sm leading-relaxed break-words">
+                        "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?"
+                      </div>
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center p-4 bg-success/10 rounded-lg border border-success/20">
+                    <Check className="w-8 h-8 text-success mx-auto mb-2" />
+                    <p className="text-sm font-medium text-success">Message sent successfully!</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      A chat has been created. Please wait for the seller to respond.
+                    </p>
                   </div>
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                  onClick={() => {
-                    const message = "Hello! Could you share some background materials or resources before we meet?";
-                    if (conversationId) {
-                      sendMessage.mutate({ conversationId, messageText: message });
-                    }
-                    onMessageConsultant?.();
-                  }}
-                >
-                  <div className="text-sm leading-relaxed break-words">
-                    "Hello! Could you share some background materials or resources before we meet?"
-                  </div>
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                  onClick={() => {
-                    const message = "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?";
-                    if (conversationId) {
-                      sendMessage.mutate({ conversationId, messageText: message });
-                    }
-                    onMessageConsultant?.();
-                  }}
-                >
-                  <div className="text-sm leading-relaxed break-words">
-                    "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?"
-                  </div>
-                </Button>
+                )}
               </CardContent>
             </Card>
 
