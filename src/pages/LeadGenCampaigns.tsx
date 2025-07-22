@@ -327,12 +327,18 @@ const LeadGenCampaigns = () => {
                 <Button 
                   variant={adminMode ? "default" : "secondary"} 
                   size="sm"
-                  onClick={() => setAdminMode(!adminMode)}
+                  onClick={() => {
+                    console.log('Admin mode toggle clicked, current adminMode:', adminMode);
+                    setAdminMode(!adminMode);
+                  }}
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   {adminMode ? "Exit Admin Mode" : "Admin Mode"}
                 </Button>
               )}
+              <div className="text-sm text-muted-foreground">
+                Debug: isAdmin={isAdmin.toString()}, adminMode={adminMode.toString()}
+              </div>
             </div>
         
             <div className="max-w-4xl mx-auto">
