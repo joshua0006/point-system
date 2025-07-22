@@ -13,7 +13,7 @@ import { useServices } from '@/hooks/useServices';
 import { useBookService } from '@/hooks/useBookings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCreateConversation, useExistingConversation } from '@/hooks/useConversations';
+import { useCreateConversation } from '@/hooks/useConversations';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { BookingSuccessModal } from '@/components/booking/BookingSuccessModal';
 import { useBookingSuccess } from '@/hooks/useBookingSuccess';
@@ -44,8 +44,8 @@ const ServiceDetail = () => {
       description: serviceData.description,
     });
 
-    // Create conversation if it doesn't exist for the booking success modal
-    if (!existingConversation && service?.consultant?.user_id) {
+    // Create conversation for the new purchase
+    if (service?.consultant?.user_id) {
       try {
         const newConversation = await createConversationMutation.mutateAsync({
           serviceId: service.id,
@@ -61,10 +61,7 @@ const ServiceDetail = () => {
   const service = services.find(s => s.id === serviceId);
   console.log('ServiceDetail - found service:', service);
   
-  const { data: existingConversation } = useExistingConversation(
-    serviceId || '', 
-    service?.consultant?.user_id || ''
-  );
+  // Always create new conversations for each interaction
 
   const handlePurchase = () => {
     if (!user) {
@@ -118,22 +115,16 @@ const ServiceDetail = () => {
       return;
     }
 
-    if (existingConversation) {
-      // Open existing conversation
-      setSelectedConversation(existingConversation);
+    // Always create new conversation for each interaction
+    try {
+      const newConversation = await createConversationMutation.mutateAsync({
+        serviceId: service.id,
+        sellerUserId: service.consultant.user_id,
+      });
+      setSelectedConversation(newConversation);
       setChatOpen(true);
-    } else {
-      // Create new conversation
-      try {
-        const newConversation = await createConversationMutation.mutateAsync({
-          serviceId: service.id,
-          sellerUserId: service.consultant.user_id,
-        });
-        setSelectedConversation(newConversation);
-        setChatOpen(true);
-      } catch (error) {
-        console.error('Failed to create conversation:', error);
-      }
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
     }
   };
 
@@ -419,7 +410,7 @@ const ServiceDetail = () => {
                       size="lg"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      {existingConversation ? 'Continue Chat' : 'Message Seller'}
+                      {'Message Seller'}
                     </Button>
                     
                     <Button 
@@ -453,7 +444,7 @@ const ServiceDetail = () => {
         open={isSuccessModalOpen}
         onOpenChange={hideSuccessModal}
         bookingDetails={bookingDetails}
-        conversationId={existingConversation?.id || selectedConversation?.id}
+        conversationId={selectedConversation?.id}
         onMessageConsultant={handleMessageClick}
       />
     </div>
