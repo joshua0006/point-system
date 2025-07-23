@@ -6,13 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Navigation } from "@/components/Navigation";
-import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, Wallet } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, Wallet, MessageSquare } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentMethodsTab } from "@/components/settings/PaymentMethodsTab";
 import { TransactionHistoryModal } from "@/components/settings/TransactionHistoryModal";
+import { AutoReplySettings } from "@/components/settings/AutoReplySettings";
+import { useQuery } from "@tanstack/react-query";
 
 const Settings = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -30,6 +32,28 @@ const Settings = () => {
   
   // Modal states
   const [transactionHistoryOpen, setTransactionHistoryOpen] = useState(false);
+
+  // Check if user is a consultant
+  const { data: isConsultant } = useQuery({
+    queryKey: ['is-consultant', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking consultant status:', error);
+        return false;
+      }
+
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   // Load profile data when it's available
   useEffect(() => {
@@ -120,7 +144,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -141,6 +165,12 @@ const Settings = () => {
               <CreditCard className="h-4 w-4" />
               Billing
             </TabsTrigger>
+            {isConsultant && (
+              <TabsTrigger value="auto-reply" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Auto-Reply
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="profile">
@@ -322,6 +352,12 @@ const Settings = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {isConsultant && (
+            <TabsContent value="auto-reply">
+              <AutoReplySettings />
+            </TabsContent>
+          )}
         </Tabs>
         
         <TransactionHistoryModal

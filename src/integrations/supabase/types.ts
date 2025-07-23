@@ -303,6 +303,8 @@ export type Database = {
       }
       consultants: {
         Row: {
+          auto_reply_enabled: boolean | null
+          auto_reply_message: string | null
           bio: string | null
           calendar_link: string | null
           created_at: string
@@ -315,6 +317,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
           bio?: string | null
           calendar_link?: string | null
           created_at?: string
@@ -327,6 +331,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_reply_enabled?: boolean | null
+          auto_reply_message?: string | null
           bio?: string | null
           calendar_link?: string | null
           created_at?: string

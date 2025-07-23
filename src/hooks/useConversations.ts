@@ -144,6 +144,31 @@ export function useCreateConversation() {
         .single();
 
       if (error) throw error;
+
+      // Check if the consultant has auto-reply enabled and send it
+      const { data: consultant } = await supabase
+        .from('consultants')
+        .select('auto_reply_enabled, auto_reply_message')
+        .eq('user_id', sellerUserId)
+        .single();
+
+      if (consultant?.auto_reply_enabled && consultant.auto_reply_message) {
+        // Send auto-reply message
+        const { error: messageError } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: data.id,
+            sender_id: sellerUserId,
+            message_text: consultant.auto_reply_message,
+            message_type: 'text',
+          });
+
+        if (messageError) {
+          console.error('Error sending auto-reply:', messageError);
+          // Don't fail the conversation creation if auto-reply fails
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
