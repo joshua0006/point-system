@@ -153,7 +153,7 @@ export function useCreateConversation() {
         .from('consultants')
         .select('auto_reply_enabled, auto_reply_message')
         .eq('user_id', sellerUserId)
-        .single();
+        .maybeSingle();
 
       if (consultantError) {
         console.error('Error fetching consultant auto-reply settings:', consultantError);
