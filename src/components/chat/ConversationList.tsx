@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { UndoToast } from '@/components/ui/undo-toast';
 import { Conversation, useArchiveConversation, useUnarchiveConversation, useDeleteConversation } from '@/hooks/useConversations';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -22,6 +23,11 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
   const unarchiveConversation = useUnarchiveConversation();
   const deleteConversation = useDeleteConversation();
   const [selectedDropdown, setSelectedDropdown] = useState<string | null>(null);
+  const [undoToast, setUndoToast] = useState<{
+    open: boolean;
+    message: string;
+    onUndo: () => void;
+  }>({ open: false, message: '', onUndo: () => {} });
 
   const handleArchive = (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -37,8 +43,30 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
 
   const handleDelete = (conversationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    deleteConversation.mutate(conversationId);
     setSelectedDropdown(null);
+    
+    // Show undo toast immediately and schedule deletion
+    let deletionTimeout: NodeJS.Timeout;
+    
+    const executeDelete = () => {
+      deleteConversation.mutate(conversationId);
+      setUndoToast({ open: false, message: '', onUndo: () => {} });
+    };
+    
+    const cancelDelete = () => {
+      clearTimeout(deletionTimeout);
+      setUndoToast({ open: false, message: '', onUndo: () => {} });
+    };
+    
+    // Schedule deletion for after 10 seconds
+    deletionTimeout = setTimeout(executeDelete, 10000);
+    
+    // Show undo toast immediately
+    setUndoToast({
+      open: true,
+      message: 'Conversation will be permanently deleted',
+      onUndo: cancelDelete
+    });
   };
 
   const getEmptyMessage = () => {
@@ -79,8 +107,9 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
   }
 
   return (
-    <div className="space-y-4">
-      {conversations.map((conversation) => {
+    <>
+      <div className="space-y-4">
+        {conversations.map((conversation) => {
         const otherParticipant = conversation.buyer_id === user?.id 
           ? conversation.seller_profile 
           : conversation.buyer_profile;
@@ -213,5 +242,13 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
         );
       })}
     </div>
+    
+    <UndoToast
+      open={undoToast.open}
+      onClose={() => setUndoToast({ open: false, message: '', onUndo: () => {} })}
+      onUndo={undoToast.onUndo}
+      message={undoToast.message}
+    />
+  </>
   );
 }
