@@ -147,40 +147,24 @@ export function useCreateConversation() {
 
       console.log('Conversation created:', data);
 
-      // Check if the consultant has auto-reply enabled and send it
-      console.log('Checking auto-reply for seller:', sellerUserId);
-      const { data: consultant, error: consultantError } = await supabase
-        .from('consultants')
-        .select('auto_reply_enabled, auto_reply_message')
-        .eq('user_id', sellerUserId)
-        .maybeSingle();
+      // Send auto-reply using Edge Function with elevated permissions
+      try {
+        console.log('Calling auto-reply edge function...');
+        const { data: autoReplyData, error: autoReplyError } = await supabase.functions.invoke('send-auto-reply', {
+          body: {
+            conversationId: data.id,
+            sellerId: sellerUserId
+          }
+        });
 
-      if (consultantError) {
-        console.error('Error fetching consultant auto-reply settings:', consultantError);
-      } else {
-        console.log('Consultant auto-reply settings:', consultant);
-      }
-
-      if (consultant?.auto_reply_enabled && consultant.auto_reply_message) {
-        console.log('Sending auto-reply message:', consultant.auto_reply_message);
-        // Send auto-reply message
-        const { error: messageError } = await supabase
-          .from('messages')
-          .insert({
-            conversation_id: data.id,
-            sender_id: sellerUserId,
-            message_text: consultant.auto_reply_message,
-            message_type: 'text',
-          });
-
-        if (messageError) {
-          console.error('Error sending auto-reply:', messageError);
-          // Don't fail the conversation creation if auto-reply fails
+        if (autoReplyError) {
+          console.error('Error calling auto-reply function:', autoReplyError);
         } else {
-          console.log('Auto-reply sent successfully');
+          console.log('Auto-reply function response:', autoReplyData);
         }
-      } else {
-        console.log('Auto-reply not enabled or no message set for consultant');
+      } catch (error) {
+        console.error('Error invoking auto-reply function:', error);
+        // Don't fail conversation creation if auto-reply fails
       }
 
       return data;
