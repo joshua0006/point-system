@@ -286,6 +286,11 @@ export function useDeleteConversation() {
     },
     onSuccess: (deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({
+        title: "Success",
+        description: "Conversation permanently deleted",
+      });
+      console.log('Conversation deleted successfully:', deletedId);
     },
     onError: (error) => {
       toast({
