@@ -145,14 +145,24 @@ export function useCreateConversation() {
 
       if (error) throw error;
 
+      console.log('Conversation created:', data);
+
       // Check if the consultant has auto-reply enabled and send it
-      const { data: consultant } = await supabase
+      console.log('Checking auto-reply for seller:', sellerUserId);
+      const { data: consultant, error: consultantError } = await supabase
         .from('consultants')
         .select('auto_reply_enabled, auto_reply_message')
         .eq('user_id', sellerUserId)
         .single();
 
+      if (consultantError) {
+        console.error('Error fetching consultant auto-reply settings:', consultantError);
+      } else {
+        console.log('Consultant auto-reply settings:', consultant);
+      }
+
       if (consultant?.auto_reply_enabled && consultant.auto_reply_message) {
+        console.log('Sending auto-reply message:', consultant.auto_reply_message);
         // Send auto-reply message
         const { error: messageError } = await supabase
           .from('messages')
@@ -166,7 +176,11 @@ export function useCreateConversation() {
         if (messageError) {
           console.error('Error sending auto-reply:', messageError);
           // Don't fail the conversation creation if auto-reply fails
+        } else {
+          console.log('Auto-reply sent successfully');
         }
+      } else {
+        console.log('Auto-reply not enabled or no message set for consultant');
       }
 
       return data;
