@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Navigation } from "@/components/Navigation";
 import { DollarSign, Target, Phone, Settings, LogOut } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
+import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { CampaignMethodSelector } from "@/components/campaigns/CampaignMethodSelector";
 import { FacebookAdsWizard } from "@/components/campaigns/FacebookAdsWizard";
@@ -72,6 +73,8 @@ const LeadGenCampaigns = () => {
   const [userBalance, setUserBalance] = useState(0);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [userCampaigns, setUserCampaigns] = useState([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
   
   // Admin mode state
   const [adminMode, setAdminMode] = useState(false);
@@ -237,7 +240,7 @@ const LeadGenCampaigns = () => {
           start_date: new Date().toISOString(),
           end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           total_budget: budget * 12,
-          status: 'active',
+          status: 'pending_activation',
           created_by: user.id
         })
         .select()
@@ -256,14 +259,25 @@ const LeadGenCampaigns = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Campaign Launched! 🎉",
-        description: `${budget} points deducted. Your campaign is now active.`,
+      // Prepare success modal data
+      setSuccessCampaignDetails({
+        id: campaign.id,
+        name: campaignName,
+        description: pendingCampaign.method === 'facebook-ads' 
+          ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
+          : `Professional cold calling service for ${pendingCampaign.hours} hours per month`,
+        method: pendingCampaign.method,
+        targetAudience: pendingCampaign.targetAudience,
+        campaignType: pendingCampaign.campaignType,
+        budget: budget,
+        consultantName: pendingCampaign.consultantName,
+        hours: pendingCampaign.hours
       });
 
       // Refresh balance from database to ensure accuracy
       await fetchUserBalance();
       setShowCheckoutModal(false);
+      setShowSuccessModal(true);
       setPendingCampaign(null);
       setCurrentFlow('method-selection');
       fetchUserCampaigns();
@@ -626,6 +640,17 @@ const LeadGenCampaigns = () => {
         onClose={() => setTopUpModalOpen(false)}
         onSuccess={handleTopUpSuccess}
       />
+
+      {successCampaignDetails && (
+        <CampaignLaunchSuccessModal 
+          isOpen={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setSuccessCampaignDetails(null);
+          }}
+          campaignDetails={successCampaignDetails}
+        />
+      )}
     </div>
   );
 };
