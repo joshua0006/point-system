@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
+import { supabase } from "@/integrations/supabase/client";
 
 const ICON_OPTIONS = [
   { name: 'Shield', component: Shield, value: 'Shield' },
@@ -49,6 +50,42 @@ export const AdminInterface = ({
     campaignTypes: ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
   });
 
+  // Load campaign templates from database on mount
+  useEffect(() => {
+    const loadCampaignTemplates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('campaign_templates')
+          .select('*')
+          .eq('campaign_angle', 'custom');
+        
+        if (error) throw error;
+        
+        const targets = data.map(template => {
+          const config = template.template_config as any;
+          const iconComponent = ICON_OPTIONS.find(icon => icon.value === config?.icon)?.component || Users;
+          
+          return {
+            id: template.id,
+            name: template.name,
+            description: template.description,
+            icon: iconComponent,
+            bgColor: config?.bgColor || 'bg-blue-500/10',
+            iconColor: config?.iconColor || 'text-blue-600',
+            budgetRange: config?.budgetRange || { min: 200, max: 1500, recommended: 500 },
+            campaignTypes: config?.campaignTypes || ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
+          };
+        });
+        
+        setCampaignTargets(targets);
+      } catch (error) {
+        console.error('Error loading campaign templates:', error);
+      }
+    };
+
+    loadCampaignTemplates();
+  }, [setCampaignTargets]);
+
   const openEditTarget = (target: any) => {
     setTargetForm({
       id: target.id,
@@ -79,34 +116,87 @@ export const AdminInterface = ({
     setShowTargetDialog(true);
   };
 
-  const saveTarget = () => {
+  const saveTarget = async () => {
     try {
       const selectedIcon = ICON_OPTIONS.find(icon => icon.value === targetForm.icon);
-      const updatedTarget = {
-        ...targetForm,
-        icon: selectedIcon?.component || Users
+      
+      const templateData = {
+        name: targetForm.name,
+        description: targetForm.description,
+        target_audience: targetForm.name,
+        campaign_angle: 'custom',
+        template_config: {
+          icon: targetForm.icon,
+          bgColor: targetForm.bgColor,
+          iconColor: targetForm.iconColor,
+          budgetRange: targetForm.budgetRange,
+          campaignTypes: targetForm.campaignTypes
+        }
       };
 
       if (editingTarget) {
+        const { error } = await supabase
+          .from('campaign_templates')
+          .update(templateData)
+          .eq('id', editingTarget.id);
+        
+        if (error) throw error;
+        
+        const updatedTarget = {
+          ...targetForm,
+          icon: selectedIcon?.component || Users
+        };
         setCampaignTargets(prev => 
           prev.map(target => target.id === editingTarget.id ? updatedTarget : target)
         );
         toast({ title: "Target audience updated successfully!" });
       } else {
-        setCampaignTargets(prev => [...prev, updatedTarget]);
+        const { data, error } = await supabase
+          .from('campaign_templates')
+          .insert([templateData])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        const config = data.template_config as any;
+        const newTarget = {
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          icon: selectedIcon?.component || Users,
+          bgColor: targetForm.bgColor,
+          iconColor: targetForm.iconColor,
+          budgetRange: config?.budgetRange || targetForm.budgetRange,
+          campaignTypes: config?.campaignTypes || targetForm.campaignTypes
+        };
+        setCampaignTargets(prev => [...prev, newTarget]);
         toast({ title: "New target audience created successfully!" });
       }
       
       setShowTargetDialog(false);
       setEditingTarget(null);
     } catch (error) {
+      console.error('Error saving target:', error);
       toast({ title: "Error saving target", variant: "destructive" });
     }
   };
 
-  const deleteTarget = (targetId: string) => {
-    setCampaignTargets(prev => prev.filter(target => target.id !== targetId));
-    toast({ title: "Target audience deleted successfully!" });
+  const deleteTarget = async (targetId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_templates')
+        .delete()
+        .eq('id', targetId);
+      
+      if (error) throw error;
+      
+      setCampaignTargets(prev => prev.filter(target => target.id !== targetId));
+      toast({ title: "Target audience deleted successfully!" });
+    } catch (error) {
+      console.error('Error deleting target:', error);
+      toast({ title: "Error deleting target", variant: "destructive" });
+    }
   };
 
   const openCampaignTypesDialog = (target: any) => {
@@ -114,18 +204,45 @@ export const AdminInterface = ({
     setShowCampaignTypesDialog(true);
   };
 
-  const saveCampaignTypes = () => {
+  const saveCampaignTypes = async () => {
     if (editingTargetForTypes) {
-      setCampaignTargets(prev => 
-        prev.map(target => 
-          target.id === editingTargetForTypes.id 
-            ? { ...target, campaignTypes: editingTargetForTypes.campaignTypes }
-            : target
-        )
-      );
-      toast({ title: "Campaign types updated successfully!" });
-      setShowCampaignTypesDialog(false);
-      setEditingTargetForTypes(null);
+      try {
+        // Get the current template config
+        const { data: template, error: fetchError } = await supabase
+          .from('campaign_templates')
+          .select('template_config')
+          .eq('id', editingTargetForTypes.id)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        const currentConfig = template.template_config as any;
+        const updatedConfig = {
+          ...currentConfig,
+          campaignTypes: editingTargetForTypes.campaignTypes
+        };
+        
+        const { error } = await supabase
+          .from('campaign_templates')
+          .update({ template_config: updatedConfig })
+          .eq('id', editingTargetForTypes.id);
+        
+        if (error) throw error;
+        
+        setCampaignTargets(prev => 
+          prev.map(target => 
+            target.id === editingTargetForTypes.id 
+              ? { ...target, campaignTypes: editingTargetForTypes.campaignTypes }
+              : target
+          )
+        );
+        toast({ title: "Campaign types updated successfully!" });
+        setShowCampaignTypesDialog(false);
+        setEditingTargetForTypes(null);
+      } catch (error) {
+        console.error('Error updating campaign types:', error);
+        toast({ title: "Error updating campaign types", variant: "destructive" });
+      }
     }
   };
 
