@@ -75,7 +75,7 @@ const LeadGenCampaigns = () => {
   
   // Admin mode state
   const [adminMode, setAdminMode] = useState(false);
-  const [editingTarget, setEditingTarget] = useState(null);
+  const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
 
   useEffect(() => {
