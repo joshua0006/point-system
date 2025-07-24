@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { DollarSign, Target, Phone, Settings } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { CampaignMethodSelector } from "@/components/campaigns/CampaignMethodSelector";
@@ -62,7 +62,7 @@ const DEFAULT_CAMPAIGN_TARGETS = [
 ];
 
 const LeadGenCampaigns = () => {
-  const { user } = useAuth();
+  const { user, signOut, profile } = useAuth();
   const { toast } = useToast();
   const [currentFlow, setCurrentFlow] = useState<'method-selection' | 'facebook-ads' | 'cold-calling'>('method-selection');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -82,7 +82,7 @@ const LeadGenCampaigns = () => {
     fetchUserBalance();
     checkAdminStatus();
     fetchUserCampaigns();
-  }, [user]);
+  }, [user, profile]);
 
   const fetchUserCampaigns = async () => {
     if (!user) return;
@@ -114,6 +114,21 @@ const LeadGenCampaigns = () => {
 
   const checkAdminStatus = async () => {
     if (!user) return;
+    
+    console.log('Checking admin status for user:', user.id, user.email);
+    console.log('Profile from context:', profile);
+    
+    // First try to use the profile from context
+    if (profile) {
+      console.log('Using profile from context, role:', profile.role);
+      if (profile.role === 'admin') {
+        console.log('User is admin (from context), setting isAdmin to true');
+        setIsAdmin(true);
+        return;
+      }
+    }
+    
+    // Fallback to API call if profile not available
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -121,8 +136,13 @@ const LeadGenCampaigns = () => {
         .eq('user_id', user.id)
         .single();
       
+      console.log('Admin check API response:', { data, error });
+      
       if (data && data.role === 'admin') {
+        console.log('User is admin (from API), setting isAdmin to true');
         setIsAdmin(true);
+      } else {
+        console.log('User is not admin, role:', data?.role);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -320,22 +340,34 @@ const LeadGenCampaigns = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-8">
-            <div className="flex justify-end items-center mb-6">
-              {isAdmin && (
-                <Button 
-                  variant={adminMode ? "default" : "secondary"} 
-                  size="sm"
-                  onClick={() => {
-                    console.log('Admin mode toggle clicked, current adminMode:', adminMode);
-                    setAdminMode(!adminMode);
-                  }}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  {adminMode ? "Exit Admin Mode" : "Admin Mode"}
-                </Button>
-              )}
-              <div className="text-sm text-muted-foreground">
-                Debug: isAdmin={isAdmin.toString()}, adminMode={adminMode.toString()}
+            <div className="flex justify-between items-center mb-6">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={signOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+              
+              <div className="flex items-center gap-4">
+                {isAdmin && (
+                  <Button 
+                    variant={adminMode ? "default" : "secondary"} 
+                    size="sm"
+                    onClick={() => {
+                      console.log('Admin mode toggle clicked, current adminMode:', adminMode);
+                      setAdminMode(!adminMode);
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    {adminMode ? "Exit Admin Mode" : "Admin Mode"}
+                  </Button>
+                )}
+                <div className="text-sm text-muted-foreground">
+                  Debug: isAdmin={isAdmin.toString()}, adminMode={adminMode.toString()}
+                </div>
               </div>
             </div>
         
