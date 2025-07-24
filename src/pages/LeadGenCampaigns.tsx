@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { DollarSign, Target, Phone, Settings, LogOut, Pause } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
@@ -304,16 +304,16 @@ const LeadGenCampaigns = () => {
       if (error) throw error;
 
       toast({
-        title: "Campaign Stopped",
-        description: "Monthly billing has been stopped for this campaign.",
+        title: "Billing Paused",
+        description: "Monthly billing has been paused. Your campaign will continue running and you won't be charged next cycle.",
       });
 
       fetchUserCampaigns();
     } catch (error) {
-      console.error('Error stopping campaign:', error);
+      console.error('Error pausing billing:', error);
       toast({
         title: "Error",
-        description: "Failed to stop campaign. Please try again.",
+        description: "Failed to pause billing. Please try again.",
         variant: "destructive",
       });
     }
@@ -333,16 +333,16 @@ const LeadGenCampaigns = () => {
       if (error) throw error;
 
       toast({
-        title: "Campaign Reactivated", 
-        description: "Monthly billing has been reactivated for this campaign.",
+        title: "Billing Resumed", 
+        description: "Monthly billing has been resumed. You'll be charged starting next cycle.",
       });
 
       fetchUserCampaigns();
     } catch (error) {
-      console.error('Error reactivating campaign:', error);
+      console.error('Error resuming billing:', error);
       toast({
         title: "Error",
-        description: "Failed to reactivate campaign. Please try again.",
+        description: "Failed to resume billing. Please try again.",
         variant: "destructive",
       });
     }
@@ -432,13 +432,13 @@ const LeadGenCampaigns = () => {
                   const isActive = participation.billing_status === 'active';
                   const isStopped = participation.billing_status === 'stopped';
                   
-                  // Dynamic styling based on status
+                  // Dynamic styling based on billing status
                   const iconColor = isActive 
                     ? (isColdCalling ? 'text-green-600' : 'text-blue-600')
-                    : 'text-muted-foreground';
+                    : 'text-warning';
                   const bgColor = isActive 
                     ? (isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10')
-                    : 'bg-muted/20';
+                    : 'bg-warning/10';
                   
                   return (
                     <Card 
@@ -446,7 +446,7 @@ const LeadGenCampaigns = () => {
                       className={`transition-all duration-300 ${
                         isActive 
                           ? 'hover:shadow-lg border-border' 
-                          : 'opacity-60 border-destructive/30 bg-muted/5'
+                          : 'border-warning/40'
                       }`}
                     >
                       <CardContent className="p-6">
@@ -459,13 +459,17 @@ const LeadGenCampaigns = () => {
                             <p className="text-sm text-muted-foreground">{campaign.description}</p>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            {isStopped && <Pause className="h-4 w-4 text-destructive" />}
-                            {isActive && <Target className="h-4 w-4 text-green-600" />}
+                            {isStopped && <CreditCard className="h-4 w-4 text-warning" />}
+                            {isActive && <Play className="h-4 w-4 text-green-600" />}
                             <Badge 
-                              variant={isActive ? 'default' : 'secondary'}
-                              className="capitalize"
+                              variant={isActive ? 'default' : 'outline'}
+                              className={`capitalize ${
+                                isStopped 
+                                  ? 'border-warning/40 text-warning bg-warning/10' 
+                                  : ''
+                              }`}
                             >
-                              {isActive ? 'Active' : 'Stopped'}
+                              {isActive ? 'Campaign Active • Billing Active' : 'Campaign Active • Billing Paused'}
                             </Badge>
                           </div>
                         </div>
@@ -477,10 +481,14 @@ const LeadGenCampaigns = () => {
                             </Badge>
                             <Badge variant={
                               participation.billing_status === 'active' ? 'default' : 
-                              participation.billing_status === 'stopped' ? 'destructive' : 'secondary'
+                              participation.billing_status === 'stopped' ? 'outline' : 'secondary'
+                            } className={
+                              participation.billing_status === 'stopped' 
+                                ? 'border-warning/40 text-warning bg-warning/10' 
+                                : ''
                             }>
-                              {participation.billing_status === 'active' ? 'Active Billing' :
-                               participation.billing_status === 'stopped' ? 'Billing Stopped' :
+                              {participation.billing_status === 'active' ? 'Billing Active' :
+                               participation.billing_status === 'stopped' ? 'Billing Paused' :
                                participation.billing_status === 'paused_insufficient_funds' ? 'Paused - Low Balance' :
                                'Unknown Status'}
                             </Badge>
@@ -510,34 +518,37 @@ const LeadGenCampaigns = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleStopCampaign(participation.id)}
-                                  className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                  className="border-warning text-warning hover:bg-warning hover:text-warning-foreground"
                                 >
                                   <Pause className="h-4 w-4 mr-2" />
-                                  Stop Campaign
+                                  Pause Billing
                                 </Button>
                               ) : participation.billing_status === 'stopped' ? (
                                 <Button
                                   size="sm"
                                   onClick={() => handleReactivateCampaign(participation.id)}
-                                  className="bg-green-600 hover:bg-green-700"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
                                 >
-                                  <Target className="h-4 w-4 mr-2" />
-                                  Reactivate Campaign
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Resume Billing
                                 </Button>
                               ) : null}
                             </div>
                             
-                            {/* Explanatory text for stopped campaigns */}
+                            {/* Explanatory text for billing paused campaigns */}
                             {participation.billing_status === 'stopped' && (
-                              <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                                <p className="text-sm text-destructive flex items-center gap-2">
-                                  <Pause className="h-4 w-4" />
-                                  Campaign stopped - No further charges will occur
+                              <div className="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                                <p className="text-sm text-warning flex items-center gap-2">
+                                  <CreditCard className="h-4 w-4" />
+                                  Billing paused - Campaign continues running, no charges next cycle
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  Last billed: {participation.last_billing_date 
-                                    ? new Date(participation.last_billing_date).toLocaleDateString()
-                                    : new Date(participation.joined_at).toLocaleDateString()}
+                                  You won't be charged on: {participation.next_billing_date 
+                                    ? new Date(participation.next_billing_date).toLocaleDateString()
+                                    : 'Next billing cycle'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Leads will still be generated during billing pause
                                 </p>
                               </div>
                             )}
