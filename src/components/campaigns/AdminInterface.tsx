@@ -190,14 +190,15 @@ export const AdminInterface = ({
       const templateData = {
         name: targetForm.name,
         description: targetForm.description,
-        target_audience: targetForm.name,
+        target_audience: 'custom', // Use 'custom' for new audiences to comply with constraint
         campaign_angle: 'custom',
         template_config: {
           icon: targetForm.icon,
           bgColor: targetForm.bgColor,
           iconColor: targetForm.iconColor,
           budgetRange: targetForm.budgetRange,
-          campaignTypes: targetForm.campaignTypes
+          campaignTypes: targetForm.campaignTypes,
+          customAudienceName: targetForm.name // Store the actual audience name in config
         }
       };
 
