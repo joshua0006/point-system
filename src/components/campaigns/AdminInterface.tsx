@@ -54,26 +54,88 @@ export const AdminInterface = ({
   useEffect(() => {
     const loadCampaignTemplates = async () => {
       try {
+        // Load all campaign templates regardless of campaign_angle
         const { data, error } = await supabase
           .from('campaign_templates')
           .select('*')
-          .eq('campaign_angle', 'custom');
+          .eq('is_active', true);
         
         if (error) throw error;
         
-        const targets = data.map(template => {
-          const config = template.template_config as any;
-          const iconComponent = ICON_OPTIONS.find(icon => icon.value === config?.icon)?.component || Users;
+        // Group templates by target_audience and create target objects
+        const audienceGroups = data.reduce((groups, template) => {
+          const audience = template.target_audience;
+          if (!groups[audience]) {
+            groups[audience] = [];
+          }
+          groups[audience].push(template);
+          return groups;
+        }, {} as Record<string, any[]>);
+
+        // Create target audience objects from grouped templates
+        const targets = Object.entries(audienceGroups).map(([audienceName, templates]) => {
+          // Get predefined styles for known audiences
+          const getAudienceConfig = (name: string) => {
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes('nsf')) {
+              return {
+                icon: Shield,
+                bgColor: 'bg-green-500/10',
+                iconColor: 'text-green-600',
+                budgetRange: { min: 300, max: 2000, recommended: 800 }
+              };
+            } else if (lowerName.includes('senior')) {
+              return {
+                icon: Users,
+                bgColor: 'bg-purple-500/10',
+                iconColor: 'text-purple-600',
+                budgetRange: { min: 200, max: 1500, recommended: 600 }
+              };
+            } else if (lowerName.includes('general')) {
+              return {
+                icon: User,
+                bgColor: 'bg-blue-500/10',
+                iconColor: 'text-blue-600',
+                budgetRange: { min: 250, max: 1800, recommended: 700 }
+              };
+            }
+            // Default for custom audiences
+            return {
+              icon: Users,
+              bgColor: 'bg-gray-500/10',
+              iconColor: 'text-gray-600',
+              budgetRange: { min: 200, max: 1500, recommended: 500 }
+            };
+          };
+
+          // Collect all campaign types from templates in this group
+          const allCampaignTypes = new Set<string>();
+          templates.forEach(template => {
+            const config = template.template_config as any;
+            if (config?.campaignTypes) {
+              config.campaignTypes.forEach((type: string) => allCampaignTypes.add(type));
+            }
+          });
+
+          // Use the first template's data as base, but override with audience-specific config
+          const firstTemplate = templates[0];
+          const config = firstTemplate.template_config as any;
+          const audienceConfig = getAudienceConfig(audienceName);
+          
+          // For custom audiences, prefer saved config; for predefined, use default styling
+          const isCustom = firstTemplate.campaign_angle === 'custom';
           
           return {
-            id: template.id,
-            name: template.name,
-            description: template.description,
-            icon: iconComponent,
-            bgColor: config?.bgColor || 'bg-blue-500/10',
-            iconColor: config?.iconColor || 'text-blue-600',
-            budgetRange: config?.budgetRange || { min: 200, max: 1500, recommended: 500 },
-            campaignTypes: config?.campaignTypes || ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
+            id: firstTemplate.id, // Use first template's ID as representative
+            name: audienceName,
+            description: firstTemplate.description || `Campaign targeting ${audienceName}`,
+            icon: isCustom ? (ICON_OPTIONS.find(icon => icon.value === config?.icon)?.component || audienceConfig.icon) : audienceConfig.icon,
+            bgColor: isCustom ? (config?.bgColor || audienceConfig.bgColor) : audienceConfig.bgColor,
+            iconColor: isCustom ? (config?.iconColor || audienceConfig.iconColor) : audienceConfig.iconColor,
+            budgetRange: isCustom ? (config?.budgetRange || audienceConfig.budgetRange) : audienceConfig.budgetRange,
+            campaignTypes: Array.from(allCampaignTypes),
+            isSeeded: !isCustom, // Mark predefined audiences
+            templateIds: templates.map(t => t.id) // Store all template IDs for this audience
           };
         });
         
@@ -215,31 +277,60 @@ export const AdminInterface = ({
         console.log('Saving campaign types for target:', editingTargetForTypes.id);
         console.log('New campaign types:', editingTargetForTypes.campaignTypes);
         
-        // Get the current template config
-        const { data: template, error: fetchError } = await supabase
-          .from('campaign_templates')
-          .select('template_config')
-          .eq('id', editingTargetForTypes.id)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        console.log('Current template config:', template.template_config);
-        
-        const currentConfig = template.template_config as any;
-        const updatedConfig = {
-          ...currentConfig,
-          campaignTypes: editingTargetForTypes.campaignTypes
-        };
-        
-        console.log('Updated config to save:', updatedConfig);
-        
-        const { error } = await supabase
-          .from('campaign_templates')
-          .update({ template_config: updatedConfig })
-          .eq('id', editingTargetForTypes.id);
-        
-        if (error) throw error;
+        // For seeded audiences, update all templates with the same target_audience
+        // For custom audiences, just update the single template
+        if (editingTargetForTypes.isSeeded && editingTargetForTypes.templateIds) {
+          // Update all templates for this target audience
+          for (const templateId of editingTargetForTypes.templateIds) {
+            const { data: template, error: fetchError } = await supabase
+              .from('campaign_templates')
+              .select('template_config')
+              .eq('id', templateId)
+              .single();
+            
+            if (fetchError) {
+              console.error(`Error fetching template ${templateId}:`, fetchError);
+              continue;
+            }
+            
+            const currentConfig = template.template_config as any;
+            const updatedConfig = {
+              ...currentConfig,
+              campaignTypes: editingTargetForTypes.campaignTypes
+            };
+            
+            const { error: updateError } = await supabase
+              .from('campaign_templates')
+              .update({ template_config: updatedConfig })
+              .eq('id', templateId);
+              
+            if (updateError) {
+              console.error(`Error updating template ${templateId}:`, updateError);
+            }
+          }
+        } else {
+          // Update single custom template
+          const { data: template, error: fetchError } = await supabase
+            .from('campaign_templates')
+            .select('template_config')
+            .eq('id', editingTargetForTypes.id)
+            .single();
+          
+          if (fetchError) throw fetchError;
+          
+          const currentConfig = template.template_config as any;
+          const updatedConfig = {
+            ...currentConfig,
+            campaignTypes: editingTargetForTypes.campaignTypes
+          };
+          
+          const { error } = await supabase
+            .from('campaign_templates')
+            .update({ template_config: updatedConfig })
+            .eq('id', editingTargetForTypes.id);
+          
+          if (error) throw error;
+        }
         
         console.log('Successfully saved to database, updating frontend state...');
         
@@ -324,6 +415,14 @@ export const AdminInterface = ({
               const IconComponent = target.icon;
               return (
                 <Card key={target.id} className="relative">
+                  {target.isSeeded && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute top-2 right-2 text-xs bg-green-100 text-green-700 border-green-200"
+                    >
+                      System
+                    </Badge>
+                  )}
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className={`${target.bgColor} p-2 rounded-lg`}>
