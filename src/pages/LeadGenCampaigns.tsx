@@ -316,9 +316,7 @@ const LeadGenCampaigns = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 pt-20 pb-12">
+      <div className="container mx-auto px-4 pb-12">
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-8">

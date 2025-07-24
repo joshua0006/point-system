@@ -9,7 +9,9 @@ import { useServices, useCategories } from '@/hooks/useServices';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import LeadGenCampaigns from './LeadGenCampaigns';
 
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -107,41 +109,58 @@ const Marketplace = () => {
       
       <MarketplaceHero servicesCount={services.length} />
       
-      <div className="container mx-auto px-4 py-8" data-services-section>
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Available Services
-          </h2>
-          <p className="text-muted-foreground">
-            Discover expert consultants and book services using your points
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="services" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="campaigns">Lead Gen Campaigns</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="services" className="mt-0">
+            <div data-services-section>
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-foreground mb-2">
+                  Available Services
+                </h2>
+                <p className="text-muted-foreground">
+                  Discover expert consultants and book services using your points
+                </p>
+              </div>
 
-        <MarketplaceFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedTier={selectedTier}
-          setSelectedTier={setSelectedTier}
-          categories={categories}
-        />
+              <MarketplaceFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedTier={selectedTier}
+                setSelectedTier={setSelectedTier}
+                categories={categories}
+              />
 
-        <ActiveFilters
-          searchTerm={searchTerm}
-          selectedCategory={selectedCategory}
-          selectedTier={selectedTier}
-          onClearSearch={() => setSearchTerm('')}
-          onClearCategory={() => setSelectedCategory('All')}
-          onClearTier={() => setSelectedTier('All')}
-        />
+              <ActiveFilters
+                searchTerm={searchTerm}
+                selectedCategory={selectedCategory}
+                selectedTier={selectedTier}
+                onClearSearch={() => setSearchTerm('')}
+                onClearCategory={() => setSelectedCategory('All')}
+                onClearTier={() => setSelectedTier('All')}
+              />
 
-        <ServicesGrid
-          services={filteredServices}
-          totalServices={services.length}
-          onServiceClick={handleServiceClick}
-          onClearAllFilters={handleClearAllFilters}
-        />
+              <ServicesGrid
+                services={filteredServices}
+                totalServices={services.length}
+                onServiceClick={handleServiceClick}
+                onClearAllFilters={handleClearAllFilters}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="campaigns" className="mt-0">
+            <div className="pt-8">
+              <LeadGenCampaigns />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
