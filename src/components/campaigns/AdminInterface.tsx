@@ -8,10 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor, BarChart3 } from "lucide-react";
+import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
-import { AdminAnalyticsDashboard } from "./AdminAnalyticsDashboard";
 
 const ICON_OPTIONS = [
   { name: 'Shield', component: Shield, value: 'Shield' },
@@ -162,7 +161,7 @@ export const AdminInterface = ({
 
       {/* Admin Dashboard Tabs */}
       <Tabs defaultValue="audiences" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="audiences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Target Management
@@ -170,10 +169,6 @@ export const AdminInterface = ({
           <TabsTrigger value="campaigns" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             Campaign Monitor
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -257,9 +252,6 @@ export const AdminInterface = ({
           <AdminCampaignMonitor />
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-8">
-          <AdminAnalyticsDashboard />
-        </TabsContent>
       </Tabs>
 
       {/* Target Editing Dialog */}
