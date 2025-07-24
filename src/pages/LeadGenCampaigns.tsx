@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { DollarSign, Target, Phone, Settings, LogOut } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
@@ -413,20 +413,42 @@ const LeadGenCampaigns = () => {
             </Card>
           </div>
 
-          {/* Active Campaigns Section */}
+          {/* Campaigns Section */}
           {!adminMode && userCampaigns.length > 0 && (
             <div className="mb-12">
-              <h2 className="text-2xl font-bold mb-8 text-center">Your Active Campaigns</h2>
+              <h2 className="text-2xl font-bold mb-8 text-center">Your Campaigns</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                {userCampaigns.map((participation) => {
+                {userCampaigns
+                  .sort((a, b) => {
+                    // Active campaigns first, then stopped campaigns
+                    if (a.billing_status === 'active' && b.billing_status !== 'active') return -1;
+                    if (a.billing_status !== 'active' && b.billing_status === 'active') return 1;
+                    return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
+                  })
+                  .map((participation) => {
                   const campaign = participation.lead_gen_campaigns;
                   const isColdCalling = campaign.name.includes('Cold Calling');
                   const IconComponent = isColdCalling ? Phone : Target;
-                  const iconColor = isColdCalling ? 'text-green-600' : 'text-blue-600';
-                  const bgColor = isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10';
+                  const isActive = participation.billing_status === 'active';
+                  const isStopped = participation.billing_status === 'stopped';
+                  
+                  // Dynamic styling based on status
+                  const iconColor = isActive 
+                    ? (isColdCalling ? 'text-green-600' : 'text-blue-600')
+                    : 'text-muted-foreground';
+                  const bgColor = isActive 
+                    ? (isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10')
+                    : 'bg-muted/20';
                   
                   return (
-                    <Card key={participation.id} className="hover:shadow-lg transition-all duration-300">
+                    <Card 
+                      key={participation.id} 
+                      className={`transition-all duration-300 ${
+                        isActive 
+                          ? 'hover:shadow-lg border-border' 
+                          : 'opacity-60 border-destructive/30 bg-muted/5'
+                      }`}
+                    >
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4 mb-6">
                           <div className={`${bgColor} p-3 rounded-lg flex-shrink-0`}>
@@ -436,12 +458,16 @@ const LeadGenCampaigns = () => {
                             <h3 className="font-semibold text-lg mb-1">{campaign.name}</h3>
                             <p className="text-sm text-muted-foreground">{campaign.description}</p>
                           </div>
-                          <Badge 
-                            variant={campaign.status === 'active' ? 'default' : 'secondary'}
-                            className="capitalize flex-shrink-0"
-                          >
-                            {campaign.status}
-                          </Badge>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {isStopped && <Pause className="h-4 w-4 text-destructive" />}
+                            {isActive && <Target className="h-4 w-4 text-green-600" />}
+                            <Badge 
+                              variant={isActive ? 'default' : 'secondary'}
+                              className="capitalize"
+                            >
+                              {isActive ? 'Active' : 'Stopped'}
+                            </Badge>
+                          </div>
                         </div>
                         
                         <div className="space-y-4">
@@ -484,21 +510,37 @@ const LeadGenCampaigns = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleStopCampaign(participation.id)}
-                                  className="text-red-600 hover:text-red-700"
+                                  className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                                 >
-                                  Stop Billing
+                                  <Pause className="h-4 w-4 mr-2" />
+                                  Stop Campaign
                                 </Button>
                               ) : participation.billing_status === 'stopped' ? (
                                 <Button
-                                  variant="outline"
                                   size="sm"
                                   onClick={() => handleReactivateCampaign(participation.id)}
-                                  className="text-green-600 hover:text-green-700"
+                                  className="bg-green-600 hover:bg-green-700"
                                 >
-                                  Reactivate
+                                  <Target className="h-4 w-4 mr-2" />
+                                  Reactivate Campaign
                                 </Button>
                               ) : null}
                             </div>
+                            
+                            {/* Explanatory text for stopped campaigns */}
+                            {participation.billing_status === 'stopped' && (
+                              <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                                <p className="text-sm text-destructive flex items-center gap-2">
+                                  <Pause className="h-4 w-4" />
+                                  Campaign stopped - No further charges will occur
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Last billed: {participation.last_billing_date 
+                                    ? new Date(participation.last_billing_date).toLocaleDateString()
+                                    : new Date(participation.joined_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </CardContent>
