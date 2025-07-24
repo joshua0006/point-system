@@ -23,7 +23,9 @@ export const AdminCampaignMonitor = () => {
   const fetchAllCampaigns = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First get campaign participants with campaign details
+      const { data: participantsData, error: participantsError } = await supabase
         .from('campaign_participants')
         .select(`
           *,
@@ -36,16 +38,28 @@ export const AdminCampaignMonitor = () => {
             end_date,
             total_budget,
             created_by
-          ),
-          profiles (
-            full_name,
-            email
           )
         `)
         .order('joined_at', { ascending: false });
 
-      if (error) throw error;
-      setCampaigns(data || []);
+      if (participantsError) throw participantsError;
+
+      // Then get the user profiles for each participant
+      const userIds = participantsData?.map(p => p.user_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const enrichedData = participantsData?.map(participant => ({
+        ...participant,
+        profiles: profilesData?.find(profile => profile.user_id === participant.user_id) || {}
+      })) || [];
+
+      setCampaigns(enrichedData);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast({
