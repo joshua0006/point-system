@@ -80,11 +80,16 @@ export const AdminInterface = ({
         setCampaignTargets(targets);
       } catch (error) {
         console.error('Error loading campaign templates:', error);
+        toast({
+          title: "Error loading campaign templates",
+          description: "Failed to load campaign data from database.",
+          variant: "destructive",
+        });
       }
     };
 
     loadCampaignTemplates();
-  }, [setCampaignTargets]);
+  }, [setCampaignTargets, toast]);
 
   const openEditTarget = (target: any) => {
     setTargetForm({
@@ -207,6 +212,9 @@ export const AdminInterface = ({
   const saveCampaignTypes = async () => {
     if (editingTargetForTypes) {
       try {
+        console.log('Saving campaign types for target:', editingTargetForTypes.id);
+        console.log('New campaign types:', editingTargetForTypes.campaignTypes);
+        
         // Get the current template config
         const { data: template, error: fetchError } = await supabase
           .from('campaign_templates')
@@ -216,11 +224,15 @@ export const AdminInterface = ({
         
         if (fetchError) throw fetchError;
         
+        console.log('Current template config:', template.template_config);
+        
         const currentConfig = template.template_config as any;
         const updatedConfig = {
           ...currentConfig,
           campaignTypes: editingTargetForTypes.campaignTypes
         };
+        
+        console.log('Updated config to save:', updatedConfig);
         
         const { error } = await supabase
           .from('campaign_templates')
@@ -229,13 +241,18 @@ export const AdminInterface = ({
         
         if (error) throw error;
         
-        setCampaignTargets(prev => 
-          prev.map(target => 
+        console.log('Successfully saved to database, updating frontend state...');
+        
+        setCampaignTargets(prev => {
+          const updated = prev.map(target => 
             target.id === editingTargetForTypes.id 
               ? { ...target, campaignTypes: editingTargetForTypes.campaignTypes }
               : target
-          )
-        );
+          );
+          console.log('Updated campaign targets state:', updated);
+          return updated;
+        });
+        
         toast({ title: "Campaign types updated successfully!" });
         setShowCampaignTypesDialog(false);
         setEditingTargetForTypes(null);
