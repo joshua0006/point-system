@@ -290,14 +290,23 @@ const LeadGenCampaigns = () => {
         return;
       }
 
+      console.log('Starting campaign creation process...');
+      console.log('Budget:', budget, 'User Balance:', userBalance);
+      console.log('Pending Campaign:', pendingCampaign);
+
       // Deduct points and create transaction
+      console.log('Updating user balance...');
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ points_balance: userBalance - budget })
         .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating balance:', updateError);
+        throw new Error(`Failed to update balance: ${updateError.message}`);
+      }
 
+      console.log('Creating transaction record...');
       const { error: transactionError } = await supabase
         .from('points_transactions')
         .insert({
@@ -307,13 +316,17 @@ const LeadGenCampaigns = () => {
           description: `${pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : 'Cold Calling'} Campaign`
         });
 
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.error('Error creating transaction:', transactionError);
+        throw new Error(`Failed to create transaction: ${transactionError.message}`);
+      }
 
       // Create campaign entry
       const campaignName = pendingCampaign.method === 'facebook-ads' 
         ? `Facebook Ads - ${pendingCampaign.targetAudience?.name} - ${pendingCampaign.campaignType}`
         : `Cold Calling Campaign - ${pendingCampaign.hours} hours/month`;
 
+      console.log('Creating campaign with name:', campaignName);
       const { data: campaign, error: campaignError } = await supabase
         .from('lead_gen_campaigns')
         .upsert({
@@ -330,8 +343,13 @@ const LeadGenCampaigns = () => {
         .select()
         .single();
 
-      if (campaignError) throw campaignError;
+      if (campaignError) {
+        console.error('Error creating campaign:', campaignError);
+        throw new Error(`Failed to create campaign: ${campaignError.message}`);
+      }
 
+      console.log('Created campaign:', campaign);
+      console.log('Adding campaign participant...');
       const { error } = await supabase
         .from('campaign_participants')
         .insert({
@@ -341,7 +359,12 @@ const LeadGenCampaigns = () => {
           budget_contribution: budget
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding campaign participant:', error);
+        throw new Error(`Failed to add campaign participant: ${error.message}`);
+      }
+
+      console.log('Campaign creation successful!');
 
       // Prepare success modal data
       setSuccessCampaignDetails({
@@ -366,9 +389,11 @@ const LeadGenCampaigns = () => {
       setCurrentFlow('method-selection');
       fetchUserCampaigns();
     } catch (error) {
+      console.error('Campaign creation failed:', error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         title: "Error",
-        description: "Failed to process payment. Please try again.",
+        description: `Failed to process payment: ${errorMessage}`,
         variant: "destructive",
       });
     }
