@@ -56,7 +56,7 @@ serve(async (req) => {
 
     logStep("Admin access verified", { userId: user.id });
 
-    const { action, userId, points } = await req.json();
+    const { action, userId, points, status } = await req.json();
 
     if (action === 'list_users') {
       // Fetch all users with their profiles
@@ -103,6 +103,52 @@ serve(async (req) => {
       logStep("Points topped up", { userId, points });
 
       return new Response(JSON.stringify({ success: true, message: `${points} points added successfully` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === 'approve_user') {
+      if (!userId || !status || !['approved', 'rejected'].includes(status)) {
+        throw new Error("Valid userId and status (approved/rejected) required");
+      }
+
+      // Update user approval status
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({
+          approval_status: status,
+          approved_by: user.id,
+          approved_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (updateError) throw new Error(`Error updating approval status: ${updateError.message}`);
+
+      logStep("User approval status updated", { userId, status, approvedBy: user.id });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `User ${status} successfully` 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === 'list_pending_users') {
+      // Fetch only pending users
+      const { data: profiles, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('approval_status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw new Error(`Error fetching pending users: ${error.message}`);
+
+      logStep("Pending users fetched", { count: profiles?.length });
+      
+      return new Response(JSON.stringify({ users: profiles }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });

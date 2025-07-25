@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserManagement } from "@/components/admin/UserManagement";
+import PendingApprovals from "@/components/admin/PendingApprovals";
 import { 
   Users, 
   DollarSign, 
@@ -241,7 +242,10 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users">
-            <UserManagement />
+            <div className="space-y-6">
+              <PendingApprovals />
+              <UserManagement />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

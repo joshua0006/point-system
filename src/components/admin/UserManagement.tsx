@@ -22,6 +22,9 @@ interface UserProfile {
   points_balance: number;
   created_at: string;
   updated_at: string;
+  approval_status?: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: string;
 }
 
 interface TopUpModalProps {
@@ -247,6 +250,7 @@ export function UserManagement() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Points Balance</TableHead>
                   <TableHead>Member Since</TableHead>
                   <TableHead>Actions</TableHead>
@@ -279,6 +283,14 @@ export function UserManagement() {
                         user.role === 'consultant' ? 'default' : 'secondary'
                       }>
                         {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        user.approval_status === 'approved' ? 'default' :
+                        user.approval_status === 'pending' ? 'secondary' : 'destructive'
+                      }>
+                        {user.approval_status || 'approved'}
                       </Badge>
                     </TableCell>
                     <TableCell>
