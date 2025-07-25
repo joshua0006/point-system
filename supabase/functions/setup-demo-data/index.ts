@@ -148,7 +148,11 @@ async function setupDemoData(supabaseClient: any, userId: string, userEmail: str
     avatar_url: getRandomAvatar(userEmail)
   }
 
-  if (isConsultant) {
+  // Determine role based on email - admin emails get admin role
+  if (userEmail.includes('admin')) {
+    profileUpdates.role = 'admin'
+    profileUpdates.bio = getConsultantBio(userEmail)
+  } else if (isConsultant) {
     profileUpdates.role = 'consultant'
     profileUpdates.bio = getConsultantBio(userEmail)
   } else {
