@@ -95,7 +95,7 @@ export const AdminInterface = ({
       const templateData = {
         name: targetForm.name,
         description: targetForm.description,
-        target_audience: 'custom', // Always use 'custom' for new/edited audiences
+        target_audience: targetForm.name, // Use the actual audience name for grouping
         campaign_angle: 'custom',
         template_config: {
           icon: targetForm.icon,
