@@ -62,13 +62,13 @@ export function Navigation() {
       { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "admin"] },
       { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "admin"], hasNotification: unreadCount > 0 },
       { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
-      { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
+      { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
     ];
 
     const sellerNavItems = [
       { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["admin"] },
       { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["admin"], hasNotification: unreadCount > 0 },
-      { path: "/admin", label: "Admin", icon: Users, roles: ["admin"] },
+      { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
     ];
 
     return isSellerMode ? sellerNavItems : buyerNavItems;
