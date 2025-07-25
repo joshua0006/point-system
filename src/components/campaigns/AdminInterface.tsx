@@ -143,9 +143,6 @@ export const AdminInterface = ({
         toast({ title: "New target audience created successfully!" });
       }
       
-      // Refresh data from the database
-      window.location.reload(); // Simple but effective refresh
-      
       setShowTargetDialog(false);
       setEditingTarget(null);
     } catch (error) {
@@ -177,9 +174,6 @@ export const AdminInterface = ({
         
         if (error) throw error;
       }
-      
-      // Refresh data from the database
-      window.location.reload(); // Simple but effective refresh
       
       toast({ title: "Target audience deleted successfully!" });
     } catch (error) {
@@ -259,9 +253,6 @@ export const AdminInterface = ({
         }
         
         console.log('Successfully saved to database, refreshing data...');
-        
-        // Refresh data from the database instead of just updating state
-        window.location.reload(); // Simple but effective refresh
         
         toast({ title: "Campaign types updated successfully!" });
         setShowCampaignTypesDialog(false);
