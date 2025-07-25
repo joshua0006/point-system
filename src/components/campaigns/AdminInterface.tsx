@@ -188,7 +188,11 @@ export const AdminInterface = ({
   };
 
   const openCampaignTypesDialog = (target: any) => {
-    setEditingTargetForTypes(target);
+    // Deep clone the target to avoid reference issues
+    setEditingTargetForTypes({
+      ...target,
+      campaignTypes: [...(target.campaignTypes || [])]
+    });
     setShowCampaignTypesDialog(true);
   };
 
@@ -271,21 +275,21 @@ export const AdminInterface = ({
   const addCampaignType = () => {
     setEditingTargetForTypes(prev => ({
       ...prev,
-      campaignTypes: [...(prev.campaignTypes || []), '']
+      campaignTypes: [...(prev?.campaignTypes || []), '']
     }));
   };
 
   const removeCampaignType = (index: number) => {
     setEditingTargetForTypes(prev => ({
       ...prev,
-      campaignTypes: prev.campaignTypes.filter((_, i) => i !== index)
+      campaignTypes: (prev?.campaignTypes || []).filter((_, i) => i !== index)
     }));
   };
 
   const updateCampaignType = (index: number, value: string) => {
     setEditingTargetForTypes(prev => ({
       ...prev,
-      campaignTypes: prev.campaignTypes.map((type, i) => i === index ? value : type)
+      campaignTypes: (prev?.campaignTypes || []).map((type, i) => i === index ? value : type)
     }));
   };
 
