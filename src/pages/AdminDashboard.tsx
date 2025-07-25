@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserManagement } from "@/components/admin/UserManagement";
 import PendingApprovals from "@/components/admin/PendingApprovals";
 import { AdminServiceManagement } from "@/components/admin/AdminServiceManagement";
+import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { 
   Users, 
@@ -17,12 +18,18 @@ import {
   UserCheck,
   Settings,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  Target
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const { stats, recentActivity, loading, error } = useAdminDashboard();
+  
+  // State for AdminInterface
+  const [campaignTargets, setCampaignTargets] = useState<any[]>([]);
+  const [editingTarget, setEditingTarget] = useState<any>(null);
+  const [showTargetDialog, setShowTargetDialog] = useState(false);
 
 
   return (
@@ -42,7 +49,7 @@ export default function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="grid w-full max-w-4xl grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Overview
@@ -54,6 +61,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               Service Management
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Lead Gen Campaigns Management
             </TabsTrigger>
           </TabsList>
 
@@ -207,6 +218,17 @@ export default function AdminDashboard() {
 
           <TabsContent value="services">
             <AdminServiceManagement />
+          </TabsContent>
+
+          <TabsContent value="campaigns">
+            <AdminInterface 
+              campaignTargets={campaignTargets}
+              setCampaignTargets={setCampaignTargets}
+              editingTarget={editingTarget}
+              setEditingTarget={setEditingTarget}
+              showTargetDialog={showTargetDialog}
+              setShowTargetDialog={setShowTargetDialog}
+            />
           </TabsContent>
         </Tabs>
       </div>
