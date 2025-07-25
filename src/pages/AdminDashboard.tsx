@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserManagement } from "@/components/admin/UserManagement";
 import PendingApprovals from "@/components/admin/PendingApprovals";
+import { AdminServiceManagement } from "@/components/admin/AdminServiceManagement";
 import { 
   Users, 
   DollarSign, 
@@ -14,7 +15,8 @@ import {
   Activity,
   UserCheck,
   Star,
-  Settings
+  Settings,
+  Briefcase
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -103,7 +105,7 @@ export default function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Overview
@@ -111,6 +113,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               User Management
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" />
+              Service Management
             </TabsTrigger>
           </TabsList>
 
@@ -246,6 +252,10 @@ export default function AdminDashboard() {
               <PendingApprovals />
               <UserManagement />
             </div>
+          </TabsContent>
+
+          <TabsContent value="services">
+            <AdminServiceManagement />
           </TabsContent>
         </Tabs>
       </div>
