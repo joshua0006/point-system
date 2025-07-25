@@ -30,8 +30,8 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Financial Infrastructure
-            <span className="block text-primary">Services</span>
+            Barter Trade
+            <span className="block text-primary">Marketplace</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
