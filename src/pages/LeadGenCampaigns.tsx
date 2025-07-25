@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
@@ -397,109 +397,154 @@ const LeadGenCampaigns = () => {
           {/* Campaigns Section */}
           {!adminMode && userCampaigns.length > 0 && (
             <div className="mb-12">
-              <h2 className="text-2xl font-bold mb-8 text-center">Your Campaigns</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                {userCampaigns
-                  .sort((a, b) => {
-                    // Active campaigns first, then stopped campaigns
-                    if (a.billing_status === 'active' && b.billing_status !== 'active') return -1;
-                    if (a.billing_status !== 'active' && b.billing_status === 'active') return 1;
-                    return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
-                  })
-                  .map((participation) => {
-                  const campaign = participation.lead_gen_campaigns;
-                  const isColdCalling = campaign.name.includes('Cold Calling');
-                  const IconComponent = isColdCalling ? Phone : Target;
-                  const isActive = participation.billing_status === 'active';
-                  const isStopped = participation.billing_status === 'stopped';
-                  
-                  // Dynamic styling based on billing status
-                  const iconColor = isActive 
-                    ? (isColdCalling ? 'text-green-600' : 'text-blue-600')
-                    : 'text-warning';
-                  const bgColor = isActive 
-                    ? (isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10')
-                    : 'bg-warning/10';
-                  
-                  return (
-                    <Card 
-                      key={participation.id} 
-                      className={`transition-all duration-300 ${
-                        isActive 
-                          ? 'hover:shadow-lg border-border' 
-                          : 'border-warning/40'
-                      }`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4 mb-6">
-                          <div className={`${bgColor} p-3 rounded-lg flex-shrink-0`}>
-                            <IconComponent className={`h-6 w-6 ${iconColor}`} />
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold">Your Campaigns</h2>
+                {userCampaigns.length > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    {userCampaigns.filter(c => c.billing_status === 'active').length} active • {userCampaigns.length} total
+                  </div>
+                )}
+              </div>
+
+              {userCampaigns.length === 0 ? (
+                <div className="text-center py-12 max-w-2xl mx-auto">
+                  <div className="bg-muted/30 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                    <Target className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No Active Campaigns</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Start your first lead generation campaign to begin attracting potential clients to your business.
+                  </p>
+                  <Button 
+                    onClick={() => setCurrentFlow('method-selection')}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Your First Campaign
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+                  {userCampaigns
+                    .sort((a, b) => {
+                      // Active campaigns first, then stopped campaigns
+                      if (a.billing_status === 'active' && b.billing_status !== 'active') return -1;
+                      if (a.billing_status !== 'active' && b.billing_status === 'active') return 1;
+                      return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
+                    })
+                    .map((participation) => {
+                    const campaign = participation.lead_gen_campaigns;
+                    const isColdCalling = campaign.name.includes('Cold Calling');
+                    const IconComponent = isColdCalling ? Phone : Target;
+                    const isActive = participation.billing_status === 'active';
+                    const isStopped = participation.billing_status === 'stopped';
+                    
+                    // Calculate campaign duration
+                    const startDate = new Date(participation.joined_at);
+                    const today = new Date();
+                    const daysRunning = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    // Calculate performance metrics
+                    const leadsReceived = participation.leads_received || 0;
+                    const conversions = participation.conversions || 0;
+                    const revenue = participation.revenue_generated || 0;
+                    const conversionRate = leadsReceived > 0 ? ((conversions / leadsReceived) * 100).toFixed(1) : '0';
+                    const totalSpent = participation.budget_contribution * Math.ceil(daysRunning / 30);
+                    const roi = revenue > 0 && totalSpent > 0 ? (((revenue - totalSpent) / totalSpent) * 100).toFixed(1) : '0';
+                    
+                    return (
+                      <Card 
+                        key={participation.id} 
+                        className={`transition-all duration-300 ${
+                          isActive 
+                            ? 'hover:shadow-lg border-border hover:border-primary/30' 
+                            : 'border-warning/40'
+                        }`}
+                      >
+                        <CardContent className="p-6">
+                          {/* Header */}
+                          <div className="flex items-start gap-4 mb-6">
+                            <div className={`${isActive 
+                              ? (isColdCalling ? 'bg-green-500/10' : 'bg-blue-500/10')
+                              : 'bg-warning/10'
+                            } p-3 rounded-lg flex-shrink-0`}>
+                              <IconComponent className={`h-6 w-6 ${isActive 
+                                ? (isColdCalling ? 'text-green-600' : 'text-blue-600')
+                                : 'text-warning'
+                              }`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-lg">{campaign.name}</h3>
+                                <Badge 
+                                  variant={isActive ? 'default' : 'outline'}
+                                  className={`text-xs ${
+                                    isStopped 
+                                      ? 'border-warning/40 text-warning bg-warning/10' 
+                                      : isActive ? 'bg-green-500/10 text-green-700 border-green-200' : ''
+                                  }`}
+                                >
+                                  {isActive ? 'Active' : 'Paused'}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{campaign.description}</p>
+                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                <span>Running for {daysRunning} days</span>
+                                <span>•</span>
+                                <span>{participation.budget_contribution} pts/month</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-lg mb-1">{campaign.name}</h3>
-                            <p className="text-sm text-muted-foreground">{campaign.description}</p>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            {isStopped && <CreditCard className="h-4 w-4 text-warning" />}
-                            {isActive && <Play className="h-4 w-4 text-green-600" />}
-                            <Badge 
-                              variant={isActive ? 'default' : 'outline'}
-                              className={`capitalize ${
-                                isStopped 
-                                  ? 'border-warning/40 text-warning bg-warning/10' 
-                                  : ''
-                              }`}
-                            >
-                              {isActive ? 'Campaign Active • Billing Active' : 'Campaign Active • Billing Paused'}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <div className="flex flex-wrap gap-3">
-                            <Badge variant="outline" className="bg-primary/5">
-                              {participation.budget_contribution} points Monthly
-                            </Badge>
-                            <Badge variant={
-                              participation.billing_status === 'active' ? 'default' : 
-                              participation.billing_status === 'stopped' ? 'outline' : 'secondary'
-                            } className={
-                              participation.billing_status === 'stopped' 
-                                ? 'border-warning/40 text-warning bg-warning/10' 
-                                : ''
-                            }>
-                              {participation.billing_status === 'active' ? 'Billing Active' :
-                               participation.billing_status === 'stopped' ? 'Billing Paused' :
-                               participation.billing_status === 'paused_insufficient_funds' ? 'Paused - Low Balance' :
-                               'Unknown Status'}
-                            </Badge>
+                          
+                          {/* Performance Metrics */}
+                          <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-primary">{leadsReceived}</div>
+                              <div className="text-xs text-muted-foreground">Leads</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-green-600">{conversions}</div>
+                              <div className="text-xs text-muted-foreground">Conversions</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-blue-600">{conversionRate}%</div>
+                              <div className="text-xs text-muted-foreground">Conv. Rate</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-purple-600">${revenue.toLocaleString()}</div>
+                              <div className="text-xs text-muted-foreground">Revenue</div>
+                            </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row justify-between gap-4">
-                            <div className="space-y-2 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">Joined: </span>
-                                <span className="font-semibold">
-                                  {new Date(participation.joined_at).toLocaleDateString()}
+                          {/* Status and Actions */}
+                          <div className="space-y-4">
+                            {/* Billing Info */}
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm">
+                                <span className="text-muted-foreground">Next billing: </span>
+                                <span className="font-medium">
+                                  {participation.next_billing_date 
+                                    ? new Date(participation.next_billing_date).toLocaleDateString()
+                                    : 'Not scheduled'}
                                 </span>
                               </div>
-                              {participation.next_billing_date && (
-                                <div>
-                                  <span className="text-muted-foreground">Next Billing: </span>
-                                  <span className="font-semibold">
-                                    {new Date(participation.next_billing_date).toLocaleDateString()}
-                                  </span>
-                                </div>
+                              {roi !== '0' && (
+                                <Badge variant="outline" className={`${
+                                  parseFloat(roi) > 0 ? 'text-green-600 border-green-200' : 'text-red-600 border-red-200'
+                                }`}>
+                                  {parseFloat(roi) > 0 ? '+' : ''}{roi}% ROI
+                                </Badge>
                               )}
                             </div>
                             
+                            {/* Action Buttons */}
                             <div className="flex gap-2">
                               {participation.billing_status === 'active' ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleStopCampaign(participation.id)}
-                                  className="border-warning text-warning hover:bg-warning hover:text-warning-foreground"
+                                  className="flex-1 border-warning text-warning hover:bg-warning hover:text-warning-foreground"
                                 >
                                   <Pause className="h-4 w-4 mr-2" />
                                   Pause Billing
@@ -508,38 +553,36 @@ const LeadGenCampaigns = () => {
                                 <Button
                                   size="sm"
                                   onClick={() => handleReactivateCampaign(participation.id)}
-                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                                 >
                                   <Play className="h-4 w-4 mr-2" />
                                   Resume Billing
                                 </Button>
                               ) : null}
+                              <Button variant="ghost" size="sm" className="px-3">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
                             </div>
                             
-                            {/* Explanatory text for billing paused campaigns */}
+                            {/* Status Message */}
                             {participation.billing_status === 'stopped' && (
-                              <div className="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                              <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
                                 <p className="text-sm text-warning flex items-center gap-2">
                                   <CreditCard className="h-4 w-4" />
-                                  Billing paused - Campaign continues running, no charges next cycle
+                                  Billing paused - Campaign continues running
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  You won't be charged on: {participation.next_billing_date 
-                                    ? new Date(participation.next_billing_date).toLocaleDateString()
-                                    : 'Next billing cycle'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Leads will still be generated during billing pause
+                                  No charges on your next billing cycle. Resume anytime to continue automated billing.
                                 </p>
                               </div>
                             )}
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
