@@ -262,12 +262,13 @@ export const AdminInterface = ({
         
         console.log('Successfully saved to database, refreshing data...');
         
+        setShowCampaignTypesDialog(false);
+        setEditingTargetForTypes(null);
+        
         // Refresh data after successful update
         await refreshTargets();
         
         toast({ title: "Campaign types updated successfully!" });
-        setShowCampaignTypesDialog(false);
-        setEditingTargetForTypes(null);
       } catch (error) {
         console.error('Error updating campaign types:', error);
         toast({ title: "Error updating campaign types", variant: "destructive" });
