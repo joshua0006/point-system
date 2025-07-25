@@ -31,7 +31,12 @@ export const useCampaignTargets = () => {
       
       // Group templates by target_audience and create target objects
       const audienceGroups = data.reduce((groups, template) => {
-        const audience = template.target_audience;
+        // For custom audiences, use the customAudienceName from config, otherwise use target_audience
+        const config = template.template_config as any;
+        const audience = template.target_audience === 'custom' && config?.customAudienceName 
+          ? config.customAudienceName 
+          : template.target_audience;
+        
         if (!groups[audience]) {
           groups[audience] = [];
         }
