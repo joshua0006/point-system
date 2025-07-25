@@ -110,7 +110,7 @@ const Marketplace = () => {
       <MarketplaceHero servicesCount={services.length} />
       
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="services" className="w-full">
+        <Tabs defaultValue="campaigns" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="campaigns">Lead Gen Campaigns</TabsTrigger>
