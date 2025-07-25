@@ -144,10 +144,12 @@ export const useCampaignTargets = () => {
     loadCampaignTargets();
   }, []);
 
+  const refreshTargets = loadCampaignTargets;
+
   return {
     campaignTargets,
     setCampaignTargets,
     loading,
-    refreshTargets: loadCampaignTargets
+    refreshTargets
   };
 };
