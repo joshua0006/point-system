@@ -70,14 +70,27 @@ const Index = () => {
   const handleQuickDemo = async (accountType: 'buyer' | 'consultant' | 'admin') => {
     setIsSigningIn(true);
     try {
+      // Generate demo credentials
+      const timestamp = Date.now();
+      const demoEmail = `demo-${accountType}-${timestamp}@demo.com`;
+      const demoPassword = 'demo123';
+      const fullName = `Demo ${accountType.charAt(0).toUpperCase() + accountType.slice(1)}`;
+      const isConsultant = accountType === 'consultant' || accountType === 'admin';
+
+      // Create demo account with the edge function
       const { data, error } = await supabase.functions.invoke('setup-demo-data', {
-        body: { accountType }
+        body: { 
+          email: demoEmail,
+          password: demoPassword,
+          fullName: fullName,
+          autoConfirm: true,
+          isConsultant: isConsultant
+        }
       });
 
       if (error) throw error;
 
-      const { email: demoEmail, password: demoPassword } = data;
-      
+      // Sign in with the demo credentials
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
@@ -90,6 +103,7 @@ const Index = () => {
         description: `Signed in as ${accountType} demo account`,
       });
     } catch (error) {
+      console.error('Demo setup error:', error);
       toast({
         title: "Demo Setup Failed",
         description: "Could not set up demo account. Please try again.",
