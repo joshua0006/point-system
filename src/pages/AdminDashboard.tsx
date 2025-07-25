@@ -8,6 +8,7 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import PendingApprovals from "@/components/admin/PendingApprovals";
 import { AdminServiceManagement } from "@/components/admin/AdminServiceManagement";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
+import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { 
   Users, 
@@ -26,8 +27,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const { stats, recentActivity, loading, error } = useAdminDashboard();
   
-  // State for AdminInterface
-  const [campaignTargets, setCampaignTargets] = useState<any[]>([]);
+  // Shared campaign targets state
+  const { campaignTargets, setCampaignTargets } = useCampaignTargets();
   const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
 
