@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
-import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
@@ -16,58 +16,12 @@ import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// Default campaign targets
-const DEFAULT_CAMPAIGN_TARGETS = [
-  {
-    id: 'nsf',
-    name: 'NSFs',
-    description: 'Target National Service personnel with financial planning services',
-    icon: Target,
-    bgColor: 'bg-blue-500/10',
-    iconColor: 'text-blue-600',
-    budgetRange: {
-      min: 200,
-      max: 1500,
-      recommended: 500
-    },
-    campaignTypes: ['Facebook Lead Ads', 'Facebook Conversion Ads', 'Facebook Engagement Ads']
-  },
-  {
-    id: 'public',
-    name: 'General Public',
-    description: 'General public seeking comprehensive financial services',
-    icon: Target,
-    bgColor: 'bg-green-500/10',
-    iconColor: 'text-green-600',
-    budgetRange: {
-      min: 300,
-      max: 2500,
-      recommended: 800
-    },
-    campaignTypes: ['Facebook Lead Ads', 'Facebook Traffic Ads', 'Facebook Brand Awareness']
-  },
-  {
-    id: 'seniors',
-    name: 'Seniors',
-    description: 'Target seniors with retirement and estate planning services',
-    icon: Target,
-    bgColor: 'bg-purple-500/10',
-    iconColor: 'text-purple-600',
-    budgetRange: {
-      min: 400,
-      max: 3000,
-      recommended: 1000
-    },
-    campaignTypes: ['Facebook Lead Ads', 'Facebook Video Ads', 'Facebook Retargeting Ads']
-  }
-];
-
 const LeadGenCampaigns = () => {
   const { user, signOut, profile } = useAuth();
   const { toast } = useToast();
   const [currentFlow, setCurrentFlow] = useState<'method-selection' | 'facebook-ads' | 'cold-calling'>('method-selection');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [campaignTargets, setCampaignTargets] = useState(DEFAULT_CAMPAIGN_TARGETS);
+  const [campaignTargets, setCampaignTargets] = useState([]);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [pendingCampaign, setPendingCampaign] = useState<any>(null);
   const [userBalance, setUserBalance] = useState(0);
@@ -85,7 +39,137 @@ const LeadGenCampaigns = () => {
     fetchUserBalance();
     checkAdminStatus();
     fetchUserCampaigns();
+    loadCampaignTargets();
   }, [user, profile]);
+
+  const loadCampaignTargets = async () => {
+    try {
+      // Load all campaign templates regardless of campaign_angle
+      const { data, error } = await supabase
+        .from('campaign_templates')
+        .select('*')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      // Group templates by target_audience and create target objects
+      const audienceGroups = data.reduce((groups, template) => {
+        const audience = template.target_audience;
+        if (!groups[audience]) {
+          groups[audience] = [];
+        }
+        groups[audience].push(template);
+        return groups;
+      }, {} as Record<string, any[]>);
+
+      // Icon mapping for custom audiences
+      const ICON_MAP: Record<string, any> = {
+        'Users': Users,
+        'User': User,
+        'Shield': Shield,
+        'Target': Target,
+        'Phone': Phone,
+        'DollarSign': DollarSign
+      };
+
+      // Create target audience objects from grouped templates
+      const targets = Object.entries(audienceGroups).map(([audienceName, templates]) => {
+        // Get predefined styles for known audiences
+        const getAudienceConfig = (name: string) => {
+          const lowerName = name.toLowerCase();
+          if (lowerName.includes('nsf')) {
+            return {
+              icon: Shield,
+              bgColor: 'bg-green-500/10',
+              iconColor: 'text-green-600',
+              budgetRange: { min: 300, max: 2000, recommended: 800 }
+            };
+          } else if (lowerName.includes('senior')) {
+            return {
+              icon: Users,
+              bgColor: 'bg-purple-500/10',
+              iconColor: 'text-purple-600',
+              budgetRange: { min: 200, max: 1500, recommended: 600 }
+            };
+          } else if (lowerName.includes('general')) {
+            return {
+              icon: User,
+              bgColor: 'bg-blue-500/10',
+              iconColor: 'text-blue-600',
+              budgetRange: { min: 250, max: 1800, recommended: 700 }
+            };
+          }
+          // Default for custom audiences
+          return {
+            icon: Users,
+            bgColor: 'bg-gray-500/10',
+            iconColor: 'text-gray-600',
+            budgetRange: { min: 200, max: 1500, recommended: 500 }
+          };
+        };
+
+        // Collect all campaign types from templates in this group
+        const allCampaignTypes = new Set<string>();
+        templates.forEach(template => {
+          const config = template.template_config as any;
+          if (config?.campaignTypes) {
+            config.campaignTypes.forEach((type: string) => allCampaignTypes.add(type));
+          }
+        });
+
+        // Use the first template's data as base, but override with audience-specific config
+        const firstTemplate = templates[0];
+        const config = firstTemplate.template_config as any;
+        const audienceConfig = getAudienceConfig(audienceName);
+        
+        // For custom audiences, prefer saved config; for predefined, use default styling
+        const isCustom = firstTemplate.campaign_angle === 'custom';
+        
+        // Safely resolve icon for custom audiences
+        const resolveIcon = (iconName: string | undefined) => {
+          if (!iconName) return audienceConfig.icon;
+          return ICON_MAP[iconName] || audienceConfig.icon;
+        };
+        
+        return {
+          id: firstTemplate.id, // Use first template's ID as representative
+          name: audienceName,
+          description: firstTemplate.description || `Campaign targeting ${audienceName}`,
+          icon: isCustom ? resolveIcon(config?.icon) : audienceConfig.icon,
+          bgColor: isCustom ? (config?.bgColor || audienceConfig.bgColor) : audienceConfig.bgColor,
+          iconColor: isCustom ? (config?.iconColor || audienceConfig.iconColor) : audienceConfig.iconColor,
+          budgetRange: isCustom ? (config?.budgetRange || audienceConfig.budgetRange) : audienceConfig.budgetRange,
+          campaignTypes: Array.from(allCampaignTypes),
+          isSeeded: !isCustom, // Mark predefined audiences
+          templateIds: templates.map(t => t.id) // Store all template IDs for this audience
+        };
+      });
+      
+      setCampaignTargets(targets);
+    } catch (error) {
+      console.error('Error loading campaign templates:', error);
+      toast({
+        title: "Error loading campaign templates",
+        description: "Failed to load campaign data from database. Using fallback data.",
+        variant: "destructive",
+      });
+      
+      // Fallback to minimal default if database fails
+      setCampaignTargets([
+        {
+          id: 'fallback-general',
+          name: 'General Public',
+          description: 'General public seeking financial services',
+          icon: Users,
+          bgColor: 'bg-blue-500/10',
+          iconColor: 'text-blue-600',
+          budgetRange: { min: 200, max: 1500, recommended: 500 },
+          campaignTypes: ['Facebook Lead Ads'],
+          isSeeded: true
+        }
+      ]);
+    }
+  };
 
   const fetchUserCampaigns = async () => {
     if (!user) return;
