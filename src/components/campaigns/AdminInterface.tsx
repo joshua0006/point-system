@@ -95,7 +95,7 @@ export const AdminInterface = ({
       const templateData = {
         name: targetForm.name,
         description: targetForm.description,
-        target_audience: targetForm.name, // Use the actual audience name for grouping
+        target_audience: 'custom', // Database constraint only allows 'custom'
         campaign_angle: 'custom',
         template_config: {
           icon: targetForm.icon,
