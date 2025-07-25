@@ -22,7 +22,7 @@ const LeadGenCampaigns = () => {
   const { toast } = useToast();
   const [currentFlow, setCurrentFlow] = useState<'method-selection' | 'facebook-ads' | 'cold-calling'>('method-selection');
   const [isAdmin, setIsAdmin] = useState(false);
-  const { campaignTargets, setCampaignTargets } = useCampaignTargets();
+  const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [pendingCampaign, setPendingCampaign] = useState<any>(null);
   const [userBalance, setUserBalance] = useState(0);
@@ -554,6 +554,7 @@ const LeadGenCampaigns = () => {
                 setEditingTarget={setEditingTarget}
                 showTargetDialog={showTargetDialog}
                 setShowTargetDialog={setShowTargetDialog}
+                refreshTargets={refreshTargets}
               />
             ) : (
               <>

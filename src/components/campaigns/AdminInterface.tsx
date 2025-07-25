@@ -26,6 +26,7 @@ interface AdminInterfaceProps {
   setEditingTarget: (target: any) => void;
   showTargetDialog: boolean;
   setShowTargetDialog: (show: boolean) => void;
+  refreshTargets: () => Promise<void>;
 }
 
 export const AdminInterface = ({
@@ -34,7 +35,8 @@ export const AdminInterface = ({
   editingTarget,
   setEditingTarget,
   showTargetDialog,
-  setShowTargetDialog
+  setShowTargetDialog,
+  refreshTargets
 }: AdminInterfaceProps) => {
   const { toast } = useToast();
   const [showCampaignTypesDialog, setShowCampaignTypesDialog] = useState(false);
@@ -143,6 +145,9 @@ export const AdminInterface = ({
         toast({ title: "New target audience created successfully!" });
       }
       
+      // Refresh data after successful save
+      await refreshTargets();
+      
       setShowTargetDialog(false);
       setEditingTarget(null);
     } catch (error) {
@@ -174,6 +179,9 @@ export const AdminInterface = ({
         
         if (error) throw error;
       }
+      
+      // Refresh data after successful delete
+      await refreshTargets();
       
       toast({ title: "Target audience deleted successfully!" });
     } catch (error) {
@@ -253,6 +261,9 @@ export const AdminInterface = ({
         }
         
         console.log('Successfully saved to database, refreshing data...');
+        
+        // Refresh data after successful update
+        await refreshTargets();
         
         toast({ title: "Campaign types updated successfully!" });
         setShowCampaignTypesDialog(false);

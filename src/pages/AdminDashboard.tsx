@@ -28,7 +28,7 @@ export default function AdminDashboard() {
   const { stats, recentActivity, loading, error } = useAdminDashboard();
   
   // Shared campaign targets state
-  const { campaignTargets, setCampaignTargets } = useCampaignTargets();
+  const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
   const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
 
@@ -229,6 +229,7 @@ export default function AdminDashboard() {
               setEditingTarget={setEditingTarget}
               showTargetDialog={showTargetDialog}
               setShowTargetDialog={setShowTargetDialog}
+              refreshTargets={refreshTargets}
             />
           </TabsContent>
         </Tabs>
