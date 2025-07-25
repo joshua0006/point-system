@@ -145,11 +145,11 @@ export const AdminInterface = ({
         toast({ title: "New target audience created successfully!" });
       }
       
-      // Refresh data after successful save
-      await refreshTargets();
-      
       setShowTargetDialog(false);
       setEditingTarget(null);
+      
+      // Refresh data after successful save
+      await refreshTargets();
     } catch (error) {
       console.error('Error saving target:', error);
       toast({ title: "Error saving target", variant: "destructive" });
