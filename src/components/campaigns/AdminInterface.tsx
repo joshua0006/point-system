@@ -93,33 +93,42 @@ export const AdminInterface = ({
       const templateData = {
         name: targetForm.name,
         description: targetForm.description,
-        target_audience: 'custom', // Use 'custom' for new audiences to comply with constraint
+        target_audience: targetForm.name, // Use the actual audience name
         campaign_angle: 'custom',
         template_config: {
           icon: targetForm.icon,
           bgColor: targetForm.bgColor,
           iconColor: targetForm.iconColor,
           budgetRange: targetForm.budgetRange,
-          campaignTypes: targetForm.campaignTypes,
-          customAudienceName: targetForm.name // Store the actual audience name in config
+          campaignTypes: targetForm.campaignTypes
         }
       };
 
       if (editingTarget) {
-        const { error } = await supabase
-          .from('campaign_templates')
-          .update(templateData)
-          .eq('id', editingTarget.id);
+        // For editing existing targets, we need to handle grouped vs individual templates
+        if (editingTarget.isSeeded && editingTarget.templateIds) {
+          // Update all templates for this target audience
+          for (const templateId of editingTarget.templateIds) {
+            const { error } = await supabase
+              .from('campaign_templates')
+              .update({
+                description: templateData.description,
+                template_config: templateData.template_config
+              })
+              .eq('id', templateId);
+            
+            if (error) throw error;
+          }
+        } else {
+          // Update single custom template
+          const { error } = await supabase
+            .from('campaign_templates')
+            .update(templateData)
+            .eq('id', editingTarget.id);
+          
+          if (error) throw error;
+        }
         
-        if (error) throw error;
-        
-        const updatedTarget = {
-          ...targetForm,
-          icon: selectedIcon?.component || Users
-        };
-        setCampaignTargets(prev => 
-          prev.map(target => target.id === editingTarget.id ? updatedTarget : target)
-        );
         toast({ title: "Target audience updated successfully!" });
       } else {
         const { data, error } = await supabase
@@ -130,20 +139,11 @@ export const AdminInterface = ({
         
         if (error) throw error;
         
-        const config = data.template_config as any;
-        const newTarget = {
-          id: data.id,
-          name: data.name,
-          description: data.description,
-          icon: selectedIcon?.component || Users,
-          bgColor: targetForm.bgColor,
-          iconColor: targetForm.iconColor,
-          budgetRange: config?.budgetRange || targetForm.budgetRange,
-          campaignTypes: config?.campaignTypes || targetForm.campaignTypes
-        };
-        setCampaignTargets(prev => [...prev, newTarget]);
         toast({ title: "New target audience created successfully!" });
       }
+      
+      // Refresh data from the database
+      window.location.reload(); // Simple but effective refresh
       
       setShowTargetDialog(false);
       setEditingTarget(null);
@@ -155,14 +155,31 @@ export const AdminInterface = ({
 
   const deleteTarget = async (targetId: string) => {
     try {
-      const { error } = await supabase
-        .from('campaign_templates')
-        .delete()
-        .eq('id', targetId);
+      const target = campaignTargets.find(t => t.id === targetId);
       
-      if (error) throw error;
+      if (target?.isSeeded && target?.templateIds) {
+        // Delete all templates for this target audience
+        for (const templateId of target.templateIds) {
+          const { error } = await supabase
+            .from('campaign_templates')
+            .delete()
+            .eq('id', templateId);
+          
+          if (error) throw error;
+        }
+      } else {
+        // Delete single custom template
+        const { error } = await supabase
+          .from('campaign_templates')
+          .delete()
+          .eq('id', targetId);
+        
+        if (error) throw error;
+      }
       
-      setCampaignTargets(prev => prev.filter(target => target.id !== targetId));
+      // Refresh data from the database
+      window.location.reload(); // Simple but effective refresh
+      
       toast({ title: "Target audience deleted successfully!" });
     } catch (error) {
       console.error('Error deleting target:', error);
@@ -236,17 +253,10 @@ export const AdminInterface = ({
           if (error) throw error;
         }
         
-        console.log('Successfully saved to database, updating frontend state...');
+        console.log('Successfully saved to database, refreshing data...');
         
-        setCampaignTargets(prev => {
-          const updated = prev.map(target => 
-            target.id === editingTargetForTypes.id 
-              ? { ...target, campaignTypes: editingTargetForTypes.campaignTypes }
-              : target
-          );
-          console.log('Updated campaign targets state:', updated);
-          return updated;
-        });
+        // Refresh data from the database instead of just updating state
+        window.location.reload(); // Simple but effective refresh
         
         toast({ title: "Campaign types updated successfully!" });
         setShowCampaignTypesDialog(false);
