@@ -453,12 +453,12 @@ const LeadGenCampaigns = () => {
                     const roi = revenue > 0 && totalSpent > 0 ? (((revenue - totalSpent) / totalSpent) * 100).toFixed(1) : '0';
                     
                     return (
-                      <Card 
+                       <Card 
                         key={participation.id} 
                         className={`transition-all duration-300 ${
                           isActive 
                             ? 'hover:shadow-lg border-border hover:border-primary/30' 
-                            : 'border-warning/40'
+                            : 'border-warning/40 bg-muted/50 opacity-60'
                         }`}
                       >
                         <CardContent className="p-6">
@@ -493,26 +493,6 @@ const LeadGenCampaigns = () => {
                                 <span>•</span>
                                 <span>{participation.budget_contribution} pts/month</span>
                               </div>
-                            </div>
-                          </div>
-                          
-                          {/* Performance Metrics */}
-                          <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-muted/30 rounded-lg">
-                            <div className="text-center">
-                              <div className="text-xl font-bold text-primary">{leadsReceived}</div>
-                              <div className="text-xs text-muted-foreground">Leads</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-xl font-bold text-green-600">{conversions}</div>
-                              <div className="text-xs text-muted-foreground">Conversions</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-xl font-bold text-blue-600">{conversionRate}%</div>
-                              <div className="text-xs text-muted-foreground">Conv. Rate</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-xl font-bold text-purple-600">${revenue.toLocaleString()}</div>
-                              <div className="text-xs text-muted-foreground">Revenue</div>
                             </div>
                           </div>
 
