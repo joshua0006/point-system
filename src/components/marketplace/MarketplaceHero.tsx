@@ -64,20 +64,6 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
             )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">{servicesCount}+</div>
-              <p className="text-muted-foreground">Infrastructure Services</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">4.9★</div>
-              <p className="text-muted-foreground">Service Quality</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-muted-foreground">Professional Support</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
