@@ -108,25 +108,25 @@ Next Steps:
             <CheckCircle className="h-8 w-8 text-green-500 absolute -bottom-1 -right-1 bg-background rounded-full" />
           </div>
           <DialogTitle className="text-2xl font-bold text-foreground">
-            Campaign Submitted Successfully! 🎉
+            Campaign Activated Successfully! 🎉
           </DialogTitle>
           <p className="text-muted-foreground mt-2">
-            Your campaign has been submitted and is pending admin activation
+            Your campaign is now active and running
           </p>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Important Notice */}
-          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+          <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <Camera className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <Camera className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-amber-800 dark:text-amber-200">
-                    Action Required: Send Screenshot to Admin
+                  <h4 className="font-semibold text-green-800 dark:text-green-200">
+                    Please send screenshot to admin for confirmation
                   </h4>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Please take a screenshot of this page and send it to our admin team to activate your campaign.
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Take a screenshot of this confirmation page and send it to admin@yourcompany.com
                   </p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ Next Steps:
           {/* Campaign Details */}
           <Card>
             <CardContent className="p-6">
-              <h3 className="font-semibold text-lg mb-4">Campaign Details</h3>
+              <h3 className="font-semibold text-lg mb-4">Campaign Confirmation</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
                   <span className="text-muted-foreground">Campaign ID:</span>
@@ -190,48 +190,23 @@ Next Steps:
 
                 <div className="flex justify-between items-start">
                   <span className="text-muted-foreground">Status:</span>
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                    Pending Activation
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    Active
                   </Badge>
                 </div>
 
                 <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Submitted:</span>
+                  <span className="text-muted-foreground">Activated:</span>
                   <span className="font-semibold">{new Date().toLocaleString()}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Admin Contact Info */}
-          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800">
-            <CardContent className="p-4">
-              <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                Admin Contact Information
-              </h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                Email: <span className="font-mono">admin@yourcompany.com</span>
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                Please include your campaign ID in all communications.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={handleSendEmail} className="flex-1" variant="outline">
-              <Mail className="h-4 w-4 mr-2" />
-              Send to Admin
-            </Button>
-            <Button onClick={handleDownloadDetails} className="flex-1" variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Download Details
-            </Button>
-            <Button onClick={onClose} className="flex-1">
-              Continue
-            </Button>
-          </div>
+          {/* Action Button */}
+          <Button onClick={onClose} className="w-full">
+            Continue
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
