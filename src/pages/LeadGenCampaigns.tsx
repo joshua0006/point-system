@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -153,19 +152,19 @@ const LeadGenCampaigns = () => {
     try {
       const budget = pendingCampaign.budget;
       
+      console.log('Starting campaign creation process...');
+      console.log('Budget:', budget, 'User Balance:', userBalance);
+      console.log('Pending Campaign:', pendingCampaign);
+
       // Check sufficient balance
       if (userBalance < budget) {
         toast({
           title: "Insufficient Balance",
-          description: "Please top up your wallet to proceed.",
+          description: `You need ${budget} points but only have ${userBalance} points. Please contact admin to add more points to your account.`,
           variant: "destructive",
         });
         return;
       }
-
-      console.log('Starting campaign creation process...');
-      console.log('Budget:', budget, 'User Balance:', userBalance);
-      console.log('Pending Campaign:', pendingCampaign);
 
       // Deduct points and create transaction
       console.log('Updating user balance...');
@@ -176,7 +175,12 @@ const LeadGenCampaigns = () => {
 
       if (updateError) {
         console.error('Error updating balance:', updateError);
-        throw new Error(`Failed to update balance: ${updateError.message}`);
+        toast({
+          title: "Error",
+          description: `Failed to update balance: ${updateError.message}`,
+          variant: "destructive",
+        });
+        return;
       }
 
       console.log('Creating transaction record...');
@@ -191,7 +195,12 @@ const LeadGenCampaigns = () => {
 
       if (transactionError) {
         console.error('Error creating transaction:', transactionError);
-        throw new Error(`Failed to create transaction: ${transactionError.message}`);
+        toast({
+          title: "Error",
+          description: `Failed to create transaction: ${transactionError.message}`,
+          variant: "destructive",
+        });
+        return;
       }
 
       // Create campaign entry
@@ -210,7 +219,7 @@ const LeadGenCampaigns = () => {
           start_date: new Date().toISOString(),
           end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           total_budget: budget * 12,
-          status: 'draft',
+          status: 'active',
           created_by: user.id
         })
         .select()
@@ -218,7 +227,12 @@ const LeadGenCampaigns = () => {
 
       if (campaignError) {
         console.error('Error creating campaign:', campaignError);
-        throw new Error(`Failed to create campaign: ${campaignError.message}`);
+        toast({
+          title: "Error",
+          description: `Failed to create campaign: ${campaignError.message}`,
+          variant: "destructive",
+        });
+        return;
       }
 
       console.log('Created campaign:', campaign);
@@ -234,7 +248,12 @@ const LeadGenCampaigns = () => {
 
       if (error) {
         console.error('Error adding campaign participant:', error);
-        throw new Error(`Failed to add campaign participant: ${error.message}`);
+        toast({
+          title: "Error",
+          description: `Failed to add campaign participant: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
       }
 
       console.log('Campaign creation successful!');
@@ -261,12 +280,18 @@ const LeadGenCampaigns = () => {
       setPendingCampaign(null);
       setCurrentFlow('method-selection');
       fetchUserCampaigns();
+
+      toast({
+        title: "Campaign Launched Successfully! 🎉",
+        description: `${budget} points deducted from your account.`,
+      });
+
     } catch (error) {
       console.error('Campaign creation failed:', error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         title: "Error",
-        description: `Failed to process payment: ${errorMessage}`,
+        description: `Failed to process campaign: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -687,6 +712,15 @@ const LeadGenCampaigns = () => {
                   </div>
                 </div>
               </div>
+
+              {userBalance < pendingCampaign.budget && (
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    ⚠️ Insufficient balance. You need {pendingCampaign.budget - userBalance} more points.
+                    Contact admin to add points to your account.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -704,7 +738,7 @@ const LeadGenCampaigns = () => {
               disabled={!pendingCampaign || userBalance < pendingCampaign.budget}
             >
               <DollarSign className="h-4 w-4 mr-2" />
-              Confirm & Launch
+              {userBalance < (pendingCampaign?.budget || 0) ? 'Insufficient Balance' : 'Confirm & Launch'}
             </Button>
           </DialogFooter>
         </DialogContent>
