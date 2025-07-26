@@ -34,72 +34,25 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <UserDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/seller-dashboard"
-                element={
-                  <ProtectedRoute>
-                    <SellerDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/consultant-dashboard"
-                element={
-                  <ProtectedRoute>
-                    <ConsultantDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-dashboard"
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/service/:serviceId" element={<ServiceDetail />} />
-              <Route
-                path="/messages"
-                element={
-                  <ProtectedRoute>
-                    <Messages />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/consultant/:userId" element={<ConsultantProfile />} />
-              <Route path="/buyer/:userId" element={<BuyerProfile />} />
-              <Route path="/profile/consultant/:userId" element={<ConsultantProfile />} />
-              <Route path="/profile/buyer/:userId" element={<BuyerProfile />} />
-              <Route path="/profile/seller/:userId" element={<SellerProfile />} />
-              <Route
-                path="/lead-gen-campaigns"
-                element={
-                  <ProtectedRoute>
-                    <LeadGenCampaigns />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
+              
+              {/* All other routes are protected */}
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+              <Route path="/seller-dashboard" element={<ProtectedRoute><SellerDashboard /></ProtectedRoute>} />
+              <Route path="/consultant-dashboard" element={<ProtectedRoute><ConsultantDashboard /></ProtectedRoute>} />
+              <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
+              <Route path="/service/:serviceId" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/consultant/:userId" element={<ProtectedRoute><ConsultantProfile /></ProtectedRoute>} />
+              <Route path="/buyer/:userId" element={<ProtectedRoute><BuyerProfile /></ProtectedRoute>} />
+              <Route path="/profile/consultant/:userId" element={<ProtectedRoute><ConsultantProfile /></ProtectedRoute>} />
+              <Route path="/profile/buyer/:userId" element={<ProtectedRoute><BuyerProfile /></ProtectedRoute>} />
+              <Route path="/profile/seller/:userId" element={<ProtectedRoute><SellerProfile /></ProtectedRoute>} />
+              <Route path="/lead-gen-campaigns" element={<ProtectedRoute><LeadGenCampaigns /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
