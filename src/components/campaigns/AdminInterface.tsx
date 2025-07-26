@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
+import { CampaignInvitationForm } from "../admin/CampaignInvitationForm";
 import { supabase } from "@/integrations/supabase/client";
 
 const ICON_OPTIONS = [
@@ -308,10 +309,14 @@ export const AdminInterface = ({
 
       {/* Admin Dashboard Tabs */}
       <Tabs defaultValue="audiences" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="audiences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Target Management
+          </TabsTrigger>
+          <TabsTrigger value="invitations" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Campaign Invitations
           </TabsTrigger>
           <TabsTrigger value="campaigns" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
@@ -401,6 +406,22 @@ export const AdminInterface = ({
           </div>
           </CardContent>
         </Card>
+        </TabsContent>
+
+        <TabsContent value="invitations" className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Invitations</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Create personalized campaign invitations for users with pre-configured templates
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center">
+                <CampaignInvitationForm />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="campaigns" className="mt-8">
