@@ -120,7 +120,7 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
       const previewLink = `${baseUrl}/campaign-preview/${invitation.invitation_token}`;
       setGeneratedLink(previewLink);
 
-      toast.success('Campaign invitation created successfully!');
+      toast.success('Campaign proposal created successfully!');
       
       // Call the callback if provided
       if (onInvitationCreated) {
@@ -162,38 +162,44 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Create Campaign Invitation
+          Create Campaign Proposal
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            Create Campaign Invitation
+            Create Campaign Proposal
           </DialogTitle>
         </DialogHeader>
 
         {generatedLink ? (
-          <Card>
+          <Card className="border-green-200 bg-green-50">
             <CardHeader>
-              <CardTitle className="text-green-600">Invitation Created Successfully!</CardTitle>
+              <CardTitle className="text-green-600 flex items-center gap-2">
+                <Send className="h-5 w-5" />
+                Campaign Proposal Created Successfully!
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Send this link to the user so they can preview and accept the campaign:
+                Send this campaign summary link to the user for review and approval:
               </p>
-              <div className="flex items-center gap-2">
-                <Input 
-                  value={generatedLink} 
-                  readOnly 
-                  className="font-mono text-xs"
-                />
-                <Button onClick={copyLink} variant="outline" size="sm">
-                  Copy
-                </Button>
+              <div className="bg-white p-3 rounded-lg border">
+                <Label className="text-xs font-medium text-muted-foreground">Campaign Summary Link</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input 
+                    value={generatedLink} 
+                    readOnly 
+                    className="font-mono text-xs"
+                  />
+                  <Button onClick={copyLink} variant="outline" size="sm">
+                    Copy
+                  </Button>
+                </div>
               </div>
               <Button onClick={handleClose} className="w-full">
-                Create Another Invitation
+                Create Another Proposal
               </Button>
             </CardContent>
           </Card>
@@ -301,7 +307,7 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
                 disabled={loading}
                 className="flex-1"
               >
-                {loading ? 'Creating...' : 'Create Invitation'}
+                {loading ? 'Creating...' : 'Create Proposal'}
               </Button>
               <Button 
                 type="button" 

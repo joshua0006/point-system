@@ -21,7 +21,7 @@ export function CampaignInvitationManagement() {
     const baseUrl = window.location.origin;
     const previewLink = `${baseUrl}/campaign-preview/${token}`;
     navigator.clipboard.writeText(previewLink);
-    toast.success('Invitation link copied to clipboard!');
+    toast.success('Campaign summary link copied to clipboard!');
   };
 
   const openInvitationLink = (token: string) => {
@@ -54,9 +54,9 @@ export function CampaignInvitationManagement() {
       {/* Create New Invitation */}
       <Card>
         <CardHeader>
-          <CardTitle>Create Campaign Invitation</CardTitle>
+          <CardTitle>Create Campaign Proposal</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Send personalized campaign invitations to users with pre-configured templates
+            Create personalized campaign proposals with pre-configured templates and send summary links to clients
           </p>
         </CardHeader>
         <CardContent>
@@ -71,9 +71,9 @@ export function CampaignInvitationManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Campaign Invitations</CardTitle>
+              <CardTitle>Campaign Proposals</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Manage and track all campaign invitations
+                Manage and track all campaign proposals and their approval status
               </p>
             </div>
             <Button 
@@ -95,7 +95,7 @@ export function CampaignInvitationManagement() {
             </div>
           ) : invitations.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No campaign invitations found</p>
+              <p className="text-muted-foreground">No campaign proposals found</p>
             </div>
           ) : (
             <div className="rounded-md border">
@@ -166,7 +166,7 @@ export function CampaignInvitationManagement() {
                             onClick={() => copyInvitationLink(invitation.invitation_token)}
                             variant="ghost"
                             size="sm"
-                            title="Copy invitation link"
+                            title="Copy campaign summary link"
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -174,7 +174,7 @@ export function CampaignInvitationManagement() {
                             onClick={() => openInvitationLink(invitation.invitation_token)}
                             variant="ghost"
                             size="sm"
-                            title="Open invitation link"
+                            title="Open campaign summary"
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
@@ -183,7 +183,7 @@ export function CampaignInvitationManagement() {
                               onClick={() => resendInvitation(invitation.id)}
                               variant="ghost"
                               size="sm"
-                              title="Extend invitation"
+                              title="Extend proposal"
                             >
                               <RefreshCw className="h-4 w-4" />
                             </Button>
@@ -192,7 +192,7 @@ export function CampaignInvitationManagement() {
                             onClick={() => deleteInvitation(invitation.id)}
                             variant="ghost"
                             size="sm"
-                            title="Delete invitation"
+                            title="Delete proposal"
                             className="text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4" />
