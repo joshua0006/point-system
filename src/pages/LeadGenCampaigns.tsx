@@ -236,14 +236,23 @@ const LeadGenCampaigns = () => {
       }
 
       console.log('Created campaign:', campaign);
-      console.log('Adding campaign participant...');
+      
+      // Calculate next billing date (one month from now)
+      const nextBillingDate = new Date();
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+      const billingDay = nextBillingDate.getDate(); // Use current day of month as billing cycle day
+
+      console.log('Adding campaign participant with billing schedule...');
       const { error } = await supabase
         .from('campaign_participants')
         .insert({
           campaign_id: campaign.id,
           user_id: user.id,
           consultant_name: pendingCampaign.consultantName,
-          budget_contribution: budget
+          budget_contribution: budget,
+          next_billing_date: nextBillingDate.toISOString().split('T')[0], // YYYY-MM-DD format
+          billing_cycle_day: billingDay,
+          billing_status: 'active'
         });
 
       if (error) {
