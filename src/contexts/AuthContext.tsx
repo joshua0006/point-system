@@ -14,6 +14,9 @@ interface Profile {
   points_balance: number;
   created_at: string;
   updated_at: string;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  approved_at?: string;
 }
 
 interface AuthContextType {

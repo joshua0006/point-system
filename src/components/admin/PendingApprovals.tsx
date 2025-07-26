@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Check, X, Clock, User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertCircle, Check, X, Clock, User, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,12 +15,16 @@ interface PendingUser {
   email: string;
   created_at: string;
   approval_status: string;
+  role: 'user' | 'consultant' | 'admin';
 }
 
 const PendingApprovals = () => {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<PendingUser | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>('user');
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchPendingUsers = async () => {
@@ -40,9 +46,10 @@ const PendingApprovals = () => {
     }
   };
 
-  const handleApproval = async (userId: string, status: 'approved' | 'rejected') => {
+  const handleApproval = async (userId: string, status: 'approved' | 'rejected', role?: string) => {
     setActionLoading(userId);
     try {
+      // First approve/reject the user
       const { data, error } = await supabase.functions.invoke('admin-user-management', {
         body: { 
           action: 'approve_user',
@@ -53,13 +60,32 @@ const PendingApprovals = () => {
 
       if (error) throw error;
 
+      // If approving and a role was selected, update the role
+      if (status === 'approved' && role && role !== 'user') {
+        const { error: roleError } = await supabase
+          .from('profiles')
+          .update({ role: role as 'user' | 'consultant' | 'admin' })
+          .eq('user_id', userId);
+
+        if (roleError) {
+          console.error('Role update error:', roleError);
+          toast({
+            title: "Warning",
+            description: "User approved but role assignment failed. Please update role manually.",
+            variant: "destructive",
+          });
+        }
+      }
+
       toast({
         title: "Success",
-        description: data.message,
+        description: `User ${status} successfully${role && status === 'approved' ? ` with role: ${role}` : ''}`,
       });
 
       // Refresh the pending users list
       fetchPendingUsers();
+      setApprovalModalOpen(false);
+      setSelectedUser(null);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -69,6 +95,12 @@ const PendingApprovals = () => {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const openApprovalModal = (user: PendingUser) => {
+    setSelectedUser(user);
+    setSelectedRole('user');
+    setApprovalModalOpen(true);
   };
 
   useEffect(() => {
@@ -140,7 +172,7 @@ const PendingApprovals = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleApproval(user.user_id, 'approved')}
+                    onClick={() => openApprovalModal(user)}
                     disabled={actionLoading === user.user_id}
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
@@ -148,8 +180,8 @@ const PendingApprovals = () => {
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                     ) : (
                       <>
-                        <Check className="h-4 w-4 mr-1" />
-                        Approve
+                        <UserCheck className="h-4 w-4 mr-1" />
+                        Review
                       </>
                     )}
                   </Button>
@@ -187,6 +219,60 @@ const PendingApprovals = () => {
           </Button>
         </div>
       </CardContent>
+
+      {/* Approval Modal */}
+      <Dialog open={approvalModalOpen} onOpenChange={setApprovalModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve User Account</DialogTitle>
+            <DialogDescription>
+              Review and approve {selectedUser?.full_name || selectedUser?.email}'s account application
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <p><strong>Name:</strong> {selectedUser?.full_name || 'Not provided'}</p>
+              <p><strong>Email:</strong> {selectedUser?.email}</p>
+              <p><strong>Registration Date:</strong> {selectedUser ? new Date(selectedUser.created_at).toLocaleDateString() : ''}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Assign Role</label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="consultant">Consultant</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the role for this user. This can be changed later.
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={() => selectedUser && handleApproval(selectedUser.user_id, 'approved', selectedRole)}
+                disabled={!selectedUser || actionLoading === selectedUser?.user_id}
+                className="flex-1"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Approve & Assign Role
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setApprovalModalOpen(false)}
+                disabled={actionLoading === selectedUser?.user_id}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
