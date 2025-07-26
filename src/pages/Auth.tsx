@@ -59,75 +59,6 @@ const Auth = () => {
     });
   };
 
-  const handleQuickDemo = async (accountType: 'buyer' | 'consultant' | 'admin') => {
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Clean up any existing state first
-      cleanupAuthState();
-      
-      const demoEmail = `demo-${accountType}@demo.com`;
-      const demoPassword = 'demo123456';
-      const fullName = accountType === 'consultant' ? 'Demo Consultant' : 
-                      accountType === 'admin' ? 'Demo Admin' : 'Demo Buyer';
-      
-      console.log(`Setting up demo account: ${demoEmail}`);
-      
-      // Call the edge function to create/setup the demo account
-      const { data: setupResult, error: setupError } = await supabase.functions.invoke('setup-demo-data', {
-        body: {
-          email: demoEmail,
-          password: demoPassword,
-          fullName: fullName,
-          isConsultant: accountType === 'consultant',
-          isAdmin: accountType === 'admin',
-          autoConfirm: true
-        }
-      });
-
-      if (setupError) {
-        console.error('Setup error:', setupError);
-        throw setupError;
-      }
-
-      console.log('Demo account setup result:', setupResult);
-      
-      // Now try to sign in
-      console.log(`Attempting sign in for: ${demoEmail}`);
-      
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: demoPassword,
-      });
-
-      if (signInError) {
-        console.error('Sign in error:', signInError);
-        throw signInError;
-      }
-
-      console.log('Demo login successful, redirecting to marketplace...');
-      
-      toast({
-        title: "Demo Login Successful!",
-        description: `Welcome as a demo ${accountType}.`,
-      });
-
-      // Force page reload to ensure clean state
-      window.location.href = '/marketplace';
-      
-    } catch (err: any) {
-      console.error('Demo login error:', err);
-      toast({
-        title: "Demo Login Error",
-        description: err.message || "Failed to access demo account",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -424,41 +355,6 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
           
-          {/* Quick Demo Access - moved to bottom and made less prominent */}
-          <div className="mt-8 pt-6 border-t border-muted">
-            <p className="text-xs text-muted-foreground mb-3 text-center">
-              Or try with demo accounts:
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleQuickDemo('buyer')}
-                disabled={isLoading}
-                className="text-xs"
-              >
-                Demo Buyer
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleQuickDemo('consultant')}
-                disabled={isLoading}
-                className="text-xs"
-              >
-                Demo Consultant
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleQuickDemo('admin')}
-                disabled={isLoading}
-                className="text-xs"
-              >
-                Demo Admin
-              </Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
