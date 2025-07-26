@@ -209,7 +209,7 @@ const LeadGenCampaigns = () => {
           start_date: new Date().toISOString(),
           end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           total_budget: budget * 12,
-          status: 'pending_activation',
+          status: 'draft',
           created_by: user.id
         })
         .select()
