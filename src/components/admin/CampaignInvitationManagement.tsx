@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCampaignInvitations } from '@/hooks/useCampaignInvitations';
 import { CampaignInvitationForm } from './CampaignInvitationForm';
-import { Trash2, RefreshCw, ExternalLink, Copy, Calendar, DollarSign } from 'lucide-react';
+import { Trash2, RefreshCw, ExternalLink, Copy, Calendar, DollarSign, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function CampaignInvitationManagement() {
@@ -117,16 +117,26 @@ export function CampaignInvitationManagement() {
                       <TableCell>
                         <div>
                           <p className="font-medium">{invitation.campaign_config.templateName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {invitation.template?.name}
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-sm text-muted-foreground">
+                              {invitation.template?.name}
+                            </p>
+                            {invitation.is_public && (
+                              <Badge variant="outline" className="text-xs">
+                                <Users className="h-3 w-3 mr-1" />
+                                Public
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{invitation.target_profile?.full_name}</p>
+                          <p className="font-medium">
+                            {invitation.is_public ? 'Open to All Consultants' : invitation.target_profile?.full_name}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            {invitation.target_profile?.email}
+                            {invitation.is_public ? 'Any qualified consultant' : invitation.target_profile?.email}
                           </p>
                         </div>
                       </TableCell>
@@ -166,7 +176,7 @@ export function CampaignInvitationManagement() {
                             onClick={() => copyInvitationLink(invitation.invitation_token)}
                             variant="ghost"
                             size="sm"
-                            title="Copy campaign summary link"
+                            title={invitation.is_public ? "Copy public proposal link" : "Copy campaign summary link"}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>

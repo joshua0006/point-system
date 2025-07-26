@@ -16,6 +16,7 @@ interface CampaignInvitationFormData {
   templateId: string;
   budgetAmount: number;
   customMessage: string;
+  isPublic: boolean;
 }
 
 interface User {
@@ -46,7 +47,16 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [generatedLink, setGeneratedLink] = useState<string>('');
 
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<CampaignInvitationFormData>();
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<CampaignInvitationFormData>({
+    defaultValues: {
+      isPublic: false,
+      targetUserId: '',
+      templateId: '',
+      budgetAmount: 0,
+      customMessage: ''
+    }
+  });
+  const watchIsPublic = watch('isPublic');
 
   React.useEffect(() => {
     if (isOpen) {
@@ -92,6 +102,9 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // For public proposals, use admin as placeholder target user
+      const targetUserId = data.isPublic ? user.id : data.targetUserId;
+
       const campaignConfig = {
         templateName: selectedTemplate?.name,
         description: selectedTemplate?.description,
@@ -105,10 +118,11 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
         .from('campaign_invitations')
         .insert({
           admin_id: user.id,
-          target_user_id: data.targetUserId,
+          target_user_id: targetUserId,
           template_id: data.templateId,
           campaign_config: campaignConfig,
-          budget_amount: data.budgetAmount
+          budget_amount: data.budgetAmount,
+          is_public: data.isPublic
         })
         .select('invitation_token')
         .single();
@@ -120,7 +134,8 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
       const previewLink = `${baseUrl}/campaign-preview/${invitation.invitation_token}`;
       setGeneratedLink(previewLink);
 
-      toast.success('Campaign proposal created successfully!');
+      const proposalType = data.isPublic ? "Public campaign proposal" : "Campaign proposal";
+      toast.success(`${proposalType} created successfully!`);
       
       // Call the callback if provided
       if (onInvitationCreated) {
@@ -183,7 +198,10 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Send this campaign summary link to the user for review and approval:
+                {watchIsPublic ? 
+                  'Share this public campaign proposal link with consultants:' :
+                  'Send this campaign summary link to the user for review and approval:'
+                }
               </p>
               <div className="bg-white p-3 rounded-lg border">
                 <Label className="text-xs font-medium text-muted-foreground">Campaign Summary Link</Label>
@@ -205,28 +223,61 @@ export function CampaignInvitationForm({ onInvitationCreated }: CampaignInvitati
           </Card>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Target User Selection */}
+            {/* Proposal Type Selection */}
             <div className="space-y-2">
-              <Label htmlFor="targetUserId">Select User</Label>
-              <Select onValueChange={(value) => setValue('targetUserId', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a user to invite" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.user_id} value={user.user_id}>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span>{user.full_name} ({user.email})</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.targetUserId && (
-                <p className="text-sm text-red-500">Please select a user</p>
-              )}
+              <Label>Proposal Type</Label>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    {...register('isPublic')}
+                    value="false"
+                    className="form-radio"
+                  />
+                  <span>Targeted Proposal</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    {...register('isPublic')}
+                    value="true"
+                    className="form-radio"
+                  />
+                  <span>Public Proposal</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {watchIsPublic ? 
+                  'Public proposals can be accepted by any authenticated consultant' :
+                  'Targeted proposals are sent to a specific user'
+                }
+              </p>
             </div>
+
+            {/* Target User Selection - only show for targeted proposals */}
+            {!watchIsPublic && (
+              <div className="space-y-2">
+                <Label htmlFor="targetUserId">Select User</Label>
+                <Select onValueChange={(value) => setValue('targetUserId', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a user to invite" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.user_id} value={user.user_id}>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          <span>{user.full_name} ({user.email})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.targetUserId && !watchIsPublic && (
+                  <p className="text-sm text-red-500">Please select a user</p>
+                )}
+              </div>
+            )}
 
             {/* Template Selection */}
             <div className="space-y-2">

@@ -193,6 +193,7 @@ export type Database = {
           expires_at: string
           id: string
           invitation_token: string
+          is_public: boolean
           status: string
           target_user_id: string
           template_id: string
@@ -208,6 +209,7 @@ export type Database = {
           expires_at?: string
           id?: string
           invitation_token?: string
+          is_public?: boolean
           status?: string
           target_user_id: string
           template_id: string
@@ -223,6 +225,7 @@ export type Database = {
           expires_at?: string
           id?: string
           invitation_token?: string
+          is_public?: boolean
           status?: string
           target_user_id?: string
           template_id?: string

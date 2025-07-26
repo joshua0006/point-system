@@ -20,6 +20,7 @@ interface CampaignInvitation {
   expires_at: string;
   created_at: string;
   accepted_at?: string;
+  is_public: boolean;
 }
 
 interface AdminProfile {
@@ -101,7 +102,8 @@ export default function CampaignPreview() {
       return;
     }
 
-    if (currentUserId !== invitation.target_user_id) {
+    // For targeted invitations, check if user matches
+    if (!invitation.is_public && currentUserId !== invitation.target_user_id) {
       toast.error('This invitation is not for your account');
       return;
     }
@@ -193,7 +195,8 @@ export default function CampaignPreview() {
       return;
     }
 
-    if (currentUserId !== invitation.target_user_id) {
+    // For targeted invitations, check if user matches
+    if (!invitation.is_public && currentUserId !== invitation.target_user_id) {
       toast.error('This invitation is not for your account');
       return;
     }
@@ -253,22 +256,33 @@ export default function CampaignPreview() {
 
   const isExpired = new Date(invitation.expires_at) < new Date();
   const isAlreadyProcessed = invitation.status !== 'pending';
-  const canAccept = isAuthenticated && currentUserId === invitation.target_user_id && !isExpired && !isAlreadyProcessed;
+  const canAccept = isAuthenticated && 
+    (invitation.is_public || currentUserId === invitation.target_user_id) && 
+    !isExpired && !isAlreadyProcessed;
   const hasInsufficientBalance = userBalance < invitation.budget_amount;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
+          <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Rocket className="h-8 w-8 text-primary" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-              Campaign Proposal
+              {invitation.is_public ? 'Public Campaign Proposal' : 'Campaign Proposal'}
             </h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A personalized lead generation campaign designed specifically for your business needs
+            {invitation.is_public ? 
+              'A lead generation campaign open to all qualified consultants' :
+              'A personalized lead generation campaign designed specifically for your business needs'
+            }
           </p>
+          {invitation.is_public && (
+            <Badge variant="outline" className="mt-2">
+              <Users className="h-3 w-3 mr-1" />
+              Open to All Consultants
+            </Badge>
+          )}
         </div>
 
         {/* Status Alerts */}
@@ -294,7 +308,10 @@ export default function CampaignPreview() {
           <Alert className="mb-6 border-blue-200 bg-blue-50">
             <Users className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-700">
-              Please sign in to review and launch this campaign proposal.
+              {invitation.is_public ? 
+                'Please sign in to launch this campaign proposal.' :
+                'Please sign in to review and launch this campaign proposal.'
+              }
             </AlertDescription>
           </Alert>
         )}
