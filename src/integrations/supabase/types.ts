@@ -182,57 +182,6 @@ export type Database = {
           },
         ]
       }
-      campaign_invitations: {
-        Row: {
-          accepted_at: string | null
-          admin_id: string
-          budget_amount: number
-          campaign_config: Json
-          campaign_id: string | null
-          created_at: string
-          expires_at: string
-          id: string
-          invitation_token: string
-          is_public: boolean
-          status: string
-          target_user_id: string
-          template_id: string
-          updated_at: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          admin_id: string
-          budget_amount: number
-          campaign_config: Json
-          campaign_id?: string | null
-          created_at?: string
-          expires_at?: string
-          id?: string
-          invitation_token?: string
-          is_public?: boolean
-          status?: string
-          target_user_id: string
-          template_id: string
-          updated_at?: string
-        }
-        Update: {
-          accepted_at?: string | null
-          admin_id?: string
-          budget_amount?: number
-          campaign_config?: Json
-          campaign_id?: string | null
-          created_at?: string
-          expires_at?: string
-          id?: string
-          invitation_token?: string
-          is_public?: boolean
-          status?: string
-          target_user_id?: string
-          template_id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       campaign_participants: {
         Row: {
           billing_cycle_day: number | null

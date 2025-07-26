@@ -1,14 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, CheckCircle, Target, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface FacebookAdsWizardProps {
   onComplete: (campaignData: any) => void;
@@ -25,7 +23,6 @@ const STEPS = [
 
 export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTargets }: FacebookAdsWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [users, setUsers] = useState<any[]>([]);
   const [campaignData, setCampaignData] = useState({
     method: 'facebook-ads',
     targetAudience: null as any,
@@ -33,22 +30,6 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
     budget: 0,
     consultantName: ''
   });
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .eq('approval_status', 'approved')
-        .order('full_name');
-      
-      if (!error && data) {
-        setUsers(data);
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -231,19 +212,14 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="consultant-select">Select User</Label>
-                  <Select onValueChange={handleConsultantNameChange} value={campaignData.consultantName}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a user" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users.map((user) => (
-                        <SelectItem key={user.user_id} value={user.full_name || user.email}>
-                          {user.full_name || user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="consultant-name">Your Name</Label>
+                  <Input
+                    id="consultant-name"
+                    placeholder="Enter your full name"
+                    value={campaignData.consultantName}
+                    onChange={(e) => handleConsultantNameChange(e.target.value)}
+                    required
+                  />
                 </div>
                 
                 <div>

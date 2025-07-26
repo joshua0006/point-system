@@ -20,7 +20,6 @@ import ConsultantProfile from "./pages/ConsultantProfile";
 import BuyerProfile from "./pages/BuyerProfile";
 import SellerProfile from "./pages/SellerProfile";
 import LeadGenCampaigns from "./pages/LeadGenCampaigns";
-import CampaignPreview from "./pages/CampaignPreview";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -92,7 +91,6 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-              <Route path="/campaign-preview/:token" element={<CampaignPreview />} />
               <Route
                 path="/settings"
                 element={
