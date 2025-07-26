@@ -15,8 +15,10 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
 
   useEffect(() => {
     // If user is authenticated and page has loaded, redirect to marketplace
@@ -60,6 +62,81 @@ const Index = () => {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName || !email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSigningIn(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/marketplace`,
+        },
+      });
+
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+          setIsSignUp(false); // Switch to sign-in mode
+          return;
+        }
+        throw error;
+      }
+
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Account Created!",
+          description: "Your account is pending admin approval. You'll receive an email once approved.",
+        });
+      } else if (data.user) {
+        toast({
+          title: "Welcome!",
+          description: "Your account has been created and is pending approval.",
+        });
+      }
+      
+      // Clear form
+      setFullName('');
+      setEmail('');
+      setPassword('');
+      setIsSignUp(false);
+      
+    } catch (error: any) {
+      toast({
+        title: "Sign Up Failed",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -196,16 +273,34 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right Side - Login Form */}
             <div>
               <Card className="p-8">
                 <CardHeader className="text-center pb-6">
-                  <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-                  <p className="text-muted-foreground">Access your agent dashboard</p>
+                  <CardTitle className="text-2xl font-bold">
+                    {isSignUp ? 'Create Account' : 'Sign In'}
+                  </CardTitle>
+                  <p className="text-muted-foreground">
+                    {isSignUp ? 'Join the agent network' : 'Access your agent dashboard'}
+                  </p>
                 </CardHeader>
                 
                 <CardContent className="space-y-6">
-                  <form onSubmit={handleSignIn} className="space-y-4">
+                  <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+                    {isSignUp && (
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          type="text"
+                          placeholder="Enter your full name"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          disabled={isSigningIn}
+                          required
+                        />
+                      </div>
+                    )}
+                    
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
                       <Input
@@ -224,11 +319,12 @@ const Index = () => {
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder={isSignUp ? "Create a password (min 6 characters)" : "Enter your password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={isSigningIn}
                         required
+                        minLength={isSignUp ? 6 : undefined}
                       />
                     </div>
                     
@@ -236,13 +332,29 @@ const Index = () => {
                       {isSigningIn ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Signing In...
+                          {isSignUp ? 'Creating Account...' : 'Signing In...'}
                         </>
                       ) : (
-                        'Sign In'
+                        isSignUp ? 'Create Account' : 'Sign In'
                       )}
                     </Button>
                   </form>
+                  
+                  <div className="text-center">
+                    <Button
+                      variant="link"
+                      onClick={() => {
+                        setIsSignUp(!isSignUp);
+                        setEmail('');
+                        setPassword('');
+                        setFullName('');
+                      }}
+                      disabled={isSigningIn}
+                      className="text-sm"
+                    >
+                      {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+                    </Button>
+                  </div>
                   
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -283,9 +395,11 @@ const Index = () => {
                     </Button>
                   </div>
                   
-                  <p className="text-center text-sm text-muted-foreground">
-                    Need an account? Contact your administrator
-                  </p>
+                  {isSignUp && (
+                    <p className="text-center text-sm text-muted-foreground">
+                      Account requires admin approval before access is granted
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>
