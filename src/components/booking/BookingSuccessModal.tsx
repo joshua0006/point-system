@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { BookingProgressTracker } from "./BookingProgressTracker";
 import { MockSessionInterface } from "./MockSessionInterface";
-import { Check, Calendar, MessageCircle, Star, Clock, User, CreditCard } from 'lucide-react';
+import { Check, Calendar, MessageCircle, Star, Clock, User, CreditCard, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSendMessage } from '@/hooks/useMessages';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookingDetails {
   id: string;
@@ -18,6 +19,11 @@ interface BookingDetails {
   price: number;
   duration?: number;
   description: string;
+  category?: string;
+}
+
+interface GeneratedMessage {
+  message: string;
 }
 
 interface BookingSuccessModalProps {
@@ -32,13 +38,50 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
   const [currentStep, setCurrentStep] = useState(0);
   const [showSessionDemo, setShowSessionDemo] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
+  const [aiMessages, setAiMessages] = useState<GeneratedMessage[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const sendMessage = useSendMessage();
   const queryClient = useQueryClient();
 
+  const generateMessages = async () => {
+    if (!bookingDetails) return;
+    
+    setLoadingMessages(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-booking-messages', {
+        body: {
+          serviceTitle: bookingDetails.serviceTitle,
+          description: bookingDetails.description,
+          consultantName: bookingDetails.consultantName,
+          consultantTier: bookingDetails.consultantTier,
+          category: bookingDetails.category
+        }
+      });
+
+      if (error) throw error;
+      
+      setAiMessages(data.messages || []);
+    } catch (error) {
+      console.error('Failed to generate AI messages:', error);
+      // Use fallback messages if AI fails
+      setAiMessages([
+        { message: "Hi! I'm excited about our upcoming session. What should I prepare beforehand?" },
+        { message: "Hello! Could you share some background materials or resources before we meet?" },
+        { message: "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?" }
+      ]);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
   useEffect(() => {
     if (open && bookingDetails) {
-      // Reset message sent state when modal opens
+      // Reset states when modal opens
       setMessageSent(false);
+      setAiMessages([]);
+      
+      // Generate AI messages
+      generateMessages();
       
       // Simulate booking progress for demo
       const timer = setTimeout(() => setCurrentStep(1), 2000);
@@ -198,85 +241,44 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
               <CardContent className="space-y-3">
                 {!messageSent ? (
                   <>
-                    <p className="text-xs text-muted-foreground mb-3">Click to send a message and start the conversation:</p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {loadingMessages ? "Generating personalized messages..." : "Click to send a message and start the conversation:"}
+                    </p>
                     
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                      onClick={async () => {
-                        const message = "Hi! I'm excited about our upcoming session. What should I prepare beforehand?";
-                        if (conversationId) {
-                          try {
-                            await sendMessage.mutateAsync({ conversationId, messageText: message });
-                            setMessageSent(true);
-                            // Force refresh messages before opening chat
-                            await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-                            // Give a moment for the query to refresh
-                            setTimeout(() => {
-                              onMessageConsultant?.();
-                            }, 500);
-                          } catch (error) {
-                            console.error('Failed to send message:', error);
-                          }
-                        }
-                      }}
-                    >
-                      <div className="text-sm leading-relaxed break-words">
-                        "Hi! I'm excited about our upcoming session. What should I prepare beforehand?"
+                    {loadingMessages ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                       </div>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                      onClick={async () => {
-                        const message = "Hello! Could you share some background materials or resources before we meet?";
-                        if (conversationId) {
-                          try {
-                            await sendMessage.mutateAsync({ conversationId, messageText: message });
-                            setMessageSent(true);
-                            // Force refresh messages before opening chat
-                            await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-                            // Give a moment for the query to refresh
-                            setTimeout(() => {
-                              onMessageConsultant?.();
-                            }, 500);
-                          } catch (error) {
-                            console.error('Failed to send message:', error);
-                          }
-                        }
-                      }}
-                    >
-                      <div className="text-sm leading-relaxed break-words">
-                        "Hello! Could you share some background materials or resources before we meet?"
-                      </div>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                      onClick={async () => {
-                        const message = "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?";
-                        if (conversationId) {
-                          try {
-                            await sendMessage.mutateAsync({ conversationId, messageText: message });
-                            setMessageSent(true);
-                            // Force refresh messages before opening chat
-                            await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-                            // Give a moment for the query to refresh
-                            setTimeout(() => {
-                              onMessageConsultant?.();
-                            }, 500);
-                          } catch (error) {
-                            console.error('Failed to send message:', error);
-                          }
-                        }
-                      }}
-                    >
-                      <div className="text-sm leading-relaxed break-words">
-                        "Hi! I'd like to discuss my specific goals for this session. When would be a good time to chat?"
-                      </div>
-                    </Button>
+                    ) : (
+                      aiMessages.map((msgObj, index) => (
+                        <Button 
+                          key={index}
+                          variant="outline" 
+                          className="w-full text-left justify-start h-auto p-3 whitespace-normal"
+                          onClick={async () => {
+                            const message = msgObj.message;
+                            if (conversationId) {
+                              try {
+                                await sendMessage.mutateAsync({ conversationId, messageText: message });
+                                setMessageSent(true);
+                                // Force refresh messages before opening chat
+                                await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+                                // Give a moment for the query to refresh
+                                setTimeout(() => {
+                                  onMessageConsultant?.();
+                                }, 500);
+                              } catch (error) {
+                                console.error('Failed to send message:', error);
+                              }
+                            }
+                          }}
+                        >
+                          <div className="text-sm leading-relaxed break-words">
+                            "{msgObj.message}"
+                          </div>
+                        </Button>
+                      ))
+                    )}
                   </>
                 ) : (
                   <div className="text-center p-4 bg-success/10 rounded-lg border border-success/20">
