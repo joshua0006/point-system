@@ -79,13 +79,23 @@ export const AdminServiceManagement: React.FC = () => {
         title: "Service deleted",
         description: "The service has been successfully deleted.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting service:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete service. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Check if it's a foreign key constraint error
+      if (error?.code === '23503') {
+        toast({
+          title: "Cannot delete service",
+          description: "This service has existing bookings and transactions. Consider deactivating it instead.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete service. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
