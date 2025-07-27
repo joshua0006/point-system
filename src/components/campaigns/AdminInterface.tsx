@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor } from "lucide-react";
+import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
+import UserPermissionManagement from "../admin/UserPermissionManagement";
 import { supabase } from "@/integrations/supabase/client";
 
 const ICON_OPTIONS = [
@@ -308,10 +309,14 @@ export const AdminInterface = ({
 
       {/* Admin Dashboard Tabs */}
       <Tabs defaultValue="audiences" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="audiences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Target Management
+          </TabsTrigger>
+          <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            User Permissions
           </TabsTrigger>
           <TabsTrigger value="campaigns" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
@@ -401,6 +406,10 @@ export const AdminInterface = ({
           </div>
           </CardContent>
         </Card>
+        </TabsContent>
+
+        <TabsContent value="permissions" className="mt-8">
+          <UserPermissionManagement />
         </TabsContent>
 
         <TabsContent value="campaigns" className="mt-8">

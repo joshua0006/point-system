@@ -118,6 +118,48 @@ export type Database = {
           },
         ]
       }
+      campaign_access_rules: {
+        Row: {
+          campaign_type: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          max_budget: number | null
+          min_budget: number | null
+          required_completed_campaigns: number | null
+          required_user_tier: string | null
+          rule_name: string
+          target_audience: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_type?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_budget?: number | null
+          min_budget?: number | null
+          required_completed_campaigns?: number | null
+          required_user_tier?: string | null
+          rule_name: string
+          target_audience?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_type?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_budget?: number | null
+          min_budget?: number | null
+          required_completed_campaigns?: number | null
+          required_user_tier?: string | null
+          rule_name?: string
+          target_audience?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       campaign_analytics: {
         Row: {
           ad_variant_id: string | null
@@ -973,6 +1015,105 @@ export type Database = {
           price_info?: string | null
           source?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_campaign_permissions: {
+        Row: {
+          campaign_type: string | null
+          can_manage: boolean
+          can_participate: boolean
+          can_view: boolean
+          created_at: string
+          created_by: string | null
+          geographic_restrictions: string[] | null
+          id: string
+          max_budget: number | null
+          min_budget: number | null
+          target_audience: string | null
+          time_restrictions: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_type?: string | null
+          can_manage?: boolean
+          can_participate?: boolean
+          can_view?: boolean
+          created_at?: string
+          created_by?: string | null
+          geographic_restrictions?: string[] | null
+          id?: string
+          max_budget?: number | null
+          min_budget?: number | null
+          target_audience?: string | null
+          time_restrictions?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_type?: string | null
+          can_manage?: boolean
+          can_participate?: boolean
+          can_view?: boolean
+          created_at?: string
+          created_by?: string | null
+          geographic_restrictions?: string[] | null
+          id?: string
+          max_budget?: number | null
+          min_budget?: number | null
+          target_audience?: string | null
+          time_restrictions?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_group_memberships: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
           updated_at?: string
         }
         Relationships: []
