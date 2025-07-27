@@ -1021,7 +1021,7 @@ export type Database = {
       }
       user_campaign_permissions: {
         Row: {
-          campaign_type: string | null
+          campaign_type: string
           can_manage: boolean
           can_participate: boolean
           can_view: boolean
@@ -1031,13 +1031,13 @@ export type Database = {
           id: string
           max_budget: number | null
           min_budget: number | null
-          target_audience: string | null
+          target_audience: string
           time_restrictions: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          campaign_type?: string | null
+          campaign_type?: string
           can_manage?: boolean
           can_participate?: boolean
           can_view?: boolean
@@ -1047,13 +1047,13 @@ export type Database = {
           id?: string
           max_budget?: number | null
           min_budget?: number | null
-          target_audience?: string | null
+          target_audience?: string
           time_restrictions?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          campaign_type?: string | null
+          campaign_type?: string
           can_manage?: boolean
           can_participate?: boolean
           can_view?: boolean
@@ -1063,7 +1063,7 @@ export type Database = {
           id?: string
           max_budget?: number | null
           min_budget?: number | null
-          target_audience?: string | null
+          target_audience?: string
           time_restrictions?: Json | null
           updated_at?: string
           user_id?: string
