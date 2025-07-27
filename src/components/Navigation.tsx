@@ -227,7 +227,6 @@ export function Navigation() {
       <BalanceDetailsModal
         open={balanceModalOpen}
         onOpenChange={setBalanceModalOpen}
-        transactions={mockTransactions}
         onTopUp={() => {
           setBalanceModalOpen(false);
           setTopUpModalOpen(true);

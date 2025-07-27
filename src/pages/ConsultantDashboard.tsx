@@ -763,7 +763,6 @@ export default function ConsultantDashboard() {
         <BalanceDetailsModal
           open={balanceModalOpen}
           onOpenChange={setBalanceModalOpen}
-          transactions={mockTransactions}
           onTopUp={() => {
             setBalanceModalOpen(false);
             setTopUpModalOpen(true);

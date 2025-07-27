@@ -67,7 +67,6 @@ export function DashboardModals({
       <BalanceDetailsModal 
         open={balanceModalOpen}
         onOpenChange={setBalanceModalOpen}
-        transactions={allTransactions}
         onTopUp={() => {
           setBalanceModalOpen(false);
           setTopUpModalOpen(true);
