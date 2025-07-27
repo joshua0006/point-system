@@ -53,7 +53,10 @@ const UserPermissionManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPermission, setEditingPermission] = useState<UserPermission | null>(null);
+const [editingPermission, setEditingPermission] = useState<UserPermission | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
+  const [isGroupMembersDialogOpen, setIsGroupMembersDialogOpen] = useState(false);
+  const [groupMembers, setGroupMembers] = useState<any[]>([]);
   const { toast } = useToast();
 
   const targetAudiences = ['General', 'NSF (National Science Foundation)', 'Seniors', 'Mothers'];
@@ -184,6 +187,74 @@ const UserPermissionManagement = () => {
       toast({
         title: "Error",
         description: "Failed to delete permission",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchGroupMembers = async (groupId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_group_memberships')
+        .select(`
+          *,
+          profiles!user_group_memberships_user_id_fkey(full_name, email)
+        `)
+        .eq('group_id', groupId);
+
+      if (error) throw error;
+      setGroupMembers(data || []);
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch group members",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addMemberToGroup = async (userId: string, groupId: string) => {
+    try {
+      const currentUser = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from('user_group_memberships')
+        .insert({
+          user_id: userId,
+          group_id: groupId,
+          assigned_by: currentUser.data.user?.id
+        });
+
+      if (error) throw error;
+      
+      toast({ title: "Success", description: "Member added to group successfully" });
+      fetchGroupMembers(groupId);
+    } catch (error) {
+      console.error('Error adding member to group:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add member to group",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const removeMemberFromGroup = async (membershipId: string, groupId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_group_memberships')
+        .delete()
+        .eq('id', membershipId);
+
+      if (error) throw error;
+      
+      toast({ title: "Success", description: "Member removed from group successfully" });
+      fetchGroupMembers(groupId);
+    } catch (error) {
+      console.error('Error removing member from group:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove member from group",
         variant: "destructive"
       });
     }
@@ -442,7 +513,15 @@ const UserPermissionManagement = () => {
                       <div className="font-medium">{group.name}</div>
                       <div className="text-sm text-muted-foreground">{group.description}</div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedGroup(group);
+                        setIsGroupMembersDialogOpen(true);
+                        fetchGroupMembers(group.id);
+                      }}
+                    >
                       <Users className="w-4 h-4 mr-2" />
                       Manage Members
                     </Button>
@@ -495,6 +574,62 @@ const UserPermissionManagement = () => {
       </Tabs>
 
       <PermissionDialog />
+      
+      {/* Group Members Management Dialog */}
+      <Dialog open={isGroupMembersDialogOpen} onOpenChange={setIsGroupMembersDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Members - {selectedGroup?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label>Add New Member</Label>
+              <Select onValueChange={(userId) => selectedGroup && addMemberToGroup(userId, selectedGroup.id)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select user to add" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users
+                    .filter(user => !groupMembers.some(member => member.user_id === user.user_id))
+                    .map((user) => (
+                      <SelectItem key={user.user_id} value={user.user_id}>
+                        {user.full_name} ({user.email})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Current Members</Label>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {groupMembers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No members in this group</p>
+                ) : (
+                  groupMembers.map((member) => (
+                    <div key={member.id} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <div className="font-medium">{member.profiles?.full_name || 'Unknown User'}</div>
+                        <div className="text-sm text-muted-foreground">{member.profiles?.email}</div>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => selectedGroup && removeMemberFromGroup(member.id, selectedGroup.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
