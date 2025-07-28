@@ -27,6 +27,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const [confirmationData, setConfirmationData] = useState<{
     amount: number;
     paymentMethod?: string;
@@ -81,29 +82,33 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     if (isInstant && paymentMethod) {
       await executeInstantCharge(paymentMethod, amount);
     } else {
-      await executeTopUp(amount);
+      // For now, redirect to add payment method instead of webhook checkout
+      setShowAddMethodModal(true);
     }
   };
 
-  const executeTopUp = async (amount: number) => {
+  // Add debug function for testing
+  const handleDebugAddPoints = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-points-checkout', {
-        body: { points: amount },
+      const { data, error } = await supabase.functions.invoke('manual-add-points', {
+        body: { points: 1000 },
       });
 
       if (error) throw error;
 
-      if (data.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-        onClose();
-      }
-    } catch (error) {
-      console.error('Error creating checkout:', error);
       toast({
-        title: "Error",
-        description: "Failed to create checkout session. Please try again.",
+        title: "Debug: Points Added!",
+        description: "Successfully added 1000 points to your account",
+      });
+      
+      onClose();
+      onSuccess?.(1000, true);
+    } catch (error) {
+      console.error('Error adding debug points:', error);
+      toast({
+        title: "Debug Error",
+        description: "Failed to add debug points",
         variant: "destructive",
       });
     } finally {
@@ -137,11 +142,42 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             Add Points to Your Account
           </DialogTitle>
           <p className="text-muted-foreground mt-2">
-            Secure and instant payment processing
+            Instant payments with saved methods only
           </p>
+          
+          {/* Debug Toggle */}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDebugMode(!debugMode)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {debugMode ? "Hide" : "Show"} Debug Options
+            </Button>
+          </div>
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Debug Mode */}
+          {debugMode && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-semibold text-yellow-800 mb-3">🔧 Debug Mode</h4>
+              <div className="space-y-2">
+                <Button
+                  onClick={handleDebugAddPoints}
+                  disabled={loading}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700"
+                >
+                  Add 1000 Points (Debug - No Payment)
+                </Button>
+                <p className="text-xs text-yellow-700">
+                  Instantly adds 1000 points without payment for testing purposes
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Primary: Instant Payment with Saved Methods */}
           {paymentMethods.length > 0 && (
             <div className="space-y-4">
@@ -277,68 +313,38 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             </p>
           </div>
 
-          {/* Secondary: Add New Payment Method (only show if no saved methods OR as alternative) */}
+          {/* Add New Payment Method Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold">
-                {paymentMethods.length > 0 ? "Add New Payment Method" : "Payment Options"}
+                {paymentMethods.length > 0 ? "Add New Payment Method" : "First, Save a Payment Method"}
               </h3>
-              {paymentMethods.length === 0 && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                  <Star className="h-3 w-3 mr-1" />
-                  Secure Checkout
-                </Badge>
-              )}
-              {paymentMethods.length > 0 && (
-                <Badge variant="secondary" className="bg-orange-50 text-orange-700 border-orange-200">
-                  <Plus className="h-3 w-3 mr-1" />
-                  Save for Future
-                </Badge>
-              )}
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                <Plus className="h-3 w-3 mr-1" />
+                Save for Instant Payments
+              </Badge>
             </div>
             
-            {paymentMethods.length > 0 && (
-              <div className="p-3 bg-orange-50/50 border border-orange-200 rounded-lg">
-                <div className="flex items-center gap-2 text-sm text-orange-800">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>Takes 2-3 minutes • Will save this method for instant future payments</span>
-                </div>
+            <div className="p-4 bg-blue-50/50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-blue-800 mb-3">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-medium">New Simplified Flow:</span>
               </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-3">
-              {quickPackages.map((pkg) => (
-                <Card
-                  key={pkg.points}
-                  className={`relative cursor-pointer border transition-all hover:shadow-md ${
-                    pkg.popular 
-                      ? 'border-primary/50 bg-primary/5' 
-                      : 'border-border hover:border-primary/30'
-                  }`}
-                  onClick={() => showConfirmationDialog(pkg.points)}
-                >
-                  {pkg.popular && (
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-primary text-primary-foreground">
-                        <Star className="h-3 w-3 mr-1" />
-                        Most Popular
-                      </Badge>
-                    </div>
-                  )}
-                  <CardContent className="p-6 text-center">
-                    <div className="text-2xl font-bold text-primary mb-1">
-                      {pkg.points.toLocaleString()}
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-3">POINTS</div>
-                    <div className="text-xl font-semibold">S${pkg.price}</div>
-                    <div className="text-xs text-muted-foreground mt-2 flex items-center justify-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {paymentMethods.length > 0 ? '2-3 minutes' : 'Secure checkout'}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <ol className="text-xs text-blue-700 space-y-1 ml-4">
+                <li>1. Save your payment method securely</li>
+                <li>2. Use it for instant payments (no redirects)</li>
+                <li>3. All future payments are instant</li>
+              </ol>
             </div>
+            
+            <Button
+              onClick={() => setShowAddMethodModal(true)}
+              className="w-full h-12 text-lg font-semibold"
+              disabled={loading}
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              {paymentMethods.length > 0 ? "Add Another Payment Method" : "Add Your First Payment Method"}
+            </Button>
           </div>
 
           {/* Custom Amount */}
@@ -449,38 +455,26 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 )}
 
                 {/* Secondary: Add New Payment Method Button */}
-                <Button 
-                  onClick={() => showConfirmationDialog(parseInt(customAmount))}
-                  disabled={loading || !customAmount || parseInt(customAmount) < 250}
-                  className={`h-12 text-lg font-semibold ${
-                    paymentMethods.length > 0 
-                      ? 'flex-1 variant-outline bg-background hover:bg-muted border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 text-foreground' 
-                      : 'w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground'
-                  }`}
-                  size="lg"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                      Processing...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {paymentMethods.length > 0 ? (
-                        <>
-                          <Plus className="w-5 h-5" />
-                          Add & Pay
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="w-5 h-5" />
-                          Secure Checkout
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </div>
-                  )}
-                </Button>
+                {paymentMethods.length === 0 && (
+                  <Button 
+                    onClick={() => setShowAddMethodModal(true)}
+                    disabled={loading || !customAmount || parseInt(customAmount) < 250}
+                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground"
+                    size="lg"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Save Payment Method First
+                      </div>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
