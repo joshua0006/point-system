@@ -27,6 +27,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showOtherMethods, setShowOtherMethods] = useState(false);
   const [confirmationData, setConfirmationData] = useState<{
     amount: number;
     paymentMethod?: string;
@@ -177,52 +178,60 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   </CardContent>
                 </Card>
               )}
-              
-              {/* Other Payment Methods (Collapsed) */}
-              {paymentMethods.length > 1 && (
-                <details className="group">
-                  <summary className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-                    <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-                    Use different payment method ({paymentMethods.length - 1} available)
-                  </summary>
-                  <div className="mt-3 space-y-2">
-                    {paymentMethods.filter(method => method.id !== defaultPaymentMethod?.id).map((method) => (
-                      <Card key={method.id} className="border border-border/60 hover:border-primary/30 transition-colors">
-                        <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-6 h-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded flex items-center justify-center">
-                                <CreditCard className="h-3 w-3 text-white" />
-                              </div>
-                              <div>
-                                <div className="font-medium capitalize text-sm">
-                                  {method.brand} •••• {method.last4}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  Expires {method.exp_month}/{method.exp_year}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              {quickPackages.slice(0, 2).map((pkg) => (
-                                <Button
-                                  key={pkg.points}
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs px-2 py-1 h-6"
-                                  onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
-                                  disabled={loading || paymentMethodsLoading}
-                                 >
-                                   S${pkg.totalPrice}
-                                 </Button>
-                              ))}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </details>
+               
+               {/* Other Payment Methods Toggle */}
+               {paymentMethods.length > 1 && (
+                 <div className="space-y-3">
+                   <Button
+                     variant="ghost"
+                     size="sm"
+                     onClick={() => setShowOtherMethods(!showOtherMethods)}
+                     className="w-full justify-between text-sm text-muted-foreground hover:text-foreground"
+                   >
+                     <span>Use different payment method ({paymentMethods.length - 1} available)</span>
+                     <ChevronDown className={`h-4 w-4 transition-transform ${showOtherMethods ? 'rotate-180' : ''}`} />
+                   </Button>
+                   
+                   {showOtherMethods && (
+                     <div className="space-y-2 animate-fade-in">
+                       {paymentMethods.filter(method => method.id !== defaultPaymentMethod?.id).map((method) => (
+                         <Card key={method.id} className="border border-border/60 hover:border-primary/30 transition-colors">
+                           <CardContent className="p-3">
+                             <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-3">
+                                 <div className="w-6 h-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded flex items-center justify-center">
+                                   <CreditCard className="h-3 w-3 text-white" />
+                                 </div>
+                                 <div>
+                                   <div className="font-medium capitalize text-sm">
+                                     {method.brand} •••• {method.last4}
+                                   </div>
+                                   <div className="text-xs text-muted-foreground">
+                                     Expires {method.exp_month}/{method.exp_year}
+                                   </div>
+                                 </div>
+                               </div>
+                               <div className="flex gap-1">
+                                 {quickPackages.slice(0, 2).map((pkg) => (
+                                   <Button
+                                     key={pkg.points}
+                                     size="sm"
+                                     variant="outline"
+                                     className="text-xs px-2 py-1 h-6"
+                                     onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
+                                     disabled={loading || paymentMethodsLoading}
+                                   >
+                                     S${pkg.totalPrice}
+                                   </Button>
+                                 ))}
+                               </div>
+                             </div>
+                           </CardContent>
+                         </Card>
+                       ))}
+                     </div>
+                   )}
+                 </div>
               )}
               
               <Separator className="my-6" />
