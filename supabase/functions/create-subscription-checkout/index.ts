@@ -47,9 +47,9 @@ serve(async (req) => {
             currency: "sgd",
             product_data: { 
               name: `Cold Calling Service - ${hours} hours/month (incl. GST)`,
-              description: `Monthly subscription for ${hours} hours of cold calling services (S$${hours * 6} + S$9 GST)`
+              description: `Monthly subscription for ${hours} hours of cold calling services (S$${hours * 6} + 9% GST)`
             },
-            unit_amount: (hours * 600) + 900, // $6 per hour + $9 GST in cents
+            unit_amount: Math.round((hours * 600) * 1.09), // $6 per hour + 9% GST in cents
             recurring: { interval: "month" },
           },
           quantity: 1,
