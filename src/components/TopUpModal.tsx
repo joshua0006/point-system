@@ -48,17 +48,17 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   }, [defaultPaymentMethod?.id, selectedPaymentMethod]);
 
   const quickPackages = [
-    { points: 250, basePrice: 250, totalPrice: Math.round(250 * 1.09), popular: false },
-    { points: 500, basePrice: 500, totalPrice: Math.round(500 * 1.09), popular: true },
-    { points: 750, basePrice: 750, totalPrice: Math.round(750 * 1.09), popular: false },
-    { points: 1000, basePrice: 1000, totalPrice: Math.round(1000 * 1.09), popular: false },
+    { points: 1, basePrice: 1, totalPrice: Math.round(1 * 1.09), popular: false },
+    { points: 5, basePrice: 5, totalPrice: Math.round(5 * 1.09), popular: false },
+    { points: 10, basePrice: 10, totalPrice: Math.round(10 * 1.09), popular: true },
+    { points: 25, basePrice: 25, totalPrice: Math.round(25 * 1.09), popular: false },
   ];
 
   const showConfirmationDialog = (amount: number, paymentMethodId?: string, isInstant = false) => {
-    if (!amount || amount < 250) {
+    if (!amount || amount < 1) {
       toast({
         title: "Invalid Amount",
-        description: "Minimum amount is 250 points (S$250)",
+        description: "Minimum amount is 1 point (S$1)",
         variant: "destructive",
       });
       return;
@@ -357,11 +357,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               <div className="relative">
                 <Input
                   type="number"
-                  placeholder="Minimum 250 points (S$250)"
+                  placeholder="Minimum 1 point (S$1)"
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
-                  min={250}
-                  step={50}
+                  min={1}
+                  step={1}
                   className="pr-20 h-12 text-lg"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
@@ -370,7 +370,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               </div>
 
               {/* Auto-selected Default Payment Method for Custom Amount */}
-              {paymentMethods.length > 0 && customAmount && parseInt(customAmount) >= 250 && (
+              {paymentMethods.length > 0 && customAmount && parseInt(customAmount) >= 1 && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Payment Method (Auto-Selected)</Label>
                   <div className="h-12 bg-green-50 border border-green-200 rounded-md flex items-center px-3">
@@ -416,7 +416,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 </div>
               )}
               
-              {customAmount && parseInt(customAmount) >= 250 && (
+              {customAmount && parseInt(customAmount) >= 1 && (
                 <div className="p-4 bg-secondary/30 rounded-lg border">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -448,8 +448,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 {/* Primary: Instant Charge Button (when saved methods exist) */}
                 {paymentMethods.length > 0 && (
                   <Button 
-                    onClick={() => showConfirmationDialog(parseInt(customAmount), selectedPaymentMethod || defaultPaymentMethod?.id, true)}
-                    disabled={loading || !customAmount || parseInt(customAmount) < 250}
+                  onClick={() => showConfirmationDialog(parseInt(customAmount), selectedPaymentMethod || defaultPaymentMethod?.id, true)}
+                  disabled={loading || !customAmount || parseInt(customAmount) < 1 || !selectedPaymentMethod}
                     className="flex-1 h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
                     size="lg"
                   >
@@ -470,8 +470,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 {/* Secondary: Add New Payment Method Button */}
                 {paymentMethods.length === 0 && (
                   <Button 
-                    onClick={() => setShowAddMethodModal(true)}
-                    disabled={loading || !customAmount || parseInt(customAmount) < 250}
+                  onClick={() => setShowAddMethodModal(true)}
+                  disabled={loading || !customAmount || parseInt(customAmount) < 1}
                     className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground"
                     size="lg"
                   >

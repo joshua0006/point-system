@@ -39,7 +39,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
     const { payment_method_id, amount } = await req.json();
-    if (!payment_method_id || !amount || amount < 250) {
+    if (!payment_method_id || !amount || amount < 1) {
       throw new Error("Invalid payment method ID or amount");
     }
 
