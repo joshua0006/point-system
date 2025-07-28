@@ -16,13 +16,23 @@ export const usePaymentMethods = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const fetchPaymentMethods = async () => {
+  const fetchPaymentMethods = async (forceRefresh = false) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('list-payment-methods');
+      console.log('Fetching payment methods...', forceRefresh ? '(force refresh)' : '');
+      
+      // Clear any cached data if force refresh
+      if (forceRefresh) {
+        setPaymentMethods([]);
+      }
+      
+      const { data, error } = await supabase.functions.invoke('list-payment-methods', {
+        body: { timestamp: Date.now() } // Add timestamp to prevent caching
+      });
       
       if (error) throw error;
       
+      console.log('Payment methods received:', data.payment_methods);
       setPaymentMethods(data.payment_methods || []);
     } catch (error) {
       console.error('Error fetching payment methods:', error);

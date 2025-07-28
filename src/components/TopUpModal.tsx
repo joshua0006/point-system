@@ -93,14 +93,21 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       onClose();
       setCustomAmount("");
       setSelectedPaymentMethod("");
-      // Refresh payment methods to update any changes
-      fetchPaymentMethods();
+      // Force refresh payment methods to get latest data
+      await fetchPaymentMethods(true);
       // Trigger dashboard data refresh and show success modal
       onSuccess?.(amount, true);
     } catch (error) {
       // Error handling is done in the hook
     }
   };
+
+  // Force refresh payment methods when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchPaymentMethods(true);
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
