@@ -47,10 +47,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   }, [defaultPaymentMethod?.id, selectedPaymentMethod]);
 
   const quickPackages = [
-    { points: 1, basePrice: 1, totalPrice: Math.round(1 * 1.09), popular: false },
-    { points: 5, basePrice: 5, totalPrice: Math.round(5 * 1.09), popular: false },
-    { points: 10, basePrice: 10, totalPrice: Math.round(10 * 1.09), popular: true },
-    { points: 25, basePrice: 25, totalPrice: Math.round(25 * 1.09), popular: false },
+    { points: 250, basePrice: 250, totalPrice: Math.round(250 * 1.09), popular: false },
+    { points: 500, basePrice: 500, totalPrice: Math.round(500 * 1.09), popular: true },
+    { points: 750, basePrice: 750, totalPrice: Math.round(750 * 1.09), popular: false },
+    { points: 1000, basePrice: 1000, totalPrice: Math.round(1000 * 1.09), popular: false },
   ];
 
   const showConfirmationDialog = (amount: number, paymentMethodId?: string, isInstant = false) => {
