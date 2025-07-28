@@ -27,7 +27,6 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
   const [confirmationData, setConfirmationData] = useState<{
     amount: number;
     paymentMethod?: string;
@@ -87,35 +86,6 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     }
   };
 
-  // Add debug function for testing
-  const handleDebugAddPoints = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('manual-add-points', {
-        body: { points: 1000 },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Debug: Points Added!",
-        description: "Successfully added 1000 points to your account",
-      });
-      
-      onClose();
-      onSuccess?.(1000, true);
-    } catch (error) {
-      console.error('Error adding debug points:', error);
-      toast({
-        title: "Debug Error",
-        description: "Failed to add debug points",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const executeInstantCharge = async (paymentMethodId: string, amount: number) => {
     try {
       await instantCharge(paymentMethodId, amount);
@@ -142,43 +112,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             Add Points to Your Account
           </DialogTitle>
           <p className="text-muted-foreground mt-2">
-            Instant payments with saved methods only
+            Secure and instant payments with saved methods
           </p>
-          
-          {/* Debug Toggle */}
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDebugMode(!debugMode)}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              {debugMode ? "Hide" : "Show"} Debug Options
-            </Button>
-          </div>
         </DialogHeader>
         
-        <div className="space-y-6">
-          {/* Debug Mode */}
-          {debugMode && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h4 className="font-semibold text-yellow-800 mb-3">🔧 Debug Mode</h4>
-              <div className="space-y-2">
-                <Button
-                  onClick={handleDebugAddPoints}
-                  disabled={loading}
-                  className="w-full bg-yellow-600 hover:bg-yellow-700"
-                >
-                  Add 1000 Points (Debug - No Payment)
-                </Button>
-                <p className="text-xs text-yellow-700">
-                  Instantly adds 1000 points without payment for testing purposes
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Primary: Instant Payment with Saved Methods */}
+        <div className="space-y-6">{/* Instant Payment with Saved Methods */}
           {paymentMethods.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
