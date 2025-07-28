@@ -162,13 +162,15 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                         <Button
                           key={pkg.points}
                           variant={pkg.popular ? "default" : "outline"}
-                          className={`h-12 flex-col gap-1 text-xs ${pkg.popular ? 'bg-primary' : ''}`}
+                          className={`h-16 flex-col gap-1 text-xs transition-all duration-200 hover-scale ${
+                            pkg.popular ? 'bg-primary ring-2 ring-primary/20' : ''
+                          }`}
                           onClick={() => showConfirmationDialog(pkg.points, defaultPaymentMethod.id, true)}
                           disabled={loading || paymentMethodsLoading}
                         >
-                          <div className="font-bold">{pkg.points}</div>
+                          <div className="font-bold text-sm">{pkg.points}</div>
                           <div className="text-xs opacity-75">S${pkg.totalPrice}</div>
-                          {pkg.popular && <Star className="h-2 w-2" />}
+                          {pkg.popular && <Star className="h-3 w-3 fill-current" />}
                         </Button>
                       ))}
                     </div>
