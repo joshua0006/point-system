@@ -59,7 +59,7 @@ serve(async (req) => {
     // Create payment intent with saved payment method
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // Convert to cents
-      currency: "usd",
+      currency: "sgd",
       customer: customerId,
       payment_method: payment_method_id,
       confirmation_method: "automatic",

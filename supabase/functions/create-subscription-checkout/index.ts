@@ -44,7 +44,7 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "sgd",
             product_data: { 
               name: `Cold Calling Service - ${hours} hours/month`,
               description: `Monthly subscription for ${hours} hours of cold calling services`

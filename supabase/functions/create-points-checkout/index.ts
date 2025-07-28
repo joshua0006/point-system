@@ -65,7 +65,7 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "sgd",
             product_data: { 
               name: `${points} Points Top-up`,
               description: `Add ${points} points to your wallet balance`
