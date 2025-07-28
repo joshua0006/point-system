@@ -40,7 +40,31 @@ const LeadGenCampaigns = () => {
     fetchUserBalance();
     checkAdminStatus();
     fetchUserCampaigns();
+    handleURLParameters();
   }, [user, profile]);
+
+  // Handle URL parameters for checkout success
+  const handleURLParameters = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const topupStatus = urlParams.get('topup');
+    const points = urlParams.get('points');
+
+    if (topupStatus === 'success' && points) {
+      toast({
+        title: "Payment Successful!",
+        description: `${points} points have been added to your account.`,
+      });
+      
+      // Clean up URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      
+      // Refresh balance to show updated points
+      setTimeout(() => {
+        fetchUserBalance();
+      }, 1000);
+    }
+  };
 
 
   const fetchUserCampaigns = async () => {
