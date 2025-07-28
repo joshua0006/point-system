@@ -56,16 +56,19 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found customer", { customerId });
 
-    // Create payment intent with saved payment method
+    // Create payment intent with saved payment method (including S$9 GST)
+    const gstAmount = 900; // S$9 in cents
+    const totalAmount = (amount * 100) + gstAmount; // Base amount + GST
+    
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // Convert to cents
+      amount: totalAmount,
       currency: "sgd",
       customer: customerId,
       payment_method: payment_method_id,
       confirmation_method: "automatic",
       confirm: true,
       off_session: true,
-      description: `Points top-up: ${amount} points`,
+      description: `Points top-up: ${amount} points (S$${amount} + S$9 GST)`,
     });
 
     logStep("Payment intent created", { paymentIntentId: paymentIntent.id, status: paymentIntent.status });

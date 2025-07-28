@@ -48,10 +48,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   }, [defaultPaymentMethod?.id, selectedPaymentMethod]);
 
   const quickPackages = [
-    { points: 250, price: 250, popular: false },
-    { points: 500, price: 500, popular: true },
-    { points: 750, price: 750, popular: false },
-    { points: 1000, price: 1000, popular: false },
+    { points: 250, basePrice: 250, totalPrice: 259, popular: false },
+    { points: 500, basePrice: 500, totalPrice: 509, popular: true },
+    { points: 750, basePrice: 750, totalPrice: 759, popular: false },
+    { points: 1000, basePrice: 1000, totalPrice: 1009, popular: false },
   ];
 
   const showConfirmationDialog = (amount: number, paymentMethodId?: string, isInstant = false) => {
@@ -229,7 +229,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                           disabled={loading || paymentMethodsLoading}
                         >
                           <div className="font-bold">{pkg.points}</div>
-                          <div className="text-xs opacity-75">S${pkg.points}</div>
+                          <div className="text-xs opacity-75">S${pkg.totalPrice}</div>
                           {pkg.popular && <Star className="h-2 w-2" />}
                         </Button>
                       ))}
@@ -272,9 +272,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                                   className="text-xs px-2 py-1 h-6"
                                   onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
                                   disabled={loading || paymentMethodsLoading}
-                                >
-                                  S${pkg.points}
-                                </Button>
+                                 >
+                                   S${pkg.totalPrice}
+                                 </Button>
                               ))}
                             </div>
                           </div>
@@ -307,9 +307,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
           {/* Rate Information */}
           <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="text-lg font-semibold text-primary">1 Point = S$1.00 SGD</div>
+            <div className="text-lg font-semibold text-primary">1 Point = S$1.00 SGD + S$9 GST</div>
             <p className="text-sm text-muted-foreground mt-1">
               Points are used to participate in lead generation campaigns
+            </p>
+            <p className="text-xs text-muted-foreground mt-1 opacity-75">
+              All prices include Goods & Services Tax (GST)
             </p>
           </div>
 
@@ -415,11 +418,21 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               
               {customAmount && parseInt(customAmount) >= 250 && (
                 <div className="p-4 bg-secondary/30 rounded-lg border">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Total Amount:</span>
-                    <span className="font-bold text-xl text-primary">
-                      S${parseInt(customAmount).toLocaleString()}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Base Amount:</span>
+                      <span className="font-medium">S${parseInt(customAmount).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">GST:</span>
+                      <span className="font-medium">S$9</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t pt-2">
+                      <span className="text-sm font-medium">Total Amount:</span>
+                      <span className="font-bold text-xl text-primary">
+                        S${(parseInt(customAmount) + 9).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                     <span>Processing Fee: Included</span>
@@ -517,11 +530,21 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     +{confirmationData?.amount.toLocaleString()} points
                   </span>
                 </div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-foreground">Total cost:</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    S${confirmationData?.amount.toLocaleString()}
-                  </span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Base cost:</span>
+                    <span className="text-sm">S${confirmationData?.amount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">GST:</span>
+                    <span className="text-sm">S$9</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t pt-1">
+                    <span className="text-sm font-medium text-foreground">Total cost:</span>
+                    <span className="text-lg font-semibold text-foreground">
+                      S${((confirmationData?.amount || 0) + 9).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
                 <Separator className="my-3" />
                 <div className="space-y-2">

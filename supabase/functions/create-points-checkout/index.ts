@@ -45,7 +45,9 @@ serve(async (req) => {
     }
     console.log("Points requested:", points);
     
-    const priceInCents = points * 100; // 1 point = $1, so convert to cents
+    const baseAmountCents = points * 100; // 1 point = $1, so convert to cents
+    const gstCents = 900; // S$9 GST
+    const totalAmountCents = baseAmountCents + gstCents;
 
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
@@ -67,10 +69,10 @@ serve(async (req) => {
           price_data: {
             currency: "sgd",
             product_data: { 
-              name: `${points} Points Top-up`,
-              description: `Add ${points} points to your wallet balance`
+              name: `${points} Points Top-up (incl. GST)`,
+              description: `Add ${points} points to your wallet balance (S$${points} + S$9 GST)`
             },
-            unit_amount: priceInCents,
+            unit_amount: totalAmountCents,
           },
           quantity: 1,
         },

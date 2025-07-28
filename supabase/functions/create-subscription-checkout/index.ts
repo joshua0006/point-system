@@ -46,10 +46,10 @@ serve(async (req) => {
           price_data: {
             currency: "sgd",
             product_data: { 
-              name: `Cold Calling Service - ${hours} hours/month`,
-              description: `Monthly subscription for ${hours} hours of cold calling services`
+              name: `Cold Calling Service - ${hours} hours/month (incl. GST)`,
+              description: `Monthly subscription for ${hours} hours of cold calling services (S$${hours * 6} + S$9 GST)`
             },
-            unit_amount: hours * 600, // $6 per hour in cents
+            unit_amount: (hours * 600) + 900, // $6 per hour + $9 GST in cents
             recurring: { interval: "month" },
           },
           quantity: 1,
