@@ -56,7 +56,7 @@ serve(async (req) => {
 
     logStep("Admin access verified", { userId: user.id });
 
-    const { action, userId, points, status } = await req.json();
+    const { action, userId, points, status, reason } = await req.json();
 
     if (action === 'list_users') {
       // Fetch all users with their profiles
@@ -149,6 +149,84 @@ serve(async (req) => {
       logStep("Pending users fetched", { count: profiles?.length });
       
       return new Response(JSON.stringify({ users: profiles }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === 'revoke_access') {
+      if (!userId || !reason) {
+        throw new Error("Valid userId and reason required");
+      }
+
+      // Update user approval status to rejected and set approval reason
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({
+          approval_status: 'rejected',
+          approved_by: user.id,
+          approved_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (updateError) throw new Error(`Error revoking access: ${updateError.message}`);
+
+      logStep("User access revoked", { userId, reason, revokedBy: user.id });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `User access revoked successfully` 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === 'deduct_points') {
+      if (!userId || !points || points <= 0) {
+        throw new Error("Valid userId and positive points amount required");
+      }
+
+      // First, get current balance to check if deduction is possible
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('points_balance')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError) throw new Error(`Error fetching user profile: ${profileError.message}`);
+
+      if (profile.points_balance < points) {
+        throw new Error(`Insufficient balance. User has ${profile.points_balance} points, cannot deduct ${points}`);
+      }
+
+      // Deduct points (negative increment)
+      const { error: updateError } = await supabaseClient.rpc('increment_points_balance', {
+        user_id: userId,
+        points_to_add: -points
+      });
+
+      if (updateError) throw new Error(`Error deducting points: ${updateError.message}`);
+
+      // Create a transaction record
+      const { error: transactionError } = await supabaseClient
+        .from('points_transactions')
+        .insert({
+          user_id: userId,
+          amount: -points,
+          type: 'admin_debit',
+          description: `Admin deduction - ${points} points deducted by admin: ${reason || 'No reason provided'}`
+        });
+
+      if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
+
+      logStep("Points deducted", { userId, points, reason });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `${points} points deducted successfully`,
+        newBalance: profile.points_balance - points
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });

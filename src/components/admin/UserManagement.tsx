@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Plus, Coins, RefreshCw } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserProfile {
@@ -119,12 +121,152 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
   );
 }
 
+interface DeductModalProps {
+  user: UserProfile;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+}
+
+function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) {
+  const [points, setPoints] = useState("");
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleDeduct = async () => {
+    const pointsAmount = parseInt(points);
+    if (!pointsAmount || pointsAmount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid number of points to deduct.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (pointsAmount > user.points_balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: `User only has ${user.points_balance} points available.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a reason for deducting points.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-user-management', {
+        body: {
+          action: 'deduct_points',
+          userId: user.user_id,
+          points: pointsAmount,
+          reason: reason.trim()
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Deducted ${pointsAmount} points from ${user.full_name || user.email}'s account.`,
+      });
+
+      setPoints("");
+      setReason("");
+      onOpenChange(false);
+      onSuccess();
+    } catch (error: any) {
+      console.error('Deduct error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to deduct points. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <Minus className="w-5 h-5" />
+            Deduct Points
+          </DialogTitle>
+          <DialogDescription>
+            Remove points from {user.full_name || user.email}'s account
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Current Balance</label>
+            <div className="text-2xl font-bold text-accent">{user.points_balance} points</div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Points to Deduct</label>
+            <Input
+              type="number"
+              placeholder="Enter amount"
+              value={points}
+              onChange={(e) => setPoints(e.target.value)}
+              min="1"
+              max={user.points_balance}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason for Deduction *</label>
+            <Textarea
+              placeholder="Explain why points are being deducted..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-yellow-800 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="font-medium">Warning</span>
+            </div>
+            <p className="text-yellow-700 text-sm mt-1">
+              This action cannot be undone. Points will be permanently removed from the user's account.
+            </p>
+          </div>
+          <Button 
+            onClick={handleDeduct} 
+            disabled={loading || !points || !reason.trim()}
+            variant="destructive"
+            className="w-full"
+          >
+            {loading ? "Deducting..." : `Deduct ${points || 0} Points`}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function UserManagement() {
   const { profile } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+  const [deductModalOpen, setDeductModalOpen] = useState(false);
+  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const [revokeReason, setRevokeReason] = useState("");
+  const [revokeLoading, setRevokeLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
@@ -175,6 +317,59 @@ export function UserManagement() {
   const handleTopUpClick = (user: UserProfile) => {
     setSelectedUser(user);
     setTopUpModalOpen(true);
+  };
+
+  const handleDeductClick = (user: UserProfile) => {
+    setSelectedUser(user);
+    setDeductModalOpen(true);
+  };
+
+  const handleRevokeClick = (user: UserProfile) => {
+    setSelectedUser(user);
+    setRevokeDialogOpen(true);
+  };
+
+  const handleRevokeAccess = async () => {
+    if (!selectedUser || !revokeReason.trim()) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a reason for revoking access.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setRevokeLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('admin-user-management', {
+        body: {
+          action: 'revoke_access',
+          userId: selectedUser.user_id,
+          reason: revokeReason.trim()
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Access Revoked",
+        description: `Successfully revoked access for ${selectedUser.full_name || selectedUser.email}.`,
+      });
+
+      setRevokeDialogOpen(false);
+      setRevokeReason("");
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Revoke error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to revoke access. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRevokeLoading(false);
+    }
   };
 
   return (
@@ -304,14 +499,35 @@ export function UserManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        onClick={() => handleTopUpClick(user)}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Top Up
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => handleTopUpClick(user)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add
+                        </Button>
+                        <Button
+                          onClick={() => handleDeductClick(user)}
+                          size="sm"
+                          variant="outline"
+                          disabled={user.points_balance === 0}
+                        >
+                          <Minus className="w-4 h-4 mr-1" />
+                          Deduct
+                        </Button>
+                        {user.approval_status === 'approved' && user.role !== 'admin' && (
+                          <Button
+                            onClick={() => handleRevokeClick(user)}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            <UserX className="w-4 h-4 mr-1" />
+                            Revoke
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -321,15 +537,70 @@ export function UserManagement() {
         </CardContent>
       </Card>
 
-      {/* Top Up Modal */}
+      {/* Modals and Dialogs */}
       {selectedUser && (
-        <TopUpModal
-          user={selectedUser}
-          open={topUpModalOpen}
-          onOpenChange={setTopUpModalOpen}
-          onSuccess={fetchUsers}
-        />
+        <>
+          <TopUpModal
+            user={selectedUser}
+            open={topUpModalOpen}
+            onOpenChange={setTopUpModalOpen}
+            onSuccess={fetchUsers}
+          />
+          <DeductModal
+            user={selectedUser}
+            open={deductModalOpen}
+            onOpenChange={setDeductModalOpen}
+            onSuccess={fetchUsers}
+          />
+        </>
       )}
+
+      {/* Revoke Access Dialog */}
+      <AlertDialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <UserX className="w-5 h-5" />
+              Revoke User Access
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will revoke access for {selectedUser?.full_name || selectedUser?.email}. 
+              The user will no longer be able to access the platform.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Reason for Revoking Access *</label>
+              <Textarea
+                placeholder="Explain why access is being revoked..."
+                value={revokeReason}
+                onChange={(e) => setRevokeReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-red-800 text-sm">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Warning</span>
+              </div>
+              <p className="text-red-700 text-sm mt-1">
+                This action will immediately prevent the user from accessing the platform. 
+                Consider deducting points first if needed.
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRevokeReason("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevokeAccess}
+              disabled={revokeLoading || !revokeReason.trim()}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {revokeLoading ? "Revoking..." : "Revoke Access"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
