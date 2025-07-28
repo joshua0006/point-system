@@ -49,7 +49,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
   const quickPackages = [
     { points: 250, basePrice: 250, totalPrice: Math.round(250 * 1.09), popular: false },
-    { points: 500, basePrice: 500, totalPrice: Math.round(500 * 1.09), popular: true },
+    { points: 500, basePrice: 500, totalPrice: Math.round(500 * 1.09), popular: false },
     { points: 750, basePrice: 750, totalPrice: Math.round(750 * 1.09), popular: false },
     { points: 1000, basePrice: 1000, totalPrice: Math.round(1000 * 1.09), popular: false },
   ];
