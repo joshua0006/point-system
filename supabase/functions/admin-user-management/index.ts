@@ -214,7 +214,7 @@ serve(async (req) => {
         .insert({
           user_id: userId,
           amount: -points,
-          type: 'admin_debit',
+          type: 'refund',
           description: `Admin deduction - ${points} points deducted by admin: ${reason || 'No reason provided'}`
         });
 
