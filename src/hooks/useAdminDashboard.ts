@@ -12,7 +12,7 @@ export interface AdminStats {
 
 export interface RecentActivity {
   id: string;
-  type: "booking" | "service" | "completion" | "campaign";
+  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "points_topup" | "points_deducted" | "campaign_status_change";
   description: string;
   points: number;
   timestamp: string;
@@ -52,7 +52,9 @@ export function useAdminDashboard() {
         recentBookingsResponse,
         recentServicesResponse,
         recentCompletionsResponse,
-        recentCampaignsResponse,
+        recentCampaignsCreatedResponse,
+        recentCampaignParticipationsResponse,
+        recentPointsTransactionsResponse,
       ] = await Promise.all([
         // Total approved users
         supabase
@@ -125,19 +127,46 @@ export function useAdminDashboard() {
           .order('updated_at', { ascending: false })
           .limit(5),
         
+        // Recent campaign creations
+        supabase
+          .from('lead_gen_campaigns')
+          .select(`
+            id,
+            name,
+            total_budget,
+            created_at,
+            created_by,
+            status
+          `)
+          .order('created_at', { ascending: false })
+          .limit(5),
+        
         // Recent campaign participations
+        supabase
+          .from('campaign_participants')
+          .select(`
+            id,
+            budget_contribution,
+            joined_at,
+            consultant_name,
+            user_id
+          `)
+          .order('joined_at', { ascending: false })
+          .limit(5),
+        
+        // Recent points transactions (all types)
         supabase
           .from('points_transactions')
           .select(`
             id,
             amount,
+            type,
             created_at,
-            description
+            description,
+            user_id
           `)
-          .eq('type', 'purchase')
-          .ilike('description', '%Campaign%')
           .order('created_at', { ascending: false })
-          .limit(5),
+          .limit(10),
       ]);
 
       // Process stats
@@ -172,6 +201,19 @@ export function useAdminDashboard() {
 
       recentCompletionsResponse.data?.forEach(booking => {
         consultantIds.add(booking.consultant_id);
+      });
+
+      // Add user IDs from campaign data
+      recentCampaignsCreatedResponse.data?.forEach(campaign => {
+        userIds.add(campaign.created_by);
+      });
+
+      recentCampaignParticipationsResponse.data?.forEach(participation => {
+        userIds.add(participation.user_id);
+      });
+
+      recentPointsTransactionsResponse.data?.forEach(transaction => {
+        userIds.add(transaction.user_id);
       });
 
       // Fetch profiles for users and consultants
@@ -254,12 +296,64 @@ export function useAdminDashboard() {
         });
       });
 
-      // Add recent campaigns
-      recentCampaignsResponse.data?.forEach(transaction => {
+      // Add recent campaign creations
+      recentCampaignsCreatedResponse.data?.forEach(campaign => {
+        const creatorName = userProfileMap.get(campaign.created_by) || 'Admin';
         activities.push({
-          id: `campaign-${transaction.id}`,
-          type: 'campaign',
-          description: transaction.description || 'Campaign purchase',
+          id: `campaign-created-${campaign.id}`,
+          type: 'campaign_created',
+          description: `${creatorName} created campaign "${campaign.name}" with $${campaign.total_budget} budget`,
+          points: campaign.total_budget,
+          timestamp: formatTimestamp(campaign.created_at),
+        });
+      });
+
+      // Add recent campaign participations
+      recentCampaignParticipationsResponse.data?.forEach(participation => {
+        const userName = participation.consultant_name || userProfileMap.get(participation.user_id) || 'User';
+        activities.push({
+          id: `campaign-joined-${participation.id}`,
+          type: 'campaign_joined',
+          description: `${userName} joined campaign with $${participation.budget_contribution} contribution`,
+          points: participation.budget_contribution,
+          timestamp: formatTimestamp(participation.joined_at),
+        });
+      });
+
+      // Add recent points transactions
+      recentPointsTransactionsResponse.data?.forEach(transaction => {
+        const userName = userProfileMap.get(transaction.user_id) || 'User';
+        let activityType: RecentActivity['type'] = 'points_topup';
+        let description = '';
+        
+        switch (transaction.type) {
+          case 'purchase':
+            activityType = 'points_topup';
+            description = `${userName} topped up ${Math.abs(transaction.amount)} points${transaction.description ? ` (${transaction.description})` : ''}`;
+            break;
+          case 'refund':
+            activityType = 'points_deducted';
+            description = `${Math.abs(transaction.amount)} points refunded to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
+            break;
+          case 'admin_credit':
+            activityType = 'points_topup';
+            description = `Admin credited ${Math.abs(transaction.amount)} points to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
+            break;
+          case 'initial_credit':
+            activityType = 'points_topup';
+            description = `${userName} received ${Math.abs(transaction.amount)} initial points`;
+            break;
+          case 'earning':
+            description = `${userName} earned ${Math.abs(transaction.amount)} points${transaction.description ? ` from ${transaction.description}` : ''}`;
+            break;
+          default:
+            description = `${userName} ${transaction.type} ${Math.abs(transaction.amount)} points`;
+        }
+
+        activities.push({
+          id: `points-${transaction.id}`,
+          type: activityType,
+          description,
           points: Math.abs(transaction.amount),
           timestamp: formatTimestamp(transaction.created_at),
         });
