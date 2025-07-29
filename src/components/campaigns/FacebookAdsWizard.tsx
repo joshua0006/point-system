@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, CheckCircle, Target, Zap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FacebookAdsWizardProps {
   onComplete: (campaignData: any) => void;
@@ -22,6 +23,7 @@ const STEPS = [
 ];
 
 export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTargets }: FacebookAdsWizardProps) => {
+  const { profile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [campaignData, setCampaignData] = useState({
     method: 'facebook-ads',
@@ -30,6 +32,15 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
     budget: 0,
     consultantName: ''
   });
+
+  useEffect(() => {
+    if (profile?.full_name && !campaignData.consultantName) {
+      setCampaignData(prev => ({
+        ...prev,
+        consultantName: profile.full_name
+      }));
+    }
+  }, [profile?.full_name, campaignData.consultantName]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
