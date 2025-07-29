@@ -12,7 +12,7 @@ export interface AdminStats {
 
 export interface RecentActivity {
   id: string;
-  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "points_topup" | "points_deducted" | "campaign_status_change";
+  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "wallet_topup" | "campaign_purchase" | "service_purchase" | "points_deducted" | "monthly_billing" | "campaign_status_change";
   description: string;
   points: number;
   timestamp: string;
@@ -55,6 +55,7 @@ export function useAdminDashboard() {
         recentCampaignsCreatedResponse,
         recentCampaignParticipationsResponse,
         recentPointsTransactionsResponse,
+        recentMonthlyBillingResponse,
       ] = await Promise.all([
         // Total approved users
         supabase
@@ -163,10 +164,25 @@ export function useAdminDashboard() {
             type,
             created_at,
             description,
-            user_id
+            user_id,
+            booking_id
           `)
           .order('created_at', { ascending: false })
           .limit(10),
+        
+        // Recent monthly billing transactions
+        supabase
+          .from('monthly_billing_transactions')
+          .select(`
+            id,
+            amount,
+            billing_date,
+            user_id,
+            campaign_id,
+            created_at
+          `)
+          .order('created_at', { ascending: false })
+          .limit(5),
       ]);
 
       // Process stats
@@ -323,30 +339,45 @@ export function useAdminDashboard() {
       // Add recent points transactions
       recentPointsTransactionsResponse.data?.forEach(transaction => {
         const userName = userProfileMap.get(transaction.user_id) || 'User';
-        let activityType: RecentActivity['type'] = 'points_topup';
+        let activityType: RecentActivity['type'] = 'wallet_topup';
         let description = '';
+        
+        // Determine activity type based on transaction details
+        const isServicePurchase = transaction.booking_id !== null;
+        const isCampaignRelated = transaction.description?.toLowerCase().includes('campaign') || 
+                                   transaction.description?.toLowerCase().includes('lead generation');
         
         switch (transaction.type) {
           case 'purchase':
-            activityType = 'points_topup';
-            description = `${userName} topped up ${Math.abs(transaction.amount)} points${transaction.description ? ` (${transaction.description})` : ''}`;
+            if (isServicePurchase) {
+              activityType = 'service_purchase';
+              description = `${userName} purchased service for ${Math.abs(transaction.amount)} points`;
+            } else if (isCampaignRelated) {
+              activityType = 'campaign_purchase';
+              description = `${userName} invested ${Math.abs(transaction.amount)} points in campaign${transaction.description ? ` (${transaction.description})` : ''}`;
+            } else {
+              activityType = 'wallet_topup';
+              description = `${userName} topped up ${Math.abs(transaction.amount)} points${transaction.description ? ` via ${transaction.description}` : ''}`;
+            }
             break;
           case 'refund':
             activityType = 'points_deducted';
             description = `${Math.abs(transaction.amount)} points refunded to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
             break;
           case 'admin_credit':
-            activityType = 'points_topup';
-            description = `Admin credited ${Math.abs(transaction.amount)} points to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
+            activityType = 'wallet_topup';
+            description = `Admin credited ${Math.abs(transaction.amount)} points to ${userName}${transaction.description ? ` - ${transaction.description}` : ''}`;
             break;
           case 'initial_credit':
-            activityType = 'points_topup';
-            description = `${userName} received ${Math.abs(transaction.amount)} initial points`;
+            activityType = 'wallet_topup';
+            description = `${userName} received ${Math.abs(transaction.amount)} welcome points`;
             break;
           case 'earning':
+            activityType = 'wallet_topup';
             description = `${userName} earned ${Math.abs(transaction.amount)} points${transaction.description ? ` from ${transaction.description}` : ''}`;
             break;
           default:
+            activityType = 'wallet_topup';
             description = `${userName} ${transaction.type} ${Math.abs(transaction.amount)} points`;
         }
 
@@ -356,6 +387,18 @@ export function useAdminDashboard() {
           description,
           points: Math.abs(transaction.amount),
           timestamp: formatTimestamp(transaction.created_at),
+        });
+      });
+
+      // Add recent monthly billing transactions
+      recentMonthlyBillingResponse.data?.forEach(billing => {
+        const userName = userProfileMap.get(billing.user_id) || 'User';
+        activities.push({
+          id: `billing-${billing.id}`,
+          type: 'monthly_billing',
+          description: `Monthly billing: $${billing.amount} charged to ${userName} for campaign`,
+          points: billing.amount,
+          timestamp: formatTimestamp(billing.created_at),
         });
       });
 
