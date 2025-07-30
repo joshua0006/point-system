@@ -17,7 +17,8 @@ import {
   BarChart3,
   Menu,
   Settings,
-  LogOut
+  LogOut,
+  Bot
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -53,6 +54,7 @@ export function Navigation() {
       return [
         { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["consultant"] },
         { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant"], hasNotification: unreadCount > 0 },
+        { path: "/ai-assistant", label: "AI Assistant", icon: Bot, roles: ["consultant"] },
         { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] },
       ];
     }
