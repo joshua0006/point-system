@@ -53,18 +53,21 @@ serve(async (req) => {
 
     const { message, taskCategory, conversationId } = await req.json();
 
-    // Get consultant profile for context
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, role')
-      .eq('user_id', user.id)
-      .single();
+    // Get consultant profile and services in parallel for better performance
+    const [profileResult, servicesResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('full_name, role')
+        .eq('user_id', user.id)
+        .single(),
+      supabase
+        .from('services')
+        .select('title, description, category')
+        .eq('consultant_id', user.id)
+    ]);
 
-    // Get consultant services for context
-    const { data: services } = await supabase
-      .from('services')
-      .select('title, description, category')
-      .eq('consultant_id', user.id);
+    const profile = profileResult.data;
+    const services = servicesResult.data;
 
     const systemPrompt = taskPrompts[taskCategory as keyof typeof taskPrompts] || taskPrompts['client-communication'];
     
@@ -94,13 +97,13 @@ Please provide helpful, professional assistance for the following request:`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-mini-2025-04-14',
         messages: [
           { role: 'system', content: contextualPrompt },
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1500,
       }),
     });
 

@@ -54,13 +54,15 @@ export default function ChatInterface({ selectedTask, onBack }: ChatInterfacePro
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    const userInput = input.trim();
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: userInput,
       timestamp: new Date()
     };
 
+    // Optimistic UI: Add user message and clear input immediately
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
@@ -68,7 +70,7 @@ export default function ChatInterface({ selectedTask, onBack }: ChatInterfacePro
     try {
       const { data, error } = await supabase.functions.invoke('consultant-ai-assistant', {
         body: {
-          message: input,
+          message: userInput,
           taskCategory: selectedTask.id,
           conversationId
         }
