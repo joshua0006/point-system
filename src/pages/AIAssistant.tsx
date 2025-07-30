@@ -11,8 +11,8 @@ export default function AIAssistant() {
   const [selectedTask, setSelectedTask] = useState<TaskCategory | null>(null);
   const { user, profile } = useAuth();
 
-  // Redirect non-consultants
-  if (!user || profile?.role !== 'consultant') {
+  // Redirect users without proper role access
+  if (!user || !['consultant', 'admin', 'user'].includes(profile?.role || '')) {
     return <Navigate to="/marketplace" />;
   }
 
