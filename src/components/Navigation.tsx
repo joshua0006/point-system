@@ -55,6 +55,7 @@ export function Navigation() {
         { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["consultant"] },
         { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant"], hasNotification: unreadCount > 0 },
         { path: "/ai-assistant", label: "AI Assistant", icon: Bot, roles: ["consultant"] },
+        { path: "/ad-copy-generator", label: "Ad Copy", icon: Bot, roles: ["consultant"] },
         { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] },
       ];
     }
@@ -64,6 +65,7 @@ export function Navigation() {
       { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "admin"] },
       { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "admin"], hasNotification: unreadCount > 0 },
       { path: "/ai-assistant", label: "AI Assistant", icon: Bot, roles: ["user", "admin"] },
+      { path: "/ad-copy-generator", label: "Ad Copy", icon: Bot, roles: ["user", "admin"] },
       { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
       { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
     ];
@@ -72,6 +74,7 @@ export function Navigation() {
       { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["admin"] },
       { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["admin"], hasNotification: unreadCount > 0 },
       { path: "/ai-assistant", label: "AI Assistant", icon: Bot, roles: ["admin"] },
+      { path: "/ad-copy-generator", label: "Ad Copy", icon: Bot, roles: ["admin"] },
       { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
     ];
 

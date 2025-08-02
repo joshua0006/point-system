@@ -21,6 +21,7 @@ import BuyerProfile from "./pages/BuyerProfile";
 import SellerProfile from "./pages/SellerProfile";
 import LeadGenCampaigns from "./pages/LeadGenCampaigns";
 import AIAssistant from "./pages/AIAssistant";
+import AdCopyGenerator from "./pages/AdCopyGenerator";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/profile/seller/:userId" element={<ProtectedRoute><SellerProfile /></ProtectedRoute>} />
               <Route path="/lead-gen-campaigns" element={<ProtectedRoute><LeadGenCampaigns /></ProtectedRoute>} />
               <Route path="/ai-assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
+              <Route path="/ad-copy-generator" element={<ProtectedRoute><AdCopyGenerator /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
             </Routes>
