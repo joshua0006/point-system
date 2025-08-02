@@ -80,34 +80,68 @@ Format each version clearly with headers and include suggested CTAs.`
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('Ad copy generator function called');
+
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header found');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) {
-      console.error('Authentication failed - no user found');
-      throw new Error('Not authenticated');
+    // Verify user authentication
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const { message, step, context } = await req.json();
+    console.log('User authenticated successfully:', user.id);
 
-    // Determine which prompt to use based on step
+    // Parse request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (e) {
+      console.error('Failed to parse request body:', e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { message, step = 'initial', context = {} } = requestBody;
+
+    console.log('Processing request:', { step, messageLength: message?.length || 0 });
+
+    // Get system prompt based on step
     let systemPrompt = adCopyPrompts[step as keyof typeof adCopyPrompts] || adCopyPrompts['initial'];
 
     // For copy generation, include all context
-    if (step === 'create-copy') {
+    if (step === 'create-copy' && context) {
       const contextPrompt = `Context about the user's offering:
 Product/Service: ${context.product || 'Not specified'}
 Value Proposition: ${context.valueProp || 'Not specified'}
@@ -121,14 +155,19 @@ ${systemPrompt}`;
       systemPrompt = contextPrompt;
     }
 
-    console.log(`Generating ad copy response for step: ${step}`);
-
+    // Check for OpenAI API key
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error('OpenAI API key not found');
-      throw new Error('OpenAI API key not configured');
+      return new Response(
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    console.log('Calling OpenAI API...');
+
+    // Call OpenAI API
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -139,7 +178,7 @@ ${systemPrompt}`;
         model: 'gpt-4.1-mini-2025-04-14',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
+          { role: 'user', content: message || 'Start the ad copy generation process' }
         ],
         temperature: 0.8,
         max_tokens: 1500,
@@ -147,13 +186,26 @@ ${systemPrompt}`;
     });
 
     if (!openAIResponse.ok) {
-      throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
+      const errorText = await openAIResponse.text();
+      console.error('OpenAI API error:', openAIResponse.status, errorText);
+      return new Response(
+        JSON.stringify({ error: `OpenAI API error: ${openAIResponse.status}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const openAIData = await openAIResponse.json();
-    const assistantMessage = openAIData.choices[0].message.content;
+    const assistantMessage = openAIData.choices?.[0]?.message?.content;
 
-    console.log('Successfully generated ad copy response');
+    if (!assistantMessage) {
+      console.error('No response from OpenAI');
+      return new Response(
+        JSON.stringify({ error: 'No response from OpenAI' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Successfully generated response');
 
     return new Response(
       JSON.stringify({ 
@@ -161,14 +213,18 @@ ${systemPrompt}`;
         step: step 
       }),
       {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
 
   } catch (error) {
-    console.error('Error in ad-copy-generator function:', error);
+    console.error('Unexpected error in ad-copy-generator function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
