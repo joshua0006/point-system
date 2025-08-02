@@ -88,7 +88,19 @@ serve(async (req) => {
   try {
     console.log('Ad copy generator function called');
 
-    // Get the authorization header
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Get the authorization header and verify user authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('No authorization header found');
@@ -98,19 +110,11 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
-
-    // Verify user authentication
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    // Extract JWT token from the authorization header
+    const jwt = authHeader.replace('Bearer ', '');
+    
+    // Verify user authentication using the JWT
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
     if (authError || !user) {
       console.error('Authentication failed:', authError);
       return new Response(
