@@ -97,6 +97,7 @@ serve(async (req) => {
 
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
+      console.error('Authentication failed - no user found');
       throw new Error('Not authenticated');
     }
 
