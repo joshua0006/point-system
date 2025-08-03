@@ -240,24 +240,32 @@ export const AdCopyWizard = () => {
         const lines = data.message.split('\n');
         
         // Extract lines that start with IMAGE_PROMPT:
+        console.log('Searching for IMAGE_PROMPT lines in response...');
         const prompts = lines
-          .filter((line: string) => line.trim().startsWith('IMAGE_PROMPT:'))
+          .filter((line: string) => {
+            const matches = line.trim().startsWith('IMAGE_PROMPT:');
+            if (matches) console.log('Found IMAGE_PROMPT line:', line);
+            return matches;
+          })
           .map((line: string) => {
             // Remove the IMAGE_PROMPT: prefix and clean up
             let prompt = line.replace(/^IMAGE_PROMPT:\s*/, '').trim();
             // Remove any leading brackets or formatting
             prompt = prompt.replace(/^\[/, '').replace(/\]$/, '').trim();
+            console.log('Processed prompt:', prompt);
             return prompt;
           })
           .filter((prompt: string) => {
             // Validate that it's actually a descriptive prompt
-            return prompt.length > 20 && // Must be substantial
+            const isValid = prompt.length > 20 && // Must be substantial
                    !prompt.toLowerCase().includes('aspect ratio') &&
                    !prompt.toLowerCase().includes('style specification') &&
                    !prompt.toLowerCase().includes('technical detail') &&
                    !prompt.toLowerCase().includes('recommended') &&
                    !prompt.toLowerCase().includes('camera angle') &&
                    !prompt.toLowerCase().includes('color palette');
+            console.log('Prompt validation result:', prompt, '-> Valid:', isValid);
+            return isValid;
           });
         
         // Fallback: if no IMAGE_PROMPT: markers found, try alternative extraction but be very strict

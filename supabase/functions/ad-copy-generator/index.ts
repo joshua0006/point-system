@@ -162,22 +162,27 @@ If any information is missing, intelligently fill in the gaps based on the provi
 
 Format each version clearly with headers and include suggested CTAs.`,
 
-  'auto-generate-image-prompts': `Based on the provided ad copy and context, automatically generate compelling image prompts for AI image generation. 
+  'auto-generate-image-prompts': `Based on the provided ad copy and context, you must generate compelling image prompts for AI image generation. 
 
-**CRITICAL FORMATTING RULE:** You must format each actual usable image description with "IMAGE_PROMPT:" prefix. Only output actual, descriptive image prompts that can be used directly for image generation.
+**CRITICAL FORMATTING RULE:** You MUST format each usable image description with "IMAGE_PROMPT:" prefix exactly as shown. Do not include any explanatory text or other content.
 
-Generate 4-6 diverse image prompts that would work well with the ad copy:
+Generate exactly 4-5 diverse image prompts that would work well with the ad copy. Each line must start with "IMAGE_PROMPT:" followed by a detailed description.
 
+Example format:
 IMAGE_PROMPT: Professional business person in modern office environment, confident expression, natural lighting, high-quality photography style, clean composition
 IMAGE_PROMPT: Product showcase with elegant lighting, minimalist background, focus on benefits and features, professional commercial photography
 IMAGE_PROMPT: Before and after transformation scene, split composition, emotional contrast, lifestyle photography, authentic feeling
 IMAGE_PROMPT: Happy diverse customers using product/service, testimonial style, candid moments, community feeling, warm lighting
-IMAGE_PROMPT: Problem solution visual metaphor, creative composition, symbolic representation, artistic approach, engaging visual storytelling
-IMAGE_PROMPT: Social media style user-generated content, authentic smartphone photography aesthetic, relatable everyday scenario
 
-Each IMAGE_PROMPT must be a complete, detailed visual description ready for AI image generators. Do NOT include technical specifications, aspect ratios, or metadata in the IMAGE_PROMPT entries.
+**IMPORTANT RULES:**
+1. Each line must start with "IMAGE_PROMPT:" (exactly this format, case sensitive)
+2. Generate 4-5 prompts total
+3. Each prompt must be detailed and visual (30+ characters)
+4. No technical specifications, aspect ratios, or metadata
+5. Focus only on visual descriptions for marketing images
+6. Do not include any other text or explanations
 
-Remember: Only actual, descriptive image prompts should have the IMAGE_PROMPT: prefix.`
+Generate your IMAGE_PROMPT entries now based on the provided context:`
 };
 
 serve(async (req) => {
