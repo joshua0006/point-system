@@ -114,6 +114,10 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
       return;
     }
 
+    // Clear previous generated content before new generation
+    setGeneratedCopy('');
+    setImagePrompts([]);
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('ad-copy-generator', {
@@ -158,9 +162,6 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
           setImagePrompts(prompts);
         }
       }
-
-      // Clear saved form data on successful generation
-      localStorage.removeItem('adcopy-express-form');
 
       toast({
         title: "Success!",
@@ -228,11 +229,9 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
               Express Ad Copy Generator
             </CardTitle>
             <div className="flex gap-2">
-              {dataRestored && (
-                <Button variant="outline" size="sm" onClick={clearForm}>
-                  Clear Form
-                </Button>
-              )}
+              <Button variant="outline" size="sm" onClick={clearForm}>
+                Clear Form
+              </Button>
               <Button variant="outline" size="sm" onClick={onModeSwitch}>
                 Switch to Guided Mode
               </Button>
