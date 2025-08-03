@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, size = "1024x1024", quality = "standard" } = await req.json()
+    const { prompt, size = "1024x1024", quality = "high" } = await req.json()
 
     if (!prompt) {
       return new Response(
@@ -24,10 +24,12 @@ serve(async (req) => {
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
+      console.error('OPENAI_API_KEY not configured')
       throw new Error('OPENAI_API_KEY not configured')
     }
 
     console.log('Generating image with prompt:', prompt)
+    console.log('Using parameters:', { model: 'gpt-image-1', size, quality })
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -40,20 +42,36 @@ serve(async (req) => {
         prompt: prompt,
         n: 1,
         size: size,
-        quality: quality
+        quality: quality,
+        response_format: 'b64_json'
       }),
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      console.error('OpenAI API error:', error)
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`)
+      const errorText = await response.text()
+      console.error('OpenAI API error response:', errorText)
+      let errorMessage = 'Failed to generate image'
+      
+      try {
+        const errorData = JSON.parse(errorText)
+        errorMessage = errorData.error?.message || errorMessage
+      } catch (parseError) {
+        console.error('Could not parse error response:', parseError)
+      }
+      
+      throw new Error(`OpenAI API error: ${errorMessage}`)
     }
 
     const data = await response.json()
+    
+    if (!data.data || !data.data[0] || !data.data[0].b64_json) {
+      console.error('Unexpected response format:', data)
+      throw new Error('Invalid response format from OpenAI API')
+    }
+
     const imageData = data.data[0].b64_json
 
-    console.log('Image generated successfully')
+    console.log('Image generated successfully, size:', imageData.length, 'characters')
 
     return new Response(
       JSON.stringify({ 
