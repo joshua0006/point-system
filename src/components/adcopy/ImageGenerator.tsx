@@ -223,7 +223,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
                   <img
                     src={image.imageUrl}
                     alt={`Generated image ${index + 1}`}
-                    className="w-full h-64 object-cover rounded-lg border"
+                    className="w-full aspect-square object-contain rounded-lg border"
                   />
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground line-clamp-2">
