@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Copy, Palette, Layout, Sparkles, Wand2 } from "lucide-react";
+import { Download, Copy, Palette, Layout, Sparkles, Wand2, RefreshCw, Edit3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdCreativeTemplate } from './AdCreativeTemplate';
 import { AdvancedDesignTemplate } from './AdvancedDesignTemplates';
@@ -41,6 +43,9 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
   const [template, setTemplate] = useState<Template>('magazine');
   const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
   const [isExporting, setIsExporting] = useState(false);
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -48,6 +53,26 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
       title: "Copied",
       description: "Ad copy copied to clipboard"
     });
+  };
+
+  const handleRegenerateImage = () => {
+    setIsRegenerating(true);
+    const promptToUse = customPrompt.trim() || adCopy;
+    onGenerateImage(promptToUse);
+    
+    // Reset states after a delay to allow for generation
+    setTimeout(() => {
+      setIsRegenerating(false);
+      setShowPromptEditor(false);
+      setCustomPrompt('');
+    }, 2000);
+  };
+
+  const handlePromptEditorToggle = () => {
+    setShowPromptEditor(!showPromptEditor);
+    if (!showPromptEditor) {
+      setCustomPrompt(adCopy); // Pre-fill with current ad copy
+    }
   };
 
   const downloadAsImage = async () => {
@@ -272,6 +297,62 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
                 <Download className="w-4 h-4 mr-2" />
                 Download HTML
               </Button>
+            </div>
+            
+            {/* Regenerate Options */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleRegenerateImage}
+                  disabled={isRegenerating || isGenerating}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {isRegenerating ? "Regenerating..." : "Regenerate Image"}
+                </Button>
+                <Button
+                  onClick={handlePromptEditorToggle}
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              {showPromptEditor && (
+                <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <label className="text-sm font-medium text-blue-900 block">
+                    Customize Image Prompt:
+                  </label>
+                  <Textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Enter custom prompt for image generation..."
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleRegenerateImage}
+                      disabled={isRegenerating || isGenerating}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      {isRegenerating ? "Generating..." : "Generate with Custom Prompt"}
+                    </Button>
+                    <Button
+                      onClick={() => setShowPromptEditor(false)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
