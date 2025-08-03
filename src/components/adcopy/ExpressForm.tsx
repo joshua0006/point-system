@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Copy, Check } from 'lucide-react';
+import { Loader2, Sparkles, Copy, Check, Save, History, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGenerator } from './ImageGenerator';
@@ -18,6 +18,14 @@ interface ExpressFormData {
   objections: string;
   differentiators: string;
   selectedStyles: string[];
+}
+
+interface SavedOutput {
+  id: string;
+  timestamp: Date;
+  formData: ExpressFormData;
+  generatedCopy: string;
+  imagePrompts: string[];
 }
 
 interface ExpressFormProps {
@@ -60,10 +68,47 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
     };
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedCopy, setGeneratedCopy] = useState('');
-  const [imagePrompts, setImagePrompts] = useState<string[]>([]);
+  const [generatedCopy, setGeneratedCopy] = useState(() => {
+    const saved = localStorage.getItem('adcopy-current-output');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.generatedCopy || '';
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  });
+  const [imagePrompts, setImagePrompts] = useState<string[]>(() => {
+    const saved = localStorage.getItem('adcopy-current-output');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.imagePrompts || [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [copiedStates, setCopiedStates] = useState<{[key: string]: boolean}>({});
   const [dataRestored, setDataRestored] = useState(false);
+  const [savedOutputs, setSavedOutputs] = useState<SavedOutput[]>(() => {
+    const saved = localStorage.getItem('adcopy-saved-outputs');
+    if (saved) {
+      try {
+        return JSON.parse(saved).map((output: any) => ({
+          ...output,
+          timestamp: new Date(output.timestamp)
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  const [showSavedOutputs, setShowSavedOutputs] = useState(false);
   const { toast } = useToast();
 
   // Save form data to localStorage whenever it changes
@@ -71,23 +116,53 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
     localStorage.setItem('adcopy-express-form', JSON.stringify(formData));
   }, [formData]);
 
+  // Save current output to localStorage whenever it changes
+  useEffect(() => {
+    const currentOutput = {
+      generatedCopy,
+      imagePrompts,
+      lastModified: new Date()
+    };
+    localStorage.setItem('adcopy-current-output', JSON.stringify(currentOutput));
+  }, [generatedCopy, imagePrompts]);
+
+  // Save saved outputs to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('adcopy-saved-outputs', JSON.stringify(savedOutputs));
+  }, [savedOutputs]);
+
   // Show restoration notice on mount if data was restored
   useEffect(() => {
-    const saved = localStorage.getItem('adcopy-express-form');
-    if (saved) {
+    const savedForm = localStorage.getItem('adcopy-express-form');
+    const savedOutput = localStorage.getItem('adcopy-current-output');
+    
+    let hasFormContent = false;
+    let hasOutputContent = false;
+    
+    if (savedForm) {
       try {
-        const parsedData = JSON.parse(saved);
-        const hasContent = Object.values(parsedData).some((value) => 
+        const parsedData = JSON.parse(savedForm);
+        hasFormContent = Object.values(parsedData).some((value) => 
           Array.isArray(value) ? value.length > 0 : value && typeof value === 'string' && value.trim()
         );
-        if (hasContent) {
-          setDataRestored(true);
-          toast({
-            title: "Previous work restored",
-            description: "Your previous form data has been restored.",
-          });
-        }
       } catch {}
+    }
+    
+    if (savedOutput) {
+      try {
+        const parsedOutput = JSON.parse(savedOutput);
+        hasOutputContent = parsedOutput.generatedCopy || parsedOutput.imagePrompts?.length > 0;
+      } catch {}
+    }
+    
+    if (hasFormContent || hasOutputContent) {
+      setDataRestored(true);
+      toast({
+        title: "Previous work restored",
+        description: hasOutputContent 
+          ? "Your previous form data and generated content have been restored."
+          : "Your previous form data has been restored.",
+      });
     }
   }, [toast]);
 
@@ -172,7 +247,7 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
 
       toast({
         title: "Success!",
-        description: "Ad copy generated successfully.",
+        description: "Ad copy generated successfully. Content auto-saved.",
       });
     } catch (error) {
       console.error('Error generating ad copy:', error);
@@ -184,6 +259,50 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const saveCurrentOutput = () => {
+    if (!generatedCopy) {
+      toast({
+        title: "Nothing to save",
+        description: "Generate ad copy first to save your work.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newOutput: SavedOutput = {
+      id: `output-${Date.now()}`,
+      timestamp: new Date(),
+      formData: { ...formData },
+      generatedCopy,
+      imagePrompts: [...imagePrompts]
+    };
+
+    setSavedOutputs(prev => [newOutput, ...prev]);
+    toast({
+      title: "Output saved!",
+      description: "Your generated content has been saved to your history.",
+    });
+  };
+
+  const loadSavedOutput = (output: SavedOutput) => {
+    setFormData(output.formData);
+    setGeneratedCopy(output.generatedCopy);
+    setImagePrompts(output.imagePrompts);
+    setShowSavedOutputs(false);
+    toast({
+      title: "Output loaded",
+      description: "Previous output has been restored.",
+    });
+  };
+
+  const deleteSavedOutput = (outputId: string) => {
+    setSavedOutputs(prev => prev.filter(output => output.id !== outputId));
+    toast({
+      title: "Output deleted",
+      description: "Saved output has been removed.",
+    });
   };
 
   const copyToClipboard = async (text: string, id: string) => {
@@ -215,12 +334,29 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
       differentiators: '',
       selectedStyles: []
     });
-    setGeneratedCopy('');
-    setImagePrompts([]);
     localStorage.removeItem('adcopy-express-form');
     toast({
       title: "Form cleared",
-      description: "All form data has been cleared.",
+      description: "Form data has been cleared. Generated content preserved.",
+    });
+  };
+
+  const clearAll = () => {
+    setFormData({
+      product: '',
+      valueProp: '',
+      painPoints: '',
+      objections: '',
+      differentiators: '',
+      selectedStyles: []
+    });
+    setGeneratedCopy('');
+    setImagePrompts([]);
+    localStorage.removeItem('adcopy-express-form');
+    localStorage.removeItem('adcopy-current-output');
+    toast({
+      title: "Everything cleared",
+      description: "All form data and generated content have been cleared.",
     });
   };
 
@@ -236,8 +372,27 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
               Express Ad Copy Generator
             </CardTitle>
             <div className="flex gap-2">
+              {savedOutputs.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowSavedOutputs(!showSavedOutputs)}
+                >
+                  <History className="h-4 w-4 mr-1" />
+                  History ({savedOutputs.length})
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={clearForm}>
                 Clear Form
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={clearAll}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Clear All
               </Button>
               <Button variant="outline" size="sm" onClick={onModeSwitch}>
                 Switch to Guided Mode
@@ -362,24 +517,84 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
         </CardContent>
       </Card>
 
+      {/* Saved Outputs History */}
+      {showSavedOutputs && (
+        <Card className="border-primary/20 bg-background/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">Saved Outputs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {savedOutputs.map((output) => (
+                <div key={output.id} className="border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm text-muted-foreground">
+                      {output.timestamp.toLocaleString()}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => loadSavedOutput(output)}
+                      >
+                        Load
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => deleteSavedOutput(output.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="font-medium mb-1">Product: {output.formData.product.substring(0, 100)}...</div>
+                    <div className="text-muted-foreground">
+                      Generated copy: {output.generatedCopy.substring(0, 150)}...
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {savedOutputs.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  No saved outputs yet. Generate and save some ad copy to build your history.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Generated Copy */}
       {generatedCopy && (
         <Card className="border-primary/20 bg-background/50 backdrop-blur-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Generated Ad Copy</CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(generatedCopy, 'generated-copy')}
-              >
-                {copiedStates['generated-copy'] ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-                <span className="ml-2">Copy All</span>
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={saveCurrentOutput}
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  Save Output
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedCopy, 'generated-copy')}
+                >
+                  {copiedStates['generated-copy'] ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  <span className="ml-2">Copy All</span>
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>

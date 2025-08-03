@@ -21,8 +21,26 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
   const [selectedPrompt, setSelectedPrompt] = useState(imagePrompts[0] || '');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>(() => {
+    const saved = localStorage.getItem('adcopy-generated-images');
+    if (saved) {
+      try {
+        return JSON.parse(saved).map((image: any) => ({
+          ...image,
+          timestamp: new Date(image.timestamp)
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const { toast } = useToast();
+
+  // Save generated images to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem('adcopy-generated-images', JSON.stringify(generatedImages));
+  }, [generatedImages]);
 
   const generateImage = async (prompt: string) => {
     if (!prompt.trim()) {
@@ -52,7 +70,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
       
       toast({
         title: "Success",
-        description: "Image generated successfully!"
+        description: "Image generated and saved to your history!"
       });
     } catch (error) {
       console.error('Error generating image:', error);
