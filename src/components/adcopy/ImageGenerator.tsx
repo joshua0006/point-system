@@ -162,7 +162,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
                 ))}
               </div>
               {selectedPrompt && (
-                <div className="p-4 bg-muted rounded-md mb-4">
+                <div className="p-4 bg-muted rounded-md mb-4 min-h-24 max-h-40 overflow-y-auto">
                   <p className="text-base leading-relaxed whitespace-pre-wrap break-words">{selectedPrompt}</p>
                 </div>
               )}
