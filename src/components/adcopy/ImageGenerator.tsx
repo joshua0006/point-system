@@ -162,8 +162,8 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
                 ))}
               </div>
               {selectedPrompt && (
-                <div className="p-3 bg-muted rounded-md mb-4">
-                  <p className="text-sm">{selectedPrompt}</p>
+                <div className="p-4 bg-muted rounded-md mb-4">
+                  <p className="text-base leading-relaxed whitespace-pre-wrap break-words">{selectedPrompt}</p>
                 </div>
               )}
             </div>
@@ -226,9 +226,11 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
                     className="w-full aspect-square object-contain rounded-lg border"
                   />
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {image.prompt}
-                    </p>
+                    <div className="max-h-20 overflow-y-auto">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                        {image.prompt}
+                      </p>
+                    </div>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
