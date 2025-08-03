@@ -286,6 +286,8 @@ Selected Styles: ${context.styles || 'Not specified'}
 Selected Angles: ${context.selectedAngles || 'Not specified'}
 Generated Ad Copy: ${context.adCopy || 'Not specified'}
 
+IMPORTANT: Format each Facebook creative prompt with "FACEBOOK_CREATIVE:" prefix so they can be extracted properly.
+
 ${systemPrompt}`;
       systemPrompt = contextPrompt;
     }

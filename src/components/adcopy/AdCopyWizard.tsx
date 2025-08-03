@@ -40,7 +40,8 @@ const stepTitles = {
   'style-selection': 'Ad Style Selection',
   'generate-angles': 'Generate Ad Angles',
   'create-copy': 'Create Ad Copy',
-  'generate-image-prompts': 'Generate Image Prompts'
+  'generate-image-prompts': 'Generate Image Prompts',
+  'generate-facebook-creatives': 'Facebook Ad Creatives'
 };
 
 export const AdCopyWizard = () => {
@@ -88,7 +89,17 @@ export const AdCopyWizard = () => {
     }
     return [];
   });
-  const [facebookCreatives, setFacebookCreatives] = useState<string[]>([]);
+  const [facebookCreatives, setFacebookCreatives] = useState<string[]>(() => {
+    const saved = localStorage.getItem('adCopy-facebook-creatives');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [activeTab, setActiveTab] = useState('express');
   const { toast } = useToast();
 
@@ -108,6 +119,10 @@ export const AdCopyWizard = () => {
   useEffect(() => {
     localStorage.setItem('adcopy-guided-prompts', JSON.stringify(imagePrompts));
   }, [imagePrompts]);
+
+  useEffect(() => {
+    localStorage.setItem('adCopy-facebook-creatives', JSON.stringify(facebookCreatives));
+  }, [facebookCreatives]);
 
   const steps = Object.keys(stepTitles);
   const currentStepIndex = steps.indexOf(currentStep);
@@ -309,11 +324,13 @@ export const AdCopyWizard = () => {
     setContext({});
     setInput('');
     setImagePrompts([]);
+    setFacebookCreatives([]);
     // Clear localStorage
     localStorage.removeItem('adcopy-guided-messages');
     localStorage.removeItem('adcopy-guided-step');
     localStorage.removeItem('adcopy-guided-context');
     localStorage.removeItem('adcopy-guided-prompts');
+    localStorage.removeItem('adCopy-facebook-creatives');
     toast({
       title: "Conversation reset",
       description: "All conversation data has been cleared.",
@@ -341,15 +358,30 @@ export const AdCopyWizard = () => {
   };
 
   const generateFacebookCreatives = async () => {
-    if (!currentStep || currentStep !== 'create-copy') return;
+    // Check if we have completed ad copy generation
+    if (currentStep !== 'generate-image-prompts' && !messages.some(m => m.step === 'create-copy')) {
+      toast({
+        title: "Error",
+        description: "Please complete ad copy generation first",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsLoading(true);
     try {
+      // Get the latest ad copy from messages
+      const adCopyMessage = messages.find(m => m.step === 'create-copy' && m.role === 'assistant');
+      const contextWithAdCopy = {
+        ...context,
+        adCopy: adCopyMessage?.content || context.adCopy
+      };
+
       const { data, error } = await supabase.functions.invoke('ad-copy-generator', {
         body: {
           message: "Generate Facebook ad creatives for the provided ad copy",
           step: 'generate-facebook-creatives',
-          context
+          context: contextWithAdCopy
         }
       });
 
@@ -359,7 +391,8 @@ export const AdCopyWizard = () => {
         id: Date.now().toString(),
         role: 'assistant',
         content: data.message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        step: 'generate-facebook-creatives'
       };
       
       setMessages(prev => [...prev, newMessage]);
@@ -368,14 +401,23 @@ export const AdCopyWizard = () => {
       const creatives = extractFacebookCreatives(data.message);
       if (creatives.length > 0) {
         setFacebookCreatives(creatives);
-        localStorage.setItem('adCopyFacebookCreatives', JSON.stringify(creatives));
+        toast({
+          title: "Success",
+          description: `Generated ${creatives.length} Facebook ad creatives`,
+        });
+      } else {
+        toast({
+          title: "Warning",
+          description: "No Facebook creatives found in response",
+          variant: "destructive"
+        });
       }
       
     } catch (error) {
       console.error('Error generating Facebook creatives:', error);
       toast({
         title: "Error",
-        description: "Failed to generate Facebook creatives",
+        description: "Failed to generate Facebook creatives. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -384,17 +426,22 @@ export const AdCopyWizard = () => {
   };
 
   const extractFacebookCreatives = (text: string): string[] => {
-    // Look for lines that start with "FACEBOOK_CREATIVE:" marker
-    const creativeLines = text.split('\n').filter(line => 
-      line.trim().startsWith('FACEBOOK_CREATIVE:')
-    );
-    
-    return creativeLines.map(line => 
-      line.replace('FACEBOOK_CREATIVE:', '').trim()
-    ).filter(creative => 
-      // Filter out empty creatives and ensure substantial content
-      creative.length > 20
-    );
+    try {
+      // Look for lines that start with "FACEBOOK_CREATIVE:" marker
+      const creativeLines = text.split('\n').filter(line => 
+        line.trim().startsWith('FACEBOOK_CREATIVE:')
+      );
+      
+      return creativeLines.map(line => 
+        line.replace('FACEBOOK_CREATIVE:', '').trim()
+      ).filter(creative => 
+        // Filter out empty creatives and ensure substantial content
+        creative.length > 20
+      );
+    } catch (error) {
+      console.error('Error extracting Facebook creatives:', error);
+      return [];
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -514,26 +561,26 @@ export const AdCopyWizard = () => {
                     )}
                   </div>
 
-                  {/* Facebook Creative Generator Button */}
-                  {currentStep === 'create-copy' && (
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        onClick={generateFacebookCreatives}
-                        disabled={isLoading}
-                        variant="premium"
-                        className="flex-1"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            Generating...
-                          </>
-                        ) : (
-                          "Generate Facebook Ad Creatives"
-                        )}
-                      </Button>
-                    </div>
-                  )}
+                   {/* Facebook Creative Generator Button */}
+                   {(currentStep === 'generate-image-prompts' || messages.some(m => m.step === 'create-copy')) && (
+                     <div className="flex gap-2 mt-4">
+                       <Button
+                         onClick={generateFacebookCreatives}
+                         disabled={isLoading}
+                         variant="premium"
+                         className="flex-1"
+                       >
+                         {isLoading ? (
+                           <>
+                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                             Generating...
+                           </>
+                         ) : (
+                           "Generate Facebook Ad Creatives"
+                         )}
+                       </Button>
+                     </div>
+                   )}
 
                   {/* Facebook Creatives Display */}
                   {facebookCreatives.length > 0 && (
