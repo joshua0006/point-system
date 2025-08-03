@@ -109,7 +109,34 @@ For each prompt, include:
 - Technical details (camera angle, lighting, color palette)
 - Mood and emotion keywords
 
-Format each prompt clearly with platform recommendations and copy the exact text users need for their AI image generator.`
+Format each prompt clearly with platform recommendations and copy the exact text users need for their AI image generator.`,
+
+  'express-generation': `You are an expert copywriter creating high-converting ad copy. Based on the provided information, create comprehensive ad copy with multiple variations.
+
+Create the following for each selected ad style:
+
+**SHORT VERSION (50-100 words)**
+Punchy, attention-grabbing copy perfect for social media
+
+**LONG VERSION (200-300 words)**
+Detailed copy with more context and social proof
+
+**STORYTELLING VERSION (150-250 words)**
+Narrative approach that connects emotionally
+
+**DIRECT VERSION (75-150 words)**
+Straightforward, benefit-focused copy
+
+Each version should:
+- Use psychological triggers (FOMO, urgency, transformation, social proof)
+- Address pain points and objections naturally
+- Include a strong call-to-action
+- Be platform-appropriate and scroll-stopping
+- Use emotionally charged, benefit-driven language
+
+If any information is missing, intelligently fill in the gaps based on the provided context. Generate angles that work best with the given information and selected styles.
+
+Format each version clearly with headers and include suggested CTAs.`
 };
 
 serve(async (req) => {
@@ -187,6 +214,20 @@ Objections: ${context.objections || 'Not specified'}
 Differentiators: ${context.differentiators || 'Not specified'}
 Selected Styles: ${context.styles || 'Not specified'}
 Selected Angles: ${context.selectedAngles || 'Not specified'}
+
+${systemPrompt}`;
+      systemPrompt = contextPrompt;
+    }
+
+    // For express generation, include all context
+    if (step === 'express-generation' && context) {
+      const contextPrompt = `Context about the user's offering:
+Product/Service: ${context.product || 'Not specified'}
+Value Proposition: ${context.valueProp || 'Not specified'}
+Pain Points: ${context.painPoints || 'Not specified'}
+Objections: ${context.objections || 'Not specified'}
+Differentiators: ${context.differentiators || 'Not specified'}
+Selected Styles: ${context.styles || 'Not specified'}
 
 ${systemPrompt}`;
       systemPrompt = contextPrompt;

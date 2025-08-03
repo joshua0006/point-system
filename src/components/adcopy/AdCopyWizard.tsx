@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Send, RotateCcw, Copy, Check } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Send, RotateCcw, Copy, Check, MessageSquare, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGenerator } from './ImageGenerator';
+import { ExpressForm } from './ExpressForm';
 
 interface Message {
   id: string;
@@ -49,6 +51,7 @@ export const AdCopyWizard = () => {
   const [context, setContext] = useState<AdCopyContext>({});
   const [copiedStates, setCopiedStates] = useState<{[key: string]: boolean}>({});
   const [imagePrompts, setImagePrompts] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('express');
   const { toast } = useToast();
 
   const steps = Object.keys(stepTitles);
@@ -231,131 +234,157 @@ export const AdCopyWizard = () => {
   };
 
   return (
-    <Card className="mx-auto max-w-4xl border-primary/20 bg-background/50 backdrop-blur-sm">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">Ad Copy Generation Wizard</CardTitle>
-          <Button variant="outline" size="sm" onClick={resetConversation}>
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset
-          </Button>
-        </div>
-        {messages.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                Step {currentStepIndex + 1} of {steps.length}: {stepTitles[currentStep as keyof typeof stepTitles]}
-              </span>
-              <span className="text-muted-foreground">{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-        )}
-      </CardHeader>
+    <div className="mx-auto max-w-4xl">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="express" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Express Mode
+          </TabsTrigger>
+          <TabsTrigger value="guided" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Guided Mode
+          </TabsTrigger>
+        </TabsList>
 
-      <CardContent className="space-y-4">
-        {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">
-              Ready to create high-converting ad copy? Let's start by understanding what you're promoting.
-            </p>
-            <Button onClick={startConversation} disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Start Creating Ad Copy
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Messages */}
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {message.role === 'assistant' && message.step && (
-                      <Badge variant="secondary" className="mb-2 text-xs">
-                        {stepTitles[message.step as keyof typeof stepTitles]}
-                      </Badge>
-                    )}
-                    <div className="whitespace-pre-wrap text-sm">
-                      {message.content}
-                    </div>
-                    {message.role === 'assistant' && (message.content.includes('**') || message.content.includes('PROMPT:')) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="mt-2 h-8 px-2"
-                        onClick={() => copyToClipboard(message.content, message.id)}
-                      >
-                        {copiedStates[message.id] ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                        <span className="ml-1 text-xs">
-                          {message.step === 'generate-image-prompts' ? 'Copy Prompts' : 'Copy Ad'}
-                        </span>
-                      </Button>
-                    )}
-                  </div>
+        <TabsContent value="express">
+          <ExpressForm onModeSwitch={() => setActiveTab('guided')} />
+        </TabsContent>
+
+        <TabsContent value="guided">
+          <Card className="border-primary/20 bg-background/50 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl">Guided Ad Copy Generation</CardTitle>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setActiveTab('express')}>
+                    Switch to Express
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={resetConversation}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset
+                  </Button>
                 </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted text-muted-foreground rounded-lg p-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+              {messages.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Step {currentStepIndex + 1} of {steps.length}: {stepTitles[currentStep as keyof typeof stepTitles]}
+                    </span>
+                    <span className="text-muted-foreground">{Math.round(progress)}%</span>
                   </div>
+                  <Progress value={progress} className="h-2" />
                 </div>
               )}
-            </div>
+            </CardHeader>
 
-            {/* Image Generator */}
-            {imagePrompts.length > 0 && (
-              <div className="mt-6">
-                <ImageGenerator imagePrompts={imagePrompts} />
-              </div>
-            )}
+            <CardContent className="space-y-4">
+              {messages.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    I'll guide you step-by-step through creating high-converting ad copy. Let's start by understanding what you're promoting.
+                  </p>
+                  <Button onClick={startConversation} disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Start Guided Process
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Messages */}
+                  <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-lg p-3 ${
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {message.role === 'assistant' && message.step && (
+                            <Badge variant="secondary" className="mb-2 text-xs">
+                              {stepTitles[message.step as keyof typeof stepTitles]}
+                            </Badge>
+                          )}
+                          <div className="whitespace-pre-wrap text-sm">
+                            {message.content}
+                          </div>
+                          {message.role === 'assistant' && (message.content.includes('**') || message.content.includes('PROMPT:')) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="mt-2 h-8 px-2"
+                              onClick={() => copyToClipboard(message.content, message.id)}
+                            >
+                              {copiedStates[message.id] ? (
+                                <Check className="h-3 w-3" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                              <span className="ml-1 text-xs">
+                                {message.step === 'generate-image-prompts' ? 'Copy Prompts' : 'Copy Ad'}
+                              </span>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {isLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-muted text-muted-foreground rounded-lg p-3">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-            {/* Input */}
-            <div className="flex gap-2">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  currentStep === 'create-copy' 
-                    ? "Tell me which ad angles you'd like me to create copy for..."
-                    : currentStep === 'generate-image-prompts'
-                    ? "Type 'yes' to generate image prompts, or tell me what specific image styles you prefer..."
-                    : "Type your response..."
-                }
-                className="min-h-[60px] resize-none"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={!input.trim() || isLoading}
-                size="icon"
-                className="h-[60px] w-[60px]"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+                  {/* Image Generator */}
+                  {imagePrompts.length > 0 && (
+                    <div className="mt-6">
+                      <ImageGenerator imagePrompts={imagePrompts} />
+                    </div>
+                  )}
+
+                  {/* Input */}
+                  <div className="flex gap-2">
+                    <Textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={
+                        currentStep === 'create-copy' 
+                          ? "Tell me which ad angles you'd like me to create copy for..."
+                          : currentStep === 'generate-image-prompts'
+                          ? "Type 'yes' to generate image prompts, or tell me what specific image styles you prefer..."
+                          : "Type your response..."
+                      }
+                      className="min-h-[60px] resize-none"
+                      disabled={isLoading}
+                    />
+                    <Button
+                      onClick={sendMessage}
+                      disabled={!input.trim() || isLoading}
+                      size="icon"
+                      className="h-[60px] w-[60px]"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
