@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2, Send, RotateCcw, Copy, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ImageGenerator } from './ImageGenerator';
 
 interface Message {
   id: string;
@@ -25,6 +26,7 @@ interface AdCopyContext {
   styles?: string;
   selectedAngles?: string;
   adCopy?: string;
+  imagePrompts?: string[];
 }
 
 const stepTitles = {
@@ -46,6 +48,7 @@ export const AdCopyWizard = () => {
   const [currentStep, setCurrentStep] = useState('initial');
   const [context, setContext] = useState<AdCopyContext>({});
   const [copiedStates, setCopiedStates] = useState<{[key: string]: boolean}>({});
+  const [imagePrompts, setImagePrompts] = useState<string[]>([]);
   const { toast } = useToast();
 
   const steps = Object.keys(stepTitles);
@@ -158,6 +161,23 @@ export const AdCopyWizard = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Handle image prompts generation
+      if (currentStep === 'generate-image-prompts') {
+        const prompts = data.message.split('\n').filter((line: string) => 
+          line.trim().startsWith('PROMPT:') || 
+          line.trim().match(/^\d+\./) ||
+          (line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*'))
+        ).map((line: string) => {
+          let prompt = line.replace(/^PROMPT:\s*/, '').replace(/^\d+\.\s*/, '').replace(/^[•\-*]\s*/, '').trim();
+          return prompt;
+        }).filter(Boolean);
+        
+        if (prompts.length > 0) {
+          setImagePrompts(prompts);
+          setContext(prev => ({ ...prev, imagePrompts: prompts }));
+        }
+      }
 
       // Move to next step
       const nextStepIndex = currentStepIndex + 1;
@@ -296,6 +316,13 @@ export const AdCopyWizard = () => {
                 </div>
               )}
             </div>
+
+            {/* Image Generator */}
+            {imagePrompts.length > 0 && (
+              <div className="mt-6">
+                <ImageGenerator imagePrompts={imagePrompts} />
+              </div>
+            )}
 
             {/* Input */}
             <div className="flex gap-2">
