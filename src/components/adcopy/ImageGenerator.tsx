@@ -58,7 +58,25 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
         body: { prompt: prompt.trim() }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        toast({
+          title: "Failed to generate image",
+          description: error.message || "Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.error) {
+        console.error('API error from edge function:', data.error);
+        toast({
+          title: "Image generation failed",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
 
       const newImage: GeneratedImage = {
         prompt: prompt.trim(),

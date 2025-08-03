@@ -25,8 +25,11 @@ serve(async (req) => {
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiApiKey) {
-      console.error('OPENAI_API_KEY not configured')
-      throw new Error('OPENAI_API_KEY not configured')
+      console.error('OPENAI_API_KEY not configured in edge function secrets')
+      return new Response(
+        JSON.stringify({ error: 'OpenAI API key not configured. Please add OPENAI_API_KEY to your Supabase Edge Functions secrets.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
     }
 
     console.log('Generating image with prompt:', prompt)
