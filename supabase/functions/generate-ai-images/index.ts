@@ -32,7 +32,10 @@ serve(async (req) => {
       )
     }
 
-    console.log('Generating image with prompt:', prompt)
+    // Enhance the prompt for professional marketing imagery
+    const enhancedPrompt = `Professional marketing image for: ${prompt} - modern, clean, high-quality commercial photography style, professional lighting, marketing-focused composition, suitable for advertising campaigns, vibrant colors, engaging visual appeal`
+    
+    console.log('Generating image with prompt:', enhancedPrompt)
     console.log('Using parameters:', { model: 'dall-e-3', size, quality })
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
@@ -43,7 +46,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'dall-e-3',
-        prompt: prompt,
+        prompt: enhancedPrompt,
         n: 1,
         size: size,
         quality: quality

@@ -5,12 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Send, RotateCcw, Copy, Check, MessageSquare, Zap } from 'lucide-react';
+import { Loader2, Send, RotateCcw, Copy, Check, MessageSquare, Zap, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGenerator } from './ImageGenerator';
 import { ExpressForm } from './ExpressForm';
 import { AdCreativeCard } from './AdCreativeCard';
+import { ProfessionalAdCreative } from './ProfessionalAdCreative';
 
 interface Message {
   id: string;
@@ -811,21 +812,43 @@ export const AdCopyWizard = () => {
                   )}
 
                   {/* Image Generator */}
-            {/* Ad Creatives Section */}
+            {/* Professional Ad Creatives */}
             {adCopies.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-4">Complete Ad Creatives</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {adCopies.map((adCopy, index) => (
-                    <AdCreativeCard
-                      key={index}
-                      adCopy={adCopy}
-                      imageUrl={generatedImages[adCopy]}
-                      index={index}
-                      onGenerateImage={generateImageForAdCopy}
-                      isGenerating={isLoading}
-                    />
-                  ))}
+              <div className="mt-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Professional Ad Creatives
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {adCopies.map((adCopy, index) => (
+                      <ProfessionalAdCreative
+                        key={index}
+                        adCopy={adCopy}
+                        imageUrl={generatedImages[adCopy]}
+                        index={index}
+                        onGenerateImage={generateImageForAdCopy}
+                        isGenerating={isLoading}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Basic Ad Creatives for reference */}
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Basic Ad Creatives</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {adCopies.map((adCopy, index) => (
+                      <AdCreativeCard
+                        key={index}
+                        adCopy={adCopy}
+                        imageUrl={generatedImages[adCopy]}
+                        index={index}
+                        onGenerateImage={generateImageForAdCopy}
+                        isGenerating={isLoading}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
