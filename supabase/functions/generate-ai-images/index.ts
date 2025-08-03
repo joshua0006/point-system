@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -13,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, size = "1024x1024", quality = "high" } = await req.json()
+    const { prompt, size = "1024x1024", quality = "standard" } = await req.json()
 
     if (!prompt) {
       return new Response(
@@ -29,7 +30,7 @@ serve(async (req) => {
     }
 
     console.log('Generating image with prompt:', prompt)
-    console.log('Using parameters:', { model: 'gpt-image-1', size, quality })
+    console.log('Using parameters:', { model: 'dall-e-3', size, quality })
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -38,12 +39,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'dall-e-3',
         prompt: prompt,
         n: 1,
         size: size,
-        quality: quality,
-        response_format: 'b64_json'
+        quality: quality
       }),
     })
 
@@ -64,18 +64,18 @@ serve(async (req) => {
 
     const data = await response.json()
     
-    if (!data.data || !data.data[0] || !data.data[0].b64_json) {
+    if (!data.data || !data.data[0] || !data.data[0].url) {
       console.error('Unexpected response format:', data)
       throw new Error('Invalid response format from OpenAI API')
     }
 
-    const imageData = data.data[0].b64_json
+    const imageUrl = data.data[0].url
 
-    console.log('Image generated successfully, size:', imageData.length, 'characters')
+    console.log('Image generated successfully, URL:', imageUrl)
 
     return new Response(
       JSON.stringify({ 
-        image: `data:image/png;base64,${imageData}`,
+        image: imageUrl,
         prompt: prompt 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
