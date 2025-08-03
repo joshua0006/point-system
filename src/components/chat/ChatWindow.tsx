@@ -9,6 +9,7 @@ import { useMessages, useSendMessage, useRealtimeMessages } from '@/hooks/useMes
 import { Conversation } from '@/hooks/useConversations';
 import { useBookingForConversation } from '@/hooks/useBookingManagement';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChatWindowProps {
   conversation: Conversation | null;
@@ -19,6 +20,7 @@ interface ChatWindowProps {
 export function ChatWindow({ conversation, open, onOpenChange }: ChatWindowProps) {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   const { data: messages = [], isLoading } = useMessages(conversation?.id);
   const { data: booking } = useBookingForConversation(conversation?.id || '');
@@ -56,25 +58,25 @@ export function ChatWindow({ conversation, open, onOpenChange }: ChatWindowProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl h-[600px] flex flex-col p-0">
-        <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle className="text-left">
+      <DialogContent className={isMobile ? "max-w-[100vw] h-[100vh] w-full m-0 rounded-none flex flex-col p-0" : "max-w-2xl h-[600px] flex flex-col p-0"}>
+        <DialogHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
+          <DialogTitle className="text-left text-base sm:text-lg">
             Chat with {participantName}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground text-left">
+          <p className="text-xs sm:text-sm text-muted-foreground text-left">
             About: {conversationTitle}
           </p>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="py-4">
+        <ScrollArea className="flex-1 px-3 sm:px-6">
+          <div className="py-3 sm:py-4">
             {/* Show booking card if there's an associated booking */}
             {booking && <BookingCard booking={booking} />}
             
             {isLoading ? (
-              <div className="text-center text-muted-foreground">Loading messages...</div>
+              <div className="text-center text-muted-foreground text-sm">Loading messages...</div>
             ) : messages.length === 0 ? (
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-muted-foreground text-sm">
                 No messages yet. Start the conversation!
               </div>
             ) : (

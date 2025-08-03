@@ -225,70 +225,70 @@ const Index = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8 sm:py-16">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
             {/* Left Side - Information */}
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            <div className="text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
                 Agent Portal
               </h1>
-              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
                 Access your business support tools and services. Sign in to manage your 
                 lead generation campaigns, cold calling operations, and client support services.
               </p>
               
               {/* Services Available */}
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Target className="w-5 h-5 text-primary" />
+              <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Lead Generation</h3>
-                    <p className="text-sm text-muted-foreground">Advanced campaign management and targeting tools</p>
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Lead Generation</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Advanced campaign management and targeting tools</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-accent" />
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Cold Calling</h3>
-                    <p className="text-sm text-muted-foreground">Automated dialing systems and call tracking</p>
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Cold Calling</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Automated dialing systems and call tracking</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-success" />
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Client Support</h3>
-                    <p className="text-sm text-muted-foreground">Comprehensive customer relationship management</p>
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Client Support</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Comprehensive customer relationship management</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div>
-              <Card className="p-8">
-                <CardHeader className="text-center pb-6">
-                  <CardTitle className="text-2xl font-bold">
+              <Card className="p-4 sm:p-6 lg:p-8">
+                <CardHeader className="text-center pb-4 sm:pb-6 px-0">
+                  <CardTitle className="text-xl sm:text-2xl font-bold">
                     {isSignUp ? 'Create Account' : 'Sign In'}
                   </CardTitle>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     {isSignUp ? 'Join the agent network' : 'Access your agent dashboard'}
                   </p>
                 </CardHeader>
                 
-                <CardContent className="space-y-6">
-                  <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+                <CardContent className="space-y-4 sm:space-y-6 px-0">
+                  <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-3 sm:space-y-4">
                     {isSignUp && (
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="fullName" className="text-sm">Full Name</Label>
                         <Input
                           id="fullName"
                           type="text"
@@ -297,12 +297,13 @@ const Index = () => {
                           onChange={(e) => setFullName(e.target.value)}
                           disabled={isSigningIn}
                           required
+                          className="h-11 sm:h-10"
                         />
                       </div>
                     )}
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="email" className="text-sm">Email</Label>
                       <Input
                         id="email"
                         type="email"
@@ -311,11 +312,12 @@ const Index = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={isSigningIn}
                         required
+                        className="h-11 sm:h-10"
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="password" className="text-sm">Password</Label>
                       <Input
                         id="password"
                         type="password"
@@ -325,10 +327,11 @@ const Index = () => {
                         disabled={isSigningIn}
                         required
                         minLength={isSignUp ? 6 : undefined}
+                        className="h-11 sm:h-10"
                       />
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={isSigningIn}>
+                    <Button type="submit" className="w-full h-11 sm:h-10" disabled={isSigningIn}>
                       {isSigningIn ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -365,13 +368,13 @@ const Index = () => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleQuickDemo('consultant')}
                       disabled={isSigningIn}
-                      className="text-xs"
+                      className="text-xs h-9"
                     >
                       Agent Demo
                     </Button>
@@ -380,7 +383,7 @@ const Index = () => {
                       size="sm"
                       onClick={() => handleQuickDemo('buyer')}
                       disabled={isSigningIn}
-                      className="text-xs"
+                      className="text-xs h-9"
                     >
                       Client Demo
                     </Button>
@@ -389,7 +392,7 @@ const Index = () => {
                       size="sm"
                       onClick={() => handleQuickDemo('admin')}
                       disabled={isSigningIn}
-                      className="text-xs"
+                      className="text-xs h-9"
                     >
                       Admin Demo
                     </Button>

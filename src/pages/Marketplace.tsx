@@ -109,20 +109,20 @@ const Marketplace = () => {
       
       <MarketplaceHero servicesCount={services.length} />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="campaigns" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="campaigns">Lead Gen Campaigns</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8 h-11 sm:h-10">
+            <TabsTrigger value="services" className="text-sm">Services</TabsTrigger>
+            <TabsTrigger value="campaigns" className="text-sm">Lead Gen Campaigns</TabsTrigger>
           </TabsList>
           
           <TabsContent value="services" className="mt-0">
             <div data-services-section>
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-2">
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                   Available Services
                 </h2>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm sm:text-base">
                   Discover expert consultants and book services using your points
                 </p>
               </div>

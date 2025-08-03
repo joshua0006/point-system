@@ -29,23 +29,23 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground mb-4 sm:mb-6">
             Support Services for Consultants
             <span className="block text-primary">Marketplace</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
             Essential infrastructure services for financial consultants. 
             Purchase professional support services to enhance your practice.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12">
             <Button 
               size="lg" 
-              className="text-lg px-8 py-6"
+              className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 h-12 sm:h-auto"
               onClick={scrollToServices}
             >
-              <Search className="w-5 h-5 mr-2" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Browse Marketplace
             </Button>
             
@@ -53,11 +53,11 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-6"
+                className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 h-12 sm:h-auto"
                 asChild
               >
                 <Link to="/auth">
-                  <TrendingUp className="w-5 h-5 mr-2" />
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Join as Consultant
                 </Link>
               </Button>
