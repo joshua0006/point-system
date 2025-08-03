@@ -178,6 +178,7 @@ IMAGE_PROMPT: Social media style user-generated content, authentic smartphone ph
 Each IMAGE_PROMPT must be a complete, detailed visual description ready for AI image generators. Do NOT include technical specifications, aspect ratios, or metadata in the IMAGE_PROMPT entries.
 
 Remember: Only actual, descriptive image prompts should have the IMAGE_PROMPT: prefix.`
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
