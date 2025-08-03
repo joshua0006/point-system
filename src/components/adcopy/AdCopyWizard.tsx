@@ -219,18 +219,67 @@ export const AdCopyWizard = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Handle image prompts generation
+      // Handle image prompts generation with improved parsing
       if (currentStep === 'generate-image-prompts') {
-        const prompts = data.message.split('\n').filter((line: string) => 
-          line.trim().startsWith('PROMPT:') || 
-          line.trim().match(/^\d+\./) ||
-          (line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*'))
-        ).map((line: string) => {
-          let prompt = line.replace(/^PROMPT:\s*/, '').replace(/^\d+\.\s*/, '').replace(/^[•\-*]\s*/, '').trim();
-          return prompt;
-        }).filter(Boolean);
+        const lines = data.message.split('\n');
         
-        if (prompts.length > 0) {
+        // Extract lines that start with IMAGE_PROMPT:
+        const prompts = lines
+          .filter((line: string) => line.trim().startsWith('IMAGE_PROMPT:'))
+          .map((line: string) => {
+            // Remove the IMAGE_PROMPT: prefix and clean up
+            let prompt = line.replace(/^IMAGE_PROMPT:\s*/, '').trim();
+            // Remove any leading brackets or formatting
+            prompt = prompt.replace(/^\[/, '').replace(/\]$/, '').trim();
+            return prompt;
+          })
+          .filter((prompt: string) => {
+            // Validate that it's actually a descriptive prompt
+            return prompt.length > 20 && // Must be substantial
+                   !prompt.toLowerCase().includes('aspect ratio') &&
+                   !prompt.toLowerCase().includes('style specification') &&
+                   !prompt.toLowerCase().includes('technical detail') &&
+                   !prompt.toLowerCase().includes('recommended') &&
+                   !prompt.toLowerCase().includes('camera angle') &&
+                   !prompt.toLowerCase().includes('color palette');
+          });
+        
+        // Fallback: if no IMAGE_PROMPT: markers found, try the old method but with better filtering
+        if (prompts.length === 0) {
+          const fallbackPrompts = lines
+            .filter((line: string) => {
+              const trimmed = line.trim();
+              return trimmed.match(/^\d+\./) || 
+                     trimmed.startsWith('•') || 
+                     trimmed.startsWith('-') || 
+                     trimmed.startsWith('*');
+            })
+            .map((line: string) => {
+              let prompt = line.replace(/^\d+\.\s*/, '').replace(/^[•\-*]\s*/, '').trim();
+              return prompt;
+            })
+            .filter((prompt: string) => {
+              // Enhanced filtering to exclude technical specifications
+              const lowerPrompt = prompt.toLowerCase();
+              return prompt.length > 20 && // Must be substantial
+                     !lowerPrompt.includes('aspect ratio') &&
+                     !lowerPrompt.includes('style specification') &&
+                     !lowerPrompt.includes('technical detail') &&
+                     !lowerPrompt.includes('recommended') &&
+                     !lowerPrompt.includes('camera angle') &&
+                     !lowerPrompt.includes('color palette') &&
+                     !lowerPrompt.includes('16:9') &&
+                     !lowerPrompt.includes('1:1') &&
+                     !lowerPrompt.includes('9:16') &&
+                     !lowerPrompt.startsWith('for each prompt') &&
+                     !lowerPrompt.startsWith('format each');
+            });
+          
+          if (fallbackPrompts.length > 0) {
+            setImagePrompts(fallbackPrompts);
+            setContext(prev => ({ ...prev, imagePrompts: fallbackPrompts }));
+          }
+        } else {
           setImagePrompts(prompts);
           setContext(prev => ({ ...prev, imagePrompts: prompts }));
         }

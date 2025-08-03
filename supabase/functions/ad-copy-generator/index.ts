@@ -80,36 +80,32 @@ Format each version clearly with headers and include suggested CTAs.
 
 After providing the ad copy, inform the user: "Would you like me to generate image prompts that match these ad copies? I can create detailed image descriptions for AI image generators like DALL-E, Midjourney, or Stable Diffusion."`,
 
-  'generate-image-prompts': `Based on the ad copy and all the context provided, create compelling image prompts for AI image generation. Generate 3-4 different image prompt styles for each ad copy variation:
+  'generate-image-prompts': `Based on the ad copy and all the context provided, create compelling image prompts for AI image generation. 
+
+**IMPORTANT:** Format each actual image description with "IMAGE_PROMPT:" prefix to clearly identify it as a usable prompt.
+
+Generate 3-4 different image prompt styles for each ad copy variation:
 
 **LIFESTYLE IMAGE PROMPTS:**
-- Create prompts showing the target audience in natural, aspirational settings
-- Focus on emotional transformation and ideal outcomes
-- Include specific details about lighting, composition, and mood
+IMAGE_PROMPT: [Create detailed description of target audience in natural, aspirational settings showing emotional transformation and ideal outcomes with specific lighting, composition, and mood details]
 
 **PRODUCT/SERVICE FOCUSED PROMPTS:**
-- Direct focus on the offering itself
-- Clean, professional presentation
-- Highlight key benefits visually
+IMAGE_PROMPT: [Create detailed description with direct focus on the offering itself, clean professional presentation highlighting key benefits visually]
 
 **BEFORE/AFTER TRANSFORMATION PROMPTS:**
-- Split-screen or comparison style images
-- Show the contrast between current pain points and desired outcome
-- Emotional and compelling visual storytelling
+IMAGE_PROMPT: [Create detailed description of split-screen or comparison style images showing contrast between current pain points and desired outcome with emotional visual storytelling]
 
 **SOCIAL PROOF PROMPTS:**
-- Group settings or testimonial-style images
-- Community and success themes
-- Trust and credibility focused
+IMAGE_PROMPT: [Create detailed description of group settings or testimonial-style images with community and success themes, trust and credibility focused]
 
-For each prompt, include:
-- Detailed visual description (200-250 characters)
-- Recommended aspect ratios for different platforms (1:1 for Instagram, 16:9 for Facebook, 9:16 for Stories)
-- Style specifications (photography, illustration, realistic, stylized)
-- Technical details (camera angle, lighting, color palette)
-- Mood and emotion keywords
+Each IMAGE_PROMPT should be a complete, detailed visual description (200-300 characters) ready for AI image generators.
 
-Format each prompt clearly with platform recommendations and copy the exact text users need for their AI image generator.`,
+After all IMAGE_PROMPT entries, you may include technical specifications:
+- Recommended aspect ratios: 1:1 for Instagram, 16:9 for Facebook, 9:16 for Stories
+- Style options: photography, illustration, realistic, stylized
+- Technical suggestions: camera angles, lighting, color palettes, mood keywords
+
+Always clearly separate actual image prompts (marked with IMAGE_PROMPT:) from technical specifications.`,
 
   'express-generation': `You are an expert copywriter creating high-converting ad copy. Based on the provided information, create comprehensive ad copy with multiple variations.
 
