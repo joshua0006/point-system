@@ -40,8 +40,7 @@ serve(async (req) => {
         prompt: prompt,
         n: 1,
         size: size,
-        quality: quality,
-        response_format: 'b64_json'
+        quality: quality
       }),
     })
 
