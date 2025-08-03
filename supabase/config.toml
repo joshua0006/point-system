@@ -3,5 +3,8 @@ project_id = "rrnaquethuzvbsxcssss"
 [functions.ad-copy-generator]
 verify_jwt = true
 
+[functions.generate-ai-images]
+verify_jwt = true
+
 [functions.stripe-webhook]
 verify_jwt = false

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface ImageGeneratorProps {
   imagePrompts: string[];
+  adCopies?: string[];
 }
 
 interface GeneratedImage {
@@ -17,7 +18,7 @@ interface GeneratedImage {
   timestamp: Date;
 }
 
-export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) => {
+export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts, adCopies = [] }) => {
   const [selectedPrompt, setSelectedPrompt] = useState(imagePrompts[0] || '');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -102,6 +103,40 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
     }
   };
 
+  const generateAllImages = async () => {
+    if (imagePrompts.length === 0) {
+      toast({
+        title: "No prompts available",
+        description: "Generate some ad copy first to get image prompts",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    let successCount = 0;
+    
+    for (const prompt of imagePrompts.slice(0, 3)) { // Limit to first 3 to avoid rate limits
+      try {
+        await generateImage(prompt);
+        successCount++;
+        // Add delay between requests
+        if (prompt !== imagePrompts[imagePrompts.length - 1]) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      } catch (error) {
+        console.error('Failed to generate image for prompt:', prompt, error);
+      }
+    }
+    
+    toast({
+      title: successCount > 0 ? "Success" : "Error",
+      description: `Generated ${successCount} images successfully`,
+      variant: successCount > 0 ? "default" : "destructive"
+    });
+    setIsGenerating(false);
+  };
+
   const downloadImage = async (imageUrl: string, prompt: string) => {
     try {
       const link = document.createElement('a');
@@ -183,29 +218,42 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts }) 
           </div>
 
           {/* Generation Buttons */}
-          <div className="flex gap-2">
-            <Button
-              onClick={() => generateImage(selectedPrompt)}
-              disabled={isGenerating || !selectedPrompt}
-              className="flex-1"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                'Generate from Selected Prompt'
-              )}
-            </Button>
-            <Button
-              onClick={() => generateImage(customPrompt)}
-              disabled={isGenerating || !customPrompt.trim()}
-              variant="outline"
-              className="flex-1"
-            >
-              Generate from Custom Prompt
-            </Button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button
+                onClick={() => generateImage(selectedPrompt)}
+                disabled={isGenerating || !selectedPrompt}
+                className="flex-1"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate from Selected Prompt'
+                )}
+              </Button>
+              <Button
+                onClick={() => generateImage(customPrompt)}
+                disabled={isGenerating || !customPrompt.trim()}
+                variant="outline"
+                className="flex-1"
+              >
+                Generate from Custom Prompt
+              </Button>
+            </div>
+            {imagePrompts.length > 0 && (
+              <Button
+                onClick={generateAllImages}
+                disabled={isGenerating}
+                variant="secondary"
+                className="w-full"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate Images for All Prompts (up to 3)
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

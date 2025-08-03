@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGenerator } from './ImageGenerator';
 import { ExpressForm } from './ExpressForm';
+import { AdCreativeCard } from './AdCreativeCard';
 
 interface Message {
   id: string;
@@ -100,6 +101,28 @@ export const AdCopyWizard = () => {
     }
     return [];
   });
+  const [adCopies, setAdCopies] = useState<string[]>(() => {
+    const saved = localStorage.getItem('adcopy-ad-copies');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  const [generatedImages, setGeneratedImages] = useState<{[key: string]: string}>(() => {
+    const saved = localStorage.getItem('adcopy-generated-images-map');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
   const [activeTab, setActiveTab] = useState('express');
   const { toast } = useToast();
 
@@ -123,6 +146,14 @@ export const AdCopyWizard = () => {
   useEffect(() => {
     localStorage.setItem('adCopy-facebook-creatives', JSON.stringify(facebookCreatives));
   }, [facebookCreatives]);
+
+  useEffect(() => {
+    localStorage.setItem('adcopy-ad-copies', JSON.stringify(adCopies));
+  }, [adCopies]);
+
+  useEffect(() => {
+    localStorage.setItem('adcopy-generated-images-map', JSON.stringify(generatedImages));
+  }, [generatedImages]);
 
   const steps = Object.keys(stepTitles);
   const currentStepIndex = steps.indexOf(currentStep);
@@ -234,6 +265,36 @@ export const AdCopyWizard = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Extract complete ad copies for creative pairing
+      if (currentStep === 'create-copy') {
+        // Try multiple patterns to extract ad copy blocks
+        let adCopyBlocks: string[] = [];
+        
+        // Pattern 1: Split by "Version", "Copy", "Ad" followed by numbers
+        const versionSplit = data.message.split(/(?:Version|Copy|Ad)\s*\d+/i).slice(1);
+        if (versionSplit.length > 0) {
+          adCopyBlocks = versionSplit.map(block => block.trim()).filter(block => block.length > 50);
+        }
+        
+        // Pattern 2: Split by double newlines and filter for substantial content
+        if (adCopyBlocks.length === 0) {
+          const paragraphSplit = data.message.split(/\n\s*\n/).filter(block => 
+            block.trim().length > 50 && 
+            !block.toLowerCase().includes('here are') &&
+            !block.toLowerCase().includes('i\'ve created') &&
+            !block.toLowerCase().includes('these ads')
+          );
+          if (paragraphSplit.length > 0) {
+            adCopyBlocks = paragraphSplit;
+          }
+        }
+        
+        if (adCopyBlocks.length > 0) {
+          console.log('Extracted ad copies:', adCopyBlocks.length, 'blocks');
+          setAdCopies(adCopyBlocks);
+        }
+      }
 
       // Handle image prompts generation with improved parsing
       if (currentStep === 'generate-image-prompts') {
@@ -418,6 +479,44 @@ export const AdCopyWizard = () => {
     }
   };
 
+  const generateImageForAdCopy = async (adCopy: string) => {
+    // Generate a basic image prompt from the ad copy
+    const prompt = `Professional marketing image for: ${adCopy.slice(0, 100)}... - modern, clean, high-quality commercial photography style`;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ai-images', {
+        body: { prompt }
+      });
+
+      if (error || data?.error) {
+        toast({
+          title: "Failed to generate image",
+          description: error?.message || data?.error || "Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Store the generated image mapped to this ad copy
+      setGeneratedImages(prev => ({
+        ...prev,
+        [adCopy]: data.image
+      }));
+      
+      toast({
+        title: "Success",
+        description: "Image generated for ad creative!"
+      });
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate image. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const resetConversation = () => {
     setMessages([]);
     setCurrentStep('initial');
@@ -425,12 +524,16 @@ export const AdCopyWizard = () => {
     setInput('');
     setImagePrompts([]);
     setFacebookCreatives([]);
+    setAdCopies([]);
+    setGeneratedImages({});
     // Clear localStorage
     localStorage.removeItem('adcopy-guided-messages');
     localStorage.removeItem('adcopy-guided-step');
     localStorage.removeItem('adcopy-guided-context');
     localStorage.removeItem('adcopy-guided-prompts');
     localStorage.removeItem('adCopy-facebook-creatives');
+    localStorage.removeItem('adcopy-ad-copies');
+    localStorage.removeItem('adcopy-generated-images-map');
     toast({
       title: "Conversation reset",
       description: "All conversation data has been cleared.",
@@ -708,11 +811,33 @@ export const AdCopyWizard = () => {
                   )}
 
                   {/* Image Generator */}
-                  {imagePrompts.length > 0 && (
-                    <div className="mt-6">
-                      <ImageGenerator imagePrompts={imagePrompts} />
-                    </div>
-                  )}
+            {/* Ad Creatives Section */}
+            {adCopies.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-4">Complete Ad Creatives</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {adCopies.map((adCopy, index) => (
+                    <AdCreativeCard
+                      key={index}
+                      adCopy={adCopy}
+                      imageUrl={generatedImages[adCopy]}
+                      index={index}
+                      onGenerateImage={generateImageForAdCopy}
+                      isGenerating={isLoading}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {imagePrompts.length > 0 && (
+              <div className="mt-6">
+                <ImageGenerator 
+                  imagePrompts={imagePrompts} 
+                  adCopies={adCopies}
+                />
+              </div>
+            )}
 
                   {/* Input */}
                   <div className="flex gap-2">
