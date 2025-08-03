@@ -114,11 +114,8 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
       return;
     }
 
-    // Clear previous generated content before new generation
-    setGeneratedCopy('');
-    setImagePrompts([]);
-
     setIsLoading(true);
+    // Don't clear generated content immediately - wait until we have new content
     try {
       const { data, error } = await supabase.functions.invoke('ad-copy-generator', {
         body: {
@@ -133,7 +130,9 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
 
       if (error) throw error;
 
+      // Clear previous content and set new content
       setGeneratedCopy(data.message);
+      setImagePrompts([]); // Clear old image prompts
 
       // Auto-generate image prompts
       const { data: imageData, error: imageError } = await supabase.functions.invoke('ad-copy-generator', {
