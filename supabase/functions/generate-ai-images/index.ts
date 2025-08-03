@@ -32,8 +32,8 @@ serve(async (req) => {
       )
     }
 
-    // Enhance the prompt for professional marketing imagery
-    const enhancedPrompt = `Professional marketing image for: ${prompt} - modern, clean, high-quality commercial photography style, professional lighting, marketing-focused composition, suitable for advertising campaigns, vibrant colors, engaging visual appeal`
+    // Enhance the prompt for professional marketing imagery with character and design focus
+    const enhancedPrompt = `Professional marketing character illustration: ${prompt}. Style: Modern vector art illustration, clean cartoon-style character design, professional marketing aesthetic, bright engaging colors, friendly approachable character, optimized for advertising. Composition: Strategic white space for text placement, professional lighting, high contrast, marketing psychology optimized. Art direction: Contemporary illustration style, brand-ready, visually appealing for target demographics, suitable for social media and digital advertising.`
     
     console.log('Generating image with prompt:', enhancedPrompt)
     console.log('Using parameters:', { model: 'dall-e-3', size, quality })

@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Copy, Palette, Layout, Sparkles } from "lucide-react";
+import { Download, Copy, Palette, Layout, Sparkles, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdCreativeTemplate } from './AdCreativeTemplate';
+import { AdvancedDesignTemplate } from './AdvancedDesignTemplates';
 import html2canvas from 'html2canvas';
 
 interface ProfessionalAdCreativeProps {
@@ -16,15 +17,16 @@ interface ProfessionalAdCreativeProps {
   isGenerating?: boolean;
 }
 
-type Template = 'modern' | 'corporate' | 'social' | 'minimal';
-type ColorScheme = 'blue' | 'purple' | 'green' | 'orange' | 'red';
+type Template = 'magazine' | 'social' | 'luxury' | 'tech' | 'playful' | 'minimal';
+type ColorScheme = 'blue' | 'purple' | 'green' | 'orange' | 'red' | 'pink';
 
 const colorSchemes = {
-  blue: { primary: '#3B82F6', secondary: '#1E40AF' },
-  purple: { primary: '#8B5CF6', secondary: '#5B21B6' },
-  green: { primary: '#10B981', secondary: '#047857' },
-  orange: { primary: '#F59E0B', secondary: '#D97706' },
-  red: { primary: '#EF4444', secondary: '#DC2626' }
+  blue: { primary: '#2563eb', secondary: '#3b82f6' },
+  purple: { primary: '#7c3aed', secondary: '#8b5cf6' },
+  green: { primary: '#059669', secondary: '#10b981' },
+  orange: { primary: '#ea580c', secondary: '#f97316' },
+  red: { primary: '#dc2626', secondary: '#ef4444' },
+  pink: { primary: '#db2777', secondary: '#ec4899' }
 };
 
 export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
@@ -36,7 +38,7 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
 }) => {
   const { toast } = useToast();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [template, setTemplate] = useState<Template>('modern');
+  const [template, setTemplate] = useState<Template>('magazine');
   const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -208,9 +210,11 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="modern">Modern Split</SelectItem>
-                <SelectItem value="corporate">Corporate Overlay</SelectItem>
+                <SelectItem value="magazine">Magazine Layout</SelectItem>
                 <SelectItem value="social">Social Media</SelectItem>
+                <SelectItem value="luxury">Luxury Premium</SelectItem>
+                <SelectItem value="tech">Tech Modern</SelectItem>
+                <SelectItem value="playful">Playful Creative</SelectItem>
                 <SelectItem value="minimal">Minimal Clean</SelectItem>
               </SelectContent>
             </Select>
@@ -230,6 +234,7 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
                 <SelectItem value="green">Fresh Green</SelectItem>
                 <SelectItem value="orange">Energetic Orange</SelectItem>
                 <SelectItem value="red">Bold Red</SelectItem>
+                <SelectItem value="pink">Trendy Pink</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -240,12 +245,11 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
           <div className="space-y-4">
             <div className="flex justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
               <div ref={canvasRef} className="transform scale-50 origin-center">
-                <AdCreativeTemplate
+                <AdvancedDesignTemplate
                   adCopy={adCopy}
                   imageUrl={imageUrl}
                   template={template}
-                  primaryColor={colors.primary}
-                  secondaryColor={colors.secondary}
+                  colorScheme={colorScheme}
                 />
               </div>
             </div>
@@ -271,18 +275,20 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
             </div>
           </div>
         ) : (
-          <div className="text-center p-8 bg-muted rounded-lg">
-            <Sparkles className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="font-medium mb-2">Generate Professional Image</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create a professional marketing image to complete your ad creative
+          <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-dashed border-blue-200">
+            <Wand2 className="w-12 h-12 mx-auto text-blue-500 mb-4" />
+            <h3 className="font-medium mb-2 text-gray-900">Generate Canva AI-Level Image</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Create professional character illustrations optimized for marketing with strategic text placement
             </p>
             <Button
               onClick={() => onGenerateImage(adCopy)}
               disabled={isGenerating}
               size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
-              {isGenerating ? "Generating..." : "Generate Professional Image"}
+              <Sparkles className="w-4 h-4 mr-2" />
+              {isGenerating ? "Creating Professional Image..." : "Generate Professional Image"}
             </Button>
           </div>
         )}
