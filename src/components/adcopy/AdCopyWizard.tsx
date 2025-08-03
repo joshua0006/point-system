@@ -24,6 +24,7 @@ interface AdCopyContext {
   differentiators?: string;
   styles?: string;
   selectedAngles?: string;
+  adCopy?: string;
 }
 
 const stepTitles = {
@@ -34,7 +35,8 @@ const stepTitles = {
   'differentiators': 'Unique Differentiators',
   'style-selection': 'Ad Style Selection',
   'generate-angles': 'Generate Ad Angles',
-  'create-copy': 'Create Ad Copy'
+  'create-copy': 'Create Ad Copy',
+  'generate-image-prompts': 'Generate Image Prompts'
 };
 
 export const AdCopyWizard = () => {
@@ -119,6 +121,15 @@ export const AdCopyWizard = () => {
         break;
       case 'create-copy':
         newContext.selectedAngles = userInput;
+        break;
+      case 'generate-image-prompts':
+        // Store the current ad copy for image prompt generation
+        if (messages.length > 0) {
+          const lastAssistantMessage = messages[messages.length - 1];
+          if (lastAssistantMessage.role === 'assistant') {
+            newContext.adCopy = lastAssistantMessage.content;
+          }
+        }
         break;
     }
     setContext(newContext);
@@ -257,7 +268,7 @@ export const AdCopyWizard = () => {
                     <div className="whitespace-pre-wrap text-sm">
                       {message.content}
                     </div>
-                    {message.role === 'assistant' && message.content.includes('**') && (
+                    {message.role === 'assistant' && (message.content.includes('**') || message.content.includes('PROMPT:')) && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -269,6 +280,9 @@ export const AdCopyWizard = () => {
                         ) : (
                           <Copy className="h-3 w-3" />
                         )}
+                        <span className="ml-1 text-xs">
+                          {message.step === 'generate-image-prompts' ? 'Copy Prompts' : 'Copy Ad'}
+                        </span>
                       </Button>
                     )}
                   </div>
@@ -292,6 +306,8 @@ export const AdCopyWizard = () => {
                 placeholder={
                   currentStep === 'create-copy' 
                     ? "Tell me which ad angles you'd like me to create copy for..."
+                    : currentStep === 'generate-image-prompts'
+                    ? "Type 'yes' to generate image prompts, or tell me what specific image styles you prefer..."
                     : "Type your response..."
                 }
                 className="min-h-[60px] resize-none"

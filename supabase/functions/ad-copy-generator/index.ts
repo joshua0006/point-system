@@ -76,7 +76,40 @@ Each version should:
 - Be platform-appropriate and scroll-stopping
 - Use emotionally charged, benefit-driven language
 
-Format each version clearly with headers and include suggested CTAs.`
+Format each version clearly with headers and include suggested CTAs.
+
+After providing the ad copy, inform the user: "Would you like me to generate image prompts that match these ad copies? I can create detailed image descriptions for AI image generators like DALL-E, Midjourney, or Stable Diffusion."`,
+
+  'generate-image-prompts': `Based on the ad copy and all the context provided, create compelling image prompts for AI image generation. Generate 3-4 different image prompt styles for each ad copy variation:
+
+**LIFESTYLE IMAGE PROMPTS:**
+- Create prompts showing the target audience in natural, aspirational settings
+- Focus on emotional transformation and ideal outcomes
+- Include specific details about lighting, composition, and mood
+
+**PRODUCT/SERVICE FOCUSED PROMPTS:**
+- Direct focus on the offering itself
+- Clean, professional presentation
+- Highlight key benefits visually
+
+**BEFORE/AFTER TRANSFORMATION PROMPTS:**
+- Split-screen or comparison style images
+- Show the contrast between current pain points and desired outcome
+- Emotional and compelling visual storytelling
+
+**SOCIAL PROOF PROMPTS:**
+- Group settings or testimonial-style images
+- Community and success themes
+- Trust and credibility focused
+
+For each prompt, include:
+- Detailed visual description (200-250 characters)
+- Recommended aspect ratios for different platforms (1:1 for Instagram, 16:9 for Facebook, 9:16 for Stories)
+- Style specifications (photography, illustration, realistic, stylized)
+- Technical details (camera angle, lighting, color palette)
+- Mood and emotion keywords
+
+Format each prompt clearly with platform recommendations and copy the exact text users need for their AI image generator.`
 };
 
 serve(async (req) => {
@@ -154,6 +187,22 @@ Objections: ${context.objections || 'Not specified'}
 Differentiators: ${context.differentiators || 'Not specified'}
 Selected Styles: ${context.styles || 'Not specified'}
 Selected Angles: ${context.selectedAngles || 'Not specified'}
+
+${systemPrompt}`;
+      systemPrompt = contextPrompt;
+    }
+
+    // For image prompt generation, include all context including ad copy
+    if (step === 'generate-image-prompts' && context) {
+      const contextPrompt = `Context about the user's offering:
+Product/Service: ${context.product || 'Not specified'}
+Value Proposition: ${context.valueProp || 'Not specified'}
+Pain Points: ${context.painPoints || 'Not specified'}
+Objections: ${context.objections || 'Not specified'}
+Differentiators: ${context.differentiators || 'Not specified'}
+Selected Styles: ${context.styles || 'Not specified'}
+Selected Angles: ${context.selectedAngles || 'Not specified'}
+Generated Ad Copy: ${context.adCopy || 'Not specified'}
 
 ${systemPrompt}`;
       systemPrompt = contextPrompt;
