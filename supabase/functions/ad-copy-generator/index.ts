@@ -78,7 +78,9 @@ Each version should:
 
 Format each version clearly with headers and include suggested CTAs.
 
-After providing the ad copy, inform the user: "Would you like me to generate image prompts that match these ad copies? I can create detailed image descriptions for AI image generators like DALL-E, Midjourney, or Stable Diffusion."`,
+After providing the ad copy, inform the user: "Would you like me to generate image prompts that match these ad copies? I can create detailed image descriptions for AI image generators like DALL-E, Midjourney, or Stable Diffusion."
+
+**IMPORTANT:** After the ad copy is generated, automatically create detailed image prompts by making another OpenAI API call with the step 'auto-generate-image-prompts' to provide comprehensive visual descriptions.`,
 
   'generate-image-prompts': `Based on the ad copy and all the context provided, create compelling image prompts for AI image generation. 
 
@@ -158,8 +160,24 @@ Each version should:
 
 If any information is missing, intelligently fill in the gaps based on the provided context. Generate angles that work best with the given information and selected styles.
 
-Format each version clearly with headers and include suggested CTAs.`
-};
+Format each version clearly with headers and include suggested CTAs.`,
+
+  'auto-generate-image-prompts': `Based on the provided ad copy and context, automatically generate compelling image prompts for AI image generation. 
+
+**CRITICAL FORMATTING RULE:** You must format each actual usable image description with "IMAGE_PROMPT:" prefix. Only output actual, descriptive image prompts that can be used directly for image generation.
+
+Generate 4-6 diverse image prompts that would work well with the ad copy:
+
+IMAGE_PROMPT: Professional business person in modern office environment, confident expression, natural lighting, high-quality photography style, clean composition
+IMAGE_PROMPT: Product showcase with elegant lighting, minimalist background, focus on benefits and features, professional commercial photography
+IMAGE_PROMPT: Before and after transformation scene, split composition, emotional contrast, lifestyle photography, authentic feeling
+IMAGE_PROMPT: Happy diverse customers using product/service, testimonial style, candid moments, community feeling, warm lighting
+IMAGE_PROMPT: Problem solution visual metaphor, creative composition, symbolic representation, artistic approach, engaging visual storytelling
+IMAGE_PROMPT: Social media style user-generated content, authentic smartphone photography aesthetic, relatable everyday scenario
+
+Each IMAGE_PROMPT must be a complete, detailed visual description ready for AI image generators. Do NOT include technical specifications, aspect ratios, or metadata in the IMAGE_PROMPT entries.
+
+Remember: Only actual, descriptive image prompts should have the IMAGE_PROMPT: prefix.`
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -284,6 +302,22 @@ Selected Angles: ${context.selectedAngles || 'Not specified'}
 Generated Ad Copy: ${context.adCopy || 'Not specified'}
 
 IMPORTANT: Format each Facebook creative prompt with "FACEBOOK_CREATIVE:" prefix so they can be extracted properly.
+
+${systemPrompt}`;
+      systemPrompt = contextPrompt;
+    }
+
+    // For auto image prompt generation, include all context including ad copy
+    if (step === 'auto-generate-image-prompts' && context) {
+      const contextPrompt = `Context about the user's offering:
+Product/Service: ${context.product || 'Not specified'}
+Value Proposition: ${context.valueProp || 'Not specified'}
+Pain Points: ${context.painPoints || 'Not specified'}
+Objections: ${context.objections || 'Not specified'}
+Differentiators: ${context.differentiators || 'Not specified'}
+Selected Styles: ${context.styles || 'Not specified'}
+Selected Angles: ${context.selectedAngles || 'Not specified'}
+Generated Ad Copy: ${context.adCopy || 'Not specified'}
 
 ${systemPrompt}`;
       systemPrompt = contextPrompt;

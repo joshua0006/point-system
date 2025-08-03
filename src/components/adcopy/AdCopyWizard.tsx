@@ -342,6 +342,57 @@ export const AdCopyWizard = () => {
         }
       }
 
+      // Automatically generate image prompts after ad copy is created
+      if (currentStep === 'create-copy') {
+        // Generate image prompts automatically
+        try {
+          const imagePromptContext = {
+            ...newContext,
+            adCopy: data.message
+          };
+
+          const { data: imageData, error: imageError } = await supabase.functions.invoke('ad-copy-generator', {
+            body: {
+              message: "Generate detailed image prompts for the provided ad copy",
+              step: 'auto-generate-image-prompts',
+              context: imagePromptContext
+            }
+          });
+
+          if (!imageError && imageData?.message) {
+            const lines = imageData.message.split('\n');
+            
+            // Extract lines that start with IMAGE_PROMPT:
+            const prompts = lines
+              .filter((line: string) => line.trim().startsWith('IMAGE_PROMPT:'))
+              .map((line: string) => {
+                // Remove the IMAGE_PROMPT: prefix and clean up
+                let prompt = line.replace(/^IMAGE_PROMPT:\s*/, '').trim();
+                // Remove any leading brackets or formatting
+                prompt = prompt.replace(/^\[/, '').replace(/\]$/, '').trim();
+                return prompt;
+              })
+              .filter((prompt: string) => {
+                // Validate that it's actually a descriptive prompt
+                return prompt.length > 20 && // Must be substantial
+                       !prompt.toLowerCase().includes('aspect ratio') &&
+                       !prompt.toLowerCase().includes('style specification') &&
+                       !prompt.toLowerCase().includes('technical detail') &&
+                       !prompt.toLowerCase().includes('recommended');
+              });
+
+            if (prompts.length > 0) {
+              console.log('Auto-generated image prompts:', prompts.length);
+              setImagePrompts(prompts);
+              setContext(prev => ({ ...prev, imagePrompts: prompts }));
+            }
+          }
+        } catch (imageError) {
+          console.error('Error auto-generating image prompts:', imageError);
+          // Continue without image prompts - this is not critical
+        }
+      }
+
       // Move to next step
       const nextStepIndex = currentStepIndex + 1;
       if (nextStepIndex < steps.length) {
