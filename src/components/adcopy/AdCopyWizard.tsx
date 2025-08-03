@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,15 +44,69 @@ const stepTitles = {
 };
 
 export const AdCopyWizard = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = localStorage.getItem('adcopy-guided-messages');
+    if (saved) {
+      try {
+        const parsedMessages = JSON.parse(saved);
+        return parsedMessages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState('initial');
-  const [context, setContext] = useState<AdCopyContext>({});
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem('adcopy-guided-step');
+    return saved || 'initial';
+  });
+  const [context, setContext] = useState<AdCopyContext>(() => {
+    const saved = localStorage.getItem('adcopy-guided-context');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
   const [copiedStates, setCopiedStates] = useState<{[key: string]: boolean}>({});
-  const [imagePrompts, setImagePrompts] = useState<string[]>([]);
+  const [imagePrompts, setImagePrompts] = useState<string[]>(() => {
+    const saved = localStorage.getItem('adcopy-guided-prompts');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [activeTab, setActiveTab] = useState('express');
   const { toast } = useToast();
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('adcopy-guided-messages', JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('adcopy-guided-step', currentStep);
+  }, [currentStep]);
+
+  useEffect(() => {
+    localStorage.setItem('adcopy-guided-context', JSON.stringify(context));
+  }, [context]);
+
+  useEffect(() => {
+    localStorage.setItem('adcopy-guided-prompts', JSON.stringify(imagePrompts));
+  }, [imagePrompts]);
 
   const steps = Object.keys(stepTitles);
   const currentStepIndex = steps.indexOf(currentStep);
@@ -204,6 +258,16 @@ export const AdCopyWizard = () => {
     setCurrentStep('initial');
     setContext({});
     setInput('');
+    setImagePrompts([]);
+    // Clear localStorage
+    localStorage.removeItem('adcopy-guided-messages');
+    localStorage.removeItem('adcopy-guided-step');
+    localStorage.removeItem('adcopy-guided-context');
+    localStorage.removeItem('adcopy-guided-prompts');
+    toast({
+      title: "Conversation reset",
+      description: "All conversation data has been cleared.",
+    });
   };
 
   const copyToClipboard = async (text: string, id: string) => {

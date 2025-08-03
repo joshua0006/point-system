@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,19 +34,62 @@ const adStyles = [
 ];
 
 export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
-  const [formData, setFormData] = useState<ExpressFormData>({
-    product: '',
-    valueProp: '',
-    painPoints: '',
-    objections: '',
-    differentiators: '',
-    selectedStyles: []
+  const [formData, setFormData] = useState<ExpressFormData>(() => {
+    const saved = localStorage.getItem('adcopy-express-form');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {
+          product: '',
+          valueProp: '',
+          painPoints: '',
+          objections: '',
+          differentiators: '',
+          selectedStyles: []
+        };
+      }
+    }
+    return {
+      product: '',
+      valueProp: '',
+      painPoints: '',
+      objections: '',
+      differentiators: '',
+      selectedStyles: []
+    };
   });
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCopy, setGeneratedCopy] = useState('');
   const [imagePrompts, setImagePrompts] = useState<string[]>([]);
   const [copiedStates, setCopiedStates] = useState<{[key: string]: boolean}>({});
+  const [dataRestored, setDataRestored] = useState(false);
   const { toast } = useToast();
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('adcopy-express-form', JSON.stringify(formData));
+  }, [formData]);
+
+  // Show restoration notice on mount if data was restored
+  useEffect(() => {
+    const saved = localStorage.getItem('adcopy-express-form');
+    if (saved) {
+      try {
+        const parsedData = JSON.parse(saved);
+        const hasContent = Object.values(parsedData).some((value) => 
+          Array.isArray(value) ? value.length > 0 : value && typeof value === 'string' && value.trim()
+        );
+        if (hasContent) {
+          setDataRestored(true);
+          toast({
+            title: "Previous work restored",
+            description: "Your previous form data has been restored.",
+          });
+        }
+      } catch {}
+    }
+  }, [toast]);
 
   const handleInputChange = (field: keyof ExpressFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -116,6 +159,9 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
         }
       }
 
+      // Clear saved form data on successful generation
+      localStorage.removeItem('adcopy-express-form');
+
       toast({
         title: "Success!",
         description: "Ad copy generated successfully.",
@@ -152,6 +198,24 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
     }
   };
 
+  const clearForm = () => {
+    setFormData({
+      product: '',
+      valueProp: '',
+      painPoints: '',
+      objections: '',
+      differentiators: '',
+      selectedStyles: []
+    });
+    setGeneratedCopy('');
+    setImagePrompts([]);
+    localStorage.removeItem('adcopy-express-form');
+    toast({
+      title: "Form cleared",
+      description: "All form data has been cleared.",
+    });
+  };
+
   const isFormValid = formData.product.trim().length > 0;
 
   return (
@@ -163,9 +227,16 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
               <Sparkles className="h-5 w-5 text-primary" />
               Express Ad Copy Generator
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={onModeSwitch}>
-              Switch to Guided Mode
-            </Button>
+            <div className="flex gap-2">
+              {dataRestored && (
+                <Button variant="outline" size="sm" onClick={clearForm}>
+                  Clear Form
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={onModeSwitch}>
+                Switch to Guided Mode
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
