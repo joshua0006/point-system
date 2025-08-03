@@ -130,8 +130,16 @@ export const ExpressForm: React.FC<ExpressFormProps> = ({ onModeSwitch }) => {
 
       if (error) throw error;
 
+      console.log('Ad copy response received:', data);
+      
       // Clear previous content and set new content
-      setGeneratedCopy(data.message);
+      if (data && data.message) {
+        setGeneratedCopy(data.message);
+        console.log('Generated copy set:', data.message.substring(0, 100) + '...');
+      } else {
+        console.error('No message in response:', data);
+        throw new Error('No ad copy generated in response');
+      }
       setImagePrompts([]); // Clear old image prompts
 
       // Auto-generate image prompts
