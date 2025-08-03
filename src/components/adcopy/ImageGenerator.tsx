@@ -243,7 +243,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts, ad
                 Generate from Custom Prompt
               </Button>
             </div>
-            {imagePrompts.length > 0 && (
+            {imagePrompts.length > 0 ? (
               <Button
                 onClick={generateAllImages}
                 disabled={isGenerating}
@@ -253,6 +253,12 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts, ad
                 <Sparkles className="w-4 h-4 mr-2" />
                 Generate Images for All Prompts (up to 3)
               </Button>
+            ) : (
+              <div className="text-center p-4 bg-muted rounded-md">
+                <p className="text-sm text-muted-foreground">
+                  Complete the guided wizard to generate image prompts, then you'll see a "Generate All Images" button here.
+                </p>
+              </div>
             )}
           </div>
         </CardContent>
