@@ -107,6 +107,35 @@ After all IMAGE_PROMPT entries, you may include technical specifications:
 
 Always clearly separate actual image prompts (marked with IMAGE_PROMPT:) from technical specifications.`,
 
+  'generate-facebook-creatives': `You are a Facebook advertising creative specialist. Based on the provided ad copy variations, create specific Facebook ad creative prompts that will generate high-converting visual ads optimized for Facebook's platform.
+
+For each ad copy variation, generate 2-3 Facebook-specific creative prompts using this exact format:
+FACEBOOK_CREATIVE: [detailed creative description]
+
+Facebook Creative Guidelines:
+- Design for mobile-first viewing (most users are on mobile)
+- Include Facebook-specific visual elements (testimonials, user-generated content style, lifestyle scenes)
+- Optimize for Facebook's algorithm preferences (authentic, engaging, scroll-stopping)
+- Consider text overlay placement that works with Facebook's 20% text rule
+- Include specific composition details for 1:1 and 4:5 aspect ratios
+- Focus on authentic, relatable scenarios that drive engagement
+- Include color psychology that converts on Facebook
+- Design for both feed and stories placement
+
+Creative Types to Include:
+1. Product-focused creatives with lifestyle context
+2. User testimonial or review-style visuals
+3. Problem/solution storytelling scenes
+4. Social proof and community-focused visuals
+
+Technical Specifications:
+- Primary ratios: 1:1 (feed), 4:5 (mobile feed), 9:16 (stories)
+- Style: Authentic, user-generated content aesthetic
+- Text considerations: Leave space for copy overlay if needed
+- Platform optimization: Bright, contrasting colors that stand out in feed
+
+Make these creatives feel native to Facebook while being highly engaging and conversion-focused.`,
+
   'express-generation': `You are an expert copywriter creating high-converting ad copy. Based on the provided information, create comprehensive ad copy with multiple variations.
 
 Create the following for each selected ad style:
@@ -231,6 +260,22 @@ ${systemPrompt}`;
 
     // For image prompt generation, include all context including ad copy
     if (step === 'generate-image-prompts' && context) {
+      const contextPrompt = `Context about the user's offering:
+Product/Service: ${context.product || 'Not specified'}
+Value Proposition: ${context.valueProp || 'Not specified'}
+Pain Points: ${context.painPoints || 'Not specified'}
+Objections: ${context.objections || 'Not specified'}
+Differentiators: ${context.differentiators || 'Not specified'}
+Selected Styles: ${context.styles || 'Not specified'}
+Selected Angles: ${context.selectedAngles || 'Not specified'}
+Generated Ad Copy: ${context.adCopy || 'Not specified'}
+
+${systemPrompt}`;
+      systemPrompt = contextPrompt;
+    }
+
+    // For Facebook creative generation, include all context including ad copy
+    if (step === 'generate-facebook-creatives' && context) {
       const contextPrompt = `Context about the user's offering:
 Product/Service: ${context.product || 'Not specified'}
 Value Proposition: ${context.valueProp || 'Not specified'}

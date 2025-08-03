@@ -15,7 +15,7 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: Date;
+  timestamp: Date | string;
   step?: string;
 }
 
@@ -88,6 +88,7 @@ export const AdCopyWizard = () => {
     }
     return [];
   });
+  const [facebookCreatives, setFacebookCreatives] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('express');
   const { toast } = useToast();
 
@@ -339,6 +340,63 @@ export const AdCopyWizard = () => {
     }
   };
 
+  const generateFacebookCreatives = async () => {
+    if (!currentStep || currentStep !== 'create-copy') return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ad-copy-generator', {
+        body: {
+          message: "Generate Facebook ad creatives for the provided ad copy",
+          step: 'generate-facebook-creatives',
+          context
+        }
+      });
+
+      if (error) throw error;
+      
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      
+      // Extract and store Facebook creatives
+      const creatives = extractFacebookCreatives(data.message);
+      if (creatives.length > 0) {
+        setFacebookCreatives(creatives);
+        localStorage.setItem('adCopyFacebookCreatives', JSON.stringify(creatives));
+      }
+      
+    } catch (error) {
+      console.error('Error generating Facebook creatives:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate Facebook creatives",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const extractFacebookCreatives = (text: string): string[] => {
+    // Look for lines that start with "FACEBOOK_CREATIVE:" marker
+    const creativeLines = text.split('\n').filter(line => 
+      line.trim().startsWith('FACEBOOK_CREATIVE:')
+    );
+    
+    return creativeLines.map(line => 
+      line.replace('FACEBOOK_CREATIVE:', '').trim()
+    ).filter(creative => 
+      // Filter out empty creatives and ensure substantial content
+      creative.length > 20
+    );
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -455,6 +513,52 @@ export const AdCopyWizard = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Facebook Creative Generator Button */}
+                  {currentStep === 'create-copy' && (
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        onClick={generateFacebookCreatives}
+                        disabled={isLoading}
+                        variant="premium"
+                        className="flex-1"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Generating...
+                          </>
+                        ) : (
+                          "Generate Facebook Ad Creatives"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Facebook Creatives Display */}
+                  {facebookCreatives.length > 0 && (
+                    <div className="mt-6 space-y-4">
+                      <h3 className="text-lg font-semibold">Facebook Ad Creatives</h3>
+                      <div className="space-y-3">
+                        {facebookCreatives.map((creative, index) => (
+                          <div key={index} className="flex items-start gap-2 p-3 bg-muted rounded-lg">
+                            <span className="text-sm font-medium text-muted-foreground min-w-[60px]">
+                              Creative {index + 1}:
+                            </span>
+                            <p className="text-sm flex-1">{creative}</p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(creative, `creative-${index}`)}
+                              className="shrink-0"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Image Generator */}
                   {imagePrompts.length > 0 && (
