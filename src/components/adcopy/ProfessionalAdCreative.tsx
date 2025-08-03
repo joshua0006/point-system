@@ -269,12 +269,16 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
         {imageUrl ? (
           <div className="space-y-4">
             <div className="flex justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
-              <div ref={canvasRef} className="transform scale-50 origin-center">
-                <AdvancedDesignTemplate
-                  adCopy={adCopy}
-                  imageUrl={imageUrl}
-                  template={template}
-                  colorScheme={colorScheme}
+              <div ref={canvasRef} className="transform scale-75 origin-center">
+                <img
+                  src={imageUrl}
+                  alt="Generated Marketing Image"
+                  className="rounded-lg shadow-lg max-w-full h-auto"
+                  style={{
+                    maxWidth: '600px',
+                    maxHeight: '400px',
+                    objectFit: 'contain'
+                  }}
                 />
               </div>
             </div>
