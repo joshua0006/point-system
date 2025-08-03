@@ -82,30 +82,27 @@ After providing the ad copy, inform the user: "Would you like me to generate ima
 
   'generate-image-prompts': `Based on the ad copy and all the context provided, create compelling image prompts for AI image generation. 
 
-**IMPORTANT:** Format each actual image description with "IMAGE_PROMPT:" prefix to clearly identify it as a usable prompt.
+**CRITICAL FORMATTING RULE:** You must format each actual usable image description with "IMAGE_PROMPT:" prefix. Only output actual, descriptive image prompts that can be used directly for image generation.
 
 Generate 3-4 different image prompt styles for each ad copy variation:
 
 **LIFESTYLE IMAGE PROMPTS:**
-IMAGE_PROMPT: [Create detailed description of target audience in natural, aspirational settings showing emotional transformation and ideal outcomes with specific lighting, composition, and mood details]
+IMAGE_PROMPT: Professional woman in modern office setting holding smartphone, smiling confidently, natural lighting through large windows, clean modern aesthetic, business success theme
 
 **PRODUCT/SERVICE FOCUSED PROMPTS:**
-IMAGE_PROMPT: [Create detailed description with direct focus on the offering itself, clean professional presentation highlighting key benefits visually]
+IMAGE_PROMPT: Clean product showcase on white background, professional photography lighting, focus on key features and benefits, minimalist composition with clear focal point
 
 **BEFORE/AFTER TRANSFORMATION PROMPTS:**
-IMAGE_PROMPT: [Create detailed description of split-screen or comparison style images showing contrast between current pain points and desired outcome with emotional visual storytelling]
+IMAGE_PROMPT: Split-screen composition showing contrast between stressed person on left and confident successful person on right, dramatic lighting change, emotional storytelling
 
 **SOCIAL PROOF PROMPTS:**
-IMAGE_PROMPT: [Create detailed description of group settings or testimonial-style images with community and success themes, trust and credibility focused]
+IMAGE_PROMPT: Diverse group of happy customers in casual setting, testimonial-style authentic photography, warm community feeling, trust and credibility focused
 
-Each IMAGE_PROMPT should be a complete, detailed visual description (200-300 characters) ready for AI image generators.
+Each IMAGE_PROMPT must be a complete, detailed visual description ready for AI image generators. Do NOT include technical specifications, aspect ratios, or metadata in the IMAGE_PROMPT entries.
 
-After all IMAGE_PROMPT entries, you may include technical specifications:
-- Recommended aspect ratios: 1:1 for Instagram, 16:9 for Facebook, 9:16 for Stories
-- Style options: photography, illustration, realistic, stylized
-- Technical suggestions: camera angles, lighting, color palettes, mood keywords
+After providing all IMAGE_PROMPT entries, you may add a separate technical note section with aspect ratios and style suggestions, but these should NOT be formatted as IMAGE_PROMPT entries.
 
-Always clearly separate actual image prompts (marked with IMAGE_PROMPT:) from technical specifications.`,
+Remember: Only actual, descriptive image prompts should have the IMAGE_PROMPT: prefix.`,
 
   'generate-facebook-creatives': `You are a Facebook advertising creative specialist. Based on the provided ad copy variations, create specific Facebook ad creative prompts that will generate high-converting visual ads optimized for Facebook's platform.
 

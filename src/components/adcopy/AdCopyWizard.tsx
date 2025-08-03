@@ -260,42 +260,83 @@ export const AdCopyWizard = () => {
                    !prompt.toLowerCase().includes('color palette');
           });
         
-        // Fallback: if no IMAGE_PROMPT: markers found, try the old method but with better filtering
+        // Fallback: if no IMAGE_PROMPT: markers found, try alternative extraction but be very strict
         if (prompts.length === 0) {
+          console.log('No IMAGE_PROMPT markers found, trying alternative extraction');
+          
           const fallbackPrompts = lines
             .filter((line: string) => {
               const trimmed = line.trim();
-              return trimmed.match(/^\d+\./) || 
-                     trimmed.startsWith('•') || 
-                     trimmed.startsWith('-') || 
-                     trimmed.startsWith('*');
+              // Only look for lines that seem like actual image descriptions
+              return trimmed.length > 30 && // Must be substantial
+                     (trimmed.match(/^\d+\./) || trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*')) &&
+                     // Must contain visual descriptive words
+                     (trimmed.toLowerCase().includes('image') || 
+                      trimmed.toLowerCase().includes('photo') || 
+                      trimmed.toLowerCase().includes('scene') || 
+                      trimmed.toLowerCase().includes('setting') || 
+                      trimmed.toLowerCase().includes('showing') ||
+                      trimmed.toLowerCase().includes('featuring') ||
+                      trimmed.toLowerCase().includes('background') ||
+                      trimmed.toLowerCase().includes('composition'));
             })
             .map((line: string) => {
               let prompt = line.replace(/^\d+\.\s*/, '').replace(/^[•\-*]\s*/, '').trim();
+              // Remove common prefix phrases that aren't part of the description
+              prompt = prompt.replace(/^(image of|photo of|scene of|picture of)\s*/i, '').trim();
               return prompt;
             })
             .filter((prompt: string) => {
-              // Enhanced filtering to exclude technical specifications
+              // Strict filtering to exclude technical specifications
               const lowerPrompt = prompt.toLowerCase();
-              return prompt.length > 20 && // Must be substantial
+              return prompt.length > 30 && // Must be substantial
+                     // Exclude technical terms
                      !lowerPrompt.includes('aspect ratio') &&
                      !lowerPrompt.includes('style specification') &&
-                     !lowerPrompt.includes('technical detail') &&
+                     !lowerPrompt.includes('technical') &&
                      !lowerPrompt.includes('recommended') &&
                      !lowerPrompt.includes('camera angle') &&
                      !lowerPrompt.includes('color palette') &&
                      !lowerPrompt.includes('16:9') &&
                      !lowerPrompt.includes('1:1') &&
                      !lowerPrompt.includes('9:16') &&
-                     !lowerPrompt.startsWith('for each prompt') &&
-                     !lowerPrompt.startsWith('format each');
+                     !lowerPrompt.includes('4:5') &&
+                     !lowerPrompt.includes('1024x1024') &&
+                     !lowerPrompt.includes('photography tips') &&
+                     !lowerPrompt.includes('lighting tips') &&
+                     !lowerPrompt.includes('style options') &&
+                     !lowerPrompt.startsWith('for each') &&
+                     !lowerPrompt.startsWith('format each') &&
+                     !lowerPrompt.startsWith('make sure') &&
+                     !lowerPrompt.startsWith('remember') &&
+                     !lowerPrompt.startsWith('note:') &&
+                     !lowerPrompt.startsWith('tip:') &&
+                     // Must contain visual descriptive elements
+                     (lowerPrompt.includes('person') || 
+                      lowerPrompt.includes('people') || 
+                      lowerPrompt.includes('scene') || 
+                      lowerPrompt.includes('setting') || 
+                      lowerPrompt.includes('background') ||
+                      lowerPrompt.includes('showing') ||
+                      lowerPrompt.includes('featuring') ||
+                      lowerPrompt.includes('with') ||
+                      lowerPrompt.includes('professional') ||
+                      lowerPrompt.includes('modern') ||
+                      lowerPrompt.includes('clean'));
             });
           
           if (fallbackPrompts.length > 0) {
+            console.log('Found fallback prompts:', fallbackPrompts.length);
             setImagePrompts(fallbackPrompts);
             setContext(prev => ({ ...prev, imagePrompts: fallbackPrompts }));
+          } else {
+            console.log('No valid image prompts found');
+            // Set empty array to avoid confusion
+            setImagePrompts([]);
+            setContext(prev => ({ ...prev, imagePrompts: [] }));
           }
         } else {
+          console.log('Found IMAGE_PROMPT markers:', prompts.length);
           setImagePrompts(prompts);
           setContext(prev => ({ ...prev, imagePrompts: prompts }));
         }
