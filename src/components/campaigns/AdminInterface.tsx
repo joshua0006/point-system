@@ -12,6 +12,7 @@ import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor, User
 import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
 import UserPermissionManagement from "../admin/UserPermissionManagement";
+import { AdminCampaignLauncher } from "../admin/AdminCampaignLauncher";
 import { supabase } from "@/integrations/supabase/client";
 
 const ICON_OPTIONS = [
@@ -309,7 +310,7 @@ export const AdminInterface = ({
 
       {/* Admin Dashboard Tabs */}
       <Tabs defaultValue="audiences" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="audiences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Target Management
@@ -321,6 +322,10 @@ export const AdminInterface = ({
           <TabsTrigger value="campaigns" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             Campaign Monitor
+          </TabsTrigger>
+          <TabsTrigger value="launcher" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Campaign Launcher
           </TabsTrigger>
         </TabsList>
 
@@ -414,6 +419,10 @@ export const AdminInterface = ({
 
         <TabsContent value="campaigns" className="mt-8">
           <AdminCampaignMonitor />
+        </TabsContent>
+
+        <TabsContent value="launcher" className="mt-8">
+          <AdminCampaignLauncher />
         </TabsContent>
 
       </Tabs>
