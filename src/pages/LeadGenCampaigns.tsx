@@ -39,6 +39,7 @@ const LeadGenCampaigns = () => {
   const [userCampaigns, setUserCampaigns] = useState([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
+  const [hideInactiveCampaigns, setHideInactiveCampaigns] = useState(false);
 
   // Admin mode state
   const [adminMode, setAdminMode] = useState(false);
@@ -398,11 +399,21 @@ const LeadGenCampaigns = () => {
 
           {/* Campaigns Section */}
           {!adminMode && userCampaigns.length > 0 && <div className="mb-12">
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl font-bold">Your Campaigns</h2>
-                {userCampaigns.length > 0 && <div className="text-sm text-muted-foreground">
-                    {userCampaigns.filter(c => c.billing_status === 'active').length} active • {userCampaigns.length} total
-                  </div>}
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant={hideInactiveCampaigns ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setHideInactiveCampaigns(!hideInactiveCampaigns)}
+                    className="text-sm"
+                  >
+                    {hideInactiveCampaigns ? "Show All" : "Hide Inactive"}
+                  </Button>
+                  {userCampaigns.length > 0 && <div className="text-sm text-muted-foreground">
+                      {userCampaigns.filter(c => c.billing_status === 'active').length} active • {userCampaigns.length} total
+                    </div>}
+                </div>
               </div>
 
               {userCampaigns.length === 0 ? <div className="text-center py-12 max-w-2xl mx-auto">
@@ -418,12 +429,19 @@ const LeadGenCampaigns = () => {
                     Create Your First Campaign
                   </Button>
                 </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                  {userCampaigns.sort((a, b) => {
-              // Active campaigns first, then stopped campaigns
-              if (a.billing_status === 'active' && b.billing_status !== 'active') return -1;
-              if (a.billing_status !== 'active' && b.billing_status === 'active') return 1;
-              return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
-            }).map(participation => {
+                  {userCampaigns
+                    .filter(participation => {
+                      if (hideInactiveCampaigns) {
+                        return participation.billing_status === 'active';
+                      }
+                      return true;
+                    })
+                    .sort((a, b) => {
+                      // Active campaigns first, then stopped campaigns
+                      if (a.billing_status === 'active' && b.billing_status !== 'active') return -1;
+                      if (a.billing_status !== 'active' && b.billing_status === 'active') return 1;
+                      return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
+                    }).map(participation => {
               const campaign = participation.lead_gen_campaigns;
               const isColdCalling = campaign.name.includes('Cold Calling');
               const IconComponent = isColdCalling ? Phone : Target;
