@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import LeadGenCampaigns from './LeadGenCampaigns';
+import GiftingMerchants from '@/components/marketplace/GiftingMerchants';
 
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,9 +112,10 @@ const Marketplace = () => {
       
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="campaigns" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8 h-11 sm:h-10">
+          <TabsList className="grid w-full grid-cols-3 mb-6 sm:mb-8 h-11 sm:h-10">
             <TabsTrigger value="services" className="text-sm">Services</TabsTrigger>
             <TabsTrigger value="campaigns" className="text-sm">Lead Gen Campaigns</TabsTrigger>
+            <TabsTrigger value="gifting" className="text-sm">Gifting Support</TabsTrigger>
           </TabsList>
           
           <TabsContent value="services" className="mt-0">
@@ -158,6 +160,12 @@ const Marketplace = () => {
           <TabsContent value="campaigns" className="mt-0">
             <div className="pt-8">
               <LeadGenCampaigns />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="gifting" className="mt-0">
+            <div className="pt-8">
+              <GiftingMerchants />
             </div>
           </TabsContent>
         </Tabs>
