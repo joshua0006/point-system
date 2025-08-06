@@ -11,7 +11,7 @@ import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { CampaignMethodSelector } from "@/components/campaigns/CampaignMethodSelector";
-import { FacebookAdsWizard } from "@/components/campaigns/FacebookAdsWizard";
+import { FacebookAdsCatalog } from "@/components/campaigns/FacebookAdsCatalog";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
@@ -534,7 +534,7 @@ const LeadGenCampaigns = () => {
                 {/* Campaign Flow */}
                 {currentFlow === 'method-selection' && <CampaignMethodSelector onMethodSelect={handleMethodSelect} />}
 
-                {currentFlow === 'facebook-ads' && <FacebookAdsWizard onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} campaignTargets={campaignTargets} />}
+                {currentFlow === 'facebook-ads' && <FacebookAdsCatalog onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} campaignTargets={campaignTargets} />}
 
                 {currentFlow === 'cold-calling' && <ColdCallingWizard onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} />}
               </>}

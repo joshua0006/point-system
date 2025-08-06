@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
 import UserPermissionManagement from "../admin/UserPermissionManagement";
 import { AdminCampaignLauncher } from "../admin/AdminCampaignLauncher";
+import { CampaignScriptEditor } from "../admin/CampaignScriptEditor";
 import { supabase } from "@/integrations/supabase/client";
 
 const ICON_OPTIONS = [
@@ -43,6 +44,7 @@ export const AdminInterface = ({
   const { toast } = useToast();
   const [showCampaignTypesDialog, setShowCampaignTypesDialog] = useState(false);
   const [editingTargetForTypes, setEditingTargetForTypes] = useState<any>(null);
+  const [showScriptEditor, setShowScriptEditor] = useState(false);
   const [targetForm, setTargetForm] = useState({
     id: '',
     name: '',
@@ -310,10 +312,14 @@ export const AdminInterface = ({
 
       {/* Admin Dashboard Tabs */}
       <Tabs defaultValue="audiences" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="audiences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Target Management
+          </TabsTrigger>
+          <TabsTrigger value="scripts" className="flex items-center gap-2">
+            <Edit3 className="h-4 w-4" />
+            Campaign Scripts
           </TabsTrigger>
           <TabsTrigger value="permissions" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
@@ -411,6 +417,26 @@ export const AdminInterface = ({
           </div>
           </CardContent>
         </Card>
+        </TabsContent>
+
+        <TabsContent value="scripts" className="mt-8">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Campaign Scripts Management</CardTitle>
+                <Button onClick={() => setShowScriptEditor(true)}>
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Edit Campaign Scripts
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Manage calling, texting, and reminder scripts for all campaign templates. 
+                These scripts are delivered to users when they launch campaigns.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="permissions" className="mt-8">
@@ -618,6 +644,12 @@ export const AdminInterface = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Campaign Script Editor */}
+      <CampaignScriptEditor 
+        isOpen={showScriptEditor} 
+        onClose={() => setShowScriptEditor(false)} 
+      />
     </div>
   );
 };
