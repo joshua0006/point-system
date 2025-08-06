@@ -87,73 +87,74 @@ export const ScriptPanel: React.FC<ScriptPanelProps> = ({
   });
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="h-full">
       <CollapsibleTrigger asChild>
-        <Button variant="ghost" className="w-full justify-between p-2">
+        <Button variant="ghost" className="w-full justify-between p-3 text-left h-auto min-h-[44px]">
           <span className="text-sm font-medium">View Scripts</span>
-          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {isOpen ? <ChevronUp className="h-4 w-4 flex-shrink-0" /> : <ChevronDown className="h-4 w-4 flex-shrink-0" />}
         </Button>
       </CollapsibleTrigger>
       
       <CollapsibleContent className="space-y-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
+        <Card className="border-0 shadow-none">
+          <CardHeader className="pb-2 px-0">
+            <CardTitle className="text-sm flex items-center gap-2">
               Campaign Scripts
               <Badge variant="outline" className="text-xs">
-                {scripts.length} scripts
+                {scripts.length}
               </Badge>
             </CardTitle>
           </CardHeader>
           
-          <CardContent>
-            <div className="space-y-4 mb-4">
+          <CardContent className="px-0 pb-0">
+            <div className="space-y-3 mb-3">
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Custom Requirements (Optional)
+                <label className="text-xs font-medium mb-1.5 block">
+                  Custom Requirements
                 </label>
                 <Textarea
-                  placeholder="e.g., Make it more professional, include specific benefits, change tone to casual..."
+                  placeholder="e.g., More professional tone, include benefits..."
                   value={customRequirements}
                   onChange={(e) => setCustomRequirements(e.target.value)}
-                  className="min-h-[60px]"
+                  className="min-h-[50px] text-xs"
                 />
               </div>
             </div>
 
             <Tabs defaultValue="call" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="call">Call Script</TabsTrigger>
-                <TabsTrigger value="sms">SMS Script</TabsTrigger>
-                <TabsTrigger value="followup">Follow-up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 h-8">
+                <TabsTrigger value="call" className="text-xs px-2">Call</TabsTrigger>
+                <TabsTrigger value="sms" className="text-xs px-2">SMS</TabsTrigger>
+                <TabsTrigger value="followup" className="text-xs px-2">Follow-up</TabsTrigger>
               </TabsList>
               
               {scripts.map((script) => (
-                <TabsContent key={script.type} value={script.type} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
+                <TabsContent key={script.type} value={script.type} className="space-y-2 mt-2">
+                  <div className="flex items-start justify-between gap-2 flex-wrap">
+                    <div className="flex gap-1 flex-wrap">
                       {(() => {
                         const stats = getScriptStats(script.content);
                         return (
                           <>
-                            <Badge variant="secondary" className="text-xs">
-                              {stats.words} words
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                              {stats.words}w
                             </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {stats.readingTime}min read
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                              {stats.readingTime}m
                             </Badge>
                           </>
                         );
                       })()}
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 flex-wrap">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => copyToClipboard(script.content)}
+                        className="h-7 px-2 text-xs"
                       >
-                        <Copy className="h-3 w-3 mr-1" />
+                        <Copy className="h-2.5 w-2.5 mr-1" />
                         Copy
                       </Button>
                       <Button
@@ -161,15 +162,16 @@ export const ScriptPanel: React.FC<ScriptPanelProps> = ({
                         variant="default"
                         onClick={() => handleRegenerate(script.type)}
                         disabled={isLoading}
+                        className="h-7 px-2 text-xs"
                       >
-                        <Wand2 className="h-3 w-3 mr-1" />
-                        {isLoading ? 'Generating...' : 'Regenerate'}
+                        <Wand2 className="h-2.5 w-2.5 mr-1" />
+                        {isLoading ? 'Gen...' : 'Regen'}
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="bg-muted rounded-md p-3">
-                    <p className="text-sm whitespace-pre-wrap">{script.content}</p>
+                  <div className="bg-muted rounded-md p-2.5 max-h-32 overflow-y-auto">
+                    <p className="text-xs whitespace-pre-wrap leading-relaxed">{script.content}</p>
                   </div>
                 </TabsContent>
               ))}
