@@ -168,7 +168,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
   }, {} as Record<string, any[]>);
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 p-4">
+    <div className="w-full max-w-7xl mx-auto space-y-8 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -211,23 +211,11 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                 return (
                   <Card key={template.id} className="group overflow-hidden hover:shadow-md transition-shadow bg-card min-w-[280px] flex-shrink-0">
                     <CardContent className="p-0">
-                      {/* Ad Mockup */}
-                      <div className="p-3 bg-muted/20">
-                        {adVariant ? (
-                          <FacebookAdMockup 
-                            adContent={adVariant.ad_content} 
-                            className="mx-auto scale-90"
-                          />
-                        ) : (
-                          <div className="bg-gradient-to-br from-primary/10 to-primary/20 h-40 rounded-lg flex items-center justify-center border border-primary/10">
-                            <div className="text-center">
-                              <div className="p-2 bg-primary/10 rounded-full w-fit mx-auto mb-1">
-                                <Target className="h-5 w-5 text-primary" />
-                              </div>
-                              <p className="text-xs font-medium text-muted-foreground">Ad Preview Coming Soon</p>
-                            </div>
-                          </div>
-                        )}
+                      {/* Ad Preview */}
+                      <div className="h-48 bg-gradient-to-br from-primary/5 to-primary/15 rounded-t-lg flex items-center justify-center">
+                        <div className="w-32 h-24 bg-gradient-to-br from-primary/20 to-primary/30 rounded-lg border border-primary/20 flex items-center justify-center">
+                          <Target className="h-8 w-8 text-primary/60" />
+                        </div>
                       </div>
 
                       {/* Campaign Details */}
