@@ -168,118 +168,116 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
   }, {} as Record<string, any[]>);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 p-6">
+    <div className="w-full max-w-6xl mx-auto space-y-6 p-4">
       {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Target className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Facebook Ad Campaigns</h1>
-              <p className="text-muted-foreground">
-                Choose from our proven campaign templates with ready-to-use ad creatives and scripts
-              </p>
-            </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Target className="h-5 w-5 text-primary" />
           </div>
-          <Button variant="outline" onClick={onBack} size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Methods
-          </Button>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Facebook Ad Campaigns</h1>
+            <p className="text-sm text-muted-foreground">
+              Choose from proven templates with ready-to-use creatives and scripts
+            </p>
+          </div>
         </div>
+        <Button variant="outline" onClick={onBack} size="sm">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Methods
+        </Button>
       </div>
 
       {/* Campaign Templates by Audience */}
-      <div className="space-y-10">
+      <div className="space-y-6">
         {Object.entries(templatesByAudience).map(([audienceName, templates]) => (
-          <div key={audienceName} className="space-y-6">
-            <div className="flex items-center gap-3 pb-2 border-b border-border">
-              <div className="p-1.5 bg-primary/10 rounded-md">
+          <div key={audienceName} className="space-y-4">
+            <div className="flex items-center gap-2 pb-1 border-b border-border">
+              <div className="p-1 bg-primary/10 rounded">
                 <Users className="h-4 w-4 text-primary" />
               </div>
-              <h2 className="text-xl font-semibold tracking-tight">{audienceName}</h2>
-              <Badge variant="secondary" className="ml-auto">
+              <h2 className="text-lg font-semibold">{audienceName}</h2>
+              <Badge variant="secondary" className="ml-auto text-xs">
                 {(templates as any[]).length} campaign{(templates as any[]).length !== 1 ? 's' : ''}
               </Badge>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
               {(templates as any[]).map((template) => {
                 const adVariant = getAdVariantForTemplate(template.id);
                 const audienceInfo = getTargetAudienceInfo(template);
                 const scripts = getScriptsForTemplate(template);
                 
                 return (
-                  <Card key={template.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card">
+                  <Card key={template.id} className="group overflow-hidden hover:shadow-md transition-shadow bg-card">
                     <CardContent className="p-0">
                       {/* Ad Mockup */}
-                      <div className="p-6 bg-muted/30">
+                      <div className="p-3 bg-muted/20">
                         {adVariant ? (
                           <FacebookAdMockup 
                             adContent={adVariant.ad_content} 
-                            className="mx-auto transform transition-transform duration-300 group-hover:scale-105"
+                            className="mx-auto scale-90"
                           />
                         ) : (
-                          <div className="bg-gradient-to-br from-primary/10 to-primary/20 h-48 rounded-xl flex items-center justify-center border border-primary/10">
-                            <div className="text-center space-y-2">
-                              <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto">
-                                <Target className="h-6 w-6 text-primary" />
+                          <div className="bg-gradient-to-br from-primary/10 to-primary/20 h-40 rounded-lg flex items-center justify-center border border-primary/10">
+                            <div className="text-center">
+                              <div className="p-2 bg-primary/10 rounded-full w-fit mx-auto mb-1">
+                                <Target className="h-5 w-5 text-primary" />
                               </div>
-                              <p className="text-sm font-medium text-muted-foreground">Ad Preview Coming Soon</p>
+                              <p className="text-xs font-medium text-muted-foreground">Ad Preview Coming Soon</p>
                             </div>
                           </div>
                         )}
                       </div>
 
                       {/* Campaign Details */}
-                      <div className="p-6 space-y-5">
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-lg tracking-tight">{template.name}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{template.description}</p>
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-base mb-1">{template.name}</h3>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
                         </div>
 
                         {/* Budget Range */}
-                        <div className="bg-primary/5 border border-primary/10 p-4 rounded-xl">
-                          <div className="text-sm font-medium text-muted-foreground mb-1">Recommended Budget</div>
-                          <div className="text-xl font-bold text-primary">
+                        <div className="bg-primary/5 border border-primary/10 p-3 rounded-lg">
+                          <div className="text-xs font-medium text-muted-foreground mb-1">Recommended Budget</div>
+                          <div className="text-lg font-bold text-primary">
                             ${audienceInfo.budgetRange.recommended}/month
                           </div>
-                          <div className="text-xs text-muted-foreground mt-1">
+                          <div className="text-xs text-muted-foreground">
                             Range: ${audienceInfo.budgetRange.min} - ${audienceInfo.budgetRange.max}
                           </div>
                         </div>
 
                         {/* Scripts Preview */}
-                        <div className="space-y-3">
-                          <div className="text-sm font-medium text-foreground">Included Scripts</div>
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-foreground">Included Scripts</div>
                           <Tabs defaultValue="calling" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3 bg-muted/50">
-                              <TabsTrigger value="calling" className="text-xs font-medium">
-                                <Phone className="h-3 w-3 mr-1.5" />
+                            <TabsList className="grid w-full grid-cols-3 bg-muted/50 h-8">
+                              <TabsTrigger value="calling" className="text-xs">
+                                <Phone className="h-3 w-3 mr-1" />
                                 Call
                               </TabsTrigger>
-                              <TabsTrigger value="texting" className="text-xs font-medium">
-                                <MessageSquare className="h-3 w-3 mr-1.5" />
+                              <TabsTrigger value="texting" className="text-xs">
+                                <MessageSquare className="h-3 w-3 mr-1" />
                                 Text
                               </TabsTrigger>
-                              <TabsTrigger value="reminder" className="text-xs font-medium">
-                                <Clock className="h-3 w-3 mr-1.5" />
+                              <TabsTrigger value="reminder" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
                                 Follow-up
                               </TabsTrigger>
                             </TabsList>
-                            <TabsContent value="calling" className="mt-3">
-                              <div className="bg-muted/30 border border-border p-3 rounded-lg text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                            <TabsContent value="calling" className="mt-2">
+                              <div className="bg-muted/30 p-2 rounded text-xs text-muted-foreground line-clamp-2">
                                 {scripts.calling}
                               </div>
                             </TabsContent>
-                            <TabsContent value="texting" className="mt-3">
-                              <div className="bg-muted/30 border border-border p-3 rounded-lg text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                            <TabsContent value="texting" className="mt-2">
+                              <div className="bg-muted/30 p-2 rounded text-xs text-muted-foreground line-clamp-2">
                                 {scripts.texting}
                               </div>
                             </TabsContent>
-                            <TabsContent value="reminder" className="mt-3">
-                              <div className="bg-muted/30 border border-border p-3 rounded-lg text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                            <TabsContent value="reminder" className="mt-2">
+                              <div className="bg-muted/30 p-2 rounded text-xs text-muted-foreground line-clamp-2">
                                 {scripts.reminder}
                               </div>
                             </TabsContent>
@@ -289,8 +287,8 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                         {/* Launch Button */}
                         <Button 
                           onClick={() => handleLaunchCampaign(template)}
-                          className="w-full shadow-md hover:shadow-lg transition-shadow"
-                          size="lg"
+                          className="w-full"
+                          size="sm"
                         >
                           <Zap className="h-4 w-4 mr-2" />
                           Launch Campaign
