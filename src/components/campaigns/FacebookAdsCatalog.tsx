@@ -202,14 +202,14 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
               </Badge>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex gap-6 overflow-x-auto pb-4 -mx-4 px-4">
               {(templates as any[]).map((template) => {
                 const adVariant = getAdVariantForTemplate(template.id);
                 const audienceInfo = getTargetAudienceInfo(template);
                 const scripts = getScriptsForTemplate(template);
                 
                 return (
-                  <Card key={template.id} className="group overflow-hidden hover:shadow-md transition-shadow bg-card">
+                  <Card key={template.id} className="group overflow-hidden hover:shadow-md transition-shadow bg-card min-w-[280px] flex-shrink-0">
                     <CardContent className="p-0">
                       {/* Ad Mockup */}
                       <div className="p-3 bg-muted/20">
