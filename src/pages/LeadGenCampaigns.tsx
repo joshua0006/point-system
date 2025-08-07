@@ -441,14 +441,10 @@ const LeadGenCampaigns = () => {
                       if (a.billing_status === 'active' && b.billing_status !== 'active') return -1;
                       if (a.billing_status !== 'active' && b.billing_status === 'active') return 1;
                       return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
-                    }).map(participation => {
+                    })
+                    .filter(participation => participation.lead_gen_campaigns) // Filter out entries with null campaigns
+                    .map(participation => {
               const campaign = participation.lead_gen_campaigns;
-              
-              // Skip if campaign data is missing
-              if (!campaign) {
-                return null;
-              }
-              
               const isColdCalling = campaign.name?.includes('Cold Calling') || false;
               const IconComponent = isColdCalling ? Phone : Target;
               const isActive = participation.billing_status === 'active';
