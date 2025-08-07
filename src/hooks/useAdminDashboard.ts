@@ -88,7 +88,7 @@ export function useAdminDashboard() {
           .eq('type', 'purchase')
           .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
         
-        // Recent bookings for activity
+        // Recent bookings for activity (last 14 days)
         supabase
           .from('bookings')
           .select(`
@@ -99,10 +99,11 @@ export function useAdminDashboard() {
             user_id,
             services!inner(title)
           `)
+          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         
-        // Recent services for activity
+        // Recent services for activity (last 14 days)
         supabase
           .from('services')
           .select(`
@@ -111,10 +112,11 @@ export function useAdminDashboard() {
             created_at,
             consultant_id
           `)
+          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         
-        // Recent completions
+        // Recent completions (last 14 days)
         supabase
           .from('bookings')
           .select(`
@@ -125,10 +127,11 @@ export function useAdminDashboard() {
             services!inner(title)
           `)
           .eq('status', 'completed')
+          .gte('updated_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('updated_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         
-        // Recent campaign creations
+        // Recent campaign creations (last 14 days)
         supabase
           .from('lead_gen_campaigns')
           .select(`
@@ -139,10 +142,11 @@ export function useAdminDashboard() {
             created_by,
             status
           `)
+          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         
-        // Recent campaign participations
+        // Recent campaign participations (last 14 days)
         supabase
           .from('campaign_participants')
           .select(`
@@ -152,10 +156,11 @@ export function useAdminDashboard() {
             consultant_name,
             user_id
           `)
+          .gte('joined_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('joined_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         
-        // Recent points transactions (all types)
+        // Recent points transactions (all types, last 14 days)
         supabase
           .from('points_transactions')
           .select(`
@@ -167,10 +172,11 @@ export function useAdminDashboard() {
             user_id,
             booking_id
           `)
+          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(10),
+          .limit(30),
         
-        // Recent monthly billing transactions
+        // Recent monthly billing transactions (last 14 days)
         supabase
           .from('monthly_billing_transactions')
           .select(`
@@ -181,8 +187,9 @@ export function useAdminDashboard() {
             campaign_id,
             created_at
           `)
+          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(5),
+          .limit(20),
       ]);
 
       // Process stats
