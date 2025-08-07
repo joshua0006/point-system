@@ -48,15 +48,7 @@ export type Database = {
           updated_at?: string
           variant_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ad_variants_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "campaign_templates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ai_conversations: {
         Row: {
@@ -107,15 +99,7 @@ export type Database = {
           id?: string
           role?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ai_messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "ai_conversations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       bookings: {
         Row: {
@@ -162,17 +146,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_bookings_consultant"
+            foreignKeyName: "fk_bookings_consultant_id"
             columns: ["consultant_id"]
             isOneToOne: false
             referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bookings_service_id"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]
@@ -259,29 +243,7 @@ export type Database = {
           leads_generated?: number | null
           template_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "campaign_analytics_ad_variant_id_fkey"
-            columns: ["ad_variant_id"]
-            isOneToOne: false
-            referencedRelation: "ad_variants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_analytics_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "lead_gen_campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_analytics_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "campaign_templates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       campaign_invitations: {
         Row: {
@@ -386,15 +348,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "campaign_participants_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "lead_gen_campaigns"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       campaign_templates: {
         Row: {
@@ -540,7 +494,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "conversations_service_id_fkey"
+            foreignKeyName: "fk_conversations_service_id"
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
@@ -720,15 +674,7 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "memories_couple_id_fkey"
-            columns: ["couple_id"]
-            isOneToOne: false
-            referencedRelation: "couples"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       memory_album_items: {
         Row: {
@@ -749,22 +695,7 @@ export type Database = {
           id?: string
           memory_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "memory_album_items_album_id_fkey"
-            columns: ["album_id"]
-            isOneToOne: false
-            referencedRelation: "memory_albums"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "memory_album_items_memory_id_fkey"
-            columns: ["memory_id"]
-            isOneToOne: false
-            referencedRelation: "memories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       memory_albums: {
         Row: {
@@ -826,14 +757,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_messages_sender_profile"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
+            foreignKeyName: "fk_messages_conversation_id"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
@@ -875,15 +799,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "monthly_billing_transactions_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "campaign_participants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       payment_methods: {
         Row: {
@@ -957,7 +873,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "points_transactions_booking_id_fkey"
+            foreignKeyName: "fk_points_transactions_booking_id"
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
@@ -1020,15 +936,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_couple_id_fkey"
-            columns: ["couple_id"]
-            isOneToOne: false
-            referencedRelation: "couples"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reviews: {
         Row: {
@@ -1063,7 +971,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reviews_booking_id_fkey"
+            foreignKeyName: "fk_reviews_booking_id"
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
@@ -1113,14 +1021,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "services_category_id_fkey"
+            foreignKeyName: "fk_services_category_id"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "services_consultant_id_fkey"
+            foreignKeyName: "fk_services_consultant_id"
             columns: ["consultant_id"]
             isOneToOne: false
             referencedRelation: "consultants"
@@ -1327,15 +1235,7 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "wishlist_items_couple_id_fkey"
-            columns: ["couple_id"]
-            isOneToOne: false
-            referencedRelation: "couples"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
