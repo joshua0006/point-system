@@ -330,7 +330,7 @@ export function useAdminDashboard() {
         activities.push({
           id: `campaign-joined-${participation.id}`,
           type: 'campaign_joined',
-          description: `${userName} joined campaign with $${participation.budget_contribution} contribution`,
+          description: `🎯 ${userName} signed up for Facebook ads campaign with $${participation.budget_contribution} contribution`,
           points: participation.budget_contribution,
           timestamp: formatTimestamp(participation.joined_at),
         });
@@ -354,10 +354,10 @@ export function useAdminDashboard() {
               description = `${userName} purchased service for ${Math.abs(transaction.amount)} points`;
             } else if (isCampaignRelated) {
               activityType = 'campaign_purchase';
-              description = `${userName} invested ${Math.abs(transaction.amount)} points in campaign${transaction.description ? ` (${transaction.description})` : ''}`;
+              description = `${userName} invested ${Math.abs(transaction.amount)} points in Facebook ad campaign${transaction.description ? ` (${transaction.description})` : ''}`;
             } else {
               activityType = 'wallet_topup';
-              description = `${userName} topped up ${Math.abs(transaction.amount)} points${transaction.description ? ` via ${transaction.description}` : ''}`;
+              description = `💰 ${userName} topped up ${Math.abs(transaction.amount)} points${transaction.description ? ` via ${transaction.description}` : ''}`;
             }
             break;
           case 'refund':

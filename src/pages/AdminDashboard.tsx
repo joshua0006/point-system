@@ -185,6 +185,9 @@ export default function AdminDashboard() {
                           activity.type === 'booking' ? 'bg-primary' :
                           activity.type === 'service' ? 'bg-success' :
                           activity.type === 'completion' ? 'bg-accent' : 
+                          activity.type === 'campaign_joined' ? 'bg-blue-500' :
+                          activity.type === 'wallet_topup' ? 'bg-green-500' :
+                          activity.type === 'campaign_purchase' ? 'bg-orange-500' :
                           activity.type === 'campaign' ? 'bg-warning' : 'bg-muted-foreground'
                         }`} />
                         <div className="flex-1 min-w-0">
