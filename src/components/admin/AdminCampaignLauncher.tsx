@@ -28,13 +28,15 @@ interface UserProfile {
   approval_status: 'pending' | 'approved' | 'rejected';
 }
 
-interface CampaignTemplate {
+interface LeadGenCampaign {
   id: string;
   name: string;
   description: string;
-  target_audience: string;
-  campaign_angle: string;
-  template_config: any;
+  status: string;
+  total_budget: number;
+  start_date: string;
+  end_date: string;
+  created_by: string;
 }
 
 interface AdminCampaignParticipant {
@@ -57,11 +59,11 @@ interface AdminCampaignParticipant {
 export function AdminCampaignLauncher() {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [templates, setTemplates] = useState<CampaignTemplate[]>([]);
+  const [campaigns, setCampaigns] = useState<LeadGenCampaign[]>([]);
   const [activeParticipants, setActiveParticipants] = useState<AdminCampaignParticipant[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [selectedCampaign, setSelectedCampaign] = useState<string>("");
   const [campaignBudget, setCampaignBudget] = useState("");
   const [campaignDuration, setCampaignDuration] = useState("30");
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
@@ -70,7 +72,7 @@ export function AdminCampaignLauncher() {
 
   useEffect(() => {
     fetchUsers();
-    fetchTemplates();
+    fetchCampaigns();
     fetchActiveParticipants();
   }, []);
 
@@ -95,21 +97,20 @@ export function AdminCampaignLauncher() {
     }
   };
 
-  const fetchTemplates = async () => {
+  const fetchCampaigns = async () => {
     try {
       const { data, error } = await supabase
-        .from('campaign_templates')
+        .from('lead_gen_campaigns')
         .select('*')
-        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
-      setTemplates(data || []);
+      setCampaigns(data || []);
     } catch (error) {
-      console.error('Error fetching templates:', error);
+      console.error('Error fetching campaigns:', error);
       toast({
         title: "Error",
-        description: "Failed to load campaign templates",
+        description: "Failed to load campaigns",
         variant: "destructive",
       });
     }
@@ -160,13 +161,13 @@ export function AdminCampaignLauncher() {
     (user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
+  const selectedCampaignData = campaigns.find(c => c.id === selectedCampaign);
 
   const handleLaunchCampaign = () => {
-    if (!selectedUser || !selectedTemplate || !campaignBudget) {
+    if (!selectedUser || !selectedCampaign || !campaignBudget) {
       toast({
         title: "Missing Information",
-        description: "Please select a user, template, and budget",
+        description: "Please select a user, campaign, and budget",
         variant: "destructive",
       });
       return;
@@ -186,7 +187,7 @@ export function AdminCampaignLauncher() {
   };
 
   const confirmLaunch = async () => {
-    if (!selectedUser || !selectedTemplate) return;
+    if (!selectedUser || !selectedCampaign) return;
 
     setLoading(true);
     try {
@@ -194,7 +195,7 @@ export function AdminCampaignLauncher() {
         body: {
           action: 'launch_campaign',
           userId: selectedUser.user_id,
-          templateId: selectedTemplate,
+          campaignId: selectedCampaign,
           budget: parseInt(campaignBudget),
           duration: parseInt(campaignDuration)
         }
@@ -209,7 +210,7 @@ export function AdminCampaignLauncher() {
 
       // Reset form
       setSelectedUser(null);
-      setSelectedTemplate("");
+      setSelectedCampaign("");
       setCampaignBudget("");
       setCampaignDuration("30");
       setShowLaunchDialog(false);
@@ -481,32 +482,33 @@ export function AdminCampaignLauncher() {
             {/* Campaign Configuration */}
             <div className="space-y-4">
               <div>
-                <Label>Campaign Template</Label>
-                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <Label>Campaign</Label>
+                <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select campaign template" />
+                    <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
                   <SelectContent>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name} - {template.target_audience}
+                    {campaigns.map((campaign) => (
+                      <SelectItem key={campaign.id} value={campaign.id}>
+                        {campaign.name} - {campaign.status}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {selectedTemplateData && (
+              {selectedCampaignData && (
                 <div className="bg-muted/50 p-3 rounded-lg">
-                  <div className="font-medium">{selectedTemplateData.name}</div>
+                  <div className="font-medium">{selectedCampaignData.name}</div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {selectedTemplateData.description}
+                    {selectedCampaignData.description}
                   </div>
-                  {selectedTemplateData.template_config?.budgetRange && (
-                    <div className="text-sm mt-2">
-                      <strong>Recommended Budget:</strong> {selectedTemplateData.template_config.budgetRange.min} - {selectedTemplateData.template_config.budgetRange.max} points
-                    </div>
-                  )}
+                  <div className="text-sm mt-2">
+                    <strong>Total Budget:</strong> {selectedCampaignData.total_budget} points
+                  </div>
+                  <div className="text-sm">
+                    <strong>Status:</strong> {selectedCampaignData.status}
+                  </div>
                 </div>
               )}
 
@@ -551,7 +553,7 @@ export function AdminCampaignLauncher() {
             </Button>
             <Button 
               onClick={handleLaunchCampaign}
-              disabled={!selectedUser || !selectedTemplate || !campaignBudget}
+              disabled={!selectedUser || !selectedCampaign || !campaignBudget}
             >
               Launch Campaign
             </Button>
@@ -572,7 +574,7 @@ export function AdminCampaignLauncher() {
                 <p>You are about to launch a campaign with the following details:</p>
                 <div className="bg-muted p-3 rounded-lg space-y-2">
                   <div><strong>User:</strong> {selectedUser?.full_name || selectedUser?.email}</div>
-                  <div><strong>Template:</strong> {selectedTemplateData?.name}</div>
+                  <div><strong>Campaign:</strong> {selectedCampaignData?.name}</div>
                   <div><strong>Budget:</strong> {campaignBudget} points</div>
                   <div><strong>Duration:</strong> {campaignDuration} days</div>
                 </div>
