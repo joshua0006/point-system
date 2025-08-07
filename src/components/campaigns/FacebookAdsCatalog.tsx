@@ -6,10 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { ArrowLeft, Target, Zap, Phone, MessageSquare, Clock, Users, Mail, Rocket } from "lucide-react";
-import { FacebookAdMockup } from "./FacebookAdMockup";
-import { ScriptPanel } from "./ScriptPanel";
+import { ArrowLeft, Target, Zap, Users } from "lucide-react";
+import { CampaignCard } from "./CampaignCard";
+import { ScriptDrawer } from "./ScriptDrawer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,10 +25,12 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
   const { toast } = useToast();
   
   const [campaignTemplates, setCampaignTemplates] = useState<any[]>([]);
-  const [adVariants, setAdVariants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showLaunchModal, setShowLaunchModal] = useState(false);
+  const [showScriptDrawer, setShowScriptDrawer] = useState(false);
+  const [scriptDrawerData, setScriptDrawerData] = useState<any>(null);
+  const [activeAudience, setActiveAudience] = useState<string>("all");
   const [campaignData, setCampaignData] = useState({
     budget: 0,
     consultantName: profile?.full_name || ''
@@ -52,7 +53,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
     try {
       setLoading(true);
 
-      // Load campaign templates with ad variants
+      // Load campaign templates
       const { data: templates, error: templatesError } = await supabase
         .from('campaign_templates')
         .select('*')
@@ -61,16 +62,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
 
       if (templatesError) throw templatesError;
 
-      // Load ad variants
-      const { data: variants, error: variantsError } = await supabase
-        .from('ad_variants')
-        .select('*')
-        .eq('is_active', true);
-
-      if (variantsError) throw variantsError;
-
       setCampaignTemplates(templates || []);
-      setAdVariants(variants || []);
     } catch (error) {
       console.error('Error loading campaigns data:', error);
       toast({
@@ -81,10 +73,6 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
     } finally {
       setLoading(false);
     }
-  };
-
-  const getAdVariantForTemplate = (templateId: string) => {
-    return adVariants.find(variant => variant.template_id === templateId);
   };
 
   const getTargetAudienceInfo = (template: any) => {
@@ -104,6 +92,22 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
       texting: "SMS follow-up script will be provided", 
       reminder: "Reminder sequence will be provided"
     };
+  };
+
+  const handleViewScripts = (template: any) => {
+    const audienceInfo = getTargetAudienceInfo(template);
+    const scripts = getScriptsForTemplate(template);
+    
+    setScriptDrawerData({
+      template,
+      audienceInfo,
+      scripts: [
+        { type: 'call', content: scripts.calling || 'Professional calling script for lead generation targeting ' + audienceInfo.name },
+        { type: 'sms', content: scripts.texting || 'SMS follow-up script for ' + audienceInfo.name + ' prospects' },
+        { type: 'followup', content: scripts.reminder || 'Follow-up email sequence for ' + audienceInfo.name }
+      ]
+    });
+    setShowScriptDrawer(true);
   };
 
   const handleLaunchCampaign = (template: any) => {
@@ -169,128 +173,90 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
     return groups;
   }, {} as Record<string, any[]>);
 
+  // Get all audience names for navigation
+  const audienceNames = Object.keys(templatesByAudience);
+  
+  // Filter templates based on active audience
+  const filteredTemplates = activeAudience === "all" 
+    ? campaignTemplates 
+    : templatesByAudience[activeAudience] || [];
+
   return (
-    <div className="w-full max-w-full mx-auto space-y-4 p-3">
+    <main className="mx-auto max-w-[1440px] px-6 py-4 space-y-6">
       {/* Compact Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-primary/10 rounded">
-            <Target className="h-4 w-4 text-primary" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl">
+            <Target className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold">Facebook Ad Campaigns</h1>
-            <p className="text-xs text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Facebook Ad Campaigns</h1>
+            <p className="text-sm text-muted-foreground">
               Proven templates with ready-to-use creatives and scripts
             </p>
           </div>
         </div>
         <Button variant="outline" onClick={onBack} size="sm">
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Methods
         </Button>
       </div>
 
-      {/* Dense Grid Layout */}
-      <div className="space-y-3">
-        {Object.entries(templatesByAudience).map(([audienceName, templates]) => (
-          <div key={audienceName} className="space-y-2">
-            {/* Compact Section Header */}
-            <div className="flex items-center gap-2 py-1 border-b border-border/50">
-              <div className="p-1 bg-primary/10 rounded">
-                <Users className="h-3 w-3 text-primary" />
-              </div>
-              <h2 className="text-base font-semibold">{audienceName}</h2>
-              <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
-                {(templates as any[]).length}
-              </Badge>
-            </div>
-            
-            {/* Dense Grid of Campaign Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-              {(templates as any[]).map((template) => {
-                const audienceInfo = getTargetAudienceInfo(template);
-                const scripts = getScriptsForTemplate(template);
-                
-                return (
-                  <Card key={template.id} className="group hover:shadow-md transition-all duration-200 bg-card">
-                    <CardContent className="p-4">
-                      {/* Compact Campaign Info */}
-                      <div className="space-y-3">
-                        <div className="text-center">
-                          <Target className="h-6 w-6 mx-auto mb-2 text-primary" />
-                          <h3 className="font-bold text-base mb-1 leading-tight">{template.name}</h3>
-                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                            {template.description}
-                          </p>
-                        </div>
-
-                        {/* Budget & Actions Row */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground font-medium">Budget:</span>
-                            <span className="font-bold text-primary">
-                              ${audienceInfo.budgetRange.min}-${audienceInfo.budgetRange.max}
-                            </span>
-                          </div>
-
-                          {/* Method Badges */}
-                          <div className="flex flex-wrap gap-1 justify-center">
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
-                              <Phone className="h-2.5 w-2.5 mr-1" />
-                              Call
-                            </Badge>
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
-                              <MessageSquare className="h-2.5 w-2.5 mr-1" />
-                              SMS
-                            </Badge>
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
-                              <Mail className="h-2.5 w-2.5 mr-1" />
-                              Email
-                            </Badge>
-                          </div>
-
-                          <Button 
-                            onClick={() => handleLaunchCampaign(template)}
-                            className="w-full text-xs h-8"
-                            variant="default"
-                            size="sm"
-                          >
-                            <Rocket className="h-3 w-3 mr-1" />
-                            Launch Campaign
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      {/* Sticky Audience Navigation */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 -mx-6 px-6 border-b border-border">
+        <Tabs value={activeAudience} onValueChange={setActiveAudience} className="w-full">
+          <TabsList className="grid w-full grid-cols-1 sm:flex sm:w-auto h-auto p-1">
+            <TabsTrigger value="all" className="text-xs sm:text-sm px-4 py-2">
+              All Campaigns ({campaignTemplates.length})
+            </TabsTrigger>
+            {audienceNames.map((audienceName) => (
+              <TabsTrigger 
+                key={audienceName} 
+                value={audienceName}
+                className="text-xs sm:text-sm px-4 py-2"
+              >
+                {audienceName} ({templatesByAudience[audienceName].length})
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
 
-      {/* Global Scripts Panel - Outside of cards */}
-      {selectedTemplate && (
-        <Card className="mt-4 border-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Campaign Scripts Preview - {selectedTemplate.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ScriptPanel
-              scripts={[
-                { type: 'call', content: getScriptsForTemplate(selectedTemplate).calling || 'Professional calling script for lead generation targeting ' + getTargetAudienceInfo(selectedTemplate).name },
-                { type: 'sms', content: getScriptsForTemplate(selectedTemplate).texting || 'SMS follow-up script for ' + getTargetAudienceInfo(selectedTemplate).name + ' prospects' },
-                { type: 'followup', content: getScriptsForTemplate(selectedTemplate).reminder || 'Follow-up email sequence for ' + getTargetAudienceInfo(selectedTemplate).name }
-              ]}
-              templateId={selectedTemplate.id}
-              targetAudience={selectedTemplate.target_audience}
-              campaignAngle={selectedTemplate.campaign_angle}
+      {/* Responsive Grid Container */}
+      <section className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {filteredTemplates.map((template) => {
+          const audienceInfo = getTargetAudienceInfo(template);
+          
+          return (
+            <CampaignCard
+              key={template.id}
+              title={template.name}
+              description={template.description}
+              audience={audienceInfo.name}
+              budgetRange={audienceInfo.budgetRange}
+              onLaunch={() => handleLaunchCampaign(template)}
+              onViewScripts={() => handleViewScripts(template)}
+              metrics={{
+                leads: Math.floor(Math.random() * 100) + 50,
+                cpl: Math.floor(Math.random() * 50) + 15,
+                conversionRate: Math.floor(Math.random() * 20) + 5
+              }}
             />
-          </CardContent>
-        </Card>
+          );
+        })}
+      </section>
+
+      {/* Script Drawer */}
+      {scriptDrawerData && (
+        <ScriptDrawer
+          isOpen={showScriptDrawer}
+          onClose={() => setShowScriptDrawer(false)}
+          campaignTitle={scriptDrawerData.template.name}
+          targetAudience={scriptDrawerData.audienceInfo.name}
+          scripts={scriptDrawerData.scripts}
+          templateId={scriptDrawerData.template.id}
+          campaignAngle={scriptDrawerData.template.campaign_angle}
+        />
       )}
 
       {/* Launch Modal */}
@@ -349,6 +315,6 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   );
 };
