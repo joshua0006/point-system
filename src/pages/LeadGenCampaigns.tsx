@@ -443,7 +443,13 @@ const LeadGenCampaigns = () => {
                       return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
                     }).map(participation => {
               const campaign = participation.lead_gen_campaigns;
-              const isColdCalling = campaign.name.includes('Cold Calling');
+              
+              // Skip if campaign data is missing
+              if (!campaign) {
+                return null;
+              }
+              
+              const isColdCalling = campaign.name?.includes('Cold Calling') || false;
               const IconComponent = isColdCalling ? Phone : Target;
               const isActive = participation.billing_status === 'active';
               const isStopped = participation.billing_status === 'stopped';
@@ -541,7 +547,7 @@ const LeadGenCampaigns = () => {
                           </div>
                         </CardContent>
                       </Card>;
-            })}
+            }).filter(Boolean)}
                 </div>}
             </div>}
 
