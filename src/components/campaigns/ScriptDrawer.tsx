@@ -114,101 +114,129 @@ export const ScriptDrawer = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[90vw] overflow-y-auto">
-        <SheetHeader className="space-y-3 pb-6 border-b border-border">
+      <SheetContent className="w-full sm:w-[500px] sm:max-w-[85vw] overflow-y-auto">
+        <SheetHeader className="space-y-3 pb-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <MessageSquare className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <SheetTitle className="text-xl font-bold text-left">Campaign Scripts</SheetTitle>
-              <SheetDescription className="text-left">
+              <SheetTitle className="text-lg font-bold text-left">Suggested Scripts</SheetTitle>
+              <SheetDescription className="text-left text-sm">
                 {campaignTitle}
               </SheetDescription>
             </div>
           </div>
-          <Badge variant="secondary" className="w-fit">
+          <Badge variant="secondary" className="w-fit text-xs">
             Target: {targetAudience}
           </Badge>
         </SheetHeader>
 
-        <div className="mt-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              {Object.entries(scriptConfig).map(([type, config]) => {
-                const Icon = config.icon;
-                return (
-                  <TabsTrigger 
-                    key={type} 
-                    value={type}
-                    className="flex items-center gap-2 text-xs sm:text-sm"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{config.label}</span>
-                    <span className="sm:hidden">{type.toUpperCase()}</span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+        <div className="mt-4 space-y-3">
+          {Object.entries(scriptConfig).map(([type, config]) => {
+            const Icon = config.icon;
+            const script = getCurrentScript(type);
+            const isRegeneratingThis = isLoading;
+            const scriptPreview = script.length > 100 ? script.substring(0, 100) + "..." : script;
 
-            {Object.entries(scriptConfig).map(([type, config]) => {
-              const Icon = config.icon;
-              const script = getCurrentScript(type);
-              const isRegeneratingThis = isLoading;
-              const hasCopied = copiedScript === type;
-
-              return (
-                <TabsContent key={type} value={type} className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <div>
-                        <h3 className="font-semibold text-foreground">{config.label}</h3>
-                        <p className="text-sm text-muted-foreground">{config.description}</p>
-                      </div>
+            return (
+              <div key={type} className="group">
+                <div className="p-4 border border-border rounded-xl hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                      <Icon className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleCopyScript(type)}
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                      >
-                        {hasCopied ? (
-                          <Check className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                      </Button>
-                      <Button
-                        onClick={() => handleRegenerateScript(type)}
-                        variant="outline"
-                        size="sm"
-                        disabled={isRegeneratingThis}
-                        className="h-8"
-                      >
-                        <RefreshCw className={`h-3 w-3 ${isRegeneratingThis ? 'animate-spin' : ''}`} />
-                      </Button>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-foreground">{config.label}</h4>
+                        <div className="flex gap-1">
+                          <Button
+                            onClick={() => handleCopyScript(type)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            {copiedScript === type ? (
+                              <Check className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => handleRegenerateScript(type)}
+                            variant="ghost"
+                            size="sm"
+                            disabled={isRegeneratingThis}
+                            className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <RefreshCw className={`h-3 w-3 ${isRegeneratingThis ? 'animate-spin' : ''}`} />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground mb-3">{config.description}</p>
+                      
+                      <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
+                        <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+                          {scriptPreview}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mt-3">
+                        <Badge variant="outline" className="text-xs px-2 py-1">
+                          {type === 'call' ? 'Phone Script' : type === 'sms' ? 'Text Message' : 'Email Sequence'}
+                        </Badge>
+                        
+                        <Button
+                          onClick={() => {
+                            // Expand to show full script
+                            setActiveTab(type);
+                          }}
+                          variant="link"
+                          size="sm"
+                          className="text-xs h-auto p-0 text-primary hover:text-primary/80"
+                        >
+                          View Full Script →
+                        </Button>
+                      </div>
+
+                      {regeneratedScripts[type] && (
+                        <div className="mt-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/20 p-2 rounded border border-green-200 dark:border-green-800">
+                          ✓ Script updated successfully
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  <Textarea
-                    value={script}
-                    readOnly
-                    className="min-h-[300px] resize-none bg-muted/30 border-border text-sm leading-relaxed"
-                    placeholder={config.placeholder}
-                  />
-
-                  {regeneratedScripts[type] && (
-                    <div className="text-xs text-muted-foreground bg-green-50 dark:bg-green-950/20 p-2 rounded border border-green-200 dark:border-green-800">
-                      ✓ Script regenerated successfully
-                    </div>
-                  )}
-                </TabsContent>
-              );
-            })}
-          </Tabs>
+                </div>
+              </div>
+            );
+          })}
         </div>
+
+        {/* Full Script Modal - Triggered by "View Full Script" */}
+        {activeTab && (
+          <div className="mt-6 p-4 border-t border-border">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-sm">
+                Full {scriptConfig[activeTab as keyof typeof scriptConfig]?.label}
+              </h4>
+              <Button
+                onClick={() => setActiveTab("")}
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="bg-muted/30 p-4 rounded-lg border border-border max-h-60 overflow-y-auto">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {getCurrentScript(activeTab)}
+              </p>
+            </div>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );
