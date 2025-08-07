@@ -170,199 +170,128 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
   }, {} as Record<string, any[]>);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Target className="h-5 w-5 text-primary" />
+    <div className="w-full max-w-full mx-auto space-y-4 p-3">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-primary/10 rounded">
+            <Target className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Facebook Ad Campaigns</h1>
-            <p className="text-sm text-muted-foreground">
-              Choose from proven templates with ready-to-use creatives and scripts
+            <h1 className="text-lg font-bold">Facebook Ad Campaigns</h1>
+            <p className="text-xs text-muted-foreground">
+              Proven templates with ready-to-use creatives and scripts
             </p>
           </div>
         </div>
         <Button variant="outline" onClick={onBack} size="sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Methods
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back
         </Button>
       </div>
 
-      {/* Campaign Templates by Audience */}
-      <div className="space-y-6">
+      {/* Dense Grid Layout */}
+      <div className="space-y-3">
         {Object.entries(templatesByAudience).map(([audienceName, templates]) => (
-          <div key={audienceName} className="space-y-4">
-            <div className="flex items-center gap-2 pb-1 border-b border-border">
+          <div key={audienceName} className="space-y-2">
+            {/* Compact Section Header */}
+            <div className="flex items-center gap-2 py-1 border-b border-border/50">
               <div className="p-1 bg-primary/10 rounded">
-                <Users className="h-4 w-4 text-primary" />
+                <Users className="h-3 w-3 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold">{audienceName}</h2>
-              <Badge variant="secondary" className="ml-auto text-xs">
-                {(templates as any[]).length} campaign{(templates as any[]).length !== 1 ? 's' : ''}
+              <h2 className="text-base font-semibold">{audienceName}</h2>
+              <Badge variant="secondary" className="ml-auto text-xs px-2 py-0.5">
+                {(templates as any[]).length}
               </Badge>
             </div>
             
-            <Carousel 
-              className="w-full"
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-            >
-              <CarouselContent className="ml-0 space-x-4">
-                {(templates as any[]).map((template) => {
-                  const adVariant = getAdVariantForTemplate(template.id);
-                  const audienceInfo = getTargetAudienceInfo(template);
-                  const scripts = getScriptsForTemplate(template);
-                  
-                  return (
-                    <CarouselItem 
-                      key={template.id} 
-                      className="basis-full sm:basis-full md:basis-full lg:basis-3/4 xl:basis-2/3 2xl:basis-1/2"
-                    >
-                      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-card h-full">
-                        <CardContent className="p-0">
-                          {/* Mobile/Tablet: Vertical Stack */}
-                          <div className="block lg:hidden">
-                            {/* Campaign Info Section */}
-                            <div className="p-4 pb-2 space-y-3">
-                              <div className="text-center">
-                                <Target className="h-8 w-8 mx-auto mb-3 text-primary" />
-                                <h3 className="font-semibold text-lg mb-2">{template.name}</h3>
-                                <p className="text-sm text-muted-foreground line-clamp-3">
-                                  {template.description}
-                                </p>
-                              </div>
+            {/* Dense Grid of Campaign Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+              {(templates as any[]).map((template) => {
+                const audienceInfo = getTargetAudienceInfo(template);
+                const scripts = getScriptsForTemplate(template);
+                
+                return (
+                  <Card key={template.id} className="group hover:shadow-md transition-all duration-200 bg-card">
+                    <CardContent className="p-4">
+                      {/* Compact Campaign Info */}
+                      <div className="space-y-3">
+                        <div className="text-center">
+                          <Target className="h-6 w-6 mx-auto mb-2 text-primary" />
+                          <h3 className="font-bold text-base mb-1 leading-tight">{template.name}</h3>
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                            {template.description}
+                          </p>
+                        </div>
 
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between text-base">
-                                  <span className="text-muted-foreground">Budget:</span>
-                                  <span className="font-medium">
-                                    ${audienceInfo.budgetRange.min} - ${audienceInfo.budgetRange.max}
-                                  </span>
-                                </div>
-
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                  <Badge variant="outline" className="text-sm px-3 py-1.5">
-                                    <Phone className="h-3 w-3 mr-2" />
-                                    Call
-                                  </Badge>
-                                  <Badge variant="outline" className="text-sm px-3 py-1.5">
-                                    <MessageSquare className="h-3 w-3 mr-2" />
-                                    SMS
-                                  </Badge>
-                                  <Badge variant="outline" className="text-sm px-3 py-1.5">
-                                    <Mail className="h-3 w-3 mr-2" />
-                                    Follow-up
-                                  </Badge>
-                                </div>
-
-                                <Button 
-                                  onClick={() => handleLaunchCampaign(template)}
-                                  className="w-full"
-                                  variant="default"
-                                  size="lg"
-                                >
-                                  <Rocket className="h-4 w-4 mr-2" />
-                                  Launch Campaign
-                                </Button>
-                              </div>
-                            </div>
-
-                            {/* Scripts Panel - Full Width */}
-                            <div className="p-4 pt-2 border-t border-border">
-                              <ScriptPanel
-                                scripts={[
-                                  { type: 'call', content: scripts.calling || 'Professional calling script for lead generation targeting ' + audienceInfo.name },
-                                  { type: 'sms', content: scripts.texting || 'SMS follow-up script for ' + audienceInfo.name + ' prospects' },
-                                  { type: 'followup', content: scripts.reminder || 'Follow-up email sequence for ' + audienceInfo.name }
-                                ]}
-                                templateId={template.id}
-                                targetAudience={template.target_audience}
-                                campaignAngle={template.campaign_angle}
-                              />
-                            </div>
+                        {/* Budget & Actions Row */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground font-medium">Budget:</span>
+                            <span className="font-bold text-primary">
+                              ${audienceInfo.budgetRange.min}-${audienceInfo.budgetRange.max}
+                            </span>
                           </div>
 
-                          {/* Desktop: Two Column Layout */}
-                          <div className="hidden lg:block">
-                            <div className="grid grid-cols-5 h-full min-h-[400px]">
-                              {/* Left Column: Campaign Info (3/5 width) */}
-                              <div className="col-span-3 p-6 space-y-4">
-                                <div className="text-center">
-                                  <Target className="h-8 w-8 mx-auto mb-3 text-primary" />
-                                  <h3 className="font-semibold text-lg mb-2">{template.name}</h3>
-                                  <p className="text-sm text-muted-foreground line-clamp-3">
-                                    {template.description}
-                                  </p>
-                                </div>
-
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Budget:</span>
-                                    <span className="font-medium">
-                                      ${audienceInfo.budgetRange.min} - ${audienceInfo.budgetRange.max}
-                                    </span>
-                                  </div>
-
-                                  <div className="flex flex-wrap gap-1.5 justify-center">
-                                    <Badge variant="outline" className="text-xs px-2 py-1">
-                                      <Phone className="h-3 w-3 mr-1" />
-                                      Call
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs px-2 py-1">
-                                      <MessageSquare className="h-3 w-3 mr-1" />
-                                      SMS
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs px-2 py-1">
-                                      <Mail className="h-3 w-3 mr-1" />
-                                      Follow-up
-                                    </Badge>
-                                  </div>
-
-                                  <Button 
-                                    onClick={() => handleLaunchCampaign(template)}
-                                    className="w-full mt-6"
-                                    variant="default"
-                                    size="default"
-                                  >
-                                    <Rocket className="h-4 w-4 mr-2" />
-                                    Launch Campaign
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {/* Right Column: Scripts Panel (2/5 width) */}
-                              <div className="col-span-2 border-l border-border bg-muted/20">
-                                <div className="p-4 h-full">
-                                  <ScriptPanel
-                                    scripts={[
-                                      { type: 'call', content: scripts.calling || 'Professional calling script for lead generation targeting ' + audienceInfo.name },
-                                      { type: 'sms', content: scripts.texting || 'SMS follow-up script for ' + audienceInfo.name + ' prospects' },
-                                      { type: 'followup', content: scripts.reminder || 'Follow-up email sequence for ' + audienceInfo.name }
-                                    ]}
-                                    templateId={template.id}
-                                    targetAudience={template.target_audience}
-                                    campaignAngle={template.campaign_angle}
-                                  />
-                                </div>
-                              </div>
-                            </div>
+                          {/* Method Badges */}
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
+                              <Phone className="h-2.5 w-2.5 mr-1" />
+                              Call
+                            </Badge>
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
+                              <MessageSquare className="h-2.5 w-2.5 mr-1" />
+                              SMS
+                            </Badge>
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
+                              <Mail className="h-2.5 w-2.5 mr-1" />
+                              Email
+                            </Badge>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  );
-                })}
-              </CarouselContent>
-              <CarouselPrevious className="hidden sm:flex -left-12" />
-              <CarouselNext className="hidden sm:flex -right-12" />
-            </Carousel>
+
+                          <Button 
+                            onClick={() => handleLaunchCampaign(template)}
+                            className="w-full text-xs h-8"
+                            variant="default"
+                            size="sm"
+                          >
+                            <Rocket className="h-3 w-3 mr-1" />
+                            Launch Campaign
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Global Scripts Panel - Outside of cards */}
+      {selectedTemplate && (
+        <Card className="mt-4 border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Campaign Scripts Preview - {selectedTemplate.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ScriptPanel
+              scripts={[
+                { type: 'call', content: getScriptsForTemplate(selectedTemplate).calling || 'Professional calling script for lead generation targeting ' + getTargetAudienceInfo(selectedTemplate).name },
+                { type: 'sms', content: getScriptsForTemplate(selectedTemplate).texting || 'SMS follow-up script for ' + getTargetAudienceInfo(selectedTemplate).name + ' prospects' },
+                { type: 'followup', content: getScriptsForTemplate(selectedTemplate).reminder || 'Follow-up email sequence for ' + getTargetAudienceInfo(selectedTemplate).name }
+              ]}
+              templateId={selectedTemplate.id}
+              targetAudience={selectedTemplate.target_audience}
+              campaignAngle={selectedTemplate.campaign_angle}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Launch Modal */}
       <Dialog open={showLaunchModal} onOpenChange={setShowLaunchModal}>
