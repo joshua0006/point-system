@@ -162,13 +162,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_consultant_id_fkey"
-            columns: ["consultant_id"]
-            isOneToOne: false
-            referencedRelation: "consultants"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -540,20 +533,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "conversations_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "conversations_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "conversations_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -561,6 +540,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      couple_invitations: {
+        Row: {
+          accepted_at: string | null
+          couple_name: string
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_code: string
+          invitee_email: string
+          inviter_id: string
+          location_city: string | null
+          location_country: string | null
+          status: string | null
+          theme_color: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          couple_name: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          invitee_email: string
+          inviter_id: string
+          location_city?: string | null
+          location_country?: string | null
+          status?: string | null
+          theme_color?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          couple_name?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          invitee_email?: string
+          inviter_id?: string
+          location_city?: string | null
+          location_country?: string | null
+          status?: string | null
+          theme_color?: string | null
+        }
+        Relationships: []
+      }
+      couples: {
+        Row: {
+          anniversary_date: string | null
+          couple_name: string
+          created_at: string
+          custom_hero_image_url: string | null
+          id: string
+          is_active: boolean | null
+          location_city: string | null
+          location_country: string | null
+          partner1_id: string | null
+          partner2_id: string | null
+          theme_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          anniversary_date?: string | null
+          couple_name: string
+          created_at?: string
+          custom_hero_image_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          partner1_id?: string | null
+          partner2_id?: string | null
+          theme_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          anniversary_date?: string | null
+          couple_name?: string
+          created_at?: string
+          custom_hero_image_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          partner1_id?: string | null
+          partner2_id?: string | null
+          theme_color?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       lead_gen_campaigns: {
         Row: {
@@ -603,6 +672,7 @@ export type Database = {
       }
       memories: {
         Row: {
+          couple_id: string | null
           created_at: string
           date: string
           description: string | null
@@ -614,9 +684,9 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
-          user_id: string | null
         }
         Insert: {
+          couple_id?: string | null
           created_at?: string
           date: string
           description?: string | null
@@ -628,9 +698,9 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
-          user_id?: string | null
         }
         Update: {
+          couple_id?: string | null
           created_at?: string
           date?: string
           description?: string | null
@@ -642,9 +712,16 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
-          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "memories_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       memory_album_items: {
         Row: {
@@ -747,13 +824,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -888,10 +958,13 @@ export type Database = {
           approved_by: string | null
           avatar_url: string | null
           bio: string | null
+          couple_id: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          onboarding_completed: boolean | null
+          partner_name: string | null
           points_balance: number
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -903,10 +976,13 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           bio?: string | null
+          couple_id?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean | null
+          partner_name?: string | null
           points_balance?: number
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -918,16 +994,27 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           bio?: string | null
+          couple_id?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean | null
+          partner_name?: string | null
           points_balance?: number
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -1127,15 +1214,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_campaign_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_group_memberships: {
         Row: {
@@ -1189,6 +1268,7 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["wishlist_category"]
           completed_date: string | null
+          couple_id: string | null
           created_at: string
           description: string | null
           estimated_cost: number | null
@@ -1200,11 +1280,11 @@ export type Database = {
           target_date: string | null
           title: string
           updated_at: string
-          user_id: string | null
         }
         Insert: {
           category: Database["public"]["Enums"]["wishlist_category"]
           completed_date?: string | null
+          couple_id?: string | null
           created_at?: string
           description?: string | null
           estimated_cost?: number | null
@@ -1216,11 +1296,11 @@ export type Database = {
           target_date?: string | null
           title: string
           updated_at?: string
-          user_id?: string | null
         }
         Update: {
           category?: Database["public"]["Enums"]["wishlist_category"]
           completed_date?: string | null
+          couple_id?: string | null
           created_at?: string
           description?: string | null
           estimated_cost?: number | null
@@ -1232,9 +1312,16 @@ export type Database = {
           target_date?: string | null
           title?: string
           updated_at?: string
-          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
