@@ -403,44 +403,78 @@ export function AdminCampaignLauncher() {
             {/* User Selection */}
             <div className="space-y-4">
               <div>
-                <Label>Search Users</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              
-              <div className="border rounded-lg max-h-60 overflow-y-auto">
-                {filteredUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className={`p-3 cursor-pointer border-b last:border-b-0 hover:bg-muted/50 ${
-                      selectedUser?.id === user.id ? 'bg-primary/10 border-primary' : ''
-                    }`}
-                    onClick={() => setSelectedUser(user)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={user.avatar_url || undefined} />
-                        <AvatarFallback>
-                          {(user.full_name || user.email).charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="font-medium">{user.full_name || "No name"}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
-                        <div className="text-sm font-medium text-accent">
-                          {user.points_balance} points available
+                <Label>Select User</Label>
+                <Select
+                  value={selectedUser?.id || ""}
+                  onValueChange={(value) => {
+                    const user = filteredUsers.find(u => u.id === value);
+                    setSelectedUser(user || null);
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-background border border-border">
+                    <SelectValue placeholder="Choose a user from the system...">
+                      {selectedUser && (
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage src={selectedUser.avatar_url || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {(selectedUser.full_name || selectedUser.email).charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{selectedUser.full_name || "No name"} ({selectedUser.email})</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {selectedUser.points_balance} pts
+                          </Badge>
                         </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="w-full max-h-60 bg-background border border-border shadow-lg z-50">
+                    <div className="p-2">
+                      <div className="relative mb-2">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by name or email..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 bg-background"
+                        />
                       </div>
                     </div>
-                  </div>
-                ))}
+                    {filteredUsers.map((user) => (
+                      <SelectItem 
+                        key={user.id} 
+                        value={user.id}
+                        className="cursor-pointer hover:bg-muted focus:bg-muted"
+                      >
+                        <div className="flex items-center space-x-3 w-full">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={user.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {(user.full_name || user.email).charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-foreground truncate">
+                              {user.full_name || "No name"}
+                            </div>
+                            <div className="text-sm text-muted-foreground truncate">
+                              {user.email}
+                            </div>
+                            <div className="text-sm font-medium text-primary">
+                              {user.points_balance} points available
+                            </div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                    {filteredUsers.length === 0 && (
+                      <div className="p-4 text-center text-muted-foreground">
+                        No users found
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
