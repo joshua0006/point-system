@@ -105,12 +105,12 @@ export function useUpdateBookingStatus() {
 
         // Determine if user is buyer or consultant
         const isBuyer = user.id === booking.user_id;
-        const isConsultant = user.id === booking.consultants.user_id;
+        const isConsultant = booking.consultants && user.id === booking.consultants.user_id;
         
         console.log('Completion debug:', {
           userId: user.id,
           bookingUserId: booking.user_id,
-          consultantUserId: booking.consultants.user_id,
+          consultantUserId: booking.consultants?.user_id,
           isBuyer,
           isConsultant,
           currentBuyerCompleted: booking.buyer_completed,

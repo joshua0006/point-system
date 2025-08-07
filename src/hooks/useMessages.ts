@@ -30,13 +30,13 @@ export function useMessages(conversationId: string | undefined) {
         .from('messages')
         .select(`
           *,
-          sender_profile:profiles!messages_sender_id_fkey(full_name, email)
+          sender_profile:profiles!sender_id(full_name, email)
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data as Message[];
+      return (data || []).filter(msg => msg.sender_profile) as Message[];
     },
     enabled: !!conversationId && !!user,
   });

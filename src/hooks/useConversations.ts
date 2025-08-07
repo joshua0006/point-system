@@ -54,12 +54,22 @@ export function useConversations() {
         .from('conversations')
         .select(`
           *,
-          service:services(title, description),
-          buyer_profile:profiles!conversations_buyer_id_fkey(full_name, email),
-          seller_profile:profiles!conversations_seller_id_fkey(full_name, email)
+          service:services(title, description)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false, nullsFirst: false });
+
+      if (error) throw error;
+
+      // Get profile data separately to avoid join issues
+      const buyerIds = [...new Set(data?.map(c => c.buyer_id) || [])];
+      const sellerIds = [...new Set(data?.map(c => c.seller_id) || [])];
+      const allUserIds = [...new Set([...buyerIds, ...sellerIds])];
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', allUserIds);
 
       if (error) throw error;
 
@@ -101,6 +111,8 @@ export function useConversations() {
 
           return {
             ...conversation,
+            buyer_profile: profiles?.find(p => p.user_id === conversation.buyer_id) || null,
+            seller_profile: profiles?.find(p => p.user_id === conversation.seller_id) || null,
             last_message: lastMessage,
             unread_count: unreadCount,
             booking: booking || undefined,
@@ -108,7 +120,7 @@ export function useConversations() {
         })
       );
 
-      return conversationsWithMessages as Conversation[];
+      return conversationsWithMessages.filter(conv => conv.buyer_profile && conv.seller_profile) as Conversation[];
     },
     enabled: !!user,
   });
