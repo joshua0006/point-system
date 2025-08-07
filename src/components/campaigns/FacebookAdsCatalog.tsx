@@ -220,7 +220,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                   return (
                     <CarouselItem 
                       key={template.id} 
-                      className="basis-full sm:basis-full md:basis-full lg:basis-1/2 xl:basis-1/3 2xl:basis-1/3"
+                      className="basis-full sm:basis-full md:basis-full lg:basis-3/4 xl:basis-2/3 2xl:basis-1/2"
                     >
                       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-card h-full">
                         <CardContent className="p-0">
