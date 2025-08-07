@@ -59,14 +59,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .from('profiles')
                 .select('*')
                 .eq('user_id', session.user.id)
-                .maybeSingle();
+                .single();
               
               if (!mounted) return;
               
               if (error) {
                 console.error('Error fetching profile:', error);
+                setProfile(null);
               } else {
                 setProfile(profileData);
+                console.log('Profile loaded successfully:', profileData);
               }
             } catch (err) {
               console.error('Profile fetch error:', err);
@@ -98,14 +100,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           try {
-            const { data: profileData } = await supabase
+            const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id)
-              .maybeSingle();
+              .single();
             
             if (mounted) {
-              setProfile(profileData);
+              if (error) {
+                console.error('Profile fetch error during init:', error);
+                setProfile(null);
+              } else {
+                setProfile(profileData);
+                console.log('Profile loaded during init:', profileData);
+              }
             }
           } catch (err) {
             console.error('Profile fetch error during init:', err);
@@ -182,12 +190,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
       
       if (error) {
         console.error('Error refreshing profile:', error);
+        setProfile(null);
       } else {
         setProfile(profileData);
+        console.log('Profile refreshed:', profileData);
       }
     } catch (err) {
       console.error('Profile refresh error:', err);
