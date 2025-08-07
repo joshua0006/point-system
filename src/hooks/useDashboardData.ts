@@ -100,13 +100,16 @@ export function useDashboardData() {
         .select(`
           *,
           services!inner(title, duration_minutes),
-          consultants!inner(user_id)
+          consultants!bookings_consultant_id_fkey(user_id)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       // Get consultant profiles separately
-      const consultantUserIds = bookings?.map(b => b.consultants?.user_id).filter(Boolean) || [];
+      const consultantUserIds = bookings?.map(b => {
+        const consultant = Array.isArray(b.consultants) ? b.consultants[0] : b.consultants;
+        return consultant?.user_id;
+      }).filter(Boolean) || [];
       const { data: consultantProfiles } = await supabase
         .from('profiles')
         .select('user_id, full_name')
@@ -130,7 +133,8 @@ export function useDashboardData() {
 
       // Process bookings
       const processedBookings: BookedService[] = (bookings || []).map(b => {
-        const consultantProfile = consultantProfiles?.find(p => p.user_id === b.consultants?.user_id);
+        const consultant = Array.isArray(b.consultants) ? b.consultants[0] : b.consultants;
+        const consultantProfile = consultantProfiles?.find(p => p.user_id === consultant?.user_id);
         return {
           id: b.id,
           service: b.services?.title || 'Unknown Service',

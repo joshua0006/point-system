@@ -96,7 +96,13 @@ export function useUpdateBookingStatus() {
           .from('bookings')
           .select(`
             *,
-            consultants!inner(user_id)
+            consultants!bookings_consultant_id_fkey(
+              id,
+              user_id,
+              bio,
+              hourly_rate,
+              is_active
+            )
           `)
           .eq('id', bookingId)
           .single();
@@ -105,12 +111,13 @@ export function useUpdateBookingStatus() {
 
         // Determine if user is buyer or consultant
         const isBuyer = user.id === booking.user_id;
-        const isConsultant = booking.consultants && user.id === booking.consultants.user_id;
+        const consultant = Array.isArray(booking.consultants) ? booking.consultants[0] : booking.consultants;
+        const isConsultant = consultant && user.id === consultant.user_id;
         
         console.log('Completion debug:', {
           userId: user.id,
           bookingUserId: booking.user_id,
-          consultantUserId: booking.consultants?.user_id,
+          consultantUserId: consultant?.user_id,
           isBuyer,
           isConsultant,
           currentBuyerCompleted: booking.buyer_completed,

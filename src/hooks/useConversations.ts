@@ -111,8 +111,8 @@ export function useConversations() {
 
           return {
             ...conversation,
-            buyer_profile: profiles?.find(p => p.user_id === conversation.buyer_id) || null,
-            seller_profile: profiles?.find(p => p.user_id === conversation.seller_id) || null,
+            buyer_profile: profiles?.find(p => p.user_id === conversation.buyer_id) || { full_name: 'Unknown User', email: 'unknown@email.com' },
+            seller_profile: profiles?.find(p => p.user_id === conversation.seller_id) || { full_name: 'Unknown User', email: 'unknown@email.com' },
             last_message: lastMessage,
             unread_count: unreadCount,
             booking: booking || undefined,

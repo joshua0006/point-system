@@ -157,7 +157,7 @@ export default function UserDashboard() {
             price,
             consultant_id
           ),
-          consultants!inner(
+          consultants!bookings_consultant_id_fkey(
             user_id
           )
         `)
@@ -167,7 +167,10 @@ export default function UserDashboard() {
       console.log('Bookings data:', bookings, 'Error:', bookingsError);
 
       // Get consultant profiles for display names
-      const consultantUserIds = bookings?.map(b => b.consultants?.user_id).filter(Boolean) || [];
+      const consultantUserIds = bookings?.map(b => {
+        const consultant = Array.isArray(b.consultants) ? b.consultants[0] : b.consultants;
+        return consultant?.user_id;
+      }).filter(Boolean) || [];
       const { data: consultantProfiles } = await supabase
         .from('profiles')
         .select('user_id, full_name')
@@ -201,7 +204,8 @@ export default function UserDashboard() {
 
       // Transform real bookings for display
       const transformedBookings = (bookings || []).map(b => {
-        const consultantProfile = consultantProfiles?.find(p => p.user_id === b.consultants?.user_id);
+        const consultant = Array.isArray(b.consultants) ? b.consultants[0] : b.consultants;
+        const consultantProfile = consultantProfiles?.find(p => p.user_id === consultant?.user_id);
         return {
           id: b.id,
           status: b.status,
