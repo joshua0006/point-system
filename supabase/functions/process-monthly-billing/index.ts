@@ -70,7 +70,9 @@ serve(async (req) => {
         }
 
         const currentBalance = profile.points_balance;
-        const billingAmount = participant.budget_contribution;
+        const billingAmount = (participant.proration_enabled && participant.monthly_budget)
+          ? participant.monthly_budget
+          : participant.budget_contribution;
 
         if (currentBalance < billingAmount) {
           logStep("Insufficient balance - pausing campaign", { 

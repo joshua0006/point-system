@@ -308,8 +308,10 @@ export type Database = {
           joined_at: string
           last_billed_date: string | null
           leads_received: number | null
+          monthly_budget: number | null
           next_billing_date: string | null
           notes: string | null
+          proration_enabled: boolean
           revenue_generated: number | null
           updated_at: string
           user_id: string
@@ -325,8 +327,10 @@ export type Database = {
           joined_at?: string
           last_billed_date?: string | null
           leads_received?: number | null
+          monthly_budget?: number | null
           next_billing_date?: string | null
           notes?: string | null
+          proration_enabled?: boolean
           revenue_generated?: number | null
           updated_at?: string
           user_id: string
@@ -342,8 +346,10 @@ export type Database = {
           joined_at?: string
           last_billed_date?: string | null
           leads_received?: number | null
+          monthly_budget?: number | null
           next_billing_date?: string | null
           notes?: string | null
+          proration_enabled?: boolean
           revenue_generated?: number | null
           updated_at?: string
           user_id?: string

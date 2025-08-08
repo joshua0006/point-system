@@ -43,7 +43,7 @@ serve(async (req) => {
       throw new Error('Admin access required')
     }
 
-    const { action, userId, templateId, budget, duration, participantId } = await req.json()
+    const { action, userId, templateId, budget, duration, participantId, prorationEnabled } = await req.json()
 
     switch (action) {
       case 'launch_campaign': {
@@ -103,6 +103,18 @@ serve(async (req) => {
         const nextBillingDate = new Date(startDate);
         nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
         nextBillingDate.setDate(1);
+
+        // Compute derived monthly budget if proration is enabled
+        let monthlyBudget: number | null = null;
+        if (prorationEnabled) {
+          const year = startDate.getUTCFullYear();
+          const month = startDate.getUTCMonth();
+          const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+          const day = startDate.getUTCDate();
+          const remainingDays = daysInMonth - day + 1; // include start day
+          const fractionRemaining = remainingDays / daysInMonth;
+          monthlyBudget = Math.max(1, Math.round(budget / Math.max(fractionRemaining, 0.01)));
+        }
         
         const { error: participantError } = await supabaseClient
           .from('campaign_participants')
@@ -114,6 +126,8 @@ serve(async (req) => {
             billing_status: 'active',
             next_billing_date: nextBillingDate.toISOString().split('T')[0],
             billing_cycle_day: 1,
+            proration_enabled: !!prorationEnabled,
+            monthly_budget: monthlyBudget,
             notes: 'Admin-launched campaign'
           })
 

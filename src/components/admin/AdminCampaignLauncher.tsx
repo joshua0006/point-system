@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Search, Rocket, DollarSign, Users, Calendar, AlertTriangle, CheckCircle2, Pause, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserProfile {
@@ -68,6 +69,7 @@ export function AdminCampaignLauncher() {
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [prorationEnabled, setProrationEnabled] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -208,7 +210,8 @@ export function AdminCampaignLauncher() {
           userId: selectedUser.user_id,
           templateId: selectedCampaign,
           budget: parseInt(campaignBudget),
-          duration: parseInt(campaignDuration)
+          duration: parseInt(campaignDuration),
+          prorationEnabled: prorationEnabled
         }
       });
 
@@ -543,6 +546,28 @@ export function AdminCampaignLauncher() {
                 {selectedUser && campaignBudget && parseInt(campaignBudget) > selectedUser.points_balance && (
                   <div className="text-sm text-destructive mt-1">
                     Budget exceeds user's available balance ({selectedUser.points_balance} points)
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mt-3">
+                  <div>
+                    <Label>Proration</Label>
+                    <div className="text-xs text-muted-foreground">Auto-derive full monthly budget; bill full month on the 1st</div>
+                  </div>
+                  <Switch checked={prorationEnabled} onCheckedChange={setProrationEnabled} />
+                </div>
+                {prorationEnabled && campaignBudget && (
+                  <div className="text-sm text-muted-foreground mt-2">
+                    Derived monthly budget: {(() => {
+                      const now = new Date();
+                      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                      const day = now.getDate();
+                      const remaining = daysInMonth - day + 1;
+                      const frac = remaining / daysInMonth;
+                      const b = parseInt(campaignBudget || '0');
+                      const derived = Math.max(1, Math.round(b / Math.max(frac, 0.01)));
+                      return `${derived} pts`;
+                    })()}
                   </div>
                 )}
               </div>
