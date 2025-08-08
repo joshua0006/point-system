@@ -28,15 +28,14 @@ interface UserProfile {
   approval_status: 'pending' | 'approved' | 'rejected';
 }
 
-interface LeadGenCampaign {
+interface CampaignTemplate {
   id: string;
   name: string;
-  description: string;
-  status: string;
-  total_budget: number;
-  start_date: string;
-  end_date: string;
-  created_by: string;
+  description: string | null;
+  target_audience: string;
+  campaign_angle: string;
+  is_active: boolean;
+  template_config: any;
 }
 
 interface AdminCampaignParticipant {
@@ -59,7 +58,7 @@ interface AdminCampaignParticipant {
 export function AdminCampaignLauncher() {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [campaigns, setCampaigns] = useState<LeadGenCampaign[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignTemplate[]>([]);
   const [activeParticipants, setActiveParticipants] = useState<AdminCampaignParticipant[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -100,12 +99,24 @@ export function AdminCampaignLauncher() {
   const fetchCampaigns = async () => {
     try {
       const { data, error } = await supabase
-        .from('lead_gen_campaigns')
-        .select('*')
-        .order('name');
+        .from('campaign_templates')
+        .select('id, name, description, target_audience, campaign_angle, is_active, template_config')
+        .eq('is_active', true)
+        .order('target_audience', { ascending: true })
+        .order('name', { ascending: true });
 
       if (error) throw error;
-      setCampaigns(data || []);
+
+      // Deduplicate by name + angle to avoid near-duplicate templates
+      const seen = new Set<string>();
+      const unique = (data || []).filter((t) => {
+        const key = `${t.name}|${t.campaign_angle}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setCampaigns(unique);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast({
@@ -195,7 +206,7 @@ export function AdminCampaignLauncher() {
         body: {
           action: 'launch_campaign',
           userId: selectedUser.user_id,
-          campaignId: selectedCampaign,
+          templateId: selectedCampaign,
           budget: parseInt(campaignBudget),
           duration: parseInt(campaignDuration)
         }
@@ -487,10 +498,10 @@ export function AdminCampaignLauncher() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select campaign" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border border-border shadow-lg z-50">
                     {campaigns.map((campaign) => (
                       <SelectItem key={campaign.id} value={campaign.id}>
-                        {campaign.name} - {campaign.status}
+                        {campaign.name} · {campaign.target_audience} · {campaign.campaign_angle}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -503,11 +514,18 @@ export function AdminCampaignLauncher() {
                   <div className="text-sm text-muted-foreground mt-1">
                     {selectedCampaignData.description}
                   </div>
-                  <div className="text-sm mt-2">
-                    <strong>Total Budget:</strong> {selectedCampaignData.total_budget} points
-                  </div>
-                  <div className="text-sm">
-                    <strong>Status:</strong> {selectedCampaignData.status}
+                  <div className="text-sm mt-2 space-y-1">
+                    <div>
+                      <strong>Audience:</strong> {selectedCampaignData.target_audience}
+                    </div>
+                    <div>
+                      <strong>Angle:</strong> {selectedCampaignData.campaign_angle}
+                    </div>
+                    {selectedCampaignData.template_config?.budget?.min !== undefined && selectedCampaignData.template_config?.budget?.max !== undefined && (
+                      <div>
+                        <strong>Suggested Budget:</strong> {selectedCampaignData.template_config.budget.min} - {selectedCampaignData.template_config.budget.max} points
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
