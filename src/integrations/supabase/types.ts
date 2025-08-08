@@ -348,7 +348,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "lead_gen_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       campaign_templates: {
         Row: {
