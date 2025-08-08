@@ -55,10 +55,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   ];
 
   const showConfirmationDialog = (amount: number, paymentMethodId?: string, isInstant = false) => {
-    if (!amount || amount < 1) {
+    if (!amount || amount < 0.1) {
       toast({
         title: "Invalid Amount",
-        description: "Minimum amount is 1 point (S$1)",
+        description: "Minimum amount is 0.1 point (S$0.10)",
         variant: "destructive",
       });
       return;
@@ -310,11 +310,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               <div className="relative">
                 <Input
                   type="number"
-                  placeholder="Minimum 1 point (S$1)"
+                  placeholder="Minimum 0.1 point (S$0.10)"
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
-                  min={1}
-                  step={1}
+                  min={0.1}
+                  step={0.1}
                   className="pr-20 h-12 text-lg"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
@@ -323,7 +323,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               </div>
 
               {/* Auto-selected Default Payment Method for Custom Amount */}
-              {paymentMethods.length > 0 && customAmount && parseInt(customAmount) >= 1 && (
+              {paymentMethods.length > 0 && customAmount && parseFloat(customAmount) >= 0.1 && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Payment Method (Auto-Selected)</Label>
                   <div className="h-12 bg-green-50 border border-green-200 rounded-md flex items-center px-3">
@@ -369,13 +369,13 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 </div>
               )}
               
-              {customAmount && parseInt(customAmount) >= 1 && (
+              {customAmount && parseFloat(customAmount) >= 0.1 && (
                 <div className="p-4 bg-secondary/30 rounded-lg border">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center border-t pt-2">
                       <span className="text-sm font-medium">Total Amount:</span>
                       <span className="font-bold text-xl text-primary">
-                        S${parseInt(customAmount).toLocaleString()}
+                        S${Number(customAmount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 1 })}
                       </span>
                     </div>
                   </div>
@@ -393,8 +393,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 {/* Primary: Instant Charge Button (when saved methods exist) */}
                 {paymentMethods.length > 0 && (
                   <Button 
-                  onClick={() => showConfirmationDialog(parseInt(customAmount), selectedPaymentMethod || defaultPaymentMethod?.id, true)}
-                  disabled={loading || !customAmount || parseInt(customAmount) < 1 || !selectedPaymentMethod}
+                  onClick={() => showConfirmationDialog(parseFloat(customAmount), selectedPaymentMethod || defaultPaymentMethod?.id, true)}
+                  disabled={loading || !customAmount || parseFloat(customAmount) < 0.1 || !selectedPaymentMethod}
                     className="flex-1 h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
                     size="lg"
                   >
@@ -416,7 +416,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 {paymentMethods.length === 0 && (
                   <Button 
                   onClick={() => setShowAddMethodModal(true)}
-                  disabled={loading || !customAmount || parseInt(customAmount) < 1}
+                  disabled={loading || !customAmount || parseFloat(customAmount) < 0.1}
                     className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground"
                     size="lg"
                   >

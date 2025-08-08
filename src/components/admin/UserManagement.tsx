@@ -42,7 +42,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
   const { toast } = useToast();
 
   const handleTopUp = async () => {
-    const pointsAmount = parseInt(points);
+    const pointsAmount = parseFloat(points);
     if (!pointsAmount || pointsAmount <= 0) {
       toast({
         title: "Invalid Amount",
@@ -105,7 +105,8 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
               placeholder="Enter amount"
               value={points}
               onChange={(e) => setPoints(e.target.value)}
-              min="1"
+              min="0.1"
+              step="0.1"
             />
           </div>
           <Button 
@@ -135,7 +136,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
   const { toast } = useToast();
 
   const handleDeduct = async () => {
-    const pointsAmount = parseInt(points);
+    const pointsAmount = parseFloat(points);
     if (!pointsAmount || pointsAmount <= 0) {
       toast({
         title: "Invalid Amount",
@@ -221,8 +222,9 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
               placeholder="Enter amount"
               value={points}
               onChange={(e) => setPoints(e.target.value)}
-              min="1"
+              min="0.1"
               max={user.points_balance}
+              step="0.1"
             />
           </div>
           <div className="space-y-2">
