@@ -12,6 +12,7 @@ import { ScriptDrawer } from "./ScriptDrawer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 interface FacebookAdsCatalogProps {
   onComplete: (campaignData: any) => void;
@@ -296,6 +297,16 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                   Your balance: {userBalance} points
                 </p>
               </div>
+
+              {/* Billing summary */}
+              {campaignData.budget > 0 && (
+                <div className="rounded-md border p-3 bg-muted/30">
+                  <div className="text-sm font-medium">Next deduction</div>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1), 'MMM d, yyyy')} • {campaignData.budget} pts
+                  </p>
+                </div>
+              )}
 
               <div className="bg-primary/5 p-3 rounded-lg">
                 <h4 className="font-medium mb-2">Campaign: {selectedTemplate.name}</h4>
