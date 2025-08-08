@@ -134,10 +134,10 @@ serve(async (req) => {
           throw pointsTransactionError;
         }
 
-        // Update participant's next billing date (next month)
+        // Update participant's next billing date (next month, 1st day)
         const nextBillingDate = new Date();
         nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-        nextBillingDate.setDate(participant.billing_cycle_day || 1);
+        nextBillingDate.setDate(1);
 
         const { error: updateError } = await supabase
           .from('campaign_participants')

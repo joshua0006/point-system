@@ -243,10 +243,11 @@ const LeadGenCampaigns = () => {
       }
       console.log('Created campaign:', campaign);
 
-      // Calculate next billing date (one month from now)
+      // Calculate next billing date (first of next month)
       const nextBillingDate = new Date();
       nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-      const billingDay = nextBillingDate.getDate(); // Use current day of month as billing cycle day
+      nextBillingDate.setDate(1);
+      const billingDay = 1; // Always bill on the 1st of the month
 
       console.log('Adding campaign participant with billing schedule...');
       const {

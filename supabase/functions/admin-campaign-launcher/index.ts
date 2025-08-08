@@ -100,7 +100,9 @@ serve(async (req) => {
         }
 
         // Add user as participant
-        const nextBillingDate = new Date(startDate.getTime() + (30 * 24 * 60 * 60 * 1000))
+        const nextBillingDate = new Date(startDate);
+        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+        nextBillingDate.setDate(1);
         
         const { error: participantError } = await supabaseClient
           .from('campaign_participants')
@@ -111,7 +113,7 @@ serve(async (req) => {
             consultant_name: userProfile.full_name || userProfile.email,
             billing_status: 'active',
             next_billing_date: nextBillingDate.toISOString().split('T')[0],
-            billing_cycle_day: startDate.getDate(),
+            billing_cycle_day: 1,
             notes: 'Admin-launched campaign'
           })
 
