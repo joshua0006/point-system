@@ -1251,7 +1251,7 @@ export type Database = {
     }
     Functions: {
       increment_points_balance: {
-        Args: { p_user_id: string; p_points_to_add: number }
+        Args: { user_id: string; points_to_add: number }
         Returns: undefined
       }
     }
