@@ -310,7 +310,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
             </Button>
             <Button onClick={handleConfirmLaunch} disabled={!canProceed()}>
               <Zap className="h-4 w-4 mr-2" />
-              Launch Now
+              Review Details
             </Button>
           </DialogFooter>
         </DialogContent>
