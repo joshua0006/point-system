@@ -14,6 +14,7 @@ import { CampaignMethodSelector } from "@/components/campaigns/CampaignMethodSel
 import { FacebookAdsCatalog } from "@/components/campaigns/FacebookAdsCatalog";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import { supabase } from "@/integrations/supabase/client";
 const LeadGenCampaigns = () => {
@@ -40,6 +41,7 @@ const LeadGenCampaigns = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
   const [hideInactiveCampaigns, setHideInactiveCampaigns] = useState(false);
+  const [prorationEnabled, setProrationEnabled] = useState(false);
 
   // Admin mode state
   const [adminMode, setAdminMode] = useState(false);
@@ -250,9 +252,15 @@ const LeadGenCampaigns = () => {
       const billingDay = 1; // Always bill on the 1st of the month
 
       console.log('Adding campaign participant with billing schedule...');
-      const {
-        error
-      } = await supabase.from('campaign_participants').insert({
+      // Derive full monthly budget when proration is enabled
+      const now = new Date();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const day = now.getDate();
+      const remaining = daysInMonth - day + 1; // include today
+      const frac = remaining / daysInMonth;
+      const derivedMonthlyBudget = prorationEnabled ? Math.max(1, Math.round(budget / Math.max(frac, 0.01))) : null;
+
+      const { error } = await supabase.from('campaign_participants').insert({
         campaign_id: campaign.id,
         user_id: user.id,
         consultant_name: pendingCampaign.consultantName,
@@ -260,7 +268,9 @@ const LeadGenCampaigns = () => {
         next_billing_date: nextBillingDate.toISOString().split('T')[0],
         // YYYY-MM-DD format
         billing_cycle_day: billingDay,
-        billing_status: 'active'
+        billing_status: 'active',
+        proration_enabled: prorationEnabled,
+        monthly_budget: derivedMonthlyBudget
       });
       if (error) {
         console.error('Error adding campaign participant:', error);
@@ -618,6 +628,28 @@ const LeadGenCampaigns = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="flex items-center justify-between mt-3">
+                <div>
+                  <span className="text-sm font-medium">Proration</span>
+                  <div className="text-xs text-muted-foreground">Bill full monthly budget on the 1st; auto-derived from today</div>
+                </div>
+                <Switch checked={prorationEnabled} onCheckedChange={setProrationEnabled} />
+              </div>
+              {prorationEnabled && (
+                <div className="text-sm text-muted-foreground">
+                  Derived monthly budget: {(() => {
+                    const now = new Date();
+                    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                    const day = now.getDate();
+                    const remaining = daysInMonth - day + 1;
+                    const frac = remaining / daysInMonth;
+                    const b = pendingCampaign?.budget || 0;
+                    const derived = Math.max(1, Math.round(b / Math.max(frac, 0.01)));
+                    return `${derived} points`;
+                  })()}
+                </div>
+              )}
 
               {userBalance < pendingCampaign.budget && <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
                   <p className="text-sm text-red-800">
