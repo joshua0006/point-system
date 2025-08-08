@@ -39,7 +39,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
     const { payment_method_id, amount } = await req.json();
-    if (!payment_method_id || !amount || amount < 1) {
+    if (!payment_method_id || amount == null || amount < 0.1) {
       throw new Error("Invalid payment method ID or amount");
     }
 
@@ -56,8 +56,7 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found customer", { customerId });
 
-    // Create payment intent with saved payment method
-    const totalAmount = amount * 100; // Convert to cents
+    const totalAmount = Math.round(amount * 100); // Convert to cents and round
     
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
