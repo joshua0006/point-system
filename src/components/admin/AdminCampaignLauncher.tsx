@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Rocket, DollarSign, Users, Calendar, AlertTriangle, CheckCircle2, Pause, Play } from "lucide-react";
+import { Search, Rocket, DollarSign, Users, Calendar, AlertTriangle, CheckCircle2, Pause, Play, Phone, MessageSquare, Clock, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
@@ -530,6 +530,45 @@ export function AdminCampaignLauncher() {
                       </div>
                     )}
                   </div>
+                  {(() => {
+                    const ql = selectedCampaignData.template_config?.quick_links || {};
+                    const hasLinks = ql.call || ql.sms || ql.reminder;
+                    if (!hasLinks) return null;
+                    return (
+                      <div className="mt-3">
+                        <div className="text-xs font-medium mb-2">Quick Links</div>
+                        <div className="flex flex-wrap gap-2">
+                          {ql.call && (
+                            <Button asChild size="sm" variant="secondary">
+                              <a href={ql.call} target="_blank" rel="noopener noreferrer">
+                                <Phone className="h-3 w-3 mr-1" />
+                                Call Link
+                                <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </Button>
+                          )}
+                          {ql.sms && (
+                            <Button asChild size="sm" variant="secondary">
+                              <a href={ql.sms} target="_blank" rel="noopener noreferrer">
+                                <MessageSquare className="h-3 w-3 mr-1" />
+                                SMS Link
+                                <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </Button>
+                          )}
+                          {ql.reminder && (
+                            <Button asChild size="sm" variant="secondary">
+                              <a href={ql.reminder} target="_blank" rel="noopener noreferrer">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Reminder Link
+                                <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
