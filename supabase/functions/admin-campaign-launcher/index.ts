@@ -43,7 +43,7 @@ serve(async (req) => {
       throw new Error('Admin access required')
     }
 
-    const { action, userId, templateId, budget, duration, participantId, prorationEnabled } = await req.json()
+    const { action, userId, templateId, budget, participantId, prorationEnabled } = await req.json()
 
     switch (action) {
       case 'launch_campaign': {
@@ -78,7 +78,7 @@ serve(async (req) => {
         // Create campaign
         const campaignName = `Admin Campaign - ${template.name} - ${userProfile.full_name || userProfile.email}`
         const startDate = new Date()
-        const endDate = new Date(startDate.getTime() + (duration * 24 * 60 * 60 * 1000))
+        const endDate = new Date(startDate.getTime() + (365 * 24 * 60 * 60 * 1000))
 
         const { data: campaign, error: campaignError } = await supabaseClient
           .from('lead_gen_campaigns')

@@ -6,7 +6,6 @@ import { Calculator, TrendingUp, Target, DollarSign, AlertCircle } from "lucide-
 
 interface BudgetProjection {
   budget: number;
-  duration: number;
   expectedLeads: number;
   costPerLead: number;
   estimatedRevenue: number;
@@ -33,12 +32,12 @@ export const SmartBudgetCalculator = ({
   userBalance 
 }: SmartBudgetCalculatorProps) => {
   const [budget, setBudget] = useState(500);
-  const [duration, setDuration] = useState(30);
+  
   const [projection, setProjection] = useState<BudgetProjection | null>(null);
 
   useEffect(() => {
     calculateProjection();
-  }, [budget, duration, selectedTarget]);
+  }, [budget, selectedTarget]);
 
   const calculateProjection = () => {
     const benchmark = TARGET_BENCHMARKS[selectedTarget as keyof typeof TARGET_BENCHMARKS] || TARGET_BENCHMARKS.general;
@@ -49,12 +48,11 @@ export const SmartBudgetCalculator = ({
     
     setProjection({
       budget,
-      duration,
       expectedLeads,
       costPerLead: benchmark.avgCostPerLead,
       estimatedRevenue,
       roi,
-      dailySpend: budget / duration
+      dailySpend: budget / 30
     });
   };
 
@@ -119,25 +117,6 @@ export const SmartBudgetCalculator = ({
           )}
         </div>
 
-        {/* Duration Slider */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium">Campaign Duration</label>
-            <div className="text-sm text-muted-foreground">{duration} days</div>
-          </div>
-          <Slider
-            value={[duration]}
-            onValueChange={(value) => setDuration(value[0])}
-            max={30}
-            min={3}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>3 days</span>
-            <span>30 days</span>
-          </div>
-        </div>
 
         {/* Projections */}
         {projection && (

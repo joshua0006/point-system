@@ -65,7 +65,7 @@ export function AdminCampaignLauncher() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<string>("");
   const [campaignBudget, setCampaignBudget] = useState("");
-  const [campaignDuration, setCampaignDuration] = useState("30");
+  
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -210,7 +210,7 @@ export function AdminCampaignLauncher() {
           userId: selectedUser.user_id,
           templateId: selectedCampaign,
           budget: parseInt(campaignBudget),
-          duration: parseInt(campaignDuration),
+          
           prorationEnabled: prorationEnabled
         }
       });
@@ -226,7 +226,7 @@ export function AdminCampaignLauncher() {
       setSelectedUser(null);
       setSelectedCampaign("");
       setCampaignBudget("");
-      setCampaignDuration("30");
+      
       setShowLaunchDialog(false);
       setShowConfirmDialog(false);
 
@@ -573,19 +573,6 @@ export function AdminCampaignLauncher() {
               </div>
 
               <div>
-                <Label>Campaign Duration (Days)</Label>
-                <Select value={campaignDuration} onValueChange={setCampaignDuration}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">7 days</SelectItem>
-                    <SelectItem value="14">14 days</SelectItem>
-                    <SelectItem value="30">30 days</SelectItem>
-                    <SelectItem value="60">60 days</SelectItem>
-                    <SelectItem value="90">90 days</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -619,7 +606,7 @@ export function AdminCampaignLauncher() {
                   <div><strong>User:</strong> {selectedUser?.full_name || selectedUser?.email}</div>
                   <div><strong>Campaign:</strong> {selectedCampaignData?.name}</div>
                   <div><strong>Budget:</strong> {campaignBudget} points</div>
-                  <div><strong>Duration:</strong> {campaignDuration} days</div>
+                  
                 </div>
                 <p className="text-warning">
                   This will immediately deduct {campaignBudget} points from the user's balance and start the campaign.
