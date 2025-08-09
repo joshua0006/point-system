@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Target, Zap, Users } from "lucide-react";
 import { CampaignCard } from "./CampaignCard";
 import { ScriptDrawer } from "./ScriptDrawer";
@@ -36,6 +37,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
     budget: 0,
     consultantName: profile?.full_name || ''
   });
+  const [prorateFirstMonth, setProrateFirstMonth] = useState(true);
 
   useEffect(() => {
     loadCampaignsData();
@@ -138,6 +140,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
       campaignType: config?.campaignTypes?.[0] || 'Facebook Lead Ads',
       budget: campaignData.budget,
       consultantName: campaignData.consultantName,
+      prorateFirstMonth,
       scripts: getScriptsForTemplate(selectedTemplate)
     };
 
@@ -183,11 +186,11 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
     : templatesByAudience[activeAudience] || [];
 
   return (
-    <main className="mx-auto max-w-[1440px] px-6 py-4 space-y-6">
+    <main className="mx-auto max-w-[1440px] px-6 py-4 space-y-6" role="main">
       {/* Compact Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl">
+          <div className="p-2 bg-primary/10 rounded-xl" aria-hidden="true">
             <Target className="h-6 w-6 text-primary" />
           </div>
           <div>
@@ -197,7 +200,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={onBack} size="sm">
+        <Button variant="outline" onClick={onBack} size="sm" aria-label="Back to Methods">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Methods
         </Button>
@@ -298,13 +301,39 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                 </p>
               </div>
 
+              {/* Proration toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="prorate">Prorate first month</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Charge only for the remaining days of this month.
+                  </p>
+                </div>
+                <Switch id="prorate" checked={prorateFirstMonth} onCheckedChange={setProrateFirstMonth} />
+              </div>
+
               {/* Billing summary */}
               {campaignData.budget > 0 && (
                 <div className="rounded-md border p-3 bg-muted/30">
-                  <div className="text-sm font-medium">Next deduction</div>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1), 'MMM d, yyyy')} • {campaignData.budget} pts
-                  </p>
+                  {(() => {
+                    const today = new Date();
+                    const totalDays = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                    const remainingDays = Math.max(0, totalDays - today.getDate() + 1);
+                    const nextMonthFirst = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                    const proratedAmount = Math.max(1, Math.round((campaignData.budget * remainingDays) / totalDays));
+                    return (
+                      <>
+                        <div className="text-sm font-medium">Immediate charge</div>
+                        <p className="text-sm text-muted-foreground">
+                          {prorateFirstMonth ? `${proratedAmount} pts today (prorated for ${remainingDays} day${remainingDays !== 1 ? 's' : ''})` : `${campaignData.budget} pts today`}
+                        </p>
+                        <div className="text-sm font-medium mt-2">Next deduction</div>
+                        <p className="text-sm text-muted-foreground">
+                          {format(nextMonthFirst, 'MMM d, yyyy')} • {campaignData.budget} pts
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -319,7 +348,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
             <Button variant="outline" onClick={() => setShowLaunchModal(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmLaunch} disabled={!canProceed()}>
+            <Button onClick={handleConfirmLaunch} disabled={!canProceed()} aria-label="Review campaign details before launching">
               <Zap className="h-4 w-4 mr-2" />
               Review Details
             </Button>
