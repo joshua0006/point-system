@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageSquare, Clock, Edit2, Save, X, Users } from "lucide-react";
+import { Phone, MessageSquare, Clock, Edit2, Save, X, Users, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +21,7 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
   const [campaignTemplates, setCampaignTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [editingScripts, setEditingScripts] = useState<any>(null);
+  const [editingQuickLinks, setEditingQuickLinks] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -68,9 +70,15 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
     };
   };
 
+  const getQuickLinksFromTemplate = (template: any) => {
+    const config = template.template_config as any;
+    return config?.quick_links || { call: "", sms: "", reminder: "" };
+  };
+
   const handleEditScripts = (template: any) => {
     setSelectedTemplate(template);
     setEditingScripts(getScriptsFromTemplate(template));
+    setEditingQuickLinks(getQuickLinksFromTemplate(template));
   };
 
   const handleSaveScripts = async () => {
@@ -81,7 +89,8 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
       const currentConfig = selectedTemplate.template_config as any;
       const updatedConfig = {
         ...currentConfig,
-        scripts: editingScripts
+        scripts: editingScripts,
+        quick_links: editingQuickLinks || currentConfig?.quick_links || { call: "", sms: "", reminder: "" }
       };
 
       const { error } = await supabase
@@ -110,6 +119,7 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
 
       setSelectedTemplate(null);
       setEditingScripts(null);
+      setEditingQuickLinks(null);
     } catch (error) {
       console.error('Error updating scripts:', error);
       toast({
@@ -125,6 +135,7 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
   const handleCancelEdit = () => {
     setSelectedTemplate(null);
     setEditingScripts(null);
+    setEditingQuickLinks(null);
   };
 
   // Group templates by target audience
@@ -166,6 +177,7 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {(templates as any[]).map((template) => {
                     const scripts = getScriptsFromTemplate(template);
+                    const quickLinks = (template.template_config as any)?.quick_links || {};
                     
                     return (
                       <Card key={template.id} className="border-l-4 border-l-primary">
@@ -215,6 +227,41 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
                               </div>
                             </TabsContent>
                           </Tabs>
+
+                          {(quickLinks.call || quickLinks.sms || quickLinks.reminder) && (
+                            <div className="mt-4">
+                              <div className="text-xs font-medium mb-2">Quick Links</div>
+                              <div className="flex flex-wrap gap-2">
+                                {quickLinks.call && (
+                                  <Button asChild size="sm" variant="secondary">
+                                    <a href={quickLinks.call} target="_blank" rel="noopener noreferrer">
+                                      <Phone className="h-3 w-3 mr-1" />
+                                      Call Link
+                                      <ExternalLink className="h-3 w-3 ml-1" />
+                                    </a>
+                                  </Button>
+                                )}
+                                {quickLinks.sms && (
+                                  <Button asChild size="sm" variant="secondary">
+                                    <a href={quickLinks.sms} target="_blank" rel="noopener noreferrer">
+                                      <MessageSquare className="h-3 w-3 mr-1" />
+                                      SMS Link
+                                      <ExternalLink className="h-3 w-3 ml-1" />
+                                    </a>
+                                  </Button>
+                                )}
+                                {quickLinks.reminder && (
+                                  <Button asChild size="sm" variant="secondary">
+                                    <a href={quickLinks.reminder} target="_blank" rel="noopener noreferrer">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      Reminder Link
+                                      <ExternalLink className="h-3 w-3 ml-1" />
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     );
@@ -287,11 +334,50 @@ export const CampaignScriptEditor = ({ isOpen, onClose }: CampaignScriptEditorPr
                 />
               </div>
 
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Available Placeholders:</h4>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <div><code>[LEAD_NAME]</code> - Will be replaced with the lead's name</div>
-                  <div><code>[CONSULTANT_NAME]</code> - Will be replaced with the consultant's name</div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="font-medium">Quick Links (optional)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="call-link" className="text-xs flex items-center gap-1"><Phone className="h-3 w-3" /> Call link</Label>
+                      <Input
+                        id="call-link"
+                        type="url"
+                        placeholder="https://..."
+                        value={editingQuickLinks?.call || ''}
+                        onChange={(e) => setEditingQuickLinks((prev: any) => ({ ...(prev || {}), call: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="sms-link" className="text-xs flex items-center gap-1"><MessageSquare className="h-3 w-3" /> SMS link</Label>
+                      <Input
+                        id="sms-link"
+                        type="url"
+                        placeholder="https://..."
+                        value={editingQuickLinks?.sms || ''}
+                        onChange={(e) => setEditingQuickLinks((prev: any) => ({ ...(prev || {}), sms: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="reminder-link" className="text-xs flex items-center gap-1"><Clock className="h-3 w-3" /> Reminder link</Label>
+                      <Input
+                        id="reminder-link"
+                        type="url"
+                        placeholder="https://..."
+                        value={editingQuickLinks?.reminder || ''}
+                        onChange={(e) => setEditingQuickLinks((prev: any) => ({ ...(prev || {}), reminder: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">These external URLs will open in a new tab.</p>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Available Placeholders:</h4>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <div><code>[LEAD_NAME]</code> - Will be replaced with the lead's name</div>
+                    <div><code>[CONSULTANT_NAME]</code> - Will be replaced with the consultant's name</div>
+                  </div>
                 </div>
               </div>
             </div>
