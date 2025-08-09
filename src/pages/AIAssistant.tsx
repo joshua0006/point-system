@@ -6,6 +6,7 @@ import TaskSelector, { TaskCategory } from "@/components/ai/TaskSelector";
 import ChatInterface from "@/components/ai/ChatInterface";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import { BreadcrumbsBar } from "@/components/BreadcrumbsBar";
 
 export default function AIAssistant() {
   const [selectedTask, setSelectedTask] = useState<TaskCategory | null>(null);
@@ -29,6 +30,7 @@ export default function AIAssistant() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <BreadcrumbsBar />
       {/* Header Section */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
