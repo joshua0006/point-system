@@ -691,6 +691,12 @@ const LeadGenCampaigns = () => {
                       Prorated for the remaining {remainingDays} day{remainingDays !== 1 ? 's' : ''} this month.
                     </p>
                   )}
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <div className="font-medium">Next deduction</div>
+                    <div>
+                      {new Date(today.getFullYear(), today.getMonth() + 1, 1).toLocaleDateString()} • {pendingCampaign.budget} points
+                    </div>
+                  </div>
                   <div className="border-t pt-2 mt-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Balance After:</span>
