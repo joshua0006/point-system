@@ -1,4 +1,4 @@
-import { CheckCircle, Download, Mail, Camera, Target, Phone } from "lucide-react";
+import { CheckCircle, Download, Mail, Camera, Target, Phone, MessageSquare } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ interface CampaignDetails {
   id: string;
   name: string;
   description: string;
-  method: 'facebook-ads' | 'cold-calling';
+  method: 'facebook-ads' | 'cold-calling' | 'va-support';
   targetAudience?: {
     name: string;
     icon: string;
@@ -32,9 +32,11 @@ export const CampaignLaunchSuccessModal = ({
   campaignDetails 
 }: CampaignLaunchSuccessModalProps) => {
   const isFacebookAds = campaignDetails.method === 'facebook-ads';
-  const IconComponent = isFacebookAds ? Target : Phone;
-  const iconColor = isFacebookAds ? 'text-blue-600' : 'text-green-600';
-  const bgColor = isFacebookAds ? 'bg-blue-500/10' : 'bg-green-500/10';
+  const isColdCalling = campaignDetails.method === 'cold-calling';
+  const isVA = campaignDetails.method === 'va-support';
+  const IconComponent = isFacebookAds ? Target : isColdCalling ? Phone : MessageSquare;
+  const iconColor = isFacebookAds ? 'text-blue-600' : isColdCalling ? 'text-green-600' : 'text-purple-600';
+  const bgColor = isFacebookAds ? 'bg-blue-500/10' : isColdCalling ? 'bg-green-500/10' : 'bg-purple-500/10';
 
   const handleSendEmail = () => {
     const subject = encodeURIComponent(`Campaign Activation Request - ${campaignDetails.name}`);
@@ -46,7 +48,7 @@ I have successfully submitted a new campaign and need it activated:
 Campaign Details:
 - Campaign ID: ${campaignDetails.id}
 - Name: ${campaignDetails.name}
-- Type: ${isFacebookAds ? 'Facebook Ads' : 'Cold Calling'}
+- Type: ${isFacebookAds ? 'Facebook Ads' : isColdCalling ? 'Cold Calling' : 'VA Support'}
 - Target Audience: ${campaignDetails.targetAudience?.name || 'N/A'}
 - Campaign Type: ${campaignDetails.campaignType || 'N/A'}
 - Monthly Budget: ${campaignDetails.budget} points
@@ -70,7 +72,7 @@ Campaign ID: ${campaignDetails.id}
 Name: ${campaignDetails.name}
 Description: ${campaignDetails.description}
 
-Campaign Type: ${isFacebookAds ? 'Facebook Ads' : 'Cold Calling'}
+Campaign Type: ${isFacebookAds ? 'Facebook Ads' : isColdCalling ? 'Cold Calling' : 'VA Support'}
 Target Audience: ${campaignDetails.targetAudience?.name || 'N/A'}
 Campaign Type: ${campaignDetails.campaignType || 'N/A'}
 Monthly Budget: ${campaignDetails.budget} points
@@ -151,7 +153,7 @@ Next Steps:
                 <div className="flex justify-between items-start">
                   <span className="text-muted-foreground">Type:</span>
                   <Badge variant="outline" className={bgColor}>
-                    {isFacebookAds ? 'Facebook Ads' : 'Cold Calling'}
+                     {isFacebookAds ? 'Facebook Ads' : isColdCalling ? 'Cold Calling' : 'VA Support'}
                   </Badge>
                 </div>
 

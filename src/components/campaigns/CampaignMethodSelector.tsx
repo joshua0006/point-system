@@ -96,7 +96,7 @@ export const CampaignMethodSelector = ({ onMethodSelect }: CampaignMethodSelecto
                 ✓ Fixed monthly pricing in SGD (no GST)
               </div>
               <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
-                ✓ Seamless Stripe subscription checkout
+                ✓ Wallet-based monthly billing
               </div>
             </div>
             <Button className="w-full" size="lg">

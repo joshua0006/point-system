@@ -185,6 +185,17 @@ const LeadGenCampaigns = () => {
     setPendingCampaign(campaignData);
     setShowCheckoutModal(true);
   };
+
+  // VA Support wallet-based subscribe flow
+  const handleVASubscribe = (plan: { key: string; name: string; price: number }) => {
+    setPendingCampaign({
+      method: 'va-support',
+      budget: plan.price,
+      campaignType: plan.name,
+      consultantName: 'VA Team'
+    });
+    setShowCheckoutModal(true);
+  };
   const confirmCheckout = async () => {
     if (!user || !pendingCampaign) return;
     try {
@@ -226,7 +237,7 @@ const LeadGenCampaigns = () => {
         user_id: user.id,
         amount: -budget,
         type: 'purchase',
-        description: `${pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : 'Cold Calling'} Campaign`
+        description: `${pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : pendingCampaign.method === 'cold-calling' ? 'Cold Calling' : 'VA Support'}${pendingCampaign.method === 'va-support' ? ' - ' + (pendingCampaign.campaignType || '') + ' Plan' : ' Campaign'}`
       });
       if (transactionError) {
         console.error('Error creating transaction:', transactionError);
@@ -246,7 +257,12 @@ const LeadGenCampaigns = () => {
         error: campaignError
       } = await supabase.from('lead_gen_campaigns').upsert({
         name: campaignName,
-        description: pendingCampaign.method === 'facebook-ads' ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}` : `Professional cold calling service for ${pendingCampaign.hours} hours per month`,
+        description:
+          pendingCampaign.method === 'facebook-ads'
+            ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
+            : pendingCampaign.method === 'cold-calling'
+            ? `Professional cold calling service for ${pendingCampaign.hours} hours per month`
+            : `Virtual assistant support plan: ${pendingCampaign.campaignType}`,
         start_date: new Date().toISOString(),
         end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
         total_budget: budget * 12,
@@ -307,7 +323,12 @@ const LeadGenCampaigns = () => {
       setSuccessCampaignDetails({
         id: campaign.id,
         name: campaignName,
-        description: pendingCampaign.method === 'facebook-ads' ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}` : `Professional cold calling service for ${pendingCampaign.hours} hours per month`,
+         description:
+           pendingCampaign.method === 'facebook-ads'
+             ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
+             : pendingCampaign.method === 'cold-calling'
+             ? `Professional cold calling service for ${pendingCampaign.hours} hours per month`
+             : `Virtual assistant support plan: ${pendingCampaign.campaignType}`,
         method: pendingCampaign.method,
         targetAudience: pendingCampaign.targetAudience,
         campaignType: pendingCampaign.campaignType,
@@ -589,7 +610,7 @@ const LeadGenCampaigns = () => {
 
                 {currentFlow === 'cold-calling' && <ColdCallingWizard onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} />}
 
-                {currentFlow === 'va-support' && <VASupportPlans onBack={handleBackToMethods} larkMemoUrl="https://nsgukkz32942.sg.larksuite.com/wiki/EH74wip5Zi2lLOksfjWlIv9Tgkc" />}
+                {currentFlow === 'va-support' && <VASupportPlans onBack={handleBackToMethods} larkMemoUrl="https://nsgukkz32942.sg.larksuite.com/wiki/EH74wip5Zi2lLOksfjWlIv9Tgkc" onSubscribe={handleVASubscribe} />}
               </>}
           </div>
         </div>
@@ -612,7 +633,7 @@ const LeadGenCampaigns = () => {
               <div className="bg-muted/20 p-4 rounded-lg space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Campaign Type:</span>
-                  <span className="text-sm">{pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : 'Cold Calling'}</span>
+                  <span className="text-sm">{pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : pendingCampaign.method === 'cold-calling' ? 'Cold Calling' : 'VA Support'}</span>
                 </div>
                 {pendingCampaign.targetAudience && <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Target Audience:</span>

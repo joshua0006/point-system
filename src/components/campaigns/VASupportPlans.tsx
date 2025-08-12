@@ -2,13 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, MessageSquare, CalendarClock, CalendarX2, ExternalLink, ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import React from "react";
 
 interface VASupportPlansProps {
   onBack: () => void;
   larkMemoUrl: string;
+  onSubscribe: (plan: { key: PlanKey; name: string; price: number }) => void;
 }
 
 const plans = [
@@ -50,29 +49,12 @@ const plans = [
 
 type PlanKey = typeof plans[number]["key"];
 
-export const VASupportPlans: React.FC<VASupportPlansProps> = ({ onBack, larkMemoUrl }) => {
-  const { toast } = useToast();
+export const VASupportPlans: React.FC<VASupportPlansProps> = ({ onBack, larkMemoUrl, onSubscribe }) => {
+  
 
-  const handleSubscribe = async (plan: PlanKey) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("create-va-support-checkout", {
-        body: { plan },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, "_blank");
-      } else {
-        throw new Error("No checkout URL returned");
-      }
-    } catch (err: any) {
-      console.error("Checkout error:", err);
-      toast({
-        title: "Subscription error",
-        description: err?.message || "Please try again",
-        variant: "destructive",
-      });
-    }
+  const handleSubscribe = (plan: PlanKey) => {
+    const selected = plans.find(p => p.key === plan)!;
+    onSubscribe({ key: selected.key, name: selected.name, price: selected.price });
   };
 
   return (
