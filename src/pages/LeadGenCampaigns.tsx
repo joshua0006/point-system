@@ -192,23 +192,34 @@ const LeadGenCampaigns = () => {
       method: 'va-support',
       budget: plan.price,
       campaignType: plan.name,
-      consultantName: 'VA Team'
+      consultantName: 'VA Team',
+      prorateFirstMonth: true,
     });
     setShowCheckoutModal(true);
   };
   const confirmCheckout = async () => {
     if (!user || !pendingCampaign) return;
     try {
-      const budget = pendingCampaign.budget;
+      const budget = pendingCampaign.budget; // full monthly budget
+
+      // Compute immediate charge (prorated when enabled)
+      const now = new Date();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const day = now.getDate();
+      const remainingDays = daysInMonth - day + 1; // include today
+      const proratedAmount = Math.max(1, Math.round((budget * remainingDays) / daysInMonth));
+      const isProrated = !!pendingCampaign.prorateFirstMonth;
+      const amountToDeduct = isProrated ? proratedAmount : budget;
+
       console.log('Starting campaign creation process...');
-      console.log('Budget:', budget, 'User Balance:', userBalance);
+      console.log('Budget (monthly):', budget, 'Amount to deduct (now):', amountToDeduct, 'User Balance:', userBalance);
       console.log('Pending Campaign:', pendingCampaign);
 
       // Check sufficient balance
-      if (userBalance < budget) {
+      if (userBalance < amountToDeduct) {
         toast({
           title: "Insufficient Balance",
-          description: `You need ${budget} points but only have ${userBalance} points. Please contact admin to add more points to your account.`,
+          description: `You need ${amountToDeduct} points but only have ${userBalance} points. Please contact admin to add more points to your account.`,
           variant: "destructive"
         });
         return;
@@ -216,11 +227,10 @@ const LeadGenCampaigns = () => {
 
       // Deduct points and create transaction
       console.log('Updating user balance...');
-      const {
-        error: updateError
-      } = await supabase.from('profiles').update({
-        points_balance: userBalance - budget
-      }).eq('user_id', user.id);
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ points_balance: userBalance - amountToDeduct })
+        .eq('user_id', user.id);
       if (updateError) {
         console.error('Error updating balance:', updateError);
         toast({
@@ -230,12 +240,11 @@ const LeadGenCampaigns = () => {
         });
         return;
       }
+
       console.log('Creating transaction record...');
-      const {
-        error: transactionError
-      } = await supabase.from('points_transactions').insert({
+      const { error: transactionError } = await supabase.from('points_transactions').insert({
         user_id: user.id,
-        amount: -budget,
+        amount: -amountToDeduct,
         type: 'purchase',
         description: `${pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : pendingCampaign.method === 'cold-calling' ? 'Cold Calling' : 'VA Support'}${pendingCampaign.method === 'va-support' ? ' - ' + (pendingCampaign.campaignType || '') + ' Plan' : ' Campaign'}`
       });
@@ -250,25 +259,31 @@ const LeadGenCampaigns = () => {
       }
 
       // Create campaign entry
-      const campaignName = pendingCampaign.method === 'facebook-ads' ? `Facebook Ads - ${pendingCampaign.targetAudience?.name} - ${pendingCampaign.campaignType}` : `Cold Calling Campaign - ${pendingCampaign.hours} hours/month`;
+      const campaignName =
+        pendingCampaign.method === 'facebook-ads'
+          ? `Facebook Ads - ${pendingCampaign.targetAudience?.name} - ${pendingCampaign.campaignType}`
+          : pendingCampaign.method === 'cold-calling'
+          ? `Cold Calling Campaign - ${pendingCampaign.hours} hours/month`
+          : `VA Support - ${pendingCampaign.campaignType}`;
       console.log('Creating campaign with name:', campaignName);
-      const {
-        data: campaign,
-        error: campaignError
-      } = await supabase.from('lead_gen_campaigns').upsert({
-        name: campaignName,
-        description:
-          pendingCampaign.method === 'facebook-ads'
-            ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
-            : pendingCampaign.method === 'cold-calling'
-            ? `Professional cold calling service for ${pendingCampaign.hours} hours per month`
-            : `Virtual assistant support plan: ${pendingCampaign.campaignType}`,
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        total_budget: budget * 12,
-        status: 'active',
-        created_by: user.id
-      }).select().single();
+      const { data: campaign, error: campaignError } = await supabase
+        .from('lead_gen_campaigns')
+        .upsert({
+          name: campaignName,
+          description:
+            pendingCampaign.method === 'facebook-ads'
+              ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
+              : pendingCampaign.method === 'cold-calling'
+              ? `Professional cold calling service for ${pendingCampaign.hours} hours per month`
+              : `Virtual assistant support plan: ${pendingCampaign.campaignType}`,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          total_budget: budget * 12,
+          status: 'active',
+          created_by: user.id
+        })
+        .select()
+        .single();
       if (campaignError) {
         console.error('Error creating campaign:', campaignError);
         toast({
@@ -287,26 +302,20 @@ const LeadGenCampaigns = () => {
       const billingDay = 1; // Always bill on the 1st of the month
 
       console.log('Adding campaign participant with billing schedule...');
-      const isProrated = !!pendingCampaign.prorateFirstMonth;
-      // Derive full monthly budget when proration is enabled
-      const now = new Date();
-      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      const day = now.getDate();
-      const remaining = daysInMonth - day + 1; // include today
-      const frac = remaining / daysInMonth;
-      const derivedMonthlyBudget = isProrated ? Math.max(1, Math.round(budget / Math.max(frac, 0.01))) : null;
+      // Set monthly budget to the full monthly amount; immediate charge was prorated if enabled
+      const monthlyBudget = budget;
 
       const { error } = await supabase.from('campaign_participants').insert({
         campaign_id: campaign.id,
         user_id: user.id,
         consultant_name: pendingCampaign.consultantName,
-        budget_contribution: budget,
+        budget_contribution: monthlyBudget,
         next_billing_date: nextBillingDate.toISOString().split('T')[0],
         // YYYY-MM-DD format
         billing_cycle_day: billingDay,
         billing_status: 'active',
-        proration_enabled: isProrated,
-        monthly_budget: derivedMonthlyBudget
+        proration_enabled: !!pendingCampaign.prorateFirstMonth,
+        monthly_budget: monthlyBudget
       });
       if (error) {
         console.error('Error adding campaign participant:', error);
@@ -323,12 +332,12 @@ const LeadGenCampaigns = () => {
       setSuccessCampaignDetails({
         id: campaign.id,
         name: campaignName,
-         description:
-           pendingCampaign.method === 'facebook-ads'
-             ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
-             : pendingCampaign.method === 'cold-calling'
-             ? `Professional cold calling service for ${pendingCampaign.hours} hours per month`
-             : `Virtual assistant support plan: ${pendingCampaign.campaignType}`,
+        description:
+          pendingCampaign.method === 'facebook-ads'
+            ? `Facebook advertising campaign targeting ${pendingCampaign.targetAudience?.name}`
+            : pendingCampaign.method === 'cold-calling'
+            ? `Professional cold calling service for ${pendingCampaign.hours} hours per month`
+            : `Virtual assistant support plan: ${pendingCampaign.campaignType}`,
         method: pendingCampaign.method,
         targetAudience: pendingCampaign.targetAudience,
         campaignType: pendingCampaign.campaignType,
@@ -346,7 +355,7 @@ const LeadGenCampaigns = () => {
       fetchUserCampaigns();
       toast({
         title: "Campaign Launched Successfully! 🎉",
-        description: `${budget} points deducted from your account.`
+        description: `${amountToDeduct} points deducted from your account.`
       });
     } catch (error) {
       console.error('Campaign creation failed:', error);
@@ -629,67 +638,91 @@ const LeadGenCampaigns = () => {
             </DialogDescription>
           </DialogHeader>
           
-          {pendingCampaign && <div className="space-y-4">
-              <div className="bg-muted/20 p-4 rounded-lg space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Campaign Type:</span>
-                  <span className="text-sm">{pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : pendingCampaign.method === 'cold-calling' ? 'Cold Calling' : 'VA Support'}</span>
-                </div>
-                {pendingCampaign.targetAudience && <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Target Audience:</span>
-                    <span className="text-sm">{pendingCampaign.targetAudience.name}</span>
-                  </div>}
-                {pendingCampaign.campaignType && <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Campaign Type:</span>
-                    <span className="text-sm">{pendingCampaign.campaignType}</span>
-                  </div>}
-                {pendingCampaign.hours && <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Hours/Month:</span>
-                    <span className="text-sm">{pendingCampaign.hours}h</span>
-                  </div>}
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Monthly Cost:</span>
-                  <span className="text-sm font-bold">{pendingCampaign.budget} points</span>
-                </div>
-              </div>
-
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Current Balance:</span>
-                  <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Amount to Deduct:</span>
-                  <span className="text-sm font-bold text-red-600">-{pendingCampaign.budget} points</span>
-                </div>
-                <div className="border-t pt-2 mt-2">
+          {pendingCampaign && (() => {
+            const today = new Date();
+            const totalDays = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            const remainingDays = Math.max(0, totalDays - today.getDate() + 1);
+            const proratedAmount = Math.max(1, Math.round((pendingCampaign.budget * remainingDays) / totalDays));
+            const isProrated = !!pendingCampaign.prorateFirstMonth;
+            const amountToDeduct = isProrated ? proratedAmount : pendingCampaign.budget;
+            const balanceAfter = userBalance - amountToDeduct;
+            return (
+              <div className="space-y-4">
+                <div className="bg-muted/20 p-4 rounded-lg space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Balance After:</span>
-                    <span className="text-lg font-bold text-primary">
-                      {(userBalance - pendingCampaign.budget).toLocaleString()} points
-                    </span>
+                    <span className="text-sm font-medium">Campaign Type:</span>
+                    <span className="text-sm">{pendingCampaign.method === 'facebook-ads' ? 'Facebook Ads' : pendingCampaign.method === 'cold-calling' ? 'Cold Calling' : 'VA Support'}</span>
+                  </div>
+                  {pendingCampaign.targetAudience && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Target Audience:</span>
+                      <span className="text-sm">{pendingCampaign.targetAudience.name}</span>
+                    </div>
+                  )}
+                  {pendingCampaign.campaignType && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Campaign Type:</span>
+                      <span className="text-sm">{pendingCampaign.campaignType}</span>
+                    </div>
+                  )}
+                  {pendingCampaign.hours && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Hours/Month:</span>
+                      <span className="text-sm">{pendingCampaign.hours}h</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Monthly Cost:</span>
+                    <span className="text-sm font-bold">{pendingCampaign.budget} points</span>
                   </div>
                 </div>
+
+                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium">Current Balance:</span>
+                    <span className="text-sm font-bold">{userBalance.toLocaleString()} points</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium">Amount to Deduct Now:</span>
+                    <span className="text-sm font-bold text-red-600">-{amountToDeduct} points</span>
+                  </div>
+                  {isProrated && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Prorated for the remaining {remainingDays} day{remainingDays !== 1 ? 's' : ''} this month.
+                    </p>
+                  )}
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Balance After:</span>
+                      <span className="text-lg font-bold text-primary">
+                        {balanceAfter.toLocaleString()} points
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {userBalance < amountToDeduct && (
+                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                    <p className="text-sm text-red-800">
+                      ⚠️ Insufficient balance. You need {amountToDeduct - userBalance} more points.
+                      Contact admin to add points to your account.
+                    </p>
+                  </div>
+                )}
+
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="flex-1">
+                    Cancel
+                  </Button>
+                  <Button onClick={confirmCheckout} className="flex-1" disabled={userBalance < amountToDeduct}>
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    {userBalance < amountToDeduct ? 'Insufficient Balance' : 'Confirm & Launch'}
+                  </Button>
+                </DialogFooter>
               </div>
+            );
+          })()}
 
-
-              {userBalance < pendingCampaign.budget && <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
-                  <p className="text-sm text-red-800">
-                    ⚠️ Insufficient balance. You need {pendingCampaign.budget - userBalance} more points.
-                    Contact admin to add points to your account.
-                  </p>
-                </div>}
-            </div>}
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={confirmCheckout} className="flex-1" disabled={!pendingCampaign || userBalance < pendingCampaign.budget}>
-              <DollarSign className="h-4 w-4 mr-2" />
-              {userBalance < (pendingCampaign?.budget || 0) ? 'Insufficient Balance' : 'Confirm & Launch'}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
