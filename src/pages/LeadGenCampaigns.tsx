@@ -13,6 +13,7 @@ import { AdminInterface } from "@/components/campaigns/AdminInterface";
 import { CampaignMethodSelector } from "@/components/campaigns/CampaignMethodSelector";
 import { FacebookAdsCatalog } from "@/components/campaigns/FacebookAdsCatalog";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
+import { VASupportPlans } from "@/components/campaigns/VASupportPlans";
 import { useToast } from "@/hooks/use-toast";
 
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
@@ -26,7 +27,7 @@ const LeadGenCampaigns = () => {
   const {
     toast
   } = useToast();
-  const [currentFlow, setCurrentFlow] = useState<'method-selection' | 'facebook-ads' | 'cold-calling'>('method-selection');
+  const [currentFlow, setCurrentFlow] = useState<'method-selection' | 'facebook-ads' | 'cold-calling' | 'va-support'>('method-selection');
   const [isAdmin, setIsAdmin] = useState(false);
   const {
     campaignTargets,
@@ -73,6 +74,24 @@ const LeadGenCampaigns = () => {
       setTimeout(() => {
         fetchUserBalance();
       }, 1000);
+    }
+
+    const vaStatus = urlParams.get('va_subscribe');
+    if (vaStatus === 'success') {
+      toast({
+        title: "Subscribed successfully",
+        description: "Your VA Support subscription is now active in Stripe."
+      });
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    } else if (vaStatus === 'canceled') {
+      toast({
+        title: "Checkout canceled",
+        description: "You canceled the VA Support subscription checkout.",
+        variant: "destructive"
+      });
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
     }
   };
   const fetchUserCampaigns = async () => {
@@ -156,7 +175,7 @@ const LeadGenCampaigns = () => {
       description: `${points} points added to your account.`
     });
   };
-  const handleMethodSelect = (method: 'facebook-ads' | 'cold-calling') => {
+  const handleMethodSelect = (method: 'facebook-ads' | 'cold-calling' | 'va-support') => {
     setCurrentFlow(method);
   };
   const handleBackToMethods = () => {
@@ -569,6 +588,8 @@ const LeadGenCampaigns = () => {
                 {currentFlow === 'facebook-ads' && <FacebookAdsCatalog onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} campaignTargets={campaignTargets} />}
 
                 {currentFlow === 'cold-calling' && <ColdCallingWizard onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} />}
+
+                {currentFlow === 'va-support' && <VASupportPlans onBack={handleBackToMethods} larkMemoUrl="https://nsgukkz32942.sg.larksuite.com/wiki/EH74wip5Zi2lLOksfjWlIv9Tgkc" />}
               </>}
           </div>
         </div>

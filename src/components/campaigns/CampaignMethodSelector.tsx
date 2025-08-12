@@ -1,10 +1,10 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Target, Phone } from "lucide-react";
+import { Target, Phone, MessageSquare } from "lucide-react";
 
 interface CampaignMethodSelectorProps {
-  onMethodSelect: (method: 'facebook-ads' | 'cold-calling') => void;
+  onMethodSelect: (method: 'facebook-ads' | 'cold-calling' | 'va-support') => void;
 }
 
 export const CampaignMethodSelector = ({ onMethodSelect }: CampaignMethodSelectorProps) => {
@@ -17,7 +17,7 @@ export const CampaignMethodSelector = ({ onMethodSelect }: CampaignMethodSelecto
         </p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
         <Card 
           className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
           onClick={() => onMethodSelect('facebook-ads')}
@@ -72,6 +72,35 @@ export const CampaignMethodSelector = ({ onMethodSelect }: CampaignMethodSelecto
             </div>
             <Button className="w-full" size="lg">
               Start Cold Calling
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
+          onClick={() => onMethodSelect('va-support')}
+        >
+          <CardContent className="p-8 text-center">
+            <div className="bg-purple-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
+              <MessageSquare className="h-12 w-12 text-purple-600" />
+            </div>
+            <h3 className="text-2xl font-bold mb-4">VA Support Services</h3>
+            <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+              Subscribe to managed follow-ups, appointment setting, and reminders so you can focus on selling.
+            </p>
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
+                ✓ Basic, Standard, Comprehensive, or Self-Managed
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
+                ✓ Fixed monthly pricing in SGD (no GST)
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 font-medium">
+                ✓ Seamless Stripe subscription checkout
+              </div>
+            </div>
+            <Button className="w-full" size="lg">
+              Explore VA Plans
             </Button>
           </CardContent>
         </Card>
