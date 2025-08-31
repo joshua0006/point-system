@@ -566,7 +566,7 @@ const LeadGenCampaigns = () => {
                               {participation.billing_status === 'active' ? <Button variant="outline" size="sm" onClick={() => handleStopCampaign(participation.id)} className="flex-1 border-warning text-warning hover:bg-warning hover:text-warning-foreground">
                                   <Pause className="h-4 w-4 mr-2" />
                                   Pause Billing
-                                </Button> : participation.billing_status === 'stopped' ? <Button size="sm" onClick={() => handleReactivateCampaign(participation.id)} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+                                </Button> : participation.billing_status === 'stopped' ? <Button variant="success" size="sm" onClick={() => handleReactivateCampaign(participation.id)} className="flex-1">
                                   <Play className="h-4 w-4 mr-2" />
                                   Resume Billing
                                 </Button> : null}
