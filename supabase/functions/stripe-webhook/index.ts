@@ -65,9 +65,9 @@ serve(async (req) => {
       logStep("Adding points to user", { userId, pointsToAdd });
 
       // Add points to user's balance using the existing database function
-      const { error: pointsError } = await supabaseClient.rpc('increment_points_balance', {
+      const { error: pointsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
         user_id: userId,
-        points_to_add: pointsToAdd
+        credits_to_add: pointsToAdd
       });
 
       if (pointsError) {
@@ -77,7 +77,7 @@ serve(async (req) => {
 
       // Create a transaction record for audit trail
       const { error: transactionError } = await supabaseClient
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .insert({
           user_id: userId,
           type: 'purchase',
@@ -91,6 +91,75 @@ serve(async (req) => {
       }
 
       logStep("Successfully processed checkout", { userId, pointsToAdd, sessionId: session.id });
+    }
+
+    // Handle subscription payments
+    if (event.type === "invoice.payment_succeeded") {
+      const invoice = event.data.object;
+      logStep("Processing invoice payment", { invoiceId: invoice.id });
+
+      // Get subscription details
+      const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+      logStep("Retrieved subscription", { subscriptionId: subscription.id });
+
+      // Find user by customer email
+      const customer = await stripe.customers.retrieve(invoice.customer);
+      const customerEmail = customer.email;
+      
+      if (!customerEmail) {
+        logStep("No customer email found", { customerId: invoice.customer });
+        throw new Error("No customer email found");
+      }
+
+      // Find user profile by email
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('user_id')
+        .eq('email', customerEmail)
+        .single();
+
+      if (profileError || !profile) {
+        logStep("User profile not found", { email: customerEmail, error: profileError });
+        throw new Error(`User profile not found for email: ${customerEmail}`);
+      }
+
+      // Get credits amount from subscription metadata or line items
+      const lineItem = invoice.lines.data[0];
+      const creditsToAdd = parseInt(subscription.metadata?.credits || lineItem.quantity || "0");
+
+      if (!creditsToAdd) {
+        logStep("No credits amount found", { subscriptionMetadata: subscription.metadata, lineItem: lineItem.quantity });
+        throw new Error("No credits amount found in subscription");
+      }
+
+      logStep("Adding subscription credits to user", { userId: profile.user_id, creditsToAdd });
+
+      // Add credits to user's balance
+      const { error: creditsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
+        user_id: profile.user_id,
+        credits_to_add: creditsToAdd
+      });
+
+      if (creditsError) {
+        logStep("Error adding subscription credits", creditsError);
+        throw creditsError;
+      }
+
+      // Create a transaction record
+      const { error: transactionError } = await supabaseClient
+        .from('flexi_credits_transactions')
+        .insert({
+          user_id: profile.user_id,
+          type: 'purchase',
+          amount: creditsToAdd,
+          description: `Monthly subscription - Invoice ${invoice.id}`
+        });
+
+      if (transactionError) {
+        logStep("Error creating subscription transaction record", transactionError);
+      }
+
+      logStep("Successfully processed subscription payment", { userId: profile.user_id, creditsToAdd, invoiceId: invoice.id });
     }
 
     return new Response(JSON.stringify({ received: true }), {
