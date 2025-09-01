@@ -105,6 +105,55 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             </div>
           </div>
 
+          {/* Custom Amount Section - Prominent */}
+          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 border-2 border-primary/20">
+            <div className="text-center mb-4">
+              <h3 className="font-bold text-xl text-primary mb-2">🎯 Custom Amount</h3>
+              <p className="text-sm text-muted-foreground">Enter any amount you want to add to your account</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  placeholder="Enter custom points (minimum 1)"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  min="1"
+                  className="text-center text-lg font-semibold"
+                />
+                <p className="text-xs text-muted-foreground mt-1 text-center">
+                  S$1 = 1 point | Minimum: S$1
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  const amount = parseInt(customAmount);
+                  if (amount >= 1) {
+                    handleAddPoints(amount);
+                  } else {
+                    toast({
+                      title: "Invalid Amount",
+                      description: "Please enter a minimum amount of S$1",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                disabled={loading || !customAmount || parseInt(customAmount) < 1}
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold"
+                size="lg"
+              >
+                {loading && selectedAmount === parseInt(customAmount) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  "💳 Add Custom Points"
+                )}
+              </Button>
+            </div>
+          </div>
+
           {/* Points Packages Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {pointsPackages.map((pkg) => (
@@ -163,51 +212,6 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-
-          {/* Custom Amount Section */}
-          <div className="bg-muted/30 rounded-lg p-6 border border-muted">
-            <h3 className="font-semibold text-lg mb-4 text-center">Custom Amount</h3>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  placeholder="Enter custom amount"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  min="1"
-                  className="text-center"
-                />
-                <p className="text-xs text-muted-foreground mt-1 text-center">
-                  Minimum: S$1 (1 point)
-                </p>
-              </div>
-              <Button
-                onClick={() => {
-                  const amount = parseInt(customAmount);
-                  if (amount >= 1) {
-                    handleAddPoints(amount);
-                  } else {
-                    toast({
-                      title: "Invalid Amount",
-                      description: "Please enter a minimum amount of S$1",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-                disabled={loading || !customAmount || parseInt(customAmount) < 1}
-                className="w-full sm:w-auto"
-              >
-                {loading && selectedAmount === parseInt(customAmount) ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                    Processing...
-                  </div>
-                ) : (
-                  "Add Custom Amount"
-                )}
-              </Button>
-            </div>
           </div>
 
           {/* Information Section */}
