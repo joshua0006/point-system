@@ -64,6 +64,18 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
       cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
+      metadata: {
+        user_id: user.id,
+        credits: credits.toString(),
+        plan_name: planName
+      },
+      subscription_data: {
+        metadata: {
+          user_id: user.id,
+          credits: credits.toString(),
+          plan_name: planName
+        }
+      }
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

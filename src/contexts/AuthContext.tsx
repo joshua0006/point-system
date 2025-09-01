@@ -19,13 +19,23 @@ interface Profile {
   approved_at?: string;
 }
 
+interface SubscriptionStatus {
+  subscribed: boolean;
+  subscription_tier: string | null;
+  subscription_end: string | null;
+  plan_name: string | null;
+  credits_per_month: number;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  subscription: SubscriptionStatus | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,11 +61,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer profile fetch to avoid blocking auth state updates
+          // Defer profile and subscription fetch to avoid blocking auth state updates
           setTimeout(async () => {
             if (!mounted) return;
             
             try {
+              // Fetch profile
               const { data: profileData, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -70,12 +82,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(profileData);
                 console.log('Profile loaded successfully:', profileData);
               }
+
+              // Fetch subscription status
+              try {
+                const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
+                
+                if (subscriptionError) {
+                  console.error('Error fetching subscription:', subscriptionError);
+                  setSubscription(null);
+                } else {
+                  setSubscription(subscriptionData);
+                  console.log('Subscription loaded successfully:', subscriptionData);
+                }
+              } catch (err) {
+                console.error('Subscription fetch error:', err);
+                setSubscription(null);
+              }
             } catch (err) {
               console.error('Profile fetch error:', err);
             }
           }, 0);
         } else {
           setProfile(null);
+          setSubscription(null);
         }
         
         setLoading(false);
@@ -100,6 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           try {
+            // Fetch profile
             const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
@@ -114,6 +144,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(profileData);
                 console.log('Profile loaded during init:', profileData);
               }
+            }
+
+            // Fetch subscription status
+            try {
+              const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
+              
+              if (mounted) {
+                if (subscriptionError) {
+                  console.error('Subscription fetch error during init:', subscriptionError);
+                  setSubscription(null);
+                } else {
+                  setSubscription(subscriptionData);
+                  console.log('Subscription loaded during init:', subscriptionData);
+                }
+              }
+            } catch (err) {
+              console.error('Subscription fetch error during init:', err);
             }
           } catch (err) {
             console.error('Profile fetch error during init:', err);
@@ -204,13 +251,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshSubscription = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: subscriptionData, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error refreshing subscription:', error);
+        setSubscription(null);
+      } else {
+        setSubscription(subscriptionData);
+        console.log('Subscription refreshed:', subscriptionData);
+      }
+    } catch (err) {
+      console.error('Subscription refresh error:', err);
+    }
+  };
+
   const value = {
     user,
     session,
     profile,
+    subscription,
     loading,
     signOut,
     refreshProfile,
+    refreshSubscription,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

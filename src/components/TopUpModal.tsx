@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, CreditCard, Zap, Star, CheckCircle } from "lucide-react";
+import { Shield, CreditCard, Zap, Star, CheckCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TopUpModalProps {
@@ -18,9 +18,10 @@ interface TopUpModalProps {
 export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshingSubscription, setRefreshingSubscription] = useState(false);
   const [customAmount, setCustomAmount] = useState<string>("");
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, subscription, refreshSubscription } = useAuth();
 
   const pointsPackages = [
     { 
@@ -106,6 +107,39 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     }
   };
 
+  const handleRefreshSubscription = async () => {
+    setRefreshingSubscription(true);
+    try {
+      await refreshSubscription();
+      toast({
+        title: "Success",
+        description: "Subscription status refreshed successfully",
+      });
+    } catch (error: any) {
+      console.error('Error refreshing subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh subscription status",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingSubscription(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const isCurrentPlan = (credits: number) => {
+    return subscription?.subscribed && subscription?.credits_per_month === credits;
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -126,31 +160,56 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             <div className="text-center mb-4">
               <h3 className="font-bold text-xl text-primary mb-2">📅 Current Subscription</h3>
               <p className="text-sm text-muted-foreground">
-                Your subscription renews on the 1st of each month
+                {subscription?.subscribed ? "Your subscription renews monthly" : "No active subscription"}
               </p>
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold mb-2">
-                Current Plan: <span className="text-primary">Starter Plan</span>
+                Current Plan: <span className="text-primary">
+                  {subscription?.subscribed ? subscription.plan_name || "Active Subscription" : "No Plan"}
+                </span>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Next billing: 1st January 2025 • Change takes effect next billing cycle
-              </p>
-              <Button
-                onClick={handleManageSubscription}
-                disabled={loading}
-                variant="outline"
-                className="mx-auto"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                    Loading...
-                  </div>
-                ) : (
-                  "Manage Subscription & Billing"
+              {subscription?.subscribed && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  {subscription.credits_per_month} credits/month • Next billing: {formatDate(subscription.subscription_end)}
+                </p>
+              )}
+              <div className="flex gap-2 justify-center">
+                {subscription?.subscribed && (
+                  <Button
+                    onClick={handleManageSubscription}
+                    disabled={loading}
+                    variant="outline"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                        Loading...
+                      </div>
+                    ) : (
+                      "Manage Subscription & Billing"
+                    )}
+                  </Button>
                 )}
-              </Button>
+                <Button
+                  onClick={handleRefreshSubscription}
+                  disabled={refreshingSubscription}
+                  variant="outline"
+                  size="sm"
+                >
+                  {refreshingSubscription ? (
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Refreshing...
+                    </div>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh Status
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -160,12 +219,19 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               <Card 
                 key={pkg.points} 
                 className={`relative border-2 transition-all hover:shadow-lg ${
-                  pkg.popular 
+                  isCurrentPlan(pkg.points)
+                    ? 'border-green-500 bg-green-50/50 shadow-lg scale-105' 
+                    : pkg.popular 
                     ? 'border-primary shadow-lg scale-105' 
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                {pkg.popular && (
+                {isCurrentPlan(pkg.points) && (
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-600">
+                    Current Plan
+                  </Badge>
+                )}
+                {pkg.popular && !isCurrentPlan(pkg.points) && (
                   <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
                     Most Popular
                   </Badge>
@@ -195,19 +261,23 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   
                   <Button
                     onClick={() => handleSubscribe(pkg.points, pkg.price)}
-                    disabled={loading}
+                    disabled={loading || isCurrentPlan(pkg.points)}
                     className={`w-full ${
-                      pkg.popular 
+                      isCurrentPlan(pkg.points)
+                        ? 'bg-green-600 hover:bg-green-600'
+                        : pkg.popular 
                         ? 'bg-primary hover:bg-primary/90' 
                         : ''
                     }`}
-                    variant={pkg.popular ? "default" : "outline"}
+                    variant={isCurrentPlan(pkg.points) ? "default" : pkg.popular ? "default" : "outline"}
                   >
                     {loading && selectedAmount === pkg.points ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                         Processing...
                       </div>
+                    ) : isCurrentPlan(pkg.points) ? (
+                      "Current Plan"
                     ) : (
                       "Subscribe to Plan"
                     )}
