@@ -53,13 +53,13 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     },
   ];
 
-  const handleAddPoints = async (amount: number) => {
-    setSelectedAmount(amount);
+  const handleSubscribe = async (credits: number, price: number) => {
+    setSelectedAmount(credits);
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('create-points-checkout', {
-        body: { points: amount }
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+        body: { credits, price }
       });
       
       if (error) throw error;
@@ -70,10 +70,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       // Close the modal
       onClose();
     } catch (error: any) {
-      console.error('Error creating checkout session:', error);
+      console.error('Error creating subscription checkout:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create checkout session",
+        description: error.message || "Failed to create subscription checkout",
         variant: "destructive",
       });
     } finally {
@@ -86,7 +86,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-6">
-          <DialogTitle className="text-2xl font-bold">Add Flexi-Credits to Your Account</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Manage Your Subscription</DialogTitle>
           <div className="flex items-center justify-center gap-2 mt-2">
             <span className="text-muted-foreground">Current Balance:</span>
             <span className="font-semibold text-primary">
@@ -96,65 +96,25 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Monthly/Yearly Toggle */}
-          <div className="flex justify-center">
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <Button variant="default" size="sm" className="rounded-md">
-                One-time
-              </Button>
-            </div>
-          </div>
-
-          {/* Custom Amount Section - Prominent */}
+          {/* Current Subscription Status */}
           <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 border-2 border-primary/20">
             <div className="text-center mb-4">
-              <h3 className="font-bold text-xl text-primary mb-2">🎯 Custom Amount</h3>
-              <p className="text-sm text-muted-foreground">Enter any amount you want to add to your account</p>
+              <h3 className="font-bold text-xl text-primary mb-2">📅 Current Subscription</h3>
+              <p className="text-sm text-muted-foreground">
+                Your subscription renews on the 1st of each month
+              </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  placeholder="Enter custom flexi-credits (minimum 1)"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  min="1"
-                  className="text-center text-lg font-semibold"
-                />
-                <p className="text-xs text-muted-foreground mt-1 text-center">
-                  S$1 = 1 flexi-credit | Minimum: S$1
-                </p>
+            <div className="text-center">
+              <div className="text-lg font-semibold mb-2">
+                Current Plan: <span className="text-primary">Starter Plan</span>
               </div>
-              <Button
-                onClick={() => {
-                  const amount = parseInt(customAmount);
-                  if (amount >= 1) {
-                    handleAddPoints(amount);
-                  } else {
-                    toast({
-                      title: "Invalid Amount",
-                      description: "Please enter a minimum amount of S$1",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-                disabled={loading || !customAmount || parseInt(customAmount) < 1}
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold"
-                size="lg"
-              >
-                {loading && selectedAmount === parseInt(customAmount) ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                    Processing...
-                  </div>
-                ) : (
-                  "💳 Add Custom Flexi-Credits"
-                )}
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Next billing: 1st January 2025 • Change takes effect next billing cycle
+              </p>
             </div>
           </div>
 
-          {/* Points Packages Grid */}
+          {/* Subscription Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {pointsPackages.map((pkg) => (
               <Card 
@@ -167,7 +127,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               >
                 {pkg.popular && (
                   <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-                    Popular
+                    Most Popular
                   </Badge>
                 )}
                 <CardContent className="p-6 text-center">
@@ -177,7 +137,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                       S${pkg.price}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {pkg.points} flexi-credits
+                      per month
+                    </div>
+                    <div className="text-sm font-medium text-primary">
+                      {pkg.points} flexi-credits/month
                     </div>
                   </div>
                   
@@ -191,7 +154,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   </ul>
                   
                   <Button
-                    onClick={() => handleAddPoints(pkg.points)}
+                    onClick={() => handleSubscribe(pkg.points, pkg.price)}
                     disabled={loading}
                     className={`w-full ${
                       pkg.popular 
@@ -206,7 +169,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                         Processing...
                       </div>
                     ) : (
-                      "Add Flexi-Credits"
+                      "Subscribe to Plan"
                     )}
                   </Button>
                 </CardContent>
@@ -214,13 +177,15 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             ))}
           </div>
 
-          {/* Information Section */}
+          {/* Billing Information */}
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-            <h4 className="font-semibold text-primary mb-2">What are flexi-credits?</h4>
-            <p className="text-sm text-muted-foreground">
-              Flexi-credits are units used for AI token credits in your campaigns. Your plan includes credits to 
-              spend on various AI models - the more complex the task, the more flexi-credits used.
-            </p>
+            <h4 className="font-semibold text-primary mb-2">💡 Subscription Details</h4>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>• All subscriptions are billed monthly on the 1st</p>
+              <p>• Plan changes take effect from your next billing cycle</p>
+              <p>• Unused flexi-credits roll over to the next month</p>
+              <p>• Cancel anytime - your plan remains active until the end of your billing period</p>
+            </div>
           </div>
 
           {/* Trust Indicators */}

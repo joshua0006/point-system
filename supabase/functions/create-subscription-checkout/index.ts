@@ -24,7 +24,7 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { campaignType, hours } = await req.json();
+    const { credits, price } = await req.json();
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
@@ -37,6 +37,12 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
+    // Determine plan name based on credits
+    let planName = "Starter Plan";
+    if (credits === 500) planName = "Plus Plan";
+    else if (credits === 750) planName = "Pro Plan";
+    else if (credits === 1000) planName = "Ultra Plan";
+
     // Create monthly subscription checkout
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -46,18 +52,18 @@ serve(async (req) => {
           price_data: {
             currency: "sgd",
             product_data: { 
-              name: `Cold Calling Service - ${hours} hours/month (incl. GST)`,
-              description: `Monthly subscription for ${hours} hours of cold calling services (S$${hours * 6} + 9% GST)`
+              name: `${planName} - ${credits} flexi-credits/month`,
+              description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month)`
             },
-            unit_amount: Math.round((hours * 600) * 1.09), // $6 per hour + 9% GST in cents
+            unit_amount: price * 100, // Convert to cents
             recurring: { interval: "month" },
           },
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/lead-gen-campaigns?success=true`,
-      cancel_url: `${req.headers.get("origin")}/lead-gen-campaigns?canceled=true`,
+      success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
+      cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
