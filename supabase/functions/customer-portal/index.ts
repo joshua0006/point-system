@@ -36,10 +36,11 @@ serve(async (req) => {
 
     const customerId = customers.data[0].id;
 
-    // Create a billing portal session
+    // Create a billing portal session with subscription management enabled
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${req.headers.get("origin")}/marketplace`,
+      configuration: undefined, // Use default configuration which includes subscription management
     });
 
     return new Response(JSON.stringify({ url: portalSession.url }), {
