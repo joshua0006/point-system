@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -47,6 +47,101 @@ export type Database = {
           template_id?: string
           updated_at?: string
           variant_name?: string
+        }
+        Relationships: []
+      }
+      addon_features: {
+        Row: {
+          addon_id: string
+          created_at: string
+          feature_text: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          addon_id: string
+          created_at?: string
+          feature_text: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          addon_id?: string
+          created_at?: string
+          feature_text?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_features_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "addons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      addons: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          price_text: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price_text: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_text?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          password_hash?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -160,6 +255,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brain_notes: {
+        Row: {
+          content: string
+          context: string | null
+          created_at: string
+          id: string
+          project: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          project?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          project?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      brain_tasks: {
+        Row: {
+          context: string | null
+          created_at: string
+          due: string | null
+          id: string
+          priority: string | null
+          project: string | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          due?: string | null
+          id?: string
+          priority?: string | null
+          project?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          due?: string | null
+          id?: string
+          priority?: string | null
+          project?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       campaign_access_rules: {
         Row: {
@@ -815,6 +988,124 @@ export type Database = {
         }
         Relationships: []
       }
+      package_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      package_features: {
+        Row: {
+          created_at: string
+          feature_text: string
+          id: string
+          package_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          feature_text: string
+          id?: string
+          package_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          feature_text?: string
+          id?: string
+          package_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_features_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          is_popular: boolean
+          name: string
+          original_price: number | null
+          period: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          name: string
+          original_price?: number | null
+          period?: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          name?: string
+          original_price?: number | null
+          period?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "package_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_methods: {
         Row: {
           card_brand: string | null
@@ -1203,12 +1494,17 @@ export type Database = {
       wishlist_items: {
         Row: {
           category: Database["public"]["Enums"]["wishlist_category"]
+          committed_at: string | null
+          committed_by: string | null
           completed_date: string | null
           couple_id: string | null
           created_at: string
+          created_by: string | null
           description: string | null
           estimated_cost: number | null
           id: string
+          intended_for: string | null
+          is_private: boolean
           location: string | null
           notes: string | null
           priority: Database["public"]["Enums"]["priority_level"]
@@ -1219,12 +1515,17 @@ export type Database = {
         }
         Insert: {
           category: Database["public"]["Enums"]["wishlist_category"]
+          committed_at?: string | null
+          committed_by?: string | null
           completed_date?: string | null
           couple_id?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
           estimated_cost?: number | null
           id?: string
+          intended_for?: string | null
+          is_private?: boolean
           location?: string | null
           notes?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
@@ -1235,12 +1536,17 @@ export type Database = {
         }
         Update: {
           category?: Database["public"]["Enums"]["wishlist_category"]
+          committed_at?: string | null
+          committed_by?: string | null
           completed_date?: string | null
           couple_id?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
           estimated_cost?: number | null
           id?: string
+          intended_for?: string | null
+          is_private?: boolean
           location?: string | null
           notes?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
@@ -1257,7 +1563,7 @@ export type Database = {
     }
     Functions: {
       increment_points_balance: {
-        Args: { user_id: string; points_to_add: number }
+        Args: { points_to_add: number; user_id: string }
         Returns: undefined
       }
     }
