@@ -102,7 +102,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   };
 
   const handleUpgradeConfirm = async () => {
-    if (pendingUpgrade) {
+    // For existing subscribers, redirect to customer portal for plan changes
+    if (subscription?.subscribed) {
+      await handleManageSubscription();
+    } else if (pendingUpgrade) {
+      // For new subscribers, use checkout
       await processSubscription(pendingUpgrade.credits, pendingUpgrade.price);
     }
   };

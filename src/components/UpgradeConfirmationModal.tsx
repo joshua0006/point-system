@@ -48,49 +48,65 @@ export const UpgradeConfirmationModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Add more credits</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Upgrade your plan</DialogTitle>
           <p className="text-sm text-muted-foreground mt-2">
-            Here's what happens if you upgrade:
+            {currentPlan ? "You'll be taken to your billing portal to change your plan:" : "Here's what happens when you subscribe:"}
           </p>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Upgrade Fee Section */}
+          {/* Plan Change Details */}
           <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
-            <h3 className="font-semibold text-lg mb-2">Upgrade Fee</h3>
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold">S${upgradeAmount}</span>
-              <span className="text-muted-foreground">due today</span>
-            </div>
-            
-            <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full mt-3 p-3 bg-background/50 rounded-lg border border-border/30 hover:bg-background/80 transition-colors">
-                <span className="font-medium">+{additionalCredits} additional credits</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2">
-                <div className="p-3 bg-background/30 rounded-lg text-sm text-muted-foreground">
-                  <p>You'll get {additionalCredits} more flexi-credits immediately, bringing your total monthly allocation to {newPlan.credits} credits.</p>
+            <h3 className="font-semibold text-lg mb-2">
+              {currentPlan ? "Plan Change" : "New Subscription"}
+            </h3>
+            {currentPlan ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Current: {currentPlan.name}</span>
+                  <span>{currentPlan.credits} credits</span>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+                <div className="flex items-center justify-between text-sm font-medium">
+                  <span>Upgrading to: {newPlan.name}</span>
+                  <span>{newPlan.credits} credits</span>
+                </div>
+                <div className="pt-2 border-t border-border/30">
+                  <p className="text-sm text-muted-foreground">
+                    Your billing will be prorated automatically. You'll immediately get access to {additionalCredits} additional credits.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold">S${newPlan.price}</span>
+                <span className="text-muted-foreground">per month</span>
+              </div>
+            )}
           </div>
 
-          {/* Next Billing Cycle */}
+          {/* Benefits */}
           <div>
-            <h4 className="font-semibold mb-3">Next billing cycle ({formattedDate})</h4>
+            <h4 className="font-semibold mb-3">What you get:</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm">Your plan will update to S${newPlan.price}/month for {newPlan.credits} credits</span>
+                <span className="text-sm">
+                  {currentPlan ? `+${additionalCredits} additional credits immediately` : `${newPlan.credits} credits per month`}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm">Downgrade anytime</span>
+                <span className="text-sm">
+                  {currentPlan ? "Prorated billing - only pay the difference" : `S${newPlan.price}/month subscription`}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm">Credits rollover</span>
+                <span className="text-sm">Change or cancel anytime</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-sm">Credits rollover monthly</span>
               </div>
             </div>
           </div>
@@ -115,8 +131,10 @@ export const UpgradeConfirmationModal = ({
                   <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                   Processing...
                 </div>
+              ) : currentPlan ? (
+                "Go to Billing Portal"
               ) : (
-                "Confirm"
+                "Subscribe Now"
               )}
             </Button>
           </div>
