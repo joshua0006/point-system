@@ -85,9 +85,7 @@ serve(async (req) => {
           user_id: user.id,
           credits: credits.toString(),
           plan_name: planName
-        },
-        // Enable proration for plan changes
-        proration_behavior: 'create_prorations'
+        }
       }
     });
 
