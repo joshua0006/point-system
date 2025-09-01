@@ -779,6 +779,44 @@ export type Database = {
         }
         Relationships: []
       }
+      flexi_credits_transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_points_transactions_booking_id"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_gen_campaigns: {
         Row: {
           created_at: string
@@ -1148,44 +1186,6 @@ export type Database = {
         }
         Relationships: []
       }
-      points_transactions: {
-        Row: {
-          amount: number
-          booking_id: string | null
-          created_at: string
-          description: string | null
-          id: string
-          type: Database["public"]["Enums"]["transaction_type"]
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          booking_id?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          type: Database["public"]["Enums"]["transaction_type"]
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          booking_id?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          type?: Database["public"]["Enums"]["transaction_type"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_points_transactions_booking_id"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
@@ -1196,11 +1196,11 @@ export type Database = {
           couple_id: string | null
           created_at: string
           email: string
+          flexi_credits_balance: number
           full_name: string | null
           id: string
           onboarding_completed: boolean | null
           partner_name: string | null
-          points_balance: number
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
@@ -1214,11 +1214,11 @@ export type Database = {
           couple_id?: string | null
           created_at?: string
           email: string
+          flexi_credits_balance?: number
           full_name?: string | null
           id?: string
           onboarding_completed?: boolean | null
           partner_name?: string | null
-          points_balance?: number
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id: string
@@ -1232,11 +1232,11 @@ export type Database = {
           couple_id?: string | null
           created_at?: string
           email?: string
+          flexi_credits_balance?: number
           full_name?: string | null
           id?: string
           onboarding_completed?: boolean | null
           partner_name?: string | null
-          points_balance?: number
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
@@ -1562,8 +1562,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      increment_points_balance: {
-        Args: { points_to_add: number; user_id: string }
+      increment_flexi_credits_balance: {
+        Args: { credits_to_add: number; user_id: string }
         Returns: undefined
       }
     }
