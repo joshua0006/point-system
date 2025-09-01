@@ -43,6 +43,17 @@ serve(async (req) => {
     else if (credits === 750) planName = "Pro Plan";
     else if (credits === 1000) planName = "Ultra Plan";
 
+    // Check for existing subscriptions to enable proration
+    let hasActiveSubscription = false;
+    if (customerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 1,
+      });
+      hasActiveSubscription = subscriptions.data.length > 0;
+    }
+
     // Create monthly subscription checkout
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -53,7 +64,7 @@ serve(async (req) => {
             currency: "sgd",
             product_data: { 
               name: `${planName} - ${credits} flexi-credits/month`,
-              description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month)`
+              description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month)${hasActiveSubscription ? ' - Prorated billing' : ''}`
             },
             unit_amount: price * 100, // Convert to cents
             recurring: { interval: "month" },
@@ -74,7 +85,9 @@ serve(async (req) => {
           user_id: user.id,
           credits: credits.toString(),
           plan_name: planName
-        }
+        },
+        // Enable proration for plan changes
+        proration_behavior: 'create_prorations'
       }
     });
 

@@ -278,6 +278,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                       </div>
                     ) : isCurrentPlan(pkg.points) ? (
                       "Current Plan"
+                    ) : subscription?.subscribed ? (
+                      "Switch Plan (Prorated)"
                     ) : (
                       "Subscribe to Plan"
                     )}
@@ -331,6 +333,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                     Processing...
                   </div>
+                ) : subscription?.subscribed ? (
+                  "Switch to Custom Plan (Prorated)"
                 ) : (
                   "Create Custom Plan"
                 )}
@@ -343,7 +347,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             <h4 className="font-semibold text-primary mb-2">💡 Subscription Details</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>• All subscriptions are billed monthly on the 1st</p>
-              <p>• Plan changes take effect from your next billing cycle</p>
+              <p>• Plan changes are prorated - you only pay the difference</p>
               <p>• Unused flexi-credits roll over to the next month</p>
               <p>• Cancel anytime - your plan remains active until the end of your billing period</p>
             </div>
