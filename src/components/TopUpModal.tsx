@@ -81,6 +81,31 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     }
   };
 
+  const handleManageSubscription = async () => {
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      // Open Stripe customer portal in a new tab
+      window.open(data.url, '_blank');
+      
+      // Close the modal
+      onClose();
+    } catch (error: any) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to open billing portal",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -108,9 +133,24 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               <div className="text-lg font-semibold mb-2">
                 Current Plan: <span className="text-primary">Starter Plan</span>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Next billing: 1st January 2025 • Change takes effect next billing cycle
               </p>
+              <Button
+                onClick={handleManageSubscription}
+                disabled={loading}
+                variant="outline"
+                className="mx-auto"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    Loading...
+                  </div>
+                ) : (
+                  "Manage Subscription & Billing"
+                )}
+              </Button>
             </div>
           </div>
 
