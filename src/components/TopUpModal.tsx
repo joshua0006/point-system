@@ -279,9 +279,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     ) : isCurrentPlan(pkg.points) ? (
                       "Current Plan"
                     ) : subscription?.subscribed ? (
-                      "Switch Plan (Prorated)"
+                      `Upgrade to ${pkg.title}`
                     ) : (
-                      "Subscribe to Plan"
+                      `Subscribe to ${pkg.title}`
                     )}
                   </Button>
                 </CardContent>
@@ -334,7 +334,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     Processing...
                   </div>
                 ) : subscription?.subscribed ? (
-                  "Switch to Custom Plan (Prorated)"
+                  "Upgrade to Custom Plan"
                 ) : (
                   "Create Custom Plan"
                 )}
