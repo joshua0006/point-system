@@ -118,7 +118,7 @@ export default function ConsultantDashboard() {
           {
             event: '*',
             schema: 'public',
-            table: 'points_transactions',
+            table: 'flexi_credits_transactions',
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
@@ -178,7 +178,7 @@ export default function ConsultantDashboard() {
       // Fetch user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('full_name, points_balance')
+        .select('full_name, flexi_credits_balance')
         .eq('user_id', user.id)
         .single();
 
@@ -195,7 +195,7 @@ export default function ConsultantDashboard() {
 
       // Fetch real transactions for this consultant
       const { data: transactions, error: transactionsError } = await supabase
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -250,7 +250,7 @@ export default function ConsultantDashboard() {
         totalSessions: totalSellerSessions,
         totalPurchases: totalBuyerSessions,
         conversionRate: totalSellerSessions > 0 ? Math.round((completedSellerSessions / totalSellerSessions) * 100) : 0,
-        pointsBalance: profile?.points_balance || 0
+        pointsBalance: profile?.flexi_credits_balance || 0
       }));
 
       // Transform transactions for BalanceDetailsModal
@@ -445,7 +445,7 @@ export default function ConsultantDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Current Point Balance
+                Current Flexi-Credits Balance
                 <Wallet className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
@@ -738,7 +738,7 @@ export default function ConsultantDashboard() {
                     
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-1 font-semibold text-accent">
-                        <span>{service.price} points</span>
+                        <span>{service.price} flexi-credits</span>
                       </div>
                     </div>
                   </div>

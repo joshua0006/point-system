@@ -161,9 +161,9 @@ const LeadGenCampaigns = () => {
       const {
         data,
         error
-      } = await supabase.from('profiles').select('points_balance').eq('user_id', user.id).single();
+      } = await supabase.from('profiles').select('flexi_credits_balance').eq('user_id', user.id).single();
       if (error) throw error;
-      setUserBalance(data.points_balance || 0);
+      setUserBalance(data.flexi_credits_balance || 0);
     } catch (error) {
       console.error('Error fetching user balance:', error);
     }
@@ -229,7 +229,7 @@ const LeadGenCampaigns = () => {
       console.log('Updating user balance...');
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ points_balance: userBalance - amountToDeduct })
+        .update({ flexi_credits_balance: userBalance - amountToDeduct })
         .eq('user_id', user.id);
       if (updateError) {
         console.error('Error updating balance:', updateError);
@@ -242,7 +242,7 @@ const LeadGenCampaigns = () => {
       }
 
       console.log('Creating transaction record...');
-      const { error: transactionError } = await supabase.from('points_transactions').insert({
+      const { error: transactionError } = await supabase.from('flexi_credits_transactions').insert({
         user_id: user.id,
         amount: -amountToDeduct,
         type: 'purchase',
@@ -449,7 +449,7 @@ const LeadGenCampaigns = () => {
             <Card className="w-full max-w-md">
               <CardContent className="p-6 text-center bg-gradient-to-r from-primary/5 to-primary/10">
                 <h2 className="text-lg font-semibold mb-2">Campaign Wallet</h2>
-                <p className="text-3xl font-bold text-primary mb-2">{userBalance.toLocaleString()} points</p>
+                <p className="text-3xl font-bold text-primary mb-2">{userBalance.toLocaleString()} flexi-credits</p>
                 <p className="text-sm text-muted-foreground mb-4">Available for campaigns</p>
                 <Button onClick={() => setTopUpModalOpen(true)} size="sm" className="w-full">
                   Top Up Wallet

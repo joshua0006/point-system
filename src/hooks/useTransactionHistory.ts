@@ -21,7 +21,7 @@ export function useTransactionHistory() {
       if (!user?.id) return [];
 
       const { data: transactions, error } = await supabase
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .select(`
           id,
           type,

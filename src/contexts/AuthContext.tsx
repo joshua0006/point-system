@@ -11,7 +11,7 @@ interface Profile {
   bio: string | null;
   avatar_url: string | null;
   role: 'user' | 'consultant' | 'admin';
-  points_balance: number;
+  flexi_credits_balance: number;
   created_at: string;
   updated_at: string;
   approval_status: 'pending' | 'approved' | 'rejected';

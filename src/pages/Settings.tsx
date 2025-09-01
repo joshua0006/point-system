@@ -323,7 +323,7 @@ const Settings = () => {
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-sm font-medium">Current Points Balance</h4>
                       <div className="text-2xl font-bold text-primary">
-                        {profile?.points_balance?.toLocaleString() || 0}
+                        {profile?.flexi_credits_balance?.toLocaleString() || 0}
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">

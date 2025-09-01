@@ -83,13 +83,13 @@ export function useDashboardData() {
       // Fetch user profile for points balance
       const { data: profile } = await supabase
         .from('profiles')
-        .select('points_balance')
+        .select('flexi_credits_balance')
         .eq('user_id', user.id)
         .single();
 
       // Fetch points transactions
       const { data: transactions } = await supabase
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -167,7 +167,7 @@ export function useDashboardData() {
         }));
 
       // Calculate stats
-      const totalPoints = profile?.points_balance || 0;
+      const totalPoints = profile?.flexi_credits_balance || 0;
       const pointsSpent = processedTransactions
         .filter(t => t.type === 'spent')
         .reduce((sum, t) => sum + t.points, 0);

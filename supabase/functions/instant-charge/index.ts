@@ -66,7 +66,7 @@ serve(async (req) => {
       confirmation_method: "automatic",
       confirm: true,
       off_session: true,
-      description: `Points top-up: ${amount} points (S$${amount})`,
+      description: `Flexi-credits top-up: ${amount} credits (S$${amount})`,
     });
 
     logStep("Payment intent created", { paymentIntentId: paymentIntent.id, status: paymentIntent.status });
@@ -74,21 +74,21 @@ serve(async (req) => {
     if (paymentIntent.status === "succeeded") {
       // Update user's points balance by incrementing current balance
       const { error: updateError } = await supabaseClient
-        .rpc('increment_points_balance', { user_id: user.id, points_to_add: amount });
+        .rpc('increment_flexi_credits_balance', { user_id: user.id, credits_to_add: amount });
 
       if (updateError) {
-        logStep("Error updating points balance", { error: updateError });
+        logStep("Error updating flexi-credits balance", { error: updateError });
         // Continue with transaction recording even if balance update fails
       } else {
-        logStep("Points balance updated successfully", { amount });
+        logStep("Flexi-credits balance updated successfully", { amount });
       }
 
       // Create transaction record
-      await supabaseClient.from("points_transactions").insert({
+      await supabaseClient.from("flexi_credits_transactions").insert({
         user_id: user.id,
         amount: amount,
         type: "purchase",
-        description: `Instant top-up via saved payment method`,
+        description: `Flexi-credits top-up via saved payment method`,
       });
 
       return new Response(JSON.stringify({ 

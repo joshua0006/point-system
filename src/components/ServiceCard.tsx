@@ -108,7 +108,7 @@ export function ServiceCard({
             <div className="flex items-center space-x-2 text-accent font-bold">
               <Wallet className="w-4 h-4" />
               <span className="text-xl">{points.toLocaleString()}</span>
-              <span className="text-sm text-muted-foreground">points</span>
+              <span className="text-sm text-muted-foreground">flexi-credits</span>
             </div>
           </div>
         </div>

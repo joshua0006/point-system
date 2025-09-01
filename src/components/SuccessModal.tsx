@@ -21,8 +21,8 @@ export const SuccessModal = ({ isOpen, onClose, type, amount }: SuccessModalProp
     
     return {
       icon: <Coins className="h-16 w-16 text-green-500" />,
-      title: "Points Added Successfully!",
-      description: `${amount} points have been added to your account. You can now use them to book services.`,
+      title: "Flexi-Credits Added Successfully!",
+      description: `${amount} flexi-credits have been added to your account. You can now use them to book services.`,
     };
   };
 

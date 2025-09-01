@@ -192,8 +192,8 @@ export function Navigation() {
                     onClick={() => setBalanceModalOpen(true)}
                   >
                     <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-                    <span className="font-semibold text-foreground text-sm sm:text-base">{profile?.points_balance?.toLocaleString() || 0}</span>
-                    <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">points</span>
+                    <span className="font-semibold text-foreground text-sm sm:text-base">{profile?.flexi_credits_balance?.toLocaleString() || 0}</span>
+                    <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">flexi-credits</span>
                   </div>
                   
                   {unreadCount > 0 && !isMobile && (

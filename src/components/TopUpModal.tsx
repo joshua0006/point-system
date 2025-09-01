@@ -86,11 +86,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-6">
-          <DialogTitle className="text-2xl font-bold">Add Points to Your Account</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Add Flexi-Credits to Your Account</DialogTitle>
           <div className="flex items-center justify-center gap-2 mt-2">
             <span className="text-muted-foreground">Current Balance:</span>
             <span className="font-semibold text-primary">
-              {profile?.points_balance?.toLocaleString() || '0'} points
+              {profile?.flexi_credits_balance?.toLocaleString() || '0'} flexi-credits
             </span>
           </div>
         </DialogHeader>
@@ -115,14 +115,14 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               <div className="flex-1">
                 <Input
                   type="number"
-                  placeholder="Enter custom points (minimum 1)"
+                  placeholder="Enter custom flexi-credits (minimum 1)"
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
                   min="1"
                   className="text-center text-lg font-semibold"
                 />
                 <p className="text-xs text-muted-foreground mt-1 text-center">
-                  S$1 = 1 point | Minimum: S$1
+                  S$1 = 1 flexi-credit | Minimum: S$1
                 </p>
               </div>
               <Button
@@ -148,7 +148,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     Processing...
                   </div>
                 ) : (
-                  "💳 Add Custom Points"
+                  "💳 Add Custom Flexi-Credits"
                 )}
               </Button>
             </div>
@@ -177,7 +177,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                       S${pkg.price}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {pkg.points} points
+                      {pkg.points} flexi-credits
                     </div>
                   </div>
                   
@@ -206,7 +206,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                         Processing...
                       </div>
                     ) : (
-                      "Add Points"
+                      "Add Flexi-Credits"
                     )}
                   </Button>
                 </CardContent>
@@ -216,10 +216,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
           {/* Information Section */}
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-            <h4 className="font-semibold text-primary mb-2">What are points?</h4>
+            <h4 className="font-semibold text-primary mb-2">What are flexi-credits?</h4>
             <p className="text-sm text-muted-foreground">
-              Points are units used for AI token credits in your campaigns. Your plan includes credits to 
-              spend on various AI models - the more complex the task, the more points used.
+              Flexi-credits are units used for AI token credits in your campaigns. Your plan includes credits to 
+              spend on various AI models - the more complex the task, the more flexi-credits used.
             </p>
           </div>
 

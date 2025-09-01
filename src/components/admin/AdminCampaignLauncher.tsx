@@ -23,7 +23,7 @@ interface UserProfile {
   bio: string | null;
   avatar_url: string | null;
   role: 'user' | 'consultant' | 'admin';
-  points_balance: number;
+  flexi_credits_balance: number;
   created_at: string;
   updated_at: string;
   approval_status: 'pending' | 'approved' | 'rejected';
@@ -187,10 +187,10 @@ export function AdminCampaignLauncher() {
     }
 
     const budget = parseInt(campaignBudget);
-    if (budget > selectedUser.points_balance) {
+    if (budget > selectedUser.flexi_credits_balance) {
       toast({
         title: "Insufficient Balance",
-        description: `User only has ${selectedUser.points_balance} points available`,
+        description: `User only has ${selectedUser.flexi_credits_balance} flexi-credits available`,
         variant: "destructive",
       });
       return;
@@ -438,7 +438,7 @@ export function AdminCampaignLauncher() {
                           </Avatar>
                           <span>{selectedUser.full_name || "No name"} ({selectedUser.email})</span>
                           <Badge variant="secondary" className="text-xs">
-                            {selectedUser.points_balance} pts
+                            {selectedUser.flexi_credits_balance} credits
                           </Badge>
                         </div>
                       )}
@@ -477,7 +477,7 @@ export function AdminCampaignLauncher() {
                               {user.email}
                             </div>
                             <div className="text-sm font-medium text-primary">
-                              {user.points_balance} points available
+                              {user.flexi_credits_balance} flexi-credits available
                             </div>
                           </div>
                         </div>
@@ -580,11 +580,11 @@ export function AdminCampaignLauncher() {
                   value={campaignBudget}
                   onChange={(e) => setCampaignBudget(e.target.value)}
                   min="1"
-                  max={selectedUser?.points_balance || undefined}
+                  max={selectedUser?.flexi_credits_balance || undefined}
                 />
-                {selectedUser && campaignBudget && parseInt(campaignBudget) > selectedUser.points_balance && (
+                {selectedUser && campaignBudget && parseInt(campaignBudget) > selectedUser.flexi_credits_balance && (
                   <div className="text-sm text-destructive mt-1">
-                    Budget exceeds user's available balance ({selectedUser.points_balance} points)
+                    Budget exceeds user's available balance ({selectedUser.flexi_credits_balance} flexi-credits)
                   </div>
                 )}
 

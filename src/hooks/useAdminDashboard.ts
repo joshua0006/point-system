@@ -83,7 +83,7 @@ export function useAdminDashboard() {
         
         // Monthly volume (current month purchases)
         supabase
-          .from('points_transactions')
+        .from('flexi_credits_transactions')
           .select('amount')
           .eq('type', 'purchase')
           .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
@@ -162,7 +162,7 @@ export function useAdminDashboard() {
         
         // Recent points transactions (all types, last 14 days)
         supabase
-          .from('points_transactions')
+          .from('flexi_credits_transactions')
           .select(`
             id,
             amount,

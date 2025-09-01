@@ -20,11 +20,11 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
       // Check if user has enough points
       const { data: profile } = await supabase
         .from('profiles')
-        .select('points_balance')
+        .select('flexi_credits_balance')
         .eq('user_id', user.id)
         .single();
 
-      if (!profile || profile.points_balance < price) {
+      if (!profile || profile.flexi_credits_balance < price) {
         throw new Error('Insufficient points');
       }
 
@@ -47,7 +47,7 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          points_balance: profile.points_balance - price 
+          flexi_credits_balance: profile.flexi_credits_balance - price 
         })
         .eq('user_id', user.id);
 
@@ -64,7 +64,7 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
 
       const { data: consultantProfile } = await supabase
         .from('profiles')
-        .select('points_balance')
+        .select('flexi_credits_balance')
         .eq('user_id', consultant.user_id)
         .single();
 
@@ -74,7 +74,7 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
       const { error: consultantUpdateError } = await supabase
         .from('profiles')
         .update({ 
-          points_balance: consultantProfile.points_balance + price 
+          flexi_credits_balance: consultantProfile.flexi_credits_balance + price 
         })
         .eq('user_id', consultant.user_id);
 
@@ -82,7 +82,7 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
 
       // Create transaction record for buyer (deduction)
       const { error: buyerTransactionError } = await supabase
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .insert({
           user_id: user.id,
           type: 'purchase',
@@ -95,7 +95,7 @@ export const useBookService = (onSuccess?: (booking: any, serviceData: any) => v
 
       // Create transaction record for seller (earning)
       const { error: sellerTransactionError } = await supabase
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .insert({
           user_id: consultant.user_id,
           type: 'earning',

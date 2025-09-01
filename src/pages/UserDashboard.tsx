@@ -96,7 +96,7 @@ export default function UserDashboard() {
           {
             event: '*',
             schema: 'public',
-            table: 'points_transactions',
+            table: 'flexi_credits_transactions',
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
@@ -140,7 +140,7 @@ export default function UserDashboard() {
 
       // Fetch real points transactions
       const { data: transactions, error: transactionsError } = await supabase
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
@@ -188,7 +188,7 @@ export default function UserDashboard() {
         totalSpendings: totalSpent,
         totalSessions: totalBookings,
         totalPurchases: totalBookings,
-        pointsBalance: profile?.points_balance || 0,
+        pointsBalance: profile?.flexi_credits_balance || 0,
         completionRate: totalBookings > 0 ? Math.round((completedBookings / totalBookings) * 100) : 0,
         totalServices: 0
       });
@@ -238,7 +238,7 @@ export default function UserDashboard() {
             My Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Track your points, bookings, and consultation history
+            Track your flexi-credits, bookings, and consultation history
           </p>
         </div>
 
@@ -250,13 +250,13 @@ export default function UserDashboard() {
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Points Balance
+                Flexi-Credits Balance
                 <Wallet className="w-4 h-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{consultantProfile.pointsBalance.toLocaleString()}</div>
-              <p className="text-xs opacity-90">available points</p>
+              <p className="text-xs opacity-90">available flexi-credits</p>
             </CardContent>
           </Card>
 
@@ -272,7 +272,7 @@ export default function UserDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{consultantProfile.totalSpendings.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">points spent</p>
+              <p className="text-xs text-muted-foreground">flexi-credits spent</p>
             </CardContent>
           </Card>
 
@@ -332,7 +332,7 @@ export default function UserDashboard() {
                     </p>
                   </div>
                   <div className={`font-semibold ${transaction.amount > 0 ? 'text-success' : 'text-destructive'}`}>
-                    {transaction.amount > 0 ? '+' : ''}{transaction.amount} pts
+                    {transaction.amount > 0 ? '+' : ''}{transaction.amount} credits
                   </div>
                 </div>
               ))}
