@@ -203,12 +203,13 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   {subscription.credits_per_month} credits/month • Next billing: {formatDate(subscription.subscription_end)}
                 </p>
               )}
-              <div className="flex gap-2 justify-center">
+              <div className="flex flex-col gap-3 justify-center">
                 {subscription?.subscribed && (
                   <Button
                     onClick={handleManageSubscription}
                     disabled={loading}
-                    variant="outline"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    size="lg"
                   >
                     {loading ? (
                       <div className="flex items-center gap-2">
@@ -216,7 +217,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                         Loading...
                       </div>
                     ) : (
-                      "Manage Subscription & Billing"
+                      <>
+                        <CreditCard className="h-5 w-5 mr-2" />
+                        Manage Subscription & Billing
+                      </>
                     )}
                   </Button>
                 )}
