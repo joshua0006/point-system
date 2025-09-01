@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Shield, CreditCard, Zap, Star, CheckCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { UpgradeConfirmationModal } from "@/components/UpgradeConfirmationModal";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -20,6 +21,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [loading, setLoading] = useState(false);
   const [refreshingSubscription, setRefreshingSubscription] = useState(false);
   const [customAmount, setCustomAmount] = useState<string>("");
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [pendingUpgrade, setPendingUpgrade] = useState<{
+    credits: number;
+    price: number;
+    title: string;
+  } | null>(null);
   const { toast } = useToast();
   const { profile, subscription, refreshSubscription } = useAuth();
 
@@ -54,7 +61,18 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     },
   ];
 
-  const handleSubscribe = async (credits: number, price: number) => {
+  const handleSubscribe = async (credits: number, price: number, title: string) => {
+    // If already subscribed, show confirmation modal
+    if (subscription?.subscribed) {
+      setPendingUpgrade({ credits, price, title });
+      setShowConfirmationModal(true);
+    } else {
+      // Direct subscription for new users
+      await processSubscription(credits, price);
+    }
+  };
+
+  const processSubscription = async (credits: number, price: number) => {
     setSelectedAmount(credits);
     setLoading(true);
     
@@ -70,6 +88,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       
       // Close the modal
       onClose();
+      setShowConfirmationModal(false);
     } catch (error: any) {
       console.error('Error creating subscription checkout:', error);
       toast({
@@ -79,6 +98,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpgradeConfirm = async () => {
+    if (pendingUpgrade) {
+      await processSubscription(pendingUpgrade.credits, pendingUpgrade.price);
     }
   };
 
@@ -260,7 +285,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   </ul>
                   
                   <Button
-                    onClick={() => handleSubscribe(pkg.points, pkg.price)}
+                    onClick={() => handleSubscribe(pkg.points, pkg.price, pkg.title)}
                     disabled={loading || isCurrentPlan(pkg.points)}
                     className={`w-full ${
                       isCurrentPlan(pkg.points)
@@ -323,7 +348,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 </div>
               )}
               <Button
-                onClick={() => customAmount && handleSubscribe(parseInt(customAmount), parseInt(customAmount))}
+                onClick={() => customAmount && handleSubscribe(parseInt(customAmount), parseInt(customAmount), "Custom Plan")}
                 disabled={loading || !customAmount || parseInt(customAmount) <= 0}
                 className="w-full"
                 variant="outline"
@@ -370,6 +395,31 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           </div>
         </div>
       </DialogContent>
+
+      {/* Upgrade Confirmation Modal */}
+      <UpgradeConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => {
+          setShowConfirmationModal(false);
+          setPendingUpgrade(null);
+        }}
+        onConfirm={handleUpgradeConfirm}
+        currentPlan={subscription?.subscribed ? {
+          name: subscription.plan_name || "Current Plan",
+          credits: subscription.credits_per_month || 0,
+          price: subscription.credits_per_month || 0
+        } : undefined}
+        newPlan={pendingUpgrade ? {
+          name: pendingUpgrade.title,
+          credits: pendingUpgrade.credits,
+          price: pendingUpgrade.price
+        } : { name: "", credits: 0, price: 0 }}
+        upgradeAmount={pendingUpgrade && subscription?.subscribed 
+          ? Math.max(0, pendingUpgrade.price - (subscription.credits_per_month || 0))
+          : pendingUpgrade?.price || 0
+        }
+        loading={loading}
+      />
     </Dialog>
   );
 };
