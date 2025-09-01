@@ -76,8 +76,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/lead-gen-campaigns?topup=success&points=${points}`,
-      cancel_url: `${req.headers.get("origin")}/lead-gen-campaigns?topup=cancelled`,
+      success_url: `${req.headers.get("origin")}/admin-dashboard?topup=success&points=${points}`,
+      cancel_url: `${req.headers.get("origin")}/admin-dashboard?topup=cancelled`,
       metadata: {
         user_id: user.id,
         points: points.toString(),

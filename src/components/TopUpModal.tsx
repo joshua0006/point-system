@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useAuth } from "@/contexts/AuthContext";
 import { Shield, CreditCard, Zap, Star, CheckCircle } from "lucide-react";
-import { AddPaymentMethodModal } from "@/components/settings/AddPaymentMethodModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -18,11 +17,8 @@ interface TopUpModalProps {
 export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showAddMethodModal, setShowAddMethodModal] = useState(false);
-  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const { toast } = useToast();
   const { profile } = useAuth();
-  const { paymentMethods, instantCharge, fetchPaymentMethods } = usePaymentMethods();
 
   const pointsPackages = [
     { 
@@ -57,60 +53,32 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
   const handleAddPoints = async (amount: number) => {
     setSelectedAmount(amount);
-    setPendingAmount(amount);
-    
-    // Check if user has any payment methods
-    if (paymentMethods.length === 0) {
-      // No payment methods - show add payment method modal first
-      setShowAddMethodModal(true);
-    } else {
-      // Has payment methods - proceed with instant charge
-      const defaultPaymentMethod = paymentMethods.find(method => method.is_default) || paymentMethods[0];
-      await executeInstantCharge(defaultPaymentMethod.id, amount);
-    }
-  };
-
-  const executeInstantCharge = async (paymentMethodId: string, amount: number) => {
     setLoading(true);
+    
     try {
-      await instantCharge(paymentMethodId, amount);
-      toast({
-        title: "Success!",
-        description: `Successfully added ${amount} points to your account`,
+      const { data, error } = await supabase.functions.invoke('create-points-checkout', {
+        body: { points: amount }
       });
+      
+      if (error) throw error;
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+      
+      // Close the modal
       onClose();
-      onSuccess?.(amount, true);
-    } catch (error) {
-      // Error handling is done in the hook
+    } catch (error: any) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create checkout session",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePaymentMethodAdded = async () => {
-    setShowAddMethodModal(false);
-    
-    // If there's a pending amount, charge it now
-    if (pendingAmount) {
-      toast({
-        title: "Payment Method Added!",
-        description: `Processing payment of S$${pendingAmount} now...`,
-      });
-      
-      // Small delay to ensure payment methods are refreshed, then charge
-      setTimeout(() => {
-        fetchPaymentMethods(true).then(() => {
-          // The payment methods should now include the newly added one
-          // We'll just use the first available method since it was just added
-          if (paymentMethods.length > 0) {
-            const paymentMethod = paymentMethods[0]; // Use the first (likely newest) method
-            executeInstantCharge(paymentMethod.id, pendingAmount);
-          }
-        });
-        setPendingAmount(null);
-      }, 1000);
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -221,12 +189,6 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           </div>
         </div>
       </DialogContent>
-
-      <AddPaymentMethodModal
-        open={showAddMethodModal}
-        onOpenChange={setShowAddMethodModal}
-        onSuccess={handlePaymentMethodAdded}
-      />
     </Dialog>
   );
 };
