@@ -1,19 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, CreditCard, Zap, Clock, ArrowRight, Star, CheckCircle, Plus, ChevronDown, Wallet, AlertCircle } from "lucide-react";
+import { Shield, CreditCard, Zap, Star, CheckCircle } from "lucide-react";
 import { AddPaymentMethodModal } from "@/components/settings/AddPaymentMethodModal";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -22,228 +16,193 @@ interface TopUpModalProps {
 }
 
 export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
-  const [customAmount, setCustomAmount] = useState<string>("");
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [showAddMethodModal, setShowAddMethodModal] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showOtherMethods, setShowOtherMethods] = useState(false);
-  const [confirmationData, setConfirmationData] = useState<{
-    amount: number;
-    paymentMethod?: string;
-    isInstant: boolean;
-  } | null>(null);
+  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const { toast } = useToast();
   const { profile } = useAuth();
-  const { paymentMethods, loading: paymentMethodsLoading, instantCharge, fetchPaymentMethods } = usePaymentMethods();
+  const { paymentMethods, instantCharge, fetchPaymentMethods } = usePaymentMethods();
 
-  // Auto-select default payment method when available
-  const defaultPaymentMethod = paymentMethods.find(method => method.is_default) || paymentMethods[0];
-  
-  // Set selected payment method to default when payment methods are loaded
-  useEffect(() => {
-    if (defaultPaymentMethod && !selectedPaymentMethod) {
-      setSelectedPaymentMethod(defaultPaymentMethod.id);
-    }
-  }, [defaultPaymentMethod?.id, selectedPaymentMethod]);
-
-  const quickPackages = [
-    { points: 250, basePrice: 250, totalPrice: 250, popular: false },
-    { points: 500, basePrice: 500, totalPrice: 500, popular: false },
-    { points: 750, basePrice: 750, totalPrice: 750, popular: false },
-    { points: 1000, basePrice: 1000, totalPrice: 1000, popular: false },
+  const pointsPackages = [
+    { 
+      points: 250, 
+      price: 250, 
+      popular: false, 
+      title: "Starter",
+      features: ["250 AI tokens", "Basic campaigns", "Email support"]
+    },
+    { 
+      points: 500, 
+      price: 500, 
+      popular: true, 
+      title: "Plus",
+      features: ["500 AI tokens", "Advanced campaigns", "Priority support"]
+    },
+    { 
+      points: 750, 
+      price: 750, 
+      popular: false, 
+      title: "Pro",
+      features: ["750 AI tokens", "Premium features", "Dedicated support"]
+    },
+    { 
+      points: 1000, 
+      price: 1000, 
+      popular: false, 
+      title: "Ultra",
+      features: ["1000 AI tokens", "All features", "24/7 support"]
+    },
   ];
 
-  const showConfirmationDialog = (amount: number, paymentMethodId?: string, isInstant = false) => {
-    if (!amount || amount < 0.1) {
-      toast({
-        title: "Invalid Amount",
-        description: "Minimum amount is 0.1 point (S$0.10)",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setConfirmationData({
-      amount,
-      paymentMethod: paymentMethodId,
-      isInstant
-    });
-    setShowConfirmDialog(true);
-  };
-
-  const handleConfirmedPayment = async () => {
-    if (!confirmationData) return;
-
-    const { amount, paymentMethod, isInstant } = confirmationData;
-    setShowConfirmDialog(false);
-    setConfirmationData(null);
-
-    if (isInstant && paymentMethod) {
-      await executeInstantCharge(paymentMethod, amount);
-    } else {
-      // For now, redirect to add payment method instead of webhook checkout
+  const handleAddPoints = async (amount: number) => {
+    setSelectedAmount(amount);
+    setPendingAmount(amount);
+    
+    // Check if user has any payment methods
+    if (paymentMethods.length === 0) {
+      // No payment methods - show add payment method modal first
       setShowAddMethodModal(true);
+    } else {
+      // Has payment methods - proceed with instant charge
+      const defaultPaymentMethod = paymentMethods.find(method => method.is_default) || paymentMethods[0];
+      await executeInstantCharge(defaultPaymentMethod.id, amount);
     }
   };
 
   const executeInstantCharge = async (paymentMethodId: string, amount: number) => {
+    setLoading(true);
     try {
       await instantCharge(paymentMethodId, amount);
+      toast({
+        title: "Success!",
+        description: `Successfully added ${amount} points to your account`,
+      });
       onClose();
-      setCustomAmount("");
-      setSelectedPaymentMethod("");
-      // Force refresh payment methods to get latest data
-      await fetchPaymentMethods(true);
-      // Trigger dashboard data refresh and show success modal
       onSuccess?.(amount, true);
     } catch (error) {
       // Error handling is done in the hook
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Force refresh payment methods when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchPaymentMethods(true);
+  const handlePaymentMethodAdded = async () => {
+    setShowAddMethodModal(false);
+    
+    // If there's a pending amount, charge it now
+    if (pendingAmount) {
+      toast({
+        title: "Payment Method Added!",
+        description: `Processing payment of S$${pendingAmount} now...`,
+      });
+      
+      // Small delay to ensure payment methods are refreshed, then charge
+      setTimeout(() => {
+        fetchPaymentMethods(true).then(() => {
+          // The payment methods should now include the newly added one
+          // We'll just use the first available method since it was just added
+          if (paymentMethods.length > 0) {
+            const paymentMethod = paymentMethods[0]; // Use the first (likely newest) method
+            executeInstantCharge(paymentMethod.id, pendingAmount);
+          }
+        });
+        setPendingAmount(null);
+      }, 1000);
     }
-  }, [isOpen]);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <CreditCard className="w-6 h-6 text-primary" />
-            </div>
-            Add Points to Your Account
-          </DialogTitle>
-          <p className="text-muted-foreground mt-2">
-            Secure and instant payments with saved methods
-          </p>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="text-center pb-6">
+          <DialogTitle className="text-2xl font-bold">Add Points to Your Account</DialogTitle>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span className="text-muted-foreground">Current Balance:</span>
+            <span className="font-semibold text-primary">
+              {profile?.points_balance?.toLocaleString() || '0'} points
+            </span>
+          </div>
         </DialogHeader>
         
-        <div className="space-y-6">{/* Instant Payment with Saved Methods */}
-          {paymentMethods.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">Instant Payment</h3>
-                <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
-                  <Zap className="h-3 w-3 mr-1" />
-                  Instant • No Redirects
-                </Badge>
-              </div>
-              
-              {/* Default Payment Method Card */}
-              {defaultPaymentMethod && (
-                <Card className="border-2 border-green-200 bg-green-50/50 hover:border-green-300 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-6 bg-gradient-to-r from-green-600 to-green-700 rounded flex items-center justify-center">
-                          <CreditCard className="h-4 w-4 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium capitalize flex items-center gap-2">
-                            {defaultPaymentMethod.brand} •••• {defaultPaymentMethod.last4}
-                            {defaultPaymentMethod.is_default && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                                Default
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Expires {defaultPaymentMethod.exp_month}/{defaultPaymentMethod.exp_year}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs text-green-700 font-medium mb-1">⚡ AUTO-SELECTED</div>
-                        <div className="text-xs text-muted-foreground">Instant processing</div>
-                      </div>
-                    </div>
-                    
-                    {/* Quick Amount Buttons */}
-                    <div className="grid grid-cols-4 gap-2">
-                      {quickPackages.map((pkg) => (
-                        <Button
-                          key={pkg.points}
-                          variant={pkg.popular ? "default" : "outline"}
-                          className={`h-16 flex-col gap-1 text-xs transition-all duration-200 hover-scale ${
-                            pkg.popular ? 'bg-primary ring-2 ring-primary/20' : ''
-                          }`}
-                          onClick={() => showConfirmationDialog(pkg.points, defaultPaymentMethod.id, true)}
-                          disabled={loading || paymentMethodsLoading}
-                        >
-                          <div className="font-bold text-sm">{pkg.points}</div>
-                          <div className="text-xs opacity-75">S${pkg.totalPrice}</div>
-                          {pkg.popular && <Star className="h-3 w-3 fill-current" />}
-                        </Button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-               
-               {/* Other Payment Methods Toggle */}
-               {paymentMethods.length > 1 && (
-                 <div className="space-y-3">
-                   <Button
-                     variant="ghost"
-                     size="sm"
-                     onClick={() => setShowOtherMethods(!showOtherMethods)}
-                     className="w-full justify-between text-sm text-muted-foreground hover:text-foreground"
-                   >
-                     <span>Use different payment method ({paymentMethods.length - 1} available)</span>
-                     <ChevronDown className={`h-4 w-4 transition-transform ${showOtherMethods ? 'rotate-180' : ''}`} />
-                   </Button>
-                   
-                   {showOtherMethods && (
-                     <div className="space-y-2 animate-fade-in">
-                       {paymentMethods.filter(method => method.id !== defaultPaymentMethod?.id).map((method) => (
-                         <Card key={method.id} className="border border-border/60 hover:border-primary/30 transition-colors">
-                           <CardContent className="p-3">
-                             <div className="flex items-center justify-between">
-                               <div className="flex items-center gap-3">
-                                 <div className="w-6 h-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded flex items-center justify-center">
-                                   <CreditCard className="h-3 w-3 text-white" />
-                                 </div>
-                                 <div>
-                                   <div className="font-medium capitalize text-sm">
-                                     {method.brand} •••• {method.last4}
-                                   </div>
-                                   <div className="text-xs text-muted-foreground">
-                                     Expires {method.exp_month}/{method.exp_year}
-                                   </div>
-                                 </div>
-                               </div>
-                               <div className="flex gap-1">
-                                 {quickPackages.slice(0, 2).map((pkg) => (
-                                   <Button
-                                     key={pkg.points}
-                                     size="sm"
-                                     variant="outline"
-                                     className="text-xs px-2 py-1 h-6"
-                                     onClick={() => showConfirmationDialog(pkg.points, method.id, true)}
-                                     disabled={loading || paymentMethodsLoading}
-                                   >
-                                     S${pkg.totalPrice}
-                                   </Button>
-                                 ))}
-                               </div>
-                             </div>
-                           </CardContent>
-                         </Card>
-                       ))}
-                     </div>
-                   )}
-                 </div>
-              )}
-              
-              <Separator className="my-6" />
+        <div className="space-y-6">
+          {/* Monthly/Yearly Toggle */}
+          <div className="flex justify-center">
+            <div className="flex items-center bg-muted rounded-lg p-1">
+              <Button variant="default" size="sm" className="rounded-md">
+                One-time
+              </Button>
             </div>
-          )}
+          </div>
+
+          {/* Points Packages Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {pointsPackages.map((pkg) => (
+              <Card 
+                key={pkg.points} 
+                className={`relative border-2 transition-all hover:shadow-lg ${
+                  pkg.popular 
+                    ? 'border-primary shadow-lg scale-105' 
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                {pkg.popular && (
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+                    Popular
+                  </Badge>
+                )}
+                <CardContent className="p-6 text-center">
+                  <h3 className="font-semibold text-lg mb-2">{pkg.title}</h3>
+                  <div className="mb-4">
+                    <div className="text-3xl font-bold">
+                      S${pkg.price}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {pkg.points} points
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-2 text-sm text-left mb-6">
+                    {pkg.features.map((feature, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <Button
+                    onClick={() => handleAddPoints(pkg.points)}
+                    disabled={loading}
+                    className={`w-full ${
+                      pkg.popular 
+                        ? 'bg-primary hover:bg-primary/90' 
+                        : ''
+                    }`}
+                    variant={pkg.popular ? "default" : "outline"}
+                  >
+                    {loading && selectedAmount === pkg.points ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                        Processing...
+                      </div>
+                    ) : (
+                      "Add Points"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Information Section */}
+          <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+            <h4 className="font-semibold text-primary mb-2">What are points?</h4>
+            <p className="text-sm text-muted-foreground">
+              Points are units used for AI token credits in your campaigns. Your plan includes credits to 
+              spend on various AI models - the more complex the task, the more points used.
+            </p>
+          </div>
 
           {/* Trust Indicators */}
           <div className="flex items-center justify-center gap-6 py-4 bg-muted/30 rounded-lg">
@@ -260,269 +219,14 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               Instant Processing
             </div>
           </div>
-
-          {/* Rate Information */}
-          <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="text-lg font-semibold text-primary">1 Point = S$1.00 SGD</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Points are used to participate in lead generation campaigns
-            </p>
-          </div>
-
-          {/* Add New Payment Method Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold">
-                {paymentMethods.length > 0 ? "Add New Payment Method" : "First, Save a Payment Method"}
-              </h3>
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                <Plus className="h-3 w-3 mr-1" />
-                Save for Instant Payments
-              </Badge>
-            </div>
-            
-            <div className="p-4 bg-blue-50/50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-blue-800 mb-3">
-                <AlertCircle className="h-4 w-4" />
-                <span className="font-medium">New Simplified Flow:</span>
-              </div>
-              <ol className="text-xs text-blue-700 space-y-1 ml-4">
-                <li>1. Save your payment method securely</li>
-                <li>2. Use it for instant payments (no redirects)</li>
-                <li>3. All future payments are instant</li>
-              </ol>
-            </div>
-            
-            <Button
-              onClick={() => setShowAddMethodModal(true)}
-              className="w-full h-12 text-lg font-semibold"
-              disabled={loading}
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              {paymentMethods.length > 0 ? "Add Another Payment Method" : "Add Your First Payment Method"}
-            </Button>
-          </div>
-
-          {/* Custom Amount */}
-          <div className="space-y-4">
-            <Label className="text-base font-semibold">Custom Amount</Label>
-            <div className="space-y-3">
-              <div className="relative">
-                <Input
-                  type="number"
-                  placeholder="Minimum 0.1 point (S$0.10)"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  min={0.1}
-                  step={0.1}
-                  className="pr-20 h-12 text-lg"
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
-                  POINTS
-                </div>
-              </div>
-
-              {/* Auto-selected Default Payment Method for Custom Amount */}
-              {paymentMethods.length > 0 && customAmount && parseFloat(customAmount) >= 0.1 && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Payment Method (Auto-Selected)</Label>
-                  <div className="h-12 bg-green-50 border border-green-200 rounded-md flex items-center px-3">
-                    <div className="flex items-center gap-2 text-green-800">
-                      <Zap className="h-4 w-4" />
-                      <CreditCard className="h-4 w-4" />
-                      <span className="font-medium">
-                        {defaultPaymentMethod?.brand} •••• {defaultPaymentMethod?.last4}
-                      </span>
-                      {defaultPaymentMethod?.is_default && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                          Default
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <details className="group">
-                    <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground flex items-center gap-1">
-                      <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
-                      Use different payment method
-                    </summary>
-                    <div className="mt-2">
-                      <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                        <SelectTrigger className="h-10">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {paymentMethods.map((method) => (
-                            <SelectItem key={method.id} value={method.id}>
-                              <div className="flex items-center gap-2">
-                                <CreditCard className="h-4 w-4" />
-                                {method.brand} •••• {method.last4}
-                                {method.is_default && (
-                                  <Badge variant="secondary" className="ml-2">Default</Badge>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </details>
-                </div>
-              )}
-              
-              {customAmount && parseFloat(customAmount) >= 0.1 && (
-                <div className="p-4 bg-secondary/30 rounded-lg border">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center border-t pt-2">
-                      <span className="text-sm font-medium">Total Amount:</span>
-                      <span className="font-bold text-xl text-primary">
-                        S${Number(customAmount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 1 })}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                    <span>Processing Fee: Included</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Instant delivery
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                {/* Primary: Instant Charge Button (when saved methods exist) */}
-                {paymentMethods.length > 0 && (
-                  <Button 
-                  onClick={() => showConfirmationDialog(parseFloat(customAmount), selectedPaymentMethod || defaultPaymentMethod?.id, true)}
-                  disabled={loading || !customAmount || parseFloat(customAmount) < 0.1 || !selectedPaymentMethod}
-                    className="flex-1 h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
-                    size="lg"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-5 h-5" />
-                        Instant Charge
-                      </div>
-                    )}
-                  </Button>
-                )}
-
-                {/* Secondary: Add New Payment Method Button */}
-                {paymentMethods.length === 0 && (
-                  <Button 
-                  onClick={() => setShowAddMethodModal(true)}
-                  disabled={loading || !customAmount || parseFloat(customAmount) < 0.1}
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground"
-                    size="lg"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                        Processing...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Plus className="w-5 h-5" />
-                        Save Payment Method First
-                      </div>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center text-xs text-muted-foreground pt-4 border-t bg-muted/20 -mx-6 px-6 py-4 rounded-b-lg">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span>Secured by Stripe • Payment methods saved for future use</span>
-            </div>
-            <div>
-              We don't store your payment information. All transactions are processed securely.
-            </div>
-          </div>
         </div>
       </DialogContent>
 
       <AddPaymentMethodModal
         open={showAddMethodModal}
         onOpenChange={setShowAddMethodModal}
-        onSuccess={() => {
-          fetchPaymentMethods();
-          setShowAddMethodModal(false);
-        }}
+        onSuccess={handlePaymentMethodAdded}
       />
-
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-primary" />
-              Confirm Points Purchase
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-foreground">Points to add:</span>
-                  <span className="text-xl font-bold text-primary">
-                    +{confirmationData?.amount.toLocaleString()} points
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between border-t pt-1">
-                    <span className="text-sm font-medium text-foreground">Total cost:</span>
-                    <span className="text-lg font-semibold text-foreground">
-                      S${confirmationData?.amount.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-                <Separator className="my-3" />
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Current wallet balance:</span>
-                    <span className="font-medium text-foreground">
-                      {profile?.points_balance?.toLocaleString() || '0'} points
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">New wallet balance:</span>
-                    <span className="text-lg font-bold text-primary">
-                      {((profile?.points_balance || 0) + (confirmationData?.amount || 0)).toLocaleString()} points
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  These points will be {confirmationData?.isInstant ? 'instantly added' : 'added after payment completion'} to your wallet and can be used for lead generation campaigns.
-                </div>
-              </div>
-
-              {confirmationData?.isInstant && (
-                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded border border-green-200">
-                  <Zap className="h-4 w-4" />
-                  <span>Instant charge using saved payment method</span>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmedPayment} className="bg-primary hover:bg-primary/90">
-              {confirmationData?.isInstant ? 'Charge Now' : 'Proceed to Checkout'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Dialog>
   );
 };
