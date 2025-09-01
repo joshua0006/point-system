@@ -74,9 +74,14 @@ export function useTransactionHistory() {
         const consultantUserId = t.bookings?.services?.consultants?.user_id;
         const consultantName = consultantUserId ? consultantNames[consultantUserId] : undefined;
         
+        // Determine transaction type based on amount and type
+        // Positive amounts are always "earned" regardless of type (top-ups, credits, etc.)
+        // Negative amounts are always "spent" (purchases, deductions, etc.)
+        const transactionType = t.amount > 0 ? 'earned' as const : 'spent' as const;
+        
         return {
           id: t.id,
-          type: t.type === 'earning' ? 'earned' as const : 'spent' as const,
+          type: transactionType,
           service: serviceTitle || t.description || 'Transaction',
           consultant: consultantName,
           points: Math.abs(t.amount),
