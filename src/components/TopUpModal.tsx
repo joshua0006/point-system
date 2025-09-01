@@ -177,6 +177,57 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             ))}
           </div>
 
+          {/* Custom Plan Section */}
+          <div className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-lg p-6 border-2 border-dashed border-primary/30">
+            <h3 className="font-bold text-xl text-primary mb-4 text-center">💎 Custom Plan</h3>
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              Need a specific amount? Create your own custom subscription plan
+            </p>
+            <div className="max-w-md mx-auto space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Flexi-Credits per month</label>
+                <Input
+                  type="number"
+                  placeholder="Enter credits amount"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  min="1"
+                  max="10000"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Minimum 1 credit, maximum 10,000 credits
+                </p>
+              </div>
+              {customAmount && parseInt(customAmount) > 0 && (
+                <div className="bg-background/50 rounded-lg p-3 border">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      S${parseInt(customAmount)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      per month for {customAmount} flexi-credits
+                    </div>
+                  </div>
+                </div>
+              )}
+              <Button
+                onClick={() => customAmount && handleSubscribe(parseInt(customAmount), parseInt(customAmount))}
+                disabled={loading || !customAmount || parseInt(customAmount) <= 0}
+                className="w-full"
+                variant="outline"
+              >
+                {loading && selectedAmount === parseInt(customAmount) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  "Create Custom Plan"
+                )}
+              </Button>
+            </div>
+          </div>
+
           {/* Billing Information */}
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
             <h4 className="font-semibold text-primary mb-2">💡 Subscription Details</h4>
