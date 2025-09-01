@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Shield, CreditCard, Zap, Star, CheckCircle } from "lucide-react";
@@ -17,6 +18,7 @@ interface TopUpModalProps {
 export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [customAmount, setCustomAmount] = useState<string>("");
   const { toast } = useToast();
   const { profile } = useAuth();
 
@@ -161,6 +163,51 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          {/* Custom Amount Section */}
+          <div className="bg-muted/30 rounded-lg p-6 border border-muted">
+            <h3 className="font-semibold text-lg mb-4 text-center">Custom Amount</h3>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  placeholder="Enter custom amount"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  min="1"
+                  className="text-center"
+                />
+                <p className="text-xs text-muted-foreground mt-1 text-center">
+                  Minimum: S$1 (1 point)
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  const amount = parseInt(customAmount);
+                  if (amount >= 1) {
+                    handleAddPoints(amount);
+                  } else {
+                    toast({
+                      title: "Invalid Amount",
+                      description: "Please enter a minimum amount of S$1",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                disabled={loading || !customAmount || parseInt(customAmount) < 1}
+                className="w-full sm:w-auto"
+              >
+                {loading && selectedAmount === parseInt(customAmount) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  "Add Custom Amount"
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Information Section */}
