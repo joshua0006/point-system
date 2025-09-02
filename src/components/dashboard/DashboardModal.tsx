@@ -12,6 +12,52 @@ import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useReviews, useRatingStats } from "@/hooks/useReviews";
 import { useState } from "react";
 
+// Utility function to convert technical transaction names to simple English
+const getSimpleTransactionName = (service: string) => {
+  if (service?.toLowerCase().includes('stripe checkout payment')) {
+    return 'Subscription Payment';
+  }
+  if (service?.toLowerCase().includes('checkout') && service?.toLowerCase().includes('session')) {
+    return 'Subscription Payment';
+  }
+  if (service?.toLowerCase().includes('subscription')) {
+    return 'Monthly Plan Payment';
+  }
+  if (service?.toLowerCase().includes('points')) {
+    return 'Credits Purchase';
+  }
+  if (service?.toLowerCase().includes('topup') || service?.toLowerCase().includes('top-up')) {
+    return 'Account Top-up';
+  }
+  if (service?.toLowerCase().includes('refund')) {
+    return 'Refund';
+  }
+  if (service?.toLowerCase().includes('consultation')) {
+    return 'Consultation Session';
+  }
+  // Return original if no match found, but remove technical jargon
+  return service?.replace(/cs_live_[a-zA-Z0-9]+/g, '').replace(/Session/g, '').trim() || 'Transaction';
+};
+
+// Utility function to convert technical status to simple English
+const getSimpleStatus = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'succeeded':
+    case 'completed':
+    case 'paid':
+      return 'Completed';
+    case 'pending':
+      return 'Processing';
+    case 'failed':
+    case 'canceled':
+      return 'Failed';
+    case 'refunded':
+      return 'Refunded';
+    default:
+      return status || 'Unknown';
+  }
+};
+
 // Common interfaces
 interface BaseModalProps {
   open: boolean;
@@ -72,7 +118,7 @@ export function BalanceDetailsModal({ open, onOpenChange, onTopUp }: BalanceDeta
                   )}
                 </div>
                 <div>
-                  <p className="font-medium">{transaction.service}</p>
+                  <p className="font-medium">{getSimpleTransactionName(transaction.service || '')}</p>
                   {transaction.consultant && (
                     <p className="text-sm text-muted-foreground">with {transaction.consultant}</p>
                   )}
@@ -86,7 +132,7 @@ export function BalanceDetailsModal({ open, onOpenChange, onTopUp }: BalanceDeta
                   {transaction.type === 'spent' ? '-' : '+'}{transaction.points}
                 </p>
                 <Badge variant="outline" className="text-xs">
-                  {transaction.status}
+                  {getSimpleStatus(transaction.status)}
                 </Badge>
               </div>
             </div>
