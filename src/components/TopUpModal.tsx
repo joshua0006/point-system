@@ -200,6 +200,20 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   {subscription.credits_per_month} credits/month • Next billing: {formatDate(subscription.subscription_end)}
                 </p>
               )}
+              
+              {/* Plan Change Instructions */}
+              {subscription?.subscribed && (
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">💡 How to Change Your Plan</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                    To upgrade or downgrade your plan, simply select a new plan below. You'll only pay the difference for upgrades, and changes take effect immediately.
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    For billing details and payment methods, use "Manage Subscription & Billing" below.
+                  </p>
+                </div>
+              )}
+              
               <div className="flex flex-col gap-3 justify-center">
                 {subscription?.subscribed && (
                   <Button
@@ -306,11 +320,13 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                         <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                         Processing...
                       </div>
-                    ) : isCurrentPlan(pkg.points) ? (
-                      "Current Plan"
-                    ) : subscription?.subscribed ? (
-                      `Upgrade to ${pkg.title}`
-                    ) : (
+                     ) : isCurrentPlan(pkg.points) ? (
+                       "Current Plan"
+                     ) : subscription?.subscribed ? (
+                       pkg.price > (subscription.credits_per_month || 0) 
+                         ? `Upgrade to ${pkg.title}` 
+                         : `Downgrade to ${pkg.title}`
+                     ) : (
                       `Subscribe to ${pkg.title}`
                     )}
                   </Button>

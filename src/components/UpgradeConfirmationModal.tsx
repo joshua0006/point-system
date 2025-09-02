@@ -48,9 +48,16 @@ export const UpgradeConfirmationModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Upgrade your plan</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {currentPlan ? "Change Your Plan" : "Subscribe to Plan"}
+          </DialogTitle>
           <p className="text-sm text-muted-foreground mt-2">
-            {currentPlan ? "You'll be taken to your billing portal to change your plan:" : "Here's what happens when you subscribe:"}
+            {currentPlan 
+              ? (upgradeAmount >= 0 
+                  ? "Upgrade your plan - you'll only pay the difference for the remaining days this month" 
+                  : "Downgrade your plan - new rate applies starting next month")
+              : "Here's what happens when you subscribe:"
+            }
           </p>
         </DialogHeader>
 
@@ -67,12 +74,15 @@ export const UpgradeConfirmationModal = ({
                   <span>{currentPlan.credits} credits</span>
                 </div>
                 <div className="flex items-center justify-between text-sm font-medium">
-                  <span>Upgrading to: {newPlan.name}</span>
+                  <span>Changing to: {newPlan.name}</span>
                   <span>{newPlan.credits} credits</span>
                 </div>
                 <div className="pt-2 border-t border-border/30">
                   <p className="text-sm text-muted-foreground">
-                    Your billing will be prorated automatically. You'll immediately get access to {additionalCredits} additional credits.
+                    {upgradeAmount >= 0 
+                      ? `You'll get ${Math.abs(additionalCredits)} ${additionalCredits >= 0 ? 'additional' : 'fewer'} credits immediately and be charged S$${upgradeAmount} for the remaining days.`
+                      : `You'll get ${Math.abs(additionalCredits)} fewer credits and save money starting next month.`
+                    }
                   </p>
                 </div>
               </div>
@@ -88,18 +98,30 @@ export const UpgradeConfirmationModal = ({
           <div>
             <h4 className="font-semibold mb-3">What you get:</h4>
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm">
-                  {currentPlan ? `+${additionalCredits} additional credits immediately` : `${newPlan.credits} credits per month`}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm">
-                  {currentPlan ? "Prorated billing - only pay the difference" : `S${newPlan.price}/month subscription`}
-                </span>
-              </div>
+               <div className="flex items-center gap-2">
+                 <CheckCircle className="h-4 w-4 text-green-600" />
+                 <span className="text-sm">
+                   {currentPlan ? 
+                     (additionalCredits >= 0 
+                       ? `+${additionalCredits} additional credits immediately`
+                       : `${Math.abs(additionalCredits)} fewer credits (but lower cost)`
+                     ) 
+                     : `${newPlan.credits} credits per month`
+                   }
+                 </span>
+               </div>
+               <div className="flex items-center gap-2">
+                 <CheckCircle className="h-4 w-4 text-green-600" />
+                 <span className="text-sm">
+                   {currentPlan ? 
+                     (upgradeAmount >= 0 
+                       ? "Prorated billing - only pay the difference" 
+                       : "Lower monthly rate starting next billing cycle"
+                     ) 
+                     : `S${newPlan.price}/month subscription`
+                   }
+                 </span>
+               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <span className="text-sm">Change or cancel anytime</span>
@@ -126,14 +148,16 @@ export const UpgradeConfirmationModal = ({
               disabled={loading}
               className="flex-1"
             >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                  Processing...
-                </div>
-              ) : (
-                "Confirm Upgrade"
-              )}
+               {loading ? (
+                 <div className="flex items-center gap-2">
+                   <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                   Processing...
+                 </div>
+               ) : (
+                 currentPlan 
+                   ? (upgradeAmount >= 0 ? "Confirm Upgrade" : "Confirm Downgrade")
+                   : "Confirm Subscription"
+               )}
             </Button>
           </div>
         </div>
