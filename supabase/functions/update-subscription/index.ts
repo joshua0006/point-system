@@ -86,7 +86,6 @@ serve(async (req) => {
       recurring: { interval: "month" },
       product_data: {
         name: `${planName} - ${credits} flexi-credits/month`,
-        description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month)`,
       },
     });
 
