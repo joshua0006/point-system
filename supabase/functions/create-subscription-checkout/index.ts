@@ -45,6 +45,7 @@ serve(async (req) => {
 
     // Check for existing subscriptions to enable proration
     let hasActiveSubscription = false;
+    let existingSubscription = null;
     if (customerId) {
       const subscriptions = await stripe.subscriptions.list({
         customer: customerId,
@@ -52,42 +53,83 @@ serve(async (req) => {
         limit: 1,
       });
       hasActiveSubscription = subscriptions.data.length > 0;
+      if (hasActiveSubscription) {
+        existingSubscription = subscriptions.data[0];
+      }
     }
 
-    // Create monthly subscription checkout
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "sgd",
-            product_data: { 
-              name: `${planName} - ${credits} flexi-credits/month`,
-              description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month)${hasActiveSubscription ? ' - Prorated billing' : ''}`
+    let session;
+
+    if (hasActiveSubscription && existingSubscription) {
+      // For existing subscriptions, create a checkout session that allows subscription updates
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [
+          {
+            price_data: {
+              currency: "sgd",
+              product_data: { 
+                name: `${planName} - ${credits} flexi-credits/month`,
+                description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month) - Prorated billing`
+              },
+              unit_amount: price * 100, // Convert to cents
+              recurring: { interval: "month" },
             },
-            unit_amount: price * 100, // Convert to cents
-            recurring: { interval: "month" },
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        mode: "subscription",
+        success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
+        cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
+        subscription_data: {
+          metadata: {
+            user_id: user.id,
+            credits: credits.toString(),
+            plan_name: planName
+          }
         },
-      ],
-      mode: "subscription",
-      success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
-      cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
-      metadata: {
-        user_id: user.id,
-        credits: credits.toString(),
-        plan_name: planName
-      },
-      subscription_data: {
+        // Enable proration for subscription changes
+        payment_method_types: ['card'],
+        billing_address_collection: 'auto',
+        // This will replace the existing subscription and prorate automatically
+        client_reference_id: existingSubscription.id
+      });
+    } else {
+      // Create new subscription for first-time subscribers
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price_data: {
+              currency: "sgd",
+              product_data: { 
+                name: `${planName} - ${credits} flexi-credits/month`,
+                description: `Monthly subscription for ${credits} flexi-credits (renews 1st of each month)`
+              },
+              unit_amount: price * 100, // Convert to cents
+              recurring: { interval: "month" },
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
+        cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
         metadata: {
           user_id: user.id,
           credits: credits.toString(),
           plan_name: planName
+        },
+        subscription_data: {
+          metadata: {
+            user_id: user.id,
+            credits: credits.toString(),
+            plan_name: planName
+          }
         }
-      }
-    });
+      });
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

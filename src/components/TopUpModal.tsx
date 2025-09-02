@@ -77,23 +77,51 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-        body: { credits, price }
-      });
+      // Check if user has an existing subscription
+      const hasExistingSubscription = subscription?.subscribed;
       
-      if (error) throw error;
+      if (hasExistingSubscription) {
+        // Use update-subscription for existing subscribers (handles proration)
+        const { data, error } = await supabase.functions.invoke('update-subscription', {
+          body: { credits, price }
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Success!",
+          description: `Your subscription has been updated. You'll be charged the prorated difference immediately.`,
+        });
+        
+        // Refresh subscription data
+        await refreshSubscription();
+        
+        // Close modals and trigger success callback
+        onClose();
+        setShowConfirmationModal(false);
+        onSuccess && onSuccess(credits, true);
+        
+      } else {
+        // Use create-subscription-checkout for new subscribers
+        const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+          body: { credits, price }
+        });
+        
+        if (error) throw error;
+        
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+        
+        // Close the modal
+        onClose();
+        setShowConfirmationModal(false);
+      }
       
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-      
-      // Close the modal
-      onClose();
-      setShowConfirmationModal(false);
     } catch (error: any) {
-      console.error('Error creating subscription checkout:', error);
+      console.error('Error processing subscription:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create subscription checkout",
+        description: error.message || "Failed to process subscription",
         variant: "destructive",
       });
     } finally {
