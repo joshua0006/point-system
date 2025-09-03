@@ -22,6 +22,13 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [refreshingSubscription, setRefreshingSubscription] = useState(false);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [prorationDetails, setProrationDetails] = useState<{
+    currentAmount: number;
+    newAmount: number;
+    prorationAmount: number;
+    nextBillingDate: string;
+  } | null>(null);
+  const [loadingProration, setLoadingProration] = useState(false);
   const [pendingUpgrade, setPendingUpgrade] = useState<{
     credits: number;
     price: number;
@@ -43,11 +50,67 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     { points: 1000, price: 1000, title: "Pro 10", popular: false },
   ];
 
+  const handleInstantTopUp = async (amount: number) => {
+    setSelectedAmount(amount);
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('instant-charge', {
+        body: { 
+          amount: amount * 100, // Convert to cents
+          credits: amount 
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success!",
+        description: `${amount} flexi-credits added to your wallet instantly!`,
+      });
+      
+      // Close modal and trigger success callback
+      onClose();
+      onSuccess && onSuccess(amount, true);
+      
+    } catch (error: any) {
+      console.error('Error with instant top-up:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add credits to wallet",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubscribe = async (credits: number, price: number, title: string) => {
-    // If already subscribed, show confirmation modal
+    // If already subscribed, fetch proration details and show confirmation modal
     if (subscription?.subscribed) {
       setPendingUpgrade({ credits, price, title });
-      setShowConfirmationModal(true);
+      
+      // Fetch proration details
+      setLoadingProration(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('preview-subscription-change', {
+          body: { credits }
+        });
+        
+        if (error) throw error;
+        
+        setProrationDetails(data);
+        setShowConfirmationModal(true);
+      } catch (error: any) {
+        console.error('Error fetching proration details:', error);
+        toast({
+          title: "Error",
+          description: "Failed to calculate proration. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingProration(false);
+      }
     } else {
       // Direct subscription for new users
       await processSubscription(credits, price);
@@ -272,6 +335,66 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
             </div>
           </div>
 
+          {/* Wallet Top-up Section */}
+          <div className="bg-gradient-to-r from-muted/30 to-muted/20 rounded-lg p-6 border-2 border-border/50">
+            <h3 className="font-bold text-xl text-primary mb-4 text-center flex items-center justify-center gap-2">
+              💰 Top up Wallet
+            </h3>
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              Add flexi-credits to your wallet instantly using your saved payment method
+            </p>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mb-6">
+              {[50, 100, 250, 500].map((amount) => (
+                <Card 
+                  key={amount} 
+                  className="border-2 transition-all hover:shadow-lg hover:border-primary/50 cursor-pointer"
+                  onClick={() => handleInstantTopUp(amount)}
+                >
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {amount}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      credits
+                    </div>
+                    <div className="text-sm font-medium mt-1">
+                      S${amount}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="max-w-md mx-auto">
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Custom amount"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  min="1"
+                  max="10000"
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => customAmount && handleInstantTopUp(parseInt(customAmount))}
+                  disabled={loading || !customAmount || parseInt(customAmount) <= 0}
+                  variant="outline"
+                >
+                  {loading && selectedAmount === parseInt(customAmount) ? (
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                  ) : (
+                    "Top up"
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Instant credit top-up • 1 credit = S$1
+              </p>
+            </div>
+          </div>
+
           {/* Subscription Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {pointsPackages.map((pkg) => (
@@ -313,99 +436,46 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     Monthly subscription
                   </div>
                   
-                  <Button
-                    onClick={() => handleSubscribe(pkg.points, pkg.price, pkg.title)}
-                    disabled={loading || isCurrentPlan(pkg.points)}
-                    className={`w-full ${
-                      isCurrentPlan(pkg.points)
-                        ? 'bg-green-600 hover:bg-green-600'
-                        : pkg.popular 
-                        ? 'bg-primary hover:bg-primary/90' 
-                        : ''
-                    }`}
-                    variant={isCurrentPlan(pkg.points) ? "default" : pkg.popular ? "default" : "outline"}
-                  >
-                    {loading && selectedAmount === pkg.points ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                        Processing...
-                      </div>
-                     ) : isCurrentPlan(pkg.points) ? (
-                       "Current Plan"
-                     ) : subscription?.subscribed ? (
-                       pkg.price > (subscription.credits_per_month || 0) 
-                         ? `Upgrade to ${pkg.title}` 
-                         : `Downgrade to ${pkg.title}`
-                     ) : (
-                      `Subscribe to ${pkg.title}`
-                    )}
-                  </Button>
+                   <Button
+                     onClick={() => handleSubscribe(pkg.points, pkg.price, pkg.title)}
+                     disabled={loading || isCurrentPlan(pkg.points) || loadingProration}
+                     className={`w-full ${
+                       isCurrentPlan(pkg.points)
+                         ? 'bg-green-600 hover:bg-green-600'
+                         : pkg.popular 
+                         ? 'bg-primary hover:bg-primary/90' 
+                         : ''
+                     }`}
+                     variant={isCurrentPlan(pkg.points) ? "default" : pkg.popular ? "default" : "outline"}
+                   >
+                     {(loading && selectedAmount === pkg.points) || loadingProration ? (
+                       <div className="flex items-center gap-2">
+                         <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                         {loadingProration ? "Calculating..." : "Processing..."}
+                       </div>
+                      ) : isCurrentPlan(pkg.points) ? (
+                        "Current Plan"
+                      ) : subscription?.subscribed ? (
+                        pkg.price > (subscription.credits_per_month || 0) 
+                          ? `Upgrade to ${pkg.title}` 
+                          : `Downgrade to ${pkg.title}`
+                      ) : (
+                       `Subscribe to ${pkg.title}`
+                     )}
+                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Custom Plan Section */}
-          <div className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-lg p-6 border-2 border-dashed border-primary/30">
-            <h3 className="font-bold text-xl text-primary mb-4 text-center">💎 Custom Plan</h3>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Need a specific amount? Create your own custom subscription plan
-            </p>
-            <div className="max-w-md mx-auto space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Flexi-Credits per month</label>
-                <Input
-                  type="number"
-                  placeholder="Enter credits amount"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  min="1"
-                  max="10000"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Minimum 1 credit, maximum 10,000 credits
-                </p>
-              </div>
-              {customAmount && parseInt(customAmount) > 0 && (
-                <div className="bg-background/50 rounded-lg p-3 border">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      S${parseInt(customAmount)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      per month for {customAmount} flexi-credits
-                    </div>
-                  </div>
-                </div>
-              )}
-              <Button
-                onClick={() => customAmount && handleSubscribe(parseInt(customAmount), parseInt(customAmount), "Custom Plan")}
-                disabled={loading || !customAmount || parseInt(customAmount) <= 0}
-                className="w-full"
-                variant="outline"
-              >
-                {loading && selectedAmount === parseInt(customAmount) ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                    Processing...
-                  </div>
-                ) : subscription?.subscribed ? (
-                  "Upgrade to Custom Plan"
-                ) : (
-                  "Create Custom Plan"
-                )}
-              </Button>
-            </div>
-          </div>
-
           {/* Billing Information */}
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-            <h4 className="font-semibold text-primary mb-2">💡 Subscription Details</h4>
+            <h4 className="font-semibold text-primary mb-2">💡 Billing Details</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• All subscriptions are billed monthly on the 1st</p>
-              <p>• Plan changes are prorated - you only pay the difference</p>
-              <p>• Unused flexi-credits roll over to the next month</p>
-              <p>• Cancel anytime - your plan remains active until the end of your billing period</p>
+              <p>• <strong>Subscriptions:</strong> Billed monthly, plan changes are prorated</p>
+              <p>• <strong>Wallet top-ups:</strong> Instant credit addition using saved payment method</p>
+              <p>• <strong>Credit rollover:</strong> Unused credits carry over to next month</p>
+              <p>• <strong>Cancellation:</strong> Cancel anytime, access remains until period end</p>
             </div>
           </div>
 
@@ -433,6 +503,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
         onClose={() => {
           setShowConfirmationModal(false);
           setPendingUpgrade(null);
+          setProrationDetails(null);
         }}
         onConfirm={handleUpgradeConfirm}
         currentPlan={subscription?.subscribed ? {
@@ -445,10 +516,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           credits: pendingUpgrade.credits,
           price: pendingUpgrade.price
         } : { name: "", credits: 0, price: 0 }}
-        upgradeAmount={pendingUpgrade && subscription?.subscribed 
+        upgradeAmount={prorationDetails?.prorationAmount || (pendingUpgrade && subscription?.subscribed 
           ? Math.max(0, pendingUpgrade.price - (subscription.credits_per_month || 0))
-          : pendingUpgrade?.price || 0
+          : pendingUpgrade?.price || 0)
         }
+        prorationDetails={prorationDetails}
         loading={loading}
       />
     </Dialog>

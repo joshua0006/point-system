@@ -41,11 +41,20 @@ serve(async (req) => {
       throw new Error("No stripe signature header");
     }
 
-    // Note: In production, you should verify the webhook signature
-    // const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    
-    // For now, we'll parse the body directly (add signature verification in production)
-    const event = JSON.parse(body);
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    if (!webhookSecret) {
+      throw new Error("STRIPE_WEBHOOK_SECRET is not set");
+    }
+
+    // Verify webhook signature for security
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      logStep("Webhook signature verified", { eventType: event.type });
+    } catch (err) {
+      logStep("Webhook signature verification failed", { error: err.message });
+      throw new Error(`Webhook signature verification failed: ${err.message}`);
+    }
     
     logStep("Event received", { type: event.type, id: event.id });
 
@@ -93,10 +102,28 @@ serve(async (req) => {
       logStep("Successfully processed checkout", { userId, pointsToAdd, sessionId: session.id });
     }
 
-    // Handle subscription payments
+    // Handle subscription payments - only for regular monthly billing, not proration
     if (event.type === "invoice.payment_succeeded") {
       const invoice = event.data.object;
-      logStep("Processing invoice payment", { invoiceId: invoice.id });
+      logStep("Processing invoice payment", { invoiceId: invoice.id, billing_reason: invoice.billing_reason });
+
+      // Skip proration invoices - credits are handled immediately in update-subscription
+      if (invoice.billing_reason === 'subscription_update') {
+        logStep("Skipping proration invoice - credits handled immediately", { invoiceId: invoice.id });
+        return new Response(JSON.stringify({ received: true, message: "Proration invoice skipped" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      // Only process regular subscription cycle or manual billing
+      if (!['subscription_cycle', 'manual'].includes(invoice.billing_reason)) {
+        logStep("Skipping non-regular billing", { billing_reason: invoice.billing_reason });
+        return new Response(JSON.stringify({ received: true, message: "Non-regular billing skipped" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
 
       // Get subscription details
       const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
@@ -123,16 +150,15 @@ serve(async (req) => {
         throw new Error(`User profile not found for email: ${customerEmail}`);
       }
 
-      // Get credits amount from subscription metadata or line items
-      const lineItem = invoice.lines.data[0];
-      const creditsToAdd = parseInt(subscription.metadata?.credits || lineItem.quantity || "0");
+      // Get credits amount from subscription metadata
+      const creditsToAdd = parseInt(subscription.metadata?.credits || "0");
 
       if (!creditsToAdd) {
-        logStep("No credits amount found", { subscriptionMetadata: subscription.metadata, lineItem: lineItem.quantity });
-        throw new Error("No credits amount found in subscription");
+        logStep("No credits amount found in subscription metadata", { subscriptionMetadata: subscription.metadata });
+        throw new Error("No credits amount found in subscription metadata");
       }
 
-      logStep("Adding subscription credits to user", { userId: profile.user_id, creditsToAdd });
+      logStep("Adding monthly subscription credits to user", { userId: profile.user_id, creditsToAdd });
 
       // Add credits to user's balance
       const { error: creditsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
@@ -152,14 +178,14 @@ serve(async (req) => {
           user_id: profile.user_id,
           type: 'purchase',
           amount: creditsToAdd,
-          description: `Monthly subscription - Invoice ${invoice.id}`
+          description: `Monthly subscription renewal - Invoice ${invoice.id}`
         });
 
       if (transactionError) {
         logStep("Error creating subscription transaction record", transactionError);
       }
 
-      logStep("Successfully processed subscription payment", { userId: profile.user_id, creditsToAdd, invoiceId: invoice.id });
+      logStep("Successfully processed monthly subscription payment", { userId: profile.user_id, creditsToAdd, invoiceId: invoice.id });
     }
 
     return new Response(JSON.stringify({ received: true }), {

@@ -116,6 +116,17 @@ serve(async (req) => {
     // Get current subscription item
     const subscriptionItem = currentSubscription.items.data[0];
 
+    // Get current plan details for proration calculation
+    const currentSubscriptionItem = currentSubscription.items.data[0];
+    const currentPrice = await stripe.prices.retrieve(currentSubscriptionItem.price.id);
+    const currentCredits = parseInt(currentSubscription.metadata?.credits || "0");
+    
+    logStep("Current plan details", { 
+      currentCredits, 
+      newCredits: credits,
+      currentPrice: currentPrice.unit_amount 
+    });
+
     // Update the subscription with proration
     const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
       items: [
@@ -139,10 +150,68 @@ serve(async (req) => {
       newPriceId 
     });
 
+    // For upgrades, grant prorated credits immediately
+    if (credits > currentCredits) {
+      const upgradeCredits = credits - currentCredits;
+      
+      // Calculate proration factor based on days remaining in current period
+      const now = new Date();
+      const periodEnd = new Date(updatedSubscription.current_period_end * 1000);
+      const periodStart = new Date(updatedSubscription.current_period_start * 1000);
+      const totalDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+      const remainingDays = Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const prorationFactor = remainingDays / totalDays;
+      
+      const proratedCredits = Math.round(upgradeCredits * prorationFactor);
+      
+      logStep("Granting prorated credits for upgrade", { 
+        upgradeCredits,
+        remainingDays,
+        totalDays,
+        prorationFactor,
+        proratedCredits
+      });
+
+      // Create Supabase client with service role key to bypass RLS
+      const supabaseService = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
+
+      // Add prorated credits immediately
+      const { error: creditsError } = await supabaseService.rpc('increment_flexi_credits_balance', {
+        user_id: user.id,
+        credits_to_add: proratedCredits
+      });
+
+      if (creditsError) {
+        logStep("Error adding prorated credits", creditsError);
+        // Don't throw here - subscription was updated successfully
+      } else {
+        // Create transaction record
+        const { error: transactionError } = await supabaseService
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: user.id,
+            type: 'purchase',
+            amount: proratedCredits,
+            description: `Prorated upgrade credits - Subscription update`
+          });
+
+        if (transactionError) {
+          logStep("Error creating prorated transaction record", transactionError);
+        } else {
+          logStep("Successfully granted prorated credits", { proratedCredits });
+        }
+      }
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       subscription_id: updatedSubscription.id,
-      message: "Subscription updated successfully with proration"
+      message: "Subscription updated successfully with proration",
+      prorated_credits: credits > currentCredits ? Math.round((credits - currentCredits) * (new Date(updatedSubscription.current_period_end * 1000).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)) : 0
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

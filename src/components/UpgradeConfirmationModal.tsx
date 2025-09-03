@@ -19,6 +19,12 @@ interface UpgradeConfirmationModalProps {
     price: number;
   };
   upgradeAmount: number;
+  prorationDetails?: {
+    currentAmount: number;
+    newAmount: number;
+    prorationAmount: number;
+    nextBillingDate: string;
+  } | null;
   loading?: boolean;
 }
 
@@ -29,6 +35,7 @@ export const UpgradeConfirmationModal = ({
   currentPlan,
   newPlan,
   upgradeAmount,
+  prorationDetails,
   loading = false
 }: UpgradeConfirmationModalProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -78,12 +85,34 @@ export const UpgradeConfirmationModal = ({
                   <span>{newPlan.credits} credits</span>
                 </div>
                 <div className="pt-2 border-t border-border/30">
-                  <p className="text-sm text-muted-foreground">
-                    {upgradeAmount >= 0 
-                      ? `You'll get ${Math.abs(additionalCredits)} ${additionalCredits >= 0 ? 'additional' : 'fewer'} credits immediately and be charged S$${upgradeAmount} for the remaining days.`
-                      : `You'll get ${Math.abs(additionalCredits)} fewer credits and save money starting next month.`
-                    }
-                  </p>
+                  {prorationDetails ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        {upgradeAmount >= 0 
+                          ? `You'll get ${Math.abs(additionalCredits)} ${additionalCredits >= 0 ? 'additional' : 'fewer'} credits immediately.`
+                          : `You'll get ${Math.abs(additionalCredits)} fewer credits starting next month.`
+                        }
+                      </p>
+                      {prorationDetails.prorationAmount > 0 && (
+                        <div className="bg-primary/10 rounded p-3 border border-primary/20">
+                          <p className="font-medium text-sm text-primary">Proration Details:</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            You'll be charged S${(prorationDetails.prorationAmount / 100).toFixed(2)} immediately for the remaining days in this billing period.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Next billing: {new Date(prorationDetails.nextBillingDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {upgradeAmount >= 0 
+                        ? `You'll get ${Math.abs(additionalCredits)} ${additionalCredits >= 0 ? 'additional' : 'fewer'} credits immediately and be charged S$${upgradeAmount} for the remaining days.`
+                        : `You'll get ${Math.abs(additionalCredits)} fewer credits and save money starting next month.`
+                      }
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
