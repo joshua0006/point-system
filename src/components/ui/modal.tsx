@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -43,11 +43,14 @@ export function Modal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(sizeClasses[size], className)}>
+      <DialogContent 
+        className={cn(sizeClasses[size], className)}
+        aria-describedby={description ? undefined : undefined}
+      >
         {(title || description) && (
           <DialogHeader>
             {title && <DialogTitle>{title}</DialogTitle>}
-            {description && <p className="text-sm text-muted-foreground">{description}</p>}
+            {description && <DialogDescription className="text-sm text-muted-foreground">{description}</DialogDescription>}
           </DialogHeader>
         )}
         

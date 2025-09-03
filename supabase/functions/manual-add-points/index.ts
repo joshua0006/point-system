@@ -36,23 +36,23 @@ serve(async (req) => {
     
     console.log(`Adding ${points} points to user ${user.id}`);
 
-    // Add points to user's balance
-    const { error: pointsError } = await supabaseClient.rpc('increment_points_balance', {
+    // Add points to user's balance using the correct RPC
+    const { error: pointsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
       user_id: user.id,
-      points_to_add: points
+      credits_to_add: points
     });
 
     if (pointsError) {
       throw pointsError;
     }
 
-    // Create a transaction record
+    // Create a transaction record in the unified table
     const { error: transactionError } = await supabaseClient
-      .from('points_transactions')
+      .from('flexi_credits_transactions')
       .insert({
         user_id: user.id,
-        type: 'purchase',
-        amount: points,
+        type: 'admin_credit',
+        amount: points, // Positive amount for credits added
         description: `Manual points addition - ${points} points`
       });
 

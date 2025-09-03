@@ -57,10 +57,10 @@ serve(async (req) => {
           amount: participant.budget_contribution 
         });
 
-        // Get user's current points balance
+        // Get user's current flexi credits balance
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('points_balance')
+          .select('flexi_credits_balance')
           .eq('user_id', participant.user_id)
           .single();
 
@@ -69,7 +69,7 @@ serve(async (req) => {
           throw profileError;
         }
 
-        const currentBalance = profile.points_balance;
+        const currentBalance = profile.flexi_credits_balance;
         const billingAmount = (participant.proration_enabled && participant.monthly_budget)
           ? participant.monthly_budget
           : participant.budget_contribution;
@@ -93,14 +93,14 @@ serve(async (req) => {
           continue;
         }
 
-        // Deduct points from user's balance
-        const { error: deductError } = await supabase.rpc('increment_points_balance', {
+        // Deduct flexi credits using the correct RPC
+        const { error: deductError } = await supabase.rpc('increment_flexi_credits_balance', {
           user_id: participant.user_id,
-          points_to_add: -billingAmount
+          credits_to_add: -billingAmount // Negative to deduct
         });
 
         if (deductError) {
-          logStep("Error deducting points", { error: deductError });
+          logStep("Error deducting flexi credits", { error: deductError });
           throw deductError;
         }
 
@@ -121,7 +121,22 @@ serve(async (req) => {
           throw transactionError;
         }
 
-        // Create points transaction record
+        // Create unified transaction record for history tracking
+        const { error: unifiedTransactionError } = await supabase
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: participant.user_id,
+            type: 'campaign_billing',
+            amount: -billingAmount, // Negative for billing deduction
+            description: `Monthly campaign billing - ${billingAmount} points`
+          });
+
+        if (unifiedTransactionError) {
+          logStep("Error creating unified transaction record", { error: unifiedTransactionError });
+          throw unifiedTransactionError;
+        }
+
+        // Create points transaction record (legacy)
         const { error: pointsTransactionError } = await supabase
           .from('points_transactions')
           .insert({
@@ -133,7 +148,7 @@ serve(async (req) => {
 
         if (pointsTransactionError) {
           logStep("Error creating points transaction", { error: pointsTransactionError });
-          throw pointsTransactionError;
+          // Don't throw - this is legacy and not critical
         }
 
         // Update participant's next billing date (next month, 1st day)

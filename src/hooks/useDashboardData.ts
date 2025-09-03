@@ -115,15 +115,14 @@ export function useDashboardData() {
         .select('user_id, full_name')
         .in('user_id', consultantUserIds);
 
-      // Process transactions
+      // Process transactions - classify by amount sign for accuracy
       const processedTransactions: Transaction[] = (transactions || []).map(t => {
-        // Determine if transaction is spent or earned based on type
-        const isSpent = ['purchase'].includes(t.type);
-        const isEarned = ['initial_credit', 'admin_credit', 'earning'].includes(t.type);
+        // Positive amounts are earned, negative amounts are spent
+        const transactionType = t.amount > 0 ? 'earned' as const : 'spent' as const;
         
         return {
           id: t.id,
-          type: isSpent ? 'spent' : 'earned',
+          type: transactionType,
           service: t.description || 'Transaction',
           points: Math.abs(t.amount),
           date: new Date(t.created_at).toISOString().split('T')[0],
@@ -166,14 +165,14 @@ export function useDashboardData() {
           points: b.points
         }));
 
-      // Calculate stats
+      // Calculate stats - sum by amount sign for accuracy
       const totalPoints = profile?.flexi_credits_balance || 0;
-      const pointsSpent = processedTransactions
-        .filter(t => t.type === 'spent')
-        .reduce((sum, t) => sum + t.points, 0);
-      const pointsEarned = processedTransactions
-        .filter(t => t.type === 'earned')
-        .reduce((sum, t) => sum + t.points, 0);
+      const pointsSpent = (transactions || [])
+        .filter(t => t.amount < 0)
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const pointsEarned = (transactions || [])
+        .filter(t => t.amount > 0)
+        .reduce((sum, t) => sum + t.amount, 0);
       const servicesBooked = processedBookings.length;
       const completedSessions = processedBookings.filter(b => b.status === 'completed').length;
 
