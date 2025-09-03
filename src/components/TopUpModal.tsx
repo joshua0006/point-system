@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, CreditCard, Zap, Star, CheckCircle, RefreshCw } from "lucide-react";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { Shield, CreditCard, Zap, Star, CheckCircle, RefreshCw, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UpgradeConfirmationModal } from "@/components/UpgradeConfirmationModal";
 
@@ -36,6 +37,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   } | null>(null);
   const { toast } = useToast();
   const { profile, subscription, refreshSubscription, refreshProfile } = useAuth();
+  const { paymentMethods, loading: paymentMethodsLoading, fetchPaymentMethods, setupPaymentMethod, instantCharge } = usePaymentMethods();
 
   const pointsPackages = [
     { points: 100, price: 100, title: "Pro 1", popular: false },
@@ -51,23 +53,23 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   ];
 
   const handleInstantTopUp = async (amount: number) => {
+    // Check if user has payment methods
+    if (paymentMethods.length === 0) {
+      toast({
+        title: "No Payment Method",
+        description: "Please add a payment method first to use instant top-up",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSelectedAmount(amount);
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('instant-charge', {
-        body: { 
-          amount: amount * 100, // Convert to cents
-          credits: amount 
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Success!",
-        description: `${amount} flexi-credits added to your wallet instantly!`,
-      });
+      // Use the first (default) payment method
+      const defaultPaymentMethod = paymentMethods[0];
+      await instantCharge(defaultPaymentMethod.id, amount * 100); // Convert to cents
       
       // Refresh profile to update balance
       await refreshProfile();
@@ -78,11 +80,27 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       
     } catch (error: any) {
       console.error('Error with instant top-up:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add credits to wallet",
-        variant: "destructive",
-      });
+      // Error toast is already handled in the instantCharge function
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddPaymentMethod = async () => {
+    setLoading(true);
+    try {
+      const clientSecret = await setupPaymentMethod();
+      if (clientSecret) {
+        toast({
+          title: "Payment Method Setup",
+          description: "Please complete the payment method setup to enable instant top-ups",
+        });
+        // In a real app, you'd redirect to Stripe's setup form with the client secret
+        // For now, we'll just refresh the payment methods
+        await fetchPaymentMethods(true);
+      }
+    } catch (error) {
+      console.error('Error setting up payment method:', error);
     } finally {
       setLoading(false);
     }
@@ -348,7 +366,28 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               Add flexi-credits to your wallet instantly using your saved payment method
             </p>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mb-6">
+            {paymentMethods.length === 0 ? (
+              <div className="text-center mb-6">
+                <p className="text-sm text-muted-foreground mb-4">
+                  No payment methods found. Add a payment method to enable instant top-ups.
+                </p>
+                <Button 
+                  onClick={handleAddPaymentMethod}
+                  disabled={loading || paymentMethodsLoading}
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Payment Method
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="text-center mb-4">
+                  <p className="text-xs text-muted-foreground">
+                    Using: **** **** **** {paymentMethods[0]?.last4} ({paymentMethods[0]?.brand})
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mb-6">
               {[50, 100, 250, 500].map((amount) => (
                 <Card 
                   key={amount} 
@@ -367,10 +406,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-            
-            <div className="max-w-md mx-auto">
+                ))}
+                </div>
+                
+                <div className="max-w-md mx-auto">
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -383,7 +422,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 />
                 <Button
                   onClick={() => customAmount && handleInstantTopUp(parseInt(customAmount))}
-                  disabled={loading || !customAmount || parseInt(customAmount) <= 0}
+                  disabled={loading || !customAmount || parseInt(customAmount) <= 0 || paymentMethods.length === 0}
                   variant="outline"
                 >
                   {loading && selectedAmount === parseInt(customAmount) ? (
@@ -393,10 +432,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Instant credit top-up • 1 credit = S$1
-              </p>
-            </div>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Instant credit top-up • 1 credit = S$1
+                </p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Subscription Plans Grid */}
