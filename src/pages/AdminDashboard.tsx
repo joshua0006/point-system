@@ -93,9 +93,9 @@ export default function AdminDashboard() {
                 <CardContent>
                   {loading ? (
                     <Skeleton className="h-8 w-20 mb-2" />
-                  ) : (
-                    <div className="text-2xl font-bold text-foreground">{stats.totalUsers.toLocaleString()}</div>
-                  )}
+                   ) : (
+                     <div className="text-2xl font-bold text-foreground">{(stats?.totalUsers || 0).toLocaleString()}</div>
+                   )}
                   <p className="text-xs text-muted-foreground">approved users</p>
                 </CardContent>
               </Card>
@@ -110,14 +110,14 @@ export default function AdminDashboard() {
                 <CardContent>
                   {loading ? (
                     <Skeleton className="h-8 w-16 mb-2" />
-                  ) : (
-                    <div className="text-2xl font-bold text-foreground">{stats.activeConsultants}</div>
-                  )}
+                   ) : (
+                     <div className="text-2xl font-bold text-foreground">{stats?.activeConsultants || 0}</div>
+                   )}
                   {loading ? (
                     <Skeleton className="h-4 w-24" />
-                  ) : (
-                    <p className="text-xs text-muted-foreground">{stats.activeServices} services listed</p>
-                  )}
+                   ) : (
+                     <p className="text-xs text-muted-foreground">{stats?.activeServices || 0} services listed</p>
+                   )}
                 </CardContent>
               </Card>
 
@@ -131,9 +131,9 @@ export default function AdminDashboard() {
                 <CardContent>
                   {loading ? (
                     <Skeleton className="h-8 w-24 mb-2 bg-accent-foreground/20" />
-                  ) : (
-                    <div className="text-2xl font-bold">{stats.monthlyVolume.toLocaleString()}</div>
-                  )}
+                   ) : (
+                     <div className="text-2xl font-bold">{(stats?.monthlyVolume || 0).toLocaleString()}</div>
+                   )}
                   <p className="text-xs opacity-90">points transacted</p>
                 </CardContent>
               </Card>
@@ -148,9 +148,9 @@ export default function AdminDashboard() {
                 <CardContent>
                   {loading ? (
                     <Skeleton className="h-8 w-16 mb-2" />
-                  ) : (
-                    <div className="text-2xl font-bold text-foreground">{stats.activeBookings}</div>
-                  )}
+                   ) : (
+                     <div className="text-2xl font-bold text-foreground">{stats?.activeBookings || 0}</div>
+                   )}
                   <p className="text-xs text-muted-foreground">pending & confirmed</p>
                 </CardContent>
               </Card>
