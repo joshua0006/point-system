@@ -43,8 +43,12 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
   const { toast } = useToast();
 
   const handleTopUp = async () => {
+    console.log('handleTopUp called with points:', points);
     const pointsAmount = parseFloat(points);
+    console.log('pointsAmount parsed:', pointsAmount);
+    
     if (isNaN(pointsAmount) || pointsAmount <= 0) {
+      console.log('Validation failed:', { isNaN: isNaN(pointsAmount), lessThanOrEqualZero: pointsAmount <= 0 });
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid number of points to add.",
@@ -112,7 +116,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
           </div>
           <Button 
             onClick={handleTopUp} 
-            disabled={loading || !points}
+            disabled={loading || !points || points.trim() === '' || parseFloat(points) <= 0}
             className="w-full"
           >
             {loading ? "Adding..." : `Add ${points || 0} Points`}
