@@ -38,20 +38,20 @@ interface TopUpModalProps {
 }
 
 function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
-  const [points, setPoints] = useState("");
+  const [flexiCredits, setFlexiCredits] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleTopUp = async () => {
-    console.log('handleTopUp called with points:', points);
-    const pointsAmount = parseFloat(points);
-    console.log('pointsAmount parsed:', pointsAmount);
+    console.log('handleTopUp called with flexi credits:', flexiCredits);
+    const creditsAmount = parseFloat(flexiCredits);
+    console.log('creditsAmount parsed:', creditsAmount);
     
-    if (isNaN(pointsAmount) || pointsAmount <= 0) {
-      console.log('Validation failed:', { isNaN: isNaN(pointsAmount), lessThanOrEqualZero: pointsAmount <= 0 });
+    if (isNaN(creditsAmount) || creditsAmount <= 0) {
+      console.log('Validation failed:', { isNaN: isNaN(creditsAmount), lessThanOrEqualZero: creditsAmount <= 0 });
       toast({
         title: "Invalid Amount",
-        description: "Please enter a valid number of points to add.",
+        description: "Please enter a valid number of flexi credits to add.",
         variant: "destructive",
       });
       return;
@@ -63,7 +63,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
         body: {
           action: 'topup_points',
           userId: user.user_id,
-          points: pointsAmount
+          points: creditsAmount
         }
       });
 
@@ -71,17 +71,17 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
 
       toast({
         title: "Success",
-        description: `Added ${pointsAmount} points to ${user.full_name || user.email}'s account.`,
+        description: `Added ${creditsAmount} flexi credits to ${user.full_name || user.email}'s account.`,
       });
 
-      setPoints("");
+      setFlexiCredits("");
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
       console.error('Top-up error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to add points. Please try again.",
+        description: error.message || "Failed to add flexi credits. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -93,33 +93,33 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Top Up Points</DialogTitle>
+          <DialogTitle>Top Up Flexi Credits</DialogTitle>
           <DialogDescription>
-            Add points to {user.full_name || user.email}'s account
+            Add flexi credits to {user.full_name || user.email}'s account
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Current Balance</label>
-            <div className="text-2xl font-bold text-accent">{(user.flexi_credits_balance || 0)} points</div>
+            <div className="text-2xl font-bold text-accent">{(user.flexi_credits_balance || 0)} flexi credits</div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Points to Add</label>
+            <label className="text-sm font-medium">Flexi Credits to Add</label>
             <Input
               type="number"
               placeholder="Enter amount"
-              value={points}
-              onChange={(e) => setPoints(e.target.value)}
+              value={flexiCredits}
+              onChange={(e) => setFlexiCredits(e.target.value)}
               min="0.1"
               step="0.1"
             />
           </div>
           <Button 
             onClick={handleTopUp} 
-            disabled={loading || !points || points.trim() === '' || parseFloat(points) <= 0}
+            disabled={loading || !flexiCredits || flexiCredits.trim() === '' || parseFloat(flexiCredits) <= 0}
             className="w-full"
           >
-            {loading ? "Adding..." : `Add ${points || 0} Points`}
+            {loading ? "Adding..." : `Add ${flexiCredits || 0} Flexi Credits`}
           </Button>
         </div>
       </DialogContent>
@@ -135,26 +135,26 @@ interface DeductModalProps {
 }
 
 function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) {
-  const [points, setPoints] = useState("");
+  const [flexiCredits, setFlexiCredits] = useState("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleDeduct = async () => {
-    const pointsAmount = parseFloat(points);
-    if (!pointsAmount || pointsAmount <= 0) {
+    const creditsAmount = parseFloat(flexiCredits);
+    if (!creditsAmount || creditsAmount <= 0) {
       toast({
         title: "Invalid Amount",
-        description: "Please enter a valid number of points to deduct.",
+        description: "Please enter a valid number of flexi credits to deduct.",
         variant: "destructive",
       });
       return;
     }
 
-    if (pointsAmount > (user.flexi_credits_balance || 0)) {
+    if (creditsAmount > (user.flexi_credits_balance || 0)) {
       toast({
         title: "Insufficient Balance",
-        description: `User only has ${(user.flexi_credits_balance || 0)} points available.`,
+        description: `User only has ${(user.flexi_credits_balance || 0)} flexi credits available.`,
         variant: "destructive",
       });
       return;
@@ -163,7 +163,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
     if (!reason.trim()) {
       toast({
         title: "Reason Required",
-        description: "Please provide a reason for deducting points.",
+        description: "Please provide a reason for deducting flexi credits.",
         variant: "destructive",
       });
       return;
@@ -175,7 +175,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
         body: {
           action: 'deduct_points',
           userId: user.user_id,
-          points: pointsAmount,
+          points: creditsAmount,
           reason: reason.trim()
         }
       });
@@ -184,10 +184,10 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
 
       toast({
         title: "Success",
-        description: `Deducted ${pointsAmount} points from ${user.full_name || user.email}'s account.`,
+        description: `Deducted ${creditsAmount} flexi credits from ${user.full_name || user.email}'s account.`,
       });
 
-      setPoints("");
+      setFlexiCredits("");
       setReason("");
       onOpenChange(false);
       onSuccess();
@@ -195,7 +195,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
       console.error('Deduct error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to deduct points. Please try again.",
+        description: error.message || "Failed to deduct flexi credits. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -209,24 +209,24 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <Minus className="w-5 h-5" />
-            Deduct Points
+            Deduct Flexi Credits
           </DialogTitle>
           <DialogDescription>
-            Remove points from {user.full_name || user.email}'s account
+            Remove flexi credits from {user.full_name || user.email}'s account
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Current Balance</label>
-            <div className="text-2xl font-bold text-accent">{(user.flexi_credits_balance || 0)} points</div>
+            <div className="text-2xl font-bold text-accent">{(user.flexi_credits_balance || 0)} flexi credits</div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Points to Deduct</label>
+            <label className="text-sm font-medium">Flexi Credits to Deduct</label>
             <Input
               type="number"
               placeholder="Enter amount"
-              value={points}
-              onChange={(e) => setPoints(e.target.value)}
+              value={flexiCredits}
+              onChange={(e) => setFlexiCredits(e.target.value)}
               min="0.1"
               max={(user.flexi_credits_balance || 0)}
               step="0.1"
@@ -235,7 +235,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
           <div className="space-y-2">
             <label className="text-sm font-medium">Reason for Deduction *</label>
             <Textarea
-              placeholder="Explain why points are being deducted..."
+              placeholder="Explain why flexi credits are being deducted..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
@@ -247,16 +247,16 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
               <span className="font-medium">Warning</span>
             </div>
             <p className="text-yellow-700 text-sm mt-1">
-              This action cannot be undone. Points will be permanently removed from the user's account.
+              This action cannot be undone. Flexi credits will be permanently removed from the user's account.
             </p>
           </div>
           <Button 
             onClick={handleDeduct} 
-            disabled={loading || !points || !reason.trim()}
+            disabled={loading || !flexiCredits || !reason.trim()}
             variant="destructive"
             className="w-full"
           >
-            {loading ? "Deducting..." : `Deduct ${points || 0} Points`}
+            {loading ? "Deducting..." : `Deduct ${flexiCredits || 0} Flexi Credits`}
           </Button>
         </div>
       </DialogContent>
@@ -319,7 +319,7 @@ export function UserManagement() {
   }
 
   const totalUsers = users.length;
-  const totalPoints = users.reduce((sum, user) => sum + (user.flexi_credits_balance || 0), 0);
+  const totalFlexiCredits = users.reduce((sum, user) => sum + (user.flexi_credits_balance || 0), 0);
   const adminUsers = users.filter(u => u.role === 'admin').length;
   const consultantUsers = users.filter(u => u.role === 'consultant').length;
 
@@ -406,12 +406,12 @@ export function UserManagement() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Total Points
+              Total Flexi Credits
               <Coins className="w-4 h-4 text-accent" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">{totalPoints.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-accent">{totalFlexiCredits.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Across all users</p>
           </CardContent>
         </Card>
@@ -460,7 +460,7 @@ export function UserManagement() {
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Points Balance</TableHead>
+                  <TableHead>Flexi Credits Balance</TableHead>
                    <TableHead>Subscription</TableHead>
                    <TableHead>Member Since</TableHead>
                   <TableHead>Actions</TableHead>
@@ -505,7 +505,7 @@ export function UserManagement() {
                     </TableCell>
                      <TableCell>
                        <div className="font-medium text-accent">
-                         {(user.flexi_credits_balance || 0).toLocaleString()} points
+                         {(user.flexi_credits_balance || 0).toLocaleString()} flexi credits
                        </div>
                      </TableCell>
                      <TableCell>
@@ -606,9 +606,9 @@ export function UserManagement() {
                     <label className="text-sm font-medium text-muted-foreground">Status</label>
                     <div className="text-lg font-semibold">Inactive</div>
                   </div>
-                   <div>
+                    <div>
                      <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
-                     <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} points</div>
+                     <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} flexi credits</div>
                    </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -656,7 +656,7 @@ export function UserManagement() {
               </div>
               <p className="text-red-700 text-sm mt-1">
                 This action will immediately prevent the user from accessing the platform. 
-                Consider deducting points first if needed.
+                Consider deducting flexi credits first if needed.
               </p>
             </div>
           </div>

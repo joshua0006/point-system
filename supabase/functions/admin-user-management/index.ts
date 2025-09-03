@@ -77,7 +77,7 @@ serve(async (req) => {
 
     if (action === 'topup_points') {
       if (!userId || !points || points <= 0) {
-        throw new Error("Valid userId and positive points amount required");
+        throw new Error("Valid userId and positive flexi credits amount required");
       }
 
       // Get current balance first
@@ -96,7 +96,7 @@ serve(async (req) => {
         .update({ flexi_credits_balance: newBalance })
         .eq('user_id', userId);
 
-      if (updateError) throw new Error(`Error updating points: ${updateError.message}`);
+      if (updateError) throw new Error(`Error updating flexi credits: ${updateError.message}`);
 
       // Create a transaction record
       const { error: transactionError } = await supabaseClient
@@ -105,14 +105,14 @@ serve(async (req) => {
           user_id: userId,
           amount: points,
           type: 'admin_credit',
-          description: `Admin credit - ${points} points added by admin`
+          description: `Admin credit - ${points} flexi credits added by admin`
         });
 
       if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
 
-      logStep("Points topped up", { userId, points });
+      logStep("Flexi credits topped up", { userId, points });
 
-      return new Response(JSON.stringify({ success: true, message: `${points} points added successfully` }), {
+      return new Response(JSON.stringify({ success: true, message: `${points} flexi credits added successfully` }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -194,7 +194,7 @@ serve(async (req) => {
 
     if (action === 'deduct_points') {
       if (!userId || !points || points <= 0) {
-        throw new Error("Valid userId and positive points amount required");
+        throw new Error("Valid userId and positive flexi credits amount required");
       }
 
       // First, get current balance to check if deduction is possible
@@ -207,7 +207,7 @@ serve(async (req) => {
       if (profileError) throw new Error(`Error fetching user profile: ${profileError.message}`);
 
       if (profile.flexi_credits_balance < points) {
-        throw new Error(`Insufficient balance. User has ${profile.flexi_credits_balance} points, cannot deduct ${points}`);
+        throw new Error(`Insufficient balance. User has ${profile.flexi_credits_balance} flexi credits, cannot deduct ${points}`);
       }
 
       // Deduct points by updating balance directly
@@ -217,7 +217,7 @@ serve(async (req) => {
         .update({ flexi_credits_balance: newBalance })
         .eq('user_id', userId);
 
-      if (updateError) throw new Error(`Error deducting points: ${updateError.message}`);
+      if (updateError) throw new Error(`Error deducting flexi credits: ${updateError.message}`);
 
       // Create a transaction record
       const { error: transactionError } = await supabaseClient
@@ -226,16 +226,16 @@ serve(async (req) => {
           user_id: userId,
           amount: -points,
           type: 'refund',
-          description: `Admin deduction - ${points} points deducted by admin: ${reason || 'No reason provided'}`
+          description: `Admin deduction - ${points} flexi credits deducted by admin: ${reason || 'No reason provided'}`
         });
 
       if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
 
-      logStep("Points deducted", { userId, points, reason });
+      logStep("Flexi credits deducted", { userId, points, reason });
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: `${points} points deducted successfully`,
+        message: `${points} flexi credits deducted successfully`,
         newBalance: profile.flexi_credits_balance - points
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
