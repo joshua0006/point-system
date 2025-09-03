@@ -22,7 +22,7 @@ interface UserProfile {
   bio: string | null;
   avatar_url: string | null;
   role: 'user' | 'consultant' | 'admin';
-  points_balance: number;
+  flexi_credits_balance: number;
   created_at: string;
   updated_at: string;
   approval_status?: 'pending' | 'approved' | 'rejected';
@@ -97,7 +97,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Current Balance</label>
-            <div className="text-2xl font-bold text-accent">{(user.points_balance || 0)} points</div>
+            <div className="text-2xl font-bold text-accent">{(user.flexi_credits_balance || 0)} points</div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Points to Add</label>
@@ -147,10 +147,10 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
       return;
     }
 
-    if (pointsAmount > (user.points_balance || 0)) {
+    if (pointsAmount > (user.flexi_credits_balance || 0)) {
       toast({
         title: "Insufficient Balance",
-        description: `User only has ${(user.points_balance || 0)} points available.`,
+        description: `User only has ${(user.flexi_credits_balance || 0)} points available.`,
         variant: "destructive",
       });
       return;
@@ -214,7 +214,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Current Balance</label>
-            <div className="text-2xl font-bold text-accent">{(user.points_balance || 0)} points</div>
+            <div className="text-2xl font-bold text-accent">{(user.flexi_credits_balance || 0)} points</div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Points to Deduct</label>
@@ -224,7 +224,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
               value={points}
               onChange={(e) => setPoints(e.target.value)}
               min="0.1"
-              max={(user.points_balance || 0)}
+              max={(user.flexi_credits_balance || 0)}
               step="0.1"
             />
           </div>
@@ -315,7 +315,7 @@ export function UserManagement() {
   }
 
   const totalUsers = users.length;
-  const totalPoints = users.reduce((sum, user) => sum + (user.points_balance || 0), 0);
+  const totalPoints = users.reduce((sum, user) => sum + (user.flexi_credits_balance || 0), 0);
   const adminUsers = users.filter(u => u.role === 'admin').length;
   const consultantUsers = users.filter(u => u.role === 'consultant').length;
 
@@ -501,7 +501,7 @@ export function UserManagement() {
                     </TableCell>
                      <TableCell>
                        <div className="font-medium text-accent">
-                         {(user.points_balance || 0).toLocaleString()} points
+                         {(user.flexi_credits_balance || 0).toLocaleString()} points
                        </div>
                      </TableCell>
                      <TableCell>
@@ -534,12 +534,12 @@ export function UserManagement() {
                           <Plus className="w-4 h-4 mr-1" />
                           Add
                         </Button>
-                        <Button
-                          onClick={() => handleDeductClick(user)}
-                          size="sm"
-                          variant="outline"
-                          disabled={(user.points_balance || 0) === 0}
-                        >
+                         <Button
+                           onClick={() => handleDeductClick(user)}
+                           size="sm"
+                           variant="outline"
+                           disabled={(user.flexi_credits_balance || 0) === 0}
+                         >
                           <Minus className="w-4 h-4 mr-1" />
                           Deduct
                         </Button>
@@ -602,10 +602,10 @@ export function UserManagement() {
                     <label className="text-sm font-medium text-muted-foreground">Status</label>
                     <div className="text-lg font-semibold">Inactive</div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
-                    <div className="text-lg font-semibold text-accent">{(selectedUser.points_balance || 0).toLocaleString()} points</div>
-                  </div>
+                   <div>
+                     <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
+                     <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} points</div>
+                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   No active subscription plan found for this user.

@@ -27,7 +27,7 @@ interface UserProfile {
   user_id: string;
   email: string;
   full_name: string | null;
-  points_balance: number;
+  flexi_credits_balance: number;
   role: string;
   created_at: string;
 }
@@ -171,7 +171,7 @@ export function BillingProfileModal({ user, open, onOpenChange }: BillingProfile
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <div className="text-2xl font-bold text-accent">
-                    {user.points_balance.toLocaleString()} pts
+                    {user.flexi_credits_balance.toLocaleString()} pts
                   </div>
                   <p className="text-xs text-muted-foreground">Current Balance</p>
                 </div>
