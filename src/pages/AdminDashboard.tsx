@@ -8,6 +8,8 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import PendingApprovals from "@/components/admin/PendingApprovals";
 import { AdminServiceManagement } from "@/components/admin/AdminServiceManagement";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
+import { BillingOverview } from "@/components/admin/BillingOverview";
+import { GlobalTransactionLedger } from "@/components/admin/GlobalTransactionLedger";
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { 
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full max-w-4xl grid-cols-4">
+          <TabsList className="grid w-full max-w-5xl grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Overview
@@ -58,6 +60,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               User Management
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Billing & Transactions
             </TabsTrigger>
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
@@ -217,6 +223,13 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <PendingApprovals />
               <UserManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="billing">
+            <div className="space-y-6">
+              <BillingOverview />
+              <GlobalTransactionLedger />
             </div>
           </TabsContent>
 

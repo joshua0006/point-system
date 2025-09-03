@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle } from "lucide-react";
+import { BillingProfileModal } from "@/components/admin/BillingProfileModal";
+import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle, Receipt } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserProfile {
@@ -267,6 +268,7 @@ export function UserManagement() {
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [deductModalOpen, setDeductModalOpen] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [billingProfileModalOpen, setBillingProfileModalOpen] = useState(false);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
   const [revokeReason, setRevokeReason] = useState("");
   const [revokeLoading, setRevokeLoading] = useState(false);
@@ -325,6 +327,11 @@ export function UserManagement() {
   const handleDeductClick = (user: UserProfile) => {
     setSelectedUser(user);
     setDeductModalOpen(true);
+  };
+
+  const handleBillingClick = (user: UserProfile) => {
+    setSelectedUser(user);
+    setBillingProfileModalOpen(true);
   };
 
   const handleRevokeClick = (user: UserProfile) => {
@@ -537,16 +544,24 @@ export function UserManagement() {
                           Deduct
                         </Button>
                         {user.approval_status === 'approved' && user.role !== 'admin' && (
-                          <Button
-                            onClick={() => handleRevokeClick(user)}
-                            size="sm"
-                            variant="destructive"
-                          >
-                            <UserX className="w-4 h-4 mr-1" />
-                            Revoke
-                          </Button>
+                         <Button
+                           onClick={() => handleRevokeClick(user)}
+                           size="sm"
+                           variant="destructive"
+                         >
+                           <UserX className="w-4 h-4 mr-1" />
+                           Revoke
+                         </Button>
                         )}
-                      </div>
+                        <Button
+                          onClick={() => handleBillingClick(user)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Receipt className="w-4 h-4 mr-1" />
+                          Billing
+                        </Button>
+                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -598,6 +613,12 @@ export function UserManagement() {
               </div>
             </DialogContent>
           </Dialog>
+
+          <BillingProfileModal
+            user={selectedUser}
+            open={billingProfileModalOpen}
+            onOpenChange={setBillingProfileModalOpen}
+          />
         </>
       )}
 
