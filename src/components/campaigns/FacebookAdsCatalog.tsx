@@ -150,10 +150,11 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
   const canProceed = () => {
     if (!selectedTemplate) return false;
     const audienceInfo = getTargetAudienceInfo(selectedTemplate);
+    const currentBalance = profile?.flexi_credits_balance || 0;
     return campaignData.budget >= audienceInfo.budgetRange.min && 
            campaignData.budget <= audienceInfo.budgetRange.max &&
            campaignData.consultantName.trim() !== '' && 
-           userBalance >= campaignData.budget;
+           currentBalance >= campaignData.budget;
   };
 
   if (loading) {
@@ -297,7 +298,7 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                   max={getTargetAudienceInfo(selectedTemplate).budgetRange.max}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your balance: {userBalance} points
+                  Your balance: {profile?.flexi_credits_balance || 0} points
                 </p>
               </div>
 
