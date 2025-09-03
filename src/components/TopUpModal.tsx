@@ -179,12 +179,17 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="text-center pb-6">
-          <DialogTitle className="text-2xl font-bold">Manage Your Subscription</DialogTitle>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <span className="text-muted-foreground">Current Balance:</span>
-            <span className="font-semibold text-primary">
+      <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50 shadow-2xl">
+        <DialogHeader className="text-center pb-8 border-b border-border/30">
+          <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+            Subscription Management
+          </DialogTitle>
+          <div className="flex items-center justify-center gap-3 mt-4 p-3 rounded-lg bg-muted/30 border border-border/20">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+              <span className="text-sm font-medium text-muted-foreground">Current Balance:</span>
+            </div>
+            <span className="font-bold text-lg text-primary">
               {profile?.flexi_credits_balance?.toLocaleString() || '0'} flexi-credits
             </span>
           </div>
