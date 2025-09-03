@@ -35,7 +35,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     title: string;
   } | null>(null);
   const { toast } = useToast();
-  const { profile, subscription, refreshSubscription } = useAuth();
+  const { profile, subscription, refreshSubscription, refreshProfile } = useAuth();
 
   const pointsPackages = [
     { points: 100, price: 100, title: "Pro 1", popular: false },
@@ -68,6 +68,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
         title: "Success!",
         description: `${amount} flexi-credits added to your wallet instantly!`,
       });
+      
+      // Refresh profile to update balance
+      await refreshProfile();
       
       // Close modal and trigger success callback
       onClose();
@@ -138,8 +141,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           description: `Your subscription has been updated. You'll be charged the prorated difference immediately.`,
         });
         
-        // Refresh subscription data
+        // Refresh subscription and profile data
         await refreshSubscription();
+        await refreshProfile();
         
         // Close modals and trigger success callback
         onClose();

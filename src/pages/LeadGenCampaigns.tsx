@@ -22,7 +22,8 @@ const LeadGenCampaigns = () => {
   const {
     user,
     signOut,
-    profile
+    profile,
+    refreshProfile
   } = useAuth();
   const {
     toast
@@ -36,7 +37,6 @@ const LeadGenCampaigns = () => {
   } = useCampaignTargets();
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [pendingCampaign, setPendingCampaign] = useState<any>(null);
-  const [userBalance, setUserBalance] = useState(0);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [userCampaigns, setUserCampaigns] = useState([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -49,7 +49,6 @@ const LeadGenCampaigns = () => {
   const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
   useEffect(() => {
-    fetchUserBalance();
     checkAdminStatus();
     fetchUserCampaigns();
     handleURLParameters();
@@ -70,9 +69,9 @@ const LeadGenCampaigns = () => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
 
-      // Refresh balance to show updated points
+      // Refresh profile to show updated points
       setTimeout(() => {
-        fetchUserBalance();
+        refreshProfile();
       }, 1000);
     }
 
@@ -155,21 +154,8 @@ const LeadGenCampaigns = () => {
       console.error('Error checking admin status:', error);
     }
   };
-  const fetchUserBalance = async () => {
-    if (!user) return;
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from('profiles').select('flexi_credits_balance').eq('user_id', user.id).single();
-      if (error) throw error;
-      setUserBalance(data.flexi_credits_balance || 0);
-    } catch (error) {
-      console.error('Error fetching user balance:', error);
-    }
-  };
   const handleTopUpSuccess = (points: number) => {
-    setUserBalance(prev => prev + points);
+    refreshProfile();
     toast({
       title: "Top-up Successful! 🎉",
       description: `${points} points added to your account.`
@@ -201,6 +187,7 @@ const LeadGenCampaigns = () => {
     if (!user || !pendingCampaign) return;
     try {
       const budget = pendingCampaign.budget; // full monthly budget
+      const userBalance = profile?.flexi_credits_balance || 0;
 
       // Compute immediate charge (prorated when enabled)
       const now = new Date();
@@ -346,8 +333,8 @@ const LeadGenCampaigns = () => {
         hours: pendingCampaign.hours
       });
 
-      // Refresh balance from database to ensure accuracy
-      await fetchUserBalance();
+      // Refresh profile from database to ensure accuracy
+      await refreshProfile();
       setShowCheckoutModal(false);
       setShowSuccessModal(true);
       setPendingCampaign(null);
@@ -449,7 +436,7 @@ const LeadGenCampaigns = () => {
             <Card className="w-full max-w-md">
               <CardContent className="p-6 text-center bg-gradient-to-r from-primary/5 to-primary/10">
                 <h2 className="text-lg font-semibold mb-2">Campaign Wallet</h2>
-                <p className="text-3xl font-bold text-primary mb-2">{userBalance.toLocaleString()} flexi-credits</p>
+                <p className="text-3xl font-bold text-primary mb-2">{(profile?.flexi_credits_balance || 0).toLocaleString()} flexi-credits</p>
                 <p className="text-sm text-muted-foreground mb-4">Available for campaigns</p>
                 <Button onClick={() => setTopUpModalOpen(true)} size="sm" className="w-full">
                   Top Up Wallet
@@ -615,9 +602,9 @@ const LeadGenCampaigns = () => {
                 {/* Campaign Flow */}
                 {currentFlow === 'method-selection' && <CampaignMethodSelector onMethodSelect={handleMethodSelect} />}
 
-                {currentFlow === 'facebook-ads' && <FacebookAdsCatalog onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} campaignTargets={campaignTargets} />}
+                {currentFlow === 'facebook-ads' && <FacebookAdsCatalog onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={profile?.flexi_credits_balance || 0} campaignTargets={campaignTargets} />}
 
-                {currentFlow === 'cold-calling' && <ColdCallingWizard onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={userBalance} />}
+                {currentFlow === 'cold-calling' && <ColdCallingWizard onComplete={handleCampaignComplete} onBack={handleBackToMethods} userBalance={profile?.flexi_credits_balance || 0} />}
 
                 {currentFlow === 'va-support' && <VASupportPlans onBack={handleBackToMethods} larkMemoUrl="https://nsgukkz32942.sg.larksuite.com/wiki/EH74wip5Zi2lLOksfjWlIv9Tgkc" onSubscribe={handleVASubscribe} />}
               </>}
@@ -645,6 +632,7 @@ const LeadGenCampaigns = () => {
             const proratedAmount = Math.max(1, Math.round((pendingCampaign.budget * remainingDays) / totalDays));
             const isProrated = !!pendingCampaign.prorateFirstMonth;
             const amountToDeduct = isProrated ? proratedAmount : pendingCampaign.budget;
+            const userBalance = profile?.flexi_credits_balance || 0;
             const balanceAfter = userBalance - amountToDeduct;
             return (
               <div className="space-y-4">

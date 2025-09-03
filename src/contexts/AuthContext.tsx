@@ -49,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let realtimeChannel: any = null;
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -83,6 +84,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log('Profile loaded successfully:', profileData);
               }
 
+              // Set up real-time subscription for profile updates
+              if (realtimeChannel) {
+                supabase.removeChannel(realtimeChannel);
+              }
+              
+              realtimeChannel = supabase
+                .channel('profile-changes')
+                .on(
+                  'postgres_changes',
+                  {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'profiles',
+                    filter: `user_id=eq.${session.user.id}`
+                  },
+                  (payload) => {
+                    if (mounted) {
+                      console.log('Profile updated via realtime:', payload.new);
+                      setProfile(payload.new as Profile);
+                    }
+                  }
+                )
+                .subscribe();
+
               // Fetch subscription status
               try {
                 const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
@@ -105,6 +130,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setProfile(null);
           setSubscription(null);
+          // Clean up realtime subscription
+          if (realtimeChannel) {
+            supabase.removeChannel(realtimeChannel);
+            realtimeChannel = null;
+          }
         }
         
         setLoading(false);
@@ -146,6 +176,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
 
+            // Set up real-time subscription for profile updates
+            if (realtimeChannel) {
+              supabase.removeChannel(realtimeChannel);
+            }
+            
+            realtimeChannel = supabase
+              .channel('profile-changes')
+              .on(
+                'postgres_changes',
+                {
+                  event: 'UPDATE',
+                  schema: 'public',
+                  table: 'profiles',
+                  filter: `user_id=eq.${session.user.id}`
+                },
+                (payload) => {
+                  if (mounted) {
+                    console.log('Profile updated via realtime:', payload.new);
+                    setProfile(payload.new as Profile);
+                  }
+                }
+              )
+              .subscribe();
+
             // Fetch subscription status
             try {
               const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
@@ -183,6 +237,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
   }, []);
 
