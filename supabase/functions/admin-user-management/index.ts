@@ -80,11 +80,21 @@ serve(async (req) => {
         throw new Error("Valid userId and positive points amount required");
       }
 
+      // Get current balance first
+      const { data: currentProfile, error: fetchError } = await supabaseClient
+        .from('profiles')
+        .select('flexi_credits_balance')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) throw new Error(`Error fetching user profile: ${fetchError.message}`);
+
       // Update the user's flexi credits balance
-      const { error: updateError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
-        user_id: userId,
-        points_to_add: points
-      });
+      const newBalance = (currentProfile.flexi_credits_balance || 0) + points;
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({ flexi_credits_balance: newBalance })
+        .eq('user_id', userId);
 
       if (updateError) throw new Error(`Error updating points: ${updateError.message}`);
 
@@ -200,11 +210,12 @@ serve(async (req) => {
         throw new Error(`Insufficient balance. User has ${profile.flexi_credits_balance} points, cannot deduct ${points}`);
       }
 
-      // Deduct points (negative increment)
-      const { error: updateError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
-        user_id: userId,
-        points_to_add: -points
-      });
+      // Deduct points by updating balance directly
+      const newBalance = profile.flexi_credits_balance - points;
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({ flexi_credits_balance: newBalance })
+        .eq('user_id', userId);
 
       if (updateError) throw new Error(`Error deducting points: ${updateError.message}`);
 
