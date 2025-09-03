@@ -44,7 +44,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
 
   const handleTopUp = async () => {
     const pointsAmount = parseFloat(points);
-    if (!pointsAmount || pointsAmount <= 0) {
+    if (isNaN(pointsAmount) || pointsAmount <= 0) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid number of points to add.",
