@@ -80,8 +80,8 @@ serve(async (req) => {
         throw new Error("Valid userId and positive points amount required");
       }
 
-      // Update the user's points balance
-      const { error: updateError } = await supabaseClient.rpc('increment_points_balance', {
+      // Update the user's flexi credits balance
+      const { error: updateError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
         user_id: userId,
         points_to_add: points
       });
@@ -90,7 +90,7 @@ serve(async (req) => {
 
       // Create a transaction record
       const { error: transactionError } = await supabaseClient
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .insert({
           user_id: userId,
           amount: points,
@@ -190,18 +190,18 @@ serve(async (req) => {
       // First, get current balance to check if deduction is possible
       const { data: profile, error: profileError } = await supabaseClient
         .from('profiles')
-        .select('points_balance')
+        .select('flexi_credits_balance')
         .eq('user_id', userId)
         .single();
 
       if (profileError) throw new Error(`Error fetching user profile: ${profileError.message}`);
 
-      if (profile.points_balance < points) {
-        throw new Error(`Insufficient balance. User has ${profile.points_balance} points, cannot deduct ${points}`);
+      if (profile.flexi_credits_balance < points) {
+        throw new Error(`Insufficient balance. User has ${profile.flexi_credits_balance} points, cannot deduct ${points}`);
       }
 
       // Deduct points (negative increment)
-      const { error: updateError } = await supabaseClient.rpc('increment_points_balance', {
+      const { error: updateError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
         user_id: userId,
         points_to_add: -points
       });
@@ -210,7 +210,7 @@ serve(async (req) => {
 
       // Create a transaction record
       const { error: transactionError } = await supabaseClient
-        .from('points_transactions')
+        .from('flexi_credits_transactions')
         .insert({
           user_id: userId,
           amount: -points,
@@ -225,7 +225,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: true, 
         message: `${points} points deducted successfully`,
-        newBalance: profile.points_balance - points
+        newBalance: profile.flexi_credits_balance - points
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
