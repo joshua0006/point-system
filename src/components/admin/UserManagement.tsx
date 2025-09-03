@@ -96,7 +96,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Current Balance</label>
-            <div className="text-2xl font-bold text-accent">{user.points_balance} points</div>
+            <div className="text-2xl font-bold text-accent">{(user.points_balance || 0)} points</div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Points to Add</label>
@@ -146,10 +146,10 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
       return;
     }
 
-    if (pointsAmount > user.points_balance) {
+    if (pointsAmount > (user.points_balance || 0)) {
       toast({
         title: "Insufficient Balance",
-        description: `User only has ${user.points_balance} points available.`,
+        description: `User only has ${(user.points_balance || 0)} points available.`,
         variant: "destructive",
       });
       return;
@@ -213,7 +213,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Current Balance</label>
-            <div className="text-2xl font-bold text-accent">{user.points_balance} points</div>
+            <div className="text-2xl font-bold text-accent">{(user.points_balance || 0)} points</div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Points to Deduct</label>
@@ -223,7 +223,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
               value={points}
               onChange={(e) => setPoints(e.target.value)}
               min="0.1"
-              max={user.points_balance}
+              max={(user.points_balance || 0)}
               step="0.1"
             />
           </div>
@@ -313,7 +313,7 @@ export function UserManagement() {
   }
 
   const totalUsers = users.length;
-  const totalPoints = users.reduce((sum, user) => sum + user.points_balance, 0);
+  const totalPoints = users.reduce((sum, user) => sum + (user.points_balance || 0), 0);
   const adminUsers = users.filter(u => u.role === 'admin').length;
   const consultantUsers = users.filter(u => u.role === 'consultant').length;
 
@@ -450,7 +450,8 @@ export function UserManagement() {
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Points Balance</TableHead>
-                  <TableHead>Member Since</TableHead>
+                   <TableHead>Subscription</TableHead>
+                   <TableHead>Member Since</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -491,11 +492,26 @@ export function UserManagement() {
                         {user.approval_status || 'approved'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-accent">
-                        {user.points_balance.toLocaleString()} points
-                      </div>
-                    </TableCell>
+                     <TableCell>
+                       <div className="font-medium text-accent">
+                         {(user.points_balance || 0).toLocaleString()} points
+                       </div>
+                     </TableCell>
+                     <TableCell>
+                       <div className="flex items-center gap-2">
+                         <Badge variant="secondary">No Active Plan</Badge>
+                         <Button
+                           onClick={() => {
+                             setSelectedUser(user);
+                             setSubscriptionModalOpen(true);
+                           }}
+                           size="sm"
+                           variant="outline"
+                         >
+                           View Sub
+                         </Button>
+                       </div>
+                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString()}
@@ -515,7 +531,7 @@ export function UserManagement() {
                           onClick={() => handleDeductClick(user)}
                           size="sm"
                           variant="outline"
-                          disabled={user.points_balance === 0}
+                          disabled={(user.points_balance || 0) === 0}
                         >
                           <Minus className="w-4 h-4 mr-1" />
                           Deduct
@@ -555,6 +571,33 @@ export function UserManagement() {
             onOpenChange={setDeductModalOpen}
             onSuccess={fetchUsers}
           />
+          
+          {/* Subscription Modal */}
+          <Dialog open={subscriptionModalOpen} onOpenChange={setSubscriptionModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Subscription Details</DialogTitle>
+                <DialogDescription>
+                  Subscription information for {selectedUser.full_name || selectedUser.email}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Status</label>
+                    <div className="text-lg font-semibold">Inactive</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
+                    <div className="text-lg font-semibold text-accent">{(selectedUser.points_balance || 0).toLocaleString()} points</div>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  No active subscription plan found for this user.
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
