@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.update-subscription]
 verify_jwt = true
+
+[functions.preview-subscription-change]
+verify_jwt = true

@@ -7,6 +7,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Fixed product IDs for different credit tiers
+const PRODUCT_IDS = {
+  100: "prod_Syq0MrJ83xjLDx",
+  200: "prod_Syq1oZmfLtQRhX", 
+  300: "prod_Syq2W7jNs4WHQL",
+  400: "prod_SyoIIvJC6RfmrZ",
+  500: "prod_Syq4vTHQphmg2f",
+  600: "prod_SyoIxmtPCmfSKJ",
+  700: "prod_Syq6NJSW5vOxPy",
+  800: "prod_Sys82JaSzQuyNU",
+  900: "prod_SyoJB0AsJr4Enc",
+  1000: "prod_SyoKegoonFM1u2"
+};
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[UPDATE-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -33,7 +47,14 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { credits, price } = await req.json();
+    const { credits } = await req.json();
+    
+    // Validate credits and get product ID
+    const productId = PRODUCT_IDS[credits as keyof typeof PRODUCT_IDS];
+    if (!productId) {
+      throw new Error(`Invalid credits amount: ${credits}. Must be one of: ${Object.keys(PRODUCT_IDS).join(', ')}`);
+    }
+    logStep("Product ID found", { credits, productId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
@@ -61,42 +82,46 @@ serve(async (req) => {
     const currentSubscription = subscriptions.data[0];
     logStep("Found active subscription", { subscriptionId: currentSubscription.id });
 
-    // Get current subscription item
-    const subscriptionItem = currentSubscription.items.data[0];
-    const currentPrice = await stripe.prices.retrieve(subscriptionItem.price.id);
-    const currentAmount = currentPrice.unit_amount || 0;
-    const newAmount = price * 100; // Convert to cents
-
-    logStep("Price comparison", { 
-      currentAmount, 
-      newAmount, 
-      difference: newAmount - currentAmount 
+    // Get or create price for the new product (monthly SGD)
+    const prices = await stripe.prices.list({ 
+      product: productId,
+      currency: 'sgd', 
+      recurring: { interval: 'month' },
+      active: true,
+      limit: 1 
     });
+    
+    let newPriceId;
+    if (prices.data.length > 0) {
+      newPriceId = prices.data[0].id;
+      logStep("Found existing price", { priceId: newPriceId });
+    } else {
+      // Create new monthly SGD price for this product
+      const newPrice = await stripe.prices.create({
+        product: productId,
+        currency: 'sgd',
+        unit_amount: credits * 100, // S$1 per credit, in cents
+        recurring: { interval: 'month' }
+      });
+      newPriceId = newPrice.id;
+      logStep("Created new price", { priceId: newPriceId, unitAmount: credits * 100 });
+    }
 
     // Determine plan name based on credits
-    let planName = "Starter Plan";
-    if (credits === 500) planName = "Plus Plan";
-    else if (credits === 750) planName = "Pro Plan";
-    else if (credits === 1000) planName = "Ultra Plan";
+    const planName = `Pro ${Math.ceil(credits / 100)} Plan`;
 
-    // Create new price for the updated subscription
-    const newPrice = await stripe.prices.create({
-      currency: "sgd",
-      unit_amount: newAmount,
-      recurring: { interval: "month" },
-      product_data: {
-        name: `${planName} - ${credits} flexi-credits/month`,
-      },
-    });
+    // Generate idempotency key for safe retries
+    const idempotencyKey = `update-${currentSubscription.id}-${credits}-${Date.now()}`;
 
-    logStep("Created new price", { priceId: newPrice.id });
+    // Get current subscription item
+    const subscriptionItem = currentSubscription.items.data[0];
 
     // Update the subscription with proration
     const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
       items: [
         {
           id: subscriptionItem.id,
-          price: newPrice.id,
+          price: newPriceId,
         },
       ],
       proration_behavior: "always_invoice", // This ensures immediate proration
@@ -105,11 +130,13 @@ serve(async (req) => {
         credits: credits.toString(),
         plan_name: planName,
       },
+    }, {
+      idempotencyKey
     });
 
     logStep("Updated subscription", { 
       subscriptionId: updatedSubscription.id,
-      newPriceId: newPrice.id 
+      newPriceId 
     });
 
     return new Response(JSON.stringify({ 

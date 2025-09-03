@@ -31,34 +31,16 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const { profile, subscription, refreshSubscription } = useAuth();
 
   const pointsPackages = [
-    { 
-      points: 250, 
-      price: 250, 
-      popular: false, 
-      title: "Starter",
-      features: ["250 AI tokens", "Basic campaigns", "Email support"]
-    },
-    { 
-      points: 500, 
-      price: 500, 
-      popular: true, 
-      title: "Plus",
-      features: ["500 AI tokens", "Advanced campaigns", "Priority support"]
-    },
-    { 
-      points: 750, 
-      price: 750, 
-      popular: false, 
-      title: "Pro",
-      features: ["750 AI tokens", "Premium features", "Dedicated support"]
-    },
-    { 
-      points: 1000, 
-      price: 1000, 
-      popular: false, 
-      title: "Ultra",
-      features: ["1000 AI tokens", "All features", "24/7 support"]
-    },
+    { points: 100, price: 100, title: "Pro 1", popular: false },
+    { points: 200, price: 200, title: "Pro 2", popular: false },
+    { points: 300, price: 300, title: "Pro 3", popular: false },
+    { points: 400, price: 400, title: "Pro 4", popular: false },
+    { points: 500, price: 500, title: "Pro 5", popular: true },
+    { points: 600, price: 600, title: "Pro 6", popular: false },
+    { points: 700, price: 700, title: "Pro 7", popular: false },
+    { points: 800, price: 800, title: "Pro 8", popular: false },
+    { points: 900, price: 900, title: "Pro 9", popular: false },
+    { points: 1000, price: 1000, title: "Pro 10", popular: false },
   ];
 
   const handleSubscribe = async (credits: number, price: number, title: string) => {
@@ -83,7 +65,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       if (hasExistingSubscription) {
         // Use update-subscription for existing subscribers (handles proration)
         const { data, error } = await supabase.functions.invoke('update-subscription', {
-          body: { credits, price }
+          body: { credits }
         });
         
         if (error) throw error;
@@ -104,7 +86,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       } else {
         // Use create-subscription-checkout for new subscribers
         const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-          body: { credits, price }
+          body: { credits }
         });
         
         if (error) throw error;
@@ -286,7 +268,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           </div>
 
           {/* Subscription Plans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {pointsPackages.map((pkg) => (
               <Card 
                 key={pkg.points} 
@@ -322,14 +304,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                     </div>
                   </div>
                   
-                  <ul className="space-y-2 text-sm text-left mb-6">
-                    {pkg.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="text-xs text-muted-foreground mb-6 text-center">
+                    Monthly subscription
+                  </div>
                   
                   <Button
                     onClick={() => handleSubscribe(pkg.points, pkg.price, pkg.title)}

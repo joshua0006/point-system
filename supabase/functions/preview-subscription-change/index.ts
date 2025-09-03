@@ -23,7 +23,7 @@ const PRODUCT_IDS = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+  console.log(`[PREVIEW-SUBSCRIPTION-CHANGE] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -59,17 +59,29 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Check if customer exists
+    // Find customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing customer", { customerId });
-    } else {
-      logStep("No existing customer found");
+    if (customers.data.length === 0) {
+      throw new Error("No Stripe customer found");
+    }
+    const customerId = customers.data[0].id;
+    logStep("Found customer", { customerId });
+
+    // Find active subscription
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      throw new Error("No active subscription found");
     }
 
-    // Get or create price for this product (monthly SGD)
+    const currentSubscription = subscriptions.data[0];
+    logStep("Found active subscription", { subscriptionId: currentSubscription.id });
+
+    // Get or create price for the new product (monthly SGD)
     const prices = await stripe.prices.list({ 
       product: productId,
       currency: 'sgd', 
@@ -78,10 +90,10 @@ serve(async (req) => {
       limit: 1 
     });
     
-    let priceId;
+    let newPriceId;
     if (prices.data.length > 0) {
-      priceId = prices.data[0].id;
-      logStep("Found existing price", { priceId });
+      newPriceId = prices.data[0].id;
+      logStep("Found existing price", { priceId: newPriceId });
     } else {
       // Create new monthly SGD price for this product
       const newPrice = await stripe.prices.create({
@@ -90,56 +102,53 @@ serve(async (req) => {
         unit_amount: credits * 100, // S$1 per credit, in cents
         recurring: { interval: 'month' }
       });
-      priceId = newPrice.id;
-      logStep("Created new price", { priceId, unitAmount: credits * 100 });
+      newPriceId = newPrice.id;
+      logStep("Created new price", { priceId: newPriceId, unitAmount: credits * 100 });
     }
 
-    // Determine plan name based on credits
-    const planName = `Pro ${Math.ceil(credits / 100)} Plan`;
+    // Get current subscription item
+    const subscriptionItem = currentSubscription.items.data[0];
 
-    // Generate idempotency key for safe retries
-    const idempotencyKey = `checkout-${user.id}-${credits}-${Date.now()}`;
-
-    // Create checkout session with fixed price
-    const session = await stripe.checkout.sessions.create({
+    // Preview the subscription change (no actual update)
+    const previewInvoice = await stripe.invoices.retrieveUpcoming({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
+      subscription: currentSubscription.id,
+      subscription_items: [
         {
-          price: priceId,
-          quantity: 1,
+          id: subscriptionItem.id,
+          price: newPriceId,
         },
       ],
-      mode: "subscription",
-      success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
-      cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
-      metadata: {
-        user_id: user.id,
-        credits: credits.toString(),
-        plan_name: planName
-      },
-      subscription_data: {
-        metadata: {
-          user_id: user.id,
-          credits: credits.toString(),
-          plan_name: planName
-        }
-      },
-      payment_method_types: ['card'],
-      billing_address_collection: 'auto',
-    }, {
-      idempotencyKey
+      subscription_proration_behavior: "always_invoice"
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    const totalAmount = previewInvoice.total / 100; // Convert cents to dollars
+    const currentPriceAmount = (await stripe.prices.retrieve(subscriptionItem.price.id)).unit_amount || 0;
+    const newPriceAmount = credits * 100;
+    const proratedAmount = totalAmount;
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    logStep("Preview calculation completed", { 
+      currentPriceAmount,
+      newPriceAmount,
+      totalAmount,
+      proratedAmount
+    });
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      current_amount: currentPriceAmount / 100,
+      new_amount: newPriceAmount / 100,
+      prorated_amount: proratedAmount,
+      is_upgrade: newPriceAmount > currentPriceAmount,
+      immediate_charge: proratedAmount > 0
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
+    logStep("ERROR in preview-subscription-change", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
