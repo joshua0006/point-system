@@ -99,7 +99,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
         
         toast({
           title: "Success!",
-          description: `Your subscription has been updated. You'll be charged the prorated difference immediately.`,
+          description: `Your subscription has been updated. You were charged the full difference of S$${(pendingUpgrade.price - (subscription.credits_per_month || 0))} immediately.`,
         });
         
         // Refresh subscription and profile data
@@ -249,7 +249,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
                   <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">💡 How to Change Your Plan</h4>
                   <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                    To upgrade or downgrade your plan, simply select a new plan below. You'll only pay the difference for upgrades, and changes take effect immediately.
+                    To upgrade or downgrade your plan, simply select a new plan below. Upgrades charge the full price difference immediately - no proration.
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-400">
                     For billing details and payment methods, use "Manage Subscription & Billing" below.
@@ -378,9 +378,10 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
             <h4 className="font-semibold text-primary mb-2">💡 Billing Details</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• <strong>Subscriptions:</strong> Billed monthly, plan changes are prorated</p>
-              <p>• <strong>Credit rollover:</strong> Unused credits carry over to next month</p>
-              <p>• <strong>Cancellation:</strong> Cancel anytime, access remains until period end</p>
+              <p>• <strong>Subscriptions:</strong> Monthly billing, plan upgrades charge full difference immediately</p>
+              <p>• <strong>Upgrade billing:</strong> Pay full difference upfront, new rate starts next cycle</p>
+              <p>• <strong>Credit rollover:</strong> Unused credits never expire, even after cancellation</p>
+              <p>• <strong>Cancellation:</strong> Cancel anytime, keep all unused credits forever</p>
             </div>
           </div>
 

@@ -150,26 +150,14 @@ serve(async (req) => {
       newPriceId 
     });
 
-    // For upgrades, grant prorated credits immediately
+    // For upgrades, grant full credit difference immediately (no proration)
     if (credits > currentCredits) {
       const upgradeCredits = credits - currentCredits;
       
-      // Calculate proration factor based on days remaining in current period
-      const now = new Date();
-      const periodEnd = new Date(updatedSubscription.current_period_end * 1000);
-      const periodStart = new Date(updatedSubscription.current_period_start * 1000);
-      const totalDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
-      const remainingDays = Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      const prorationFactor = remainingDays / totalDays;
-      
-      const proratedCredits = Math.round(upgradeCredits * prorationFactor);
-      
-      logStep("Granting prorated credits for upgrade", { 
+      logStep("Granting full upgrade credits immediately", { 
         upgradeCredits,
-        remainingDays,
-        totalDays,
-        prorationFactor,
-        proratedCredits
+        currentCredits,
+        newCredits: credits
       });
 
       // Create Supabase client with service role key to bypass RLS
@@ -179,14 +167,14 @@ serve(async (req) => {
         { auth: { persistSession: false } }
       );
 
-      // Add prorated credits immediately
+      // Add full upgrade credits immediately
       const { error: creditsError } = await supabaseService.rpc('increment_flexi_credits_balance', {
         user_id: user.id,
-        credits_to_add: proratedCredits
+        credits_to_add: upgradeCredits
       });
 
       if (creditsError) {
-        logStep("Error adding prorated credits", creditsError);
+        logStep("Error adding upgrade credits", creditsError);
         // Don't throw here - subscription was updated successfully
       } else {
         // Create transaction record
@@ -195,14 +183,14 @@ serve(async (req) => {
           .insert({
             user_id: user.id,
             type: 'purchase',
-            amount: proratedCredits,
-            description: `Prorated upgrade credits - Subscription update`
+            amount: upgradeCredits,
+            description: `Plan upgrade credits - Immediate full difference`
           });
 
         if (transactionError) {
-          logStep("Error creating prorated transaction record", transactionError);
+          logStep("Error creating upgrade transaction record", transactionError);
         } else {
-          logStep("Successfully granted prorated credits", { proratedCredits });
+          logStep("Successfully granted full upgrade credits", { upgradeCredits });
         }
       }
     }
@@ -210,8 +198,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       subscription_id: updatedSubscription.id,
-      message: "Subscription updated successfully with proration",
-      prorated_credits: credits > currentCredits ? Math.round((credits - currentCredits) * (new Date(updatedSubscription.current_period_end * 1000).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)) : 0
+      message: "Subscription updated successfully - Full upgrade difference charged immediately",
+      upgrade_credits_added: credits > currentCredits ? (credits - currentCredits) : 0
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

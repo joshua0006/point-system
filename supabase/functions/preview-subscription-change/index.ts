@@ -109,38 +109,26 @@ serve(async (req) => {
     // Get current subscription item
     const subscriptionItem = currentSubscription.items.data[0];
 
-    // Preview the subscription change (no actual update)
-    const previewInvoice = await stripe.invoices.retrieveUpcoming({
-      customer: customerId,
-      subscription: currentSubscription.id,
-      subscription_items: [
-        {
-          id: subscriptionItem.id,
-          price: newPriceId,
-        },
-      ],
-      subscription_proration_behavior: "always_invoice"
-    });
-
-    const totalAmount = previewInvoice.total / 100; // Convert cents to dollars
+    // Calculate full difference (no proration)
     const currentPriceAmount = (await stripe.prices.retrieve(subscriptionItem.price.id)).unit_amount || 0;
     const newPriceAmount = credits * 100;
-    const proratedAmount = totalAmount;
+    const fullDifference = Math.max(0, newPriceAmount - currentPriceAmount) / 100; // Full difference in dollars
 
     logStep("Preview calculation completed", { 
       currentPriceAmount,
       newPriceAmount,
-      totalAmount,
-      proratedAmount
+      fullDifference,
+      isUpgrade: newPriceAmount > currentPriceAmount
     });
 
     return new Response(JSON.stringify({ 
       success: true,
       current_amount: currentPriceAmount / 100,
       new_amount: newPriceAmount / 100,
-      prorated_amount: proratedAmount,
+      prorated_amount: fullDifference, // This is the full difference, not prorated
       is_upgrade: newPriceAmount > currentPriceAmount,
-      immediate_charge: proratedAmount > 0
+      immediate_charge: fullDifference > 0,
+      upgrade_credits: newPriceAmount > currentPriceAmount ? (credits - (currentPriceAmount / 100)) : 0
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
