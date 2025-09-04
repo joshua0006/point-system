@@ -7,18 +7,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Fixed product IDs for different credit tiers
+// Test product IDs for different credit tiers
 const PRODUCT_IDS = {
-  100: "prod_Syq0MrJ83xjLDx",
-  200: "prod_Syq1oZmfLtQRhX", 
-  300: "prod_Syq2W7jNs4WHQL",
-  400: "prod_SyoIIvJC6RfmrZ",
-  500: "prod_Syq4vTHQphmg2f",
-  600: "prod_SyoIxmtPCmfSKJ",
-  700: "prod_Syq6NJSW5vOxPy",
-  800: "prod_Sys82JaSzQuyNU",
-  900: "prod_SyoJB0AsJr4Enc",
-  1000: "prod_SyoKegoonFM1u2"
+  100: "prod_SzUboV8UxwJDka",
+  200: "prod_SzUbZY8giZezYF", 
+  300: "prod_SzUcvvnXaTBljA",
+  400: "prod_SzUck1vYwJVxxt",
+  500: "prod_SzUcrkKADiWfzR",
+  600: "prod_SzUc4eBHoTh19o",
+  700: "prod_SzUclOFwhQjTa1",
+  800: "prod_SzUdjvcoYxEMHu",
+  900: "prod_SzUdu9F9ITxI36",
+  1000: "prod_SzUedjKY4tBfxX"
 };
 
 const logStep = (step: string, details?: any) => {
