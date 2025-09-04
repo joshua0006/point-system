@@ -86,46 +86,26 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     setLoading(true);
     
     try {
-      // Check if user has an existing subscription
-      const hasExistingSubscription = subscription?.subscribed;
+      // ALL subscription changes (new subscriptions AND upgrades) go through Stripe checkout
+      // We don't store credit card info and don't charge immediately
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+        body: { credits }
+      });
       
-      if (hasExistingSubscription) {
-        // Use update-subscription for existing subscribers (handles proration)
-        const { data, error } = await supabase.functions.invoke('update-subscription', {
-          body: { credits }
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Success!",
-          description: `Your subscription has been updated. You were charged the full difference of S$${(pendingUpgrade.price - (subscription.credits_per_month || 0))} immediately.`,
-        });
-        
-        // Refresh subscription and profile data
-        await refreshSubscription();
-        await refreshProfile();
-        
-        // Close modals and trigger success callback
-        onClose();
-        setShowConfirmationModal(false);
-        onSuccess && onSuccess(credits, true);
-        
-      } else {
-        // Use create-subscription-checkout for new subscribers
-        const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-          body: { credits }
-        });
-        
-        if (error) throw error;
-        
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-        
-        // Close the modal
-        onClose();
-        setShowConfirmationModal(false);
-      }
+      if (error) throw error;
+      
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+      
+      // Show info message about checkout process
+      toast({
+        title: "Redirected to Stripe Checkout",
+        description: "Complete your payment in the new tab to activate your subscription.",
+      });
+      
+      // Close the modal
+      onClose();
+      setShowConfirmationModal(false);
       
     } catch (error: any) {
       console.error('Error processing subscription:', error);
@@ -249,7 +229,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                 <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
                   <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">💡 How to Change Your Plan</h4>
                   <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                    To upgrade or downgrade your plan, simply select a new plan below. Upgrades charge the full price difference immediately - no proration.
+                    To upgrade or downgrade your plan, select a new plan below. You'll be redirected to Stripe's secure checkout page to complete the change.
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-400">
                     For billing details and payment methods, use "Manage Subscription & Billing" below.
@@ -378,8 +358,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
             <h4 className="font-semibold text-primary mb-2">💡 Billing Details</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• <strong>Subscriptions:</strong> Monthly billing, plan upgrades charge full difference immediately</p>
-              <p>• <strong>Upgrade billing:</strong> Pay full difference upfront, new rate starts next cycle</p>
+              <p>• <strong>Secure Checkout:</strong> All payments processed through Stripe's secure checkout</p>
+              <p>• <strong>No Stored Cards:</strong> We don't store your payment information</p>
               <p>• <strong>Credit rollover:</strong> Unused credits never expire, even after cancellation</p>
               <p>• <strong>Cancellation:</strong> Cancel anytime, keep all unused credits forever</p>
             </div>
