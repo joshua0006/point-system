@@ -1,5 +1,6 @@
 import { CheckCircle, CreditCard, Coins } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 
 interface SuccessModalProps {
@@ -10,6 +11,7 @@ interface SuccessModalProps {
 }
 
 export const SuccessModal = ({ isOpen, onClose, type, amount }: SuccessModalProps) => {
+  const isMobile = useIsMobile();
   const getContent = () => {
     if (type === "payment-method") {
       return {
@@ -30,7 +32,7 @@ export const SuccessModal = ({ isOpen, onClose, type, amount }: SuccessModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md text-center">
+      <DialogContent className={isMobile ? "max-w-[90vw] text-center p-4" : "sm:max-w-md text-center"}>
         <div className="flex flex-col items-center space-y-6 py-8">
           <div className="relative">
             {content.icon}

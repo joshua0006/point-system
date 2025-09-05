@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     price: number;
     title: string;
   } | null>(null);
+  const isMobile = useIsMobile();
   const { toast } = useToast();
   const { profile, subscription, refreshSubscription, refreshProfile } = useAuth();
 
@@ -187,7 +189,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50 shadow-2xl">
+      <DialogContent className={isMobile ? "max-w-[95vw] max-h-[90vh] p-2 overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50" : "sm:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50 shadow-2xl"}>
         <DialogHeader className="text-center pb-8 border-b border-border/30">
           <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Subscription Management
@@ -282,7 +284,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
 
 
           {/* Subscription Plans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className={isMobile ? "grid grid-cols-1 gap-3" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"}>
             {pointsPackages.map((pkg) => (
               <Card 
                 key={pkg.points} 

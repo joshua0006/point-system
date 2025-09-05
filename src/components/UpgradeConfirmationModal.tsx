@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -28,7 +29,7 @@ interface UpgradeConfirmationModalProps {
   loading?: boolean;
 }
 
-export const UpgradeConfirmationModal = ({
+export function UpgradeConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
@@ -37,8 +38,9 @@ export const UpgradeConfirmationModal = ({
   upgradeAmount,
   prorationDetails,
   loading = false
-}: UpgradeConfirmationModalProps) => {
+}: UpgradeConfirmationModalProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const isMobile = useIsMobile();
   
   const additionalCredits = currentPlan 
     ? newPlan.credits - currentPlan.credits 
@@ -53,7 +55,7 @@ export const UpgradeConfirmationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={isMobile ? "max-w-[90vw] p-4" : "sm:max-w-md"}>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {currentPlan ? "Change Your Plan" : "Subscribe to Plan"}

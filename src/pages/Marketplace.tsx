@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { MarketplaceHero } from '@/components/marketplace/MarketplaceHero';
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
+import { MobileMarketplaceFilters } from '@/components/marketplace/MobileMarketplaceFilters';
 import { ActiveFilters } from '@/components/marketplace/ActiveFilters';
 import { ServicesGrid } from '@/components/marketplace/ServicesGrid';
 import { useServices, useCategories } from '@/hooks/useServices';
@@ -13,11 +14,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import LeadGenCampaigns from './LeadGenCampaigns';
 import GiftingMerchants from '@/components/marketplace/GiftingMerchants';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedTier, setSelectedTier] = useState<string>('All');
+  const isMobile = useIsMobile();
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -110,34 +114,46 @@ const Marketplace = () => {
       
       <MarketplaceHero servicesCount={services.length} />
       
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <ResponsiveContainer>
         <Tabs defaultValue="campaigns" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6 sm:mb-8 h-11 sm:h-10">
-            <TabsTrigger value="services" className="text-sm">Services</TabsTrigger>
-            <TabsTrigger value="campaigns" className="text-sm">Lead Gen Campaigns</TabsTrigger>
-            <TabsTrigger value="gifting" className="text-sm">Gifting Support</TabsTrigger>
+          <TabsList className={isMobile ? "grid w-full grid-cols-3 mb-4 h-12" : "grid w-full grid-cols-3 mb-6 sm:mb-8 h-11 sm:h-10"}>
+            <TabsTrigger value="services" className={isMobile ? "text-xs px-1" : "text-sm"}>Services</TabsTrigger>
+            <TabsTrigger value="campaigns" className={isMobile ? "text-xs px-1" : "text-sm"}>Campaigns</TabsTrigger>
+            <TabsTrigger value="gifting" className={isMobile ? "text-xs px-1" : "text-sm"}>Gifting</TabsTrigger>
           </TabsList>
           
           <TabsContent value="services" className="mt-0">
             <div data-services-section>
-              <div className="mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
+                <h2 className={isMobile ? "text-xl font-bold text-foreground mb-2" : "text-2xl sm:text-3xl font-bold text-foreground mb-2"}>
                   Available Services
                 </h2>
-                <p className="text-muted-foreground text-sm sm:text-base">
+                <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
                   Discover expert consultants and book services using your points
                 </p>
               </div>
 
-              <MarketplaceFilters
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-                selectedTier={selectedTier}
-                setSelectedTier={setSelectedTier}
-                categories={categories}
-              />
+              {isMobile ? (
+                <MobileMarketplaceFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  selectedTier={selectedTier}
+                  setSelectedTier={setSelectedTier}
+                  categories={categories}
+                />
+              ) : (
+                <MarketplaceFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  selectedTier={selectedTier}
+                  setSelectedTier={setSelectedTier}
+                  categories={categories}
+                />
+              )}
 
               <ActiveFilters
                 searchTerm={searchTerm}
@@ -158,18 +174,18 @@ const Marketplace = () => {
           </TabsContent>
           
           <TabsContent value="campaigns" className="mt-0">
-            <div className="pt-8">
+            <div className={isMobile ? "pt-4" : "pt-8"}>
               <LeadGenCampaigns />
             </div>
           </TabsContent>
           
           <TabsContent value="gifting" className="mt-0">
-            <div className="pt-8">
+            <div className={isMobile ? "pt-4" : "pt-8"}>
               <GiftingMerchants />
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </ResponsiveContainer>
     </div>
   );
 };

@@ -9,6 +9,7 @@ import { Navigation } from "@/components/Navigation";
 import { DashboardModals } from "@/components/dashboard/DashboardModals";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { SuccessModal } from "@/components/SuccessModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   TrendingUp,
   Calendar,
@@ -19,6 +20,7 @@ import {
 
 export default function UserDashboard() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const {
     balanceModalOpen,
     setBalanceModalOpen,
@@ -231,19 +233,19 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className={isMobile ? "container mx-auto px-2 py-4" : "container mx-auto px-4 py-8"}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className={isMobile ? "mb-6" : "mb-8"}>
+          <h1 className={isMobile ? "text-2xl font-bold text-foreground mb-2" : "text-3xl font-bold text-foreground mb-2"}>
             My Dashboard
           </h1>
-          <p className="text-muted-foreground">
+          <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground"}>
             Track your flexi-credits, bookings, and consultation history
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"}>
           <Card 
             className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => setBalanceModalOpen(true)}
@@ -311,7 +313,7 @@ export default function UserDashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className={isMobile ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 lg:grid-cols-2 gap-8"}>
           <Card 
             className="cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => setRecentTransactionsModalOpen(true)}

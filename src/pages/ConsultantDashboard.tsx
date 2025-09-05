@@ -22,6 +22,7 @@ import { useConsultantRatingStats } from "@/hooks/useConsultantReviews";
 import { useBuyerRatingStats } from "@/hooks/useBuyerReviews";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Plus, 
   TrendingUp, 
@@ -51,6 +52,7 @@ type SessionsMode = "selling" | "buying";
 export default function ConsultantDashboard() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [showAddService, setShowAddService] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   
@@ -416,28 +418,28 @@ export default function ConsultantDashboard() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className={isMobile ? "container mx-auto px-2 py-4" : "container mx-auto px-4 py-8"}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className={isMobile ? "flex flex-col gap-4 mb-6" : "flex items-center justify-between mb-8"}>
           <div>
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">
+            <div className={isMobile ? "flex flex-col gap-2 mb-2" : "flex items-center space-x-3 mb-2"}>
+              <h1 className={isMobile ? "text-2xl font-bold text-foreground" : "text-3xl font-bold text-foreground"}>
                 Dashboard
               </h1>
               <TierBadge tier={consultantProfile.tier} />
             </div>
-            <p className="text-muted-foreground">
+            <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground"}>
               Manage your services, track earnings, and monitor your activity
             </p>
           </div>
-          <Button onClick={() => setShowAddService(true)}>
+          <Button onClick={() => setShowAddService(true)} className={isMobile ? "w-full" : ""}>
             <Plus className="w-4 h-4 mr-2" />
             Add Service
           </Button>
         </div>
 
         {/* First Row: Point Balance, Spending/Earning, Orders Completed */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"}>
           {/* Current Point Balance */}
           <Card 
             className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground cursor-pointer hover:scale-105 transition-transform"

@@ -11,6 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, Archive, Clock, CheckCircle } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 
 const Messages = () => {
   const { user, profile } = useAuth();
@@ -21,6 +23,7 @@ const Messages = () => {
   const [undoToastOpen, setUndoToastOpen] = useState(false);
   const [undoToastMessage, setUndoToastMessage] = useState('');
   const [undoAction, setUndoAction] = useState<(() => void) | null>(null);
+  const isMobile = useIsMobile();
   
   const { data: conversations = [], isLoading } = useConversations();
   const markAsReadMutation = useMarkMessagesAsRead();
@@ -120,17 +123,17 @@ const Messages = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <ResponsiveContainer>
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className={isMobile ? "flex flex-col gap-4 mb-4" : "flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4"}>
             <div className="flex items-center gap-3">
-              <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Messages</h1>
+              <MessageCircle className={isMobile ? "h-6 w-6 text-primary" : "h-6 w-6 sm:h-8 sm:w-8 text-primary"} />
+              <h1 className={isMobile ? "text-xl font-bold text-foreground" : "text-2xl sm:text-3xl font-bold text-foreground"}>Messages</h1>
             </div>
             
             {/* Show mode toggle only for consultants */}
             {profile?.role === 'consultant' && (
-              <div className="flex items-center gap-3 sm:gap-4">
+              <div className={isMobile ? "flex items-center justify-center gap-2" : "flex items-center gap-3 sm:gap-4"}>
                 <span className="text-sm text-muted-foreground">View:</span>
                 <ChatModeToggle 
                   isSellingMode={isSellingMode}
@@ -141,11 +144,11 @@ const Messages = () => {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Your Conversations</span>
+            <CardHeader className={isMobile ? "pb-3" : ""}>
+              <CardTitle className={isMobile ? "flex flex-col gap-2" : "flex items-center justify-between"}>
+                <span className={isMobile ? "text-lg" : ""}>Your Conversations</span>
                 {profile?.role === 'consultant' && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className={isMobile ? "text-sm text-muted-foreground" : "text-sm text-muted-foreground"}>
                     {isSellingMode ? 'Services you\'re providing' : 'Services you\'re purchasing'}
                   </div>
                 )}
@@ -153,25 +156,23 @@ const Messages = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeFilter} onValueChange={setActiveFilter} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 h-11 sm:h-10">
-                  <TabsTrigger value="active" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <TabsList className={isMobile ? "grid w-full grid-cols-3 h-12" : "grid w-full grid-cols-3 h-11 sm:h-10"}>
+                  <TabsTrigger value="active" className={isMobile ? "flex items-center gap-1 text-xs" : "flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"}>
                     <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Active</span>
-                    <span className="sm:hidden">Active</span>
+                    <span>Active</span>
                   </TabsTrigger>
-                  <TabsTrigger value="waiting_acceptance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <TabsTrigger value="waiting_acceptance" className={isMobile ? "flex items-center gap-1 text-xs" : "flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"}>
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Waiting</span>
                     <span className="sm:hidden">Wait</span>
                   </TabsTrigger>
-                  <TabsTrigger value="archive" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <TabsTrigger value="archive" className={isMobile ? "flex items-center gap-1 text-xs" : "flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"}>
                     <Archive className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Archive</span>
-                    <span className="sm:hidden">Archive</span>
+                    <span>Archive</span>
                   </TabsTrigger>
                 </TabsList>
                 
-                <div className="mt-6">
+                <div className={isMobile ? "mt-4" : "mt-6"}>
                   {isLoading ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -189,7 +190,7 @@ const Messages = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </ResponsiveContainer>
 
       <ChatWindow
         conversation={selectedConversation}
