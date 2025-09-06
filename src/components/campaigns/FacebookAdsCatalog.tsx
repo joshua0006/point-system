@@ -148,13 +148,32 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
   };
 
   const canProceed = () => {
-    if (!selectedTemplate) return false;
+    if (!selectedTemplate) {
+      console.log('canProceed: No template selected');
+      return false;
+    }
+    
     const audienceInfo = getTargetAudienceInfo(selectedTemplate);
     const currentBalance = profile?.flexi_credits_balance || 0;
-    return campaignData.budget >= audienceInfo.budgetRange.min && 
-           campaignData.budget <= audienceInfo.budgetRange.max &&
-           campaignData.consultantName.trim() !== '' && 
-           currentBalance >= campaignData.budget;
+    
+    const budgetValid = campaignData.budget >= audienceInfo.budgetRange.min && 
+                       campaignData.budget <= audienceInfo.budgetRange.max;
+    const nameValid = campaignData.consultantName.trim() !== '';
+    const balanceValid = currentBalance >= campaignData.budget;
+    
+    console.log('canProceed validation:', {
+      selectedTemplate: !!selectedTemplate,
+      budget: campaignData.budget,
+      budgetRange: audienceInfo.budgetRange,
+      budgetValid,
+      consultantName: campaignData.consultantName,
+      nameValid,
+      currentBalance,
+      balanceValid,
+      canProceed: budgetValid && nameValid && balanceValid
+    });
+    
+    return budgetValid && nameValid && balanceValid;
   };
 
   if (loading) {
