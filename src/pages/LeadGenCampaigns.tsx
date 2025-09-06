@@ -202,11 +202,12 @@ const LeadGenCampaigns = () => {
       console.log('Budget (monthly):', budget, 'Amount to deduct (now):', amountToDeduct, 'User Balance:', userBalance);
       console.log('Pending Campaign:', pendingCampaign);
 
-      // Check sufficient balance
-      if (userBalance < amountToDeduct) {
+      // Check if balance would go below -1000 limit
+      const balanceAfterDeduction = userBalance - amountToDeduct;
+      if (balanceAfterDeduction < -1000) {
         toast({
-          title: "Insufficient Balance",
-          description: `You need ${amountToDeduct} points but only have ${userBalance} points. Please contact admin to add more points to your account.`,
+          title: "Balance Limit Exceeded", 
+          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -1000 points.`,
           variant: "destructive"
         });
         return;
@@ -695,11 +696,11 @@ const LeadGenCampaigns = () => {
                   </div>
                 </div>
 
-                {userBalance < amountToDeduct && (
+                {balanceAfter < -1000 && (
                   <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
                     <p className="text-sm text-red-800">
-                      ⚠️ Insufficient balance. You need {amountToDeduct - userBalance} more points.
-                      Contact admin to add points to your account.
+                      ⚠️ Balance limit exceeded. This would bring your balance to {balanceAfter} points.
+                      The minimum allowed balance is -1000 points.
                     </p>
                   </div>
                 )}
@@ -708,9 +709,9 @@ const LeadGenCampaigns = () => {
                   <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="flex-1">
                     Cancel
                   </Button>
-                  <Button onClick={confirmCheckout} className="flex-1" disabled={userBalance < amountToDeduct}>
+                  <Button onClick={confirmCheckout} className="flex-1" disabled={balanceAfter < -1000}>
                     <DollarSign className="h-4 w-4 mr-2" />
-                    {userBalance < amountToDeduct ? 'Insufficient Balance' : 'Confirm & Launch'}
+                    {balanceAfter < -1000 ? 'Balance Limit Exceeded' : 'Confirm & Launch'}
                   </Button>
                 </DialogFooter>
               </div>
