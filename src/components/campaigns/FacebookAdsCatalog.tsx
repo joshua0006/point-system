@@ -316,9 +316,16 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                   min={getTargetAudienceInfo(selectedTemplate).budgetRange.min}
                   max={getTargetAudienceInfo(selectedTemplate).budgetRange.max}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Your balance: {profile?.flexi_credits_balance || 0} points
-                </p>
+                <div className="text-xs mt-1">
+                  <p className="text-muted-foreground">
+                    Your balance: {profile?.flexi_credits_balance || 0} points
+                  </p>
+                  {campaignData.budget > (profile?.flexi_credits_balance || 0) && (
+                    <p className="text-destructive font-medium">
+                      Insufficient balance. Reduce budget to {profile?.flexi_credits_balance || 0} points or add more credits.
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Proration toggle */}
