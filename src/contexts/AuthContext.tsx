@@ -347,3 +347,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Export AuthContext for defensive usage in hooks
+export { AuthContext };

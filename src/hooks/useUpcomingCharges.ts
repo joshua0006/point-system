@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthContext } from '@/contexts/AuthContext';
+import { useContext } from 'react';
 
 export interface UpcomingCharge {
   consultant_name: string;
@@ -15,7 +16,18 @@ export interface UpcomingCharge {
 }
 
 export function useUpcomingCharges() {
-  const { user } = useAuth();
+  const authContext = useContext(AuthContext);
+  
+  // If auth context is not available, return disabled query
+  if (!authContext) {
+    return useQuery({
+      queryKey: ['upcoming-charges', null],
+      queryFn: () => Promise.resolve([]),
+      enabled: false,
+    });
+  }
+  
+  const { user } = authContext;
 
   return useQuery({
     queryKey: ['upcoming-charges', user?.id],

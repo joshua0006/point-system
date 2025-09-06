@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthContext } from '@/contexts/AuthContext';
+import { useContext } from 'react';
 
 export interface TransactionHistoryItem {
   id: string;
@@ -13,7 +14,18 @@ export interface TransactionHistoryItem {
 }
 
 export function useTransactionHistory() {
-  const { user } = useAuth();
+  const authContext = useContext(AuthContext);
+  
+  // If auth context is not available, return disabled query
+  if (!authContext) {
+    return useQuery({
+      queryKey: ['transaction-history', null],
+      queryFn: () => Promise.resolve([]),
+      enabled: false,
+    });
+  }
+  
+  const { user } = authContext;
 
   return useQuery({
     queryKey: ['transaction-history', user?.id],
