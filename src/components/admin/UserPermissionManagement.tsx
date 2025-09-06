@@ -75,7 +75,7 @@ const [editingPermission, setEditingPermission] = useState<UserPermission | null
         .from('user_campaign_permissions')
         .select(`
           *,
-          profiles!user_campaign_permissions_user_id_fkey(full_name, email)
+          profiles!inner(full_name, email)
         `);
 
       if (permissionsError) throw permissionsError;
