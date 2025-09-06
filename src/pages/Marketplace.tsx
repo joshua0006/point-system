@@ -10,10 +10,7 @@ import { useServices, useCategories } from '@/hooks/useServices';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import LeadGenCampaigns from './LeadGenCampaigns';
-import GiftingMerchants from '@/components/marketplace/GiftingMerchants';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 
@@ -115,76 +112,54 @@ const Marketplace = () => {
       <MarketplaceHero servicesCount={services.length} />
       
       <ResponsiveContainer>
-        <Tabs defaultValue="campaigns" className="w-full">
-          <TabsList className={isMobile ? "grid w-full grid-cols-3 mb-4 h-12" : "grid w-full grid-cols-3 mb-6 sm:mb-8 h-11 sm:h-10"}>
-            <TabsTrigger value="services" className={isMobile ? "text-xs px-1" : "text-sm"}>Services</TabsTrigger>
-            <TabsTrigger value="campaigns" className={isMobile ? "text-xs px-1" : "text-sm"}>Campaigns</TabsTrigger>
-            <TabsTrigger value="gifting" className={isMobile ? "text-xs px-1" : "text-sm"}>Gifting</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="services" className="mt-0">
-            <div data-services-section>
-              <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-                <h2 className={isMobile ? "text-xl font-bold text-foreground mb-2" : "text-2xl sm:text-3xl font-bold text-foreground mb-2"}>
-                  Available Services
-                </h2>
-                <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-                  Discover expert consultants and book services using your points
-                </p>
-              </div>
+        <div data-services-section>
+          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
+            <h2 className={isMobile ? "text-xl font-bold text-foreground mb-2" : "text-2xl sm:text-3xl font-bold text-foreground mb-2"}>
+              Available Services
+            </h2>
+            <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
+              Discover expert consultants and book services using your points
+            </p>
+          </div>
 
-              {isMobile ? (
-                <MobileMarketplaceFilters
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={setSelectedCategory}
-                  selectedTier={selectedTier}
-                  setSelectedTier={setSelectedTier}
-                  categories={categories}
-                />
-              ) : (
-                <MarketplaceFilters
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={setSelectedCategory}
-                  selectedTier={selectedTier}
-                  setSelectedTier={setSelectedTier}
-                  categories={categories}
-                />
-              )}
+          {isMobile ? (
+            <MobileMarketplaceFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedTier={selectedTier}
+              setSelectedTier={setSelectedTier}
+              categories={categories}
+            />
+          ) : (
+            <MarketplaceFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedTier={selectedTier}
+              setSelectedTier={setSelectedTier}
+              categories={categories}
+            />
+          )}
 
-              <ActiveFilters
-                searchTerm={searchTerm}
-                selectedCategory={selectedCategory}
-                selectedTier={selectedTier}
-                onClearSearch={() => setSearchTerm('')}
-                onClearCategory={() => setSelectedCategory('All')}
-                onClearTier={() => setSelectedTier('All')}
-              />
+          <ActiveFilters
+            searchTerm={searchTerm}
+            selectedCategory={selectedCategory}
+            selectedTier={selectedTier}
+            onClearSearch={() => setSearchTerm('')}
+            onClearCategory={() => setSelectedCategory('All')}
+            onClearTier={() => setSelectedTier('All')}
+          />
 
-              <ServicesGrid
-                services={filteredServices}
-                totalServices={services.length}
-                onServiceClick={handleServiceClick}
-                onClearAllFilters={handleClearAllFilters}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="campaigns" className="mt-0">
-            <div className={isMobile ? "pt-4" : "pt-8"}>
-              <LeadGenCampaigns />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="gifting" className="mt-0">
-            <div className={isMobile ? "pt-4" : "pt-8"}>
-              <GiftingMerchants />
-            </div>
-          </TabsContent>
-        </Tabs>
+          <ServicesGrid
+            services={filteredServices}
+            totalServices={services.length}
+            onServiceClick={handleServiceClick}
+            onClearAllFilters={handleClearAllFilters}
+          />
+        </div>
       </ResponsiveContainer>
     </div>
   );
