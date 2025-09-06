@@ -28,7 +28,9 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
   };
 
   const canProceed = () => {
-    return selectedHours && consultantName.trim() !== '' && userBalance >= (selectedHours * 6);
+    if (!selectedHours || consultantName.trim() === '') return false;
+    const balanceAfterDeduction = userBalance - (selectedHours * 6);
+    return balanceAfterDeduction >= -1000;
   };
 
   return (
@@ -100,11 +102,11 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
             </div>
           )}
 
-          {selectedHours && userBalance < (selectedHours * 6) && (
+          {selectedHours && (userBalance - (selectedHours * 6)) < -1000 && (
             <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
               <p className="text-red-700 dark:text-red-400 text-sm">
-                <strong>Insufficient balance:</strong> You need {selectedHours * 6} points but only have {userBalance} points. 
-                Please top up your wallet first.
+                <strong>Balance limit exceeded:</strong> This would bring your balance to {userBalance - (selectedHours * 6)} points. 
+                The minimum allowed balance is -1000 points.
               </p>
             </div>
           )}

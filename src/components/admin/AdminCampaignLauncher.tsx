@@ -187,10 +187,11 @@ export function AdminCampaignLauncher() {
     }
 
     const budget = parseInt(campaignBudget);
-    if (budget > selectedUser.flexi_credits_balance) {
+    const balanceAfter = selectedUser.flexi_credits_balance - budget;
+    if (balanceAfter < -1000) {
       toast({
-        title: "Insufficient Balance",
-        description: `User only has ${selectedUser.flexi_credits_balance} flexi-credits available`,
+        title: "Balance Limit Exceeded",
+        description: `This would bring user's balance to ${balanceAfter} flexi-credits. Minimum allowed balance is -1000.`,
         variant: "destructive",
       });
       return;

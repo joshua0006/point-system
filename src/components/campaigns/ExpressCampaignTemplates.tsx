@@ -93,7 +93,7 @@ export const ExpressCampaignTemplates = ({ onSelectTemplate, userBalance }: Expr
           {templates.map((template) => {
             const audienceInfo = AUDIENCE_DISPLAY[template.target_audience as keyof typeof AUDIENCE_DISPLAY];
             const Icon = audienceInfo?.icon || Shield;
-            const canAfford = userBalance >= template.template_config.budget;
+            const canAfford = (userBalance - template.template_config.budget) >= -1000;
             
             return (
               <Card 
@@ -150,7 +150,7 @@ export const ExpressCampaignTemplates = ({ onSelectTemplate, userBalance }: Expr
                         Quick Launch
                       </>
                     ) : (
-                      'Insufficient Balance'
+                      'Balance Limit Exceeded'
                     )}
                   </Button>
                 </CardContent>
