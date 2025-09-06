@@ -312,7 +312,7 @@ export const AdminInterface = ({
 
       {/* Admin Dashboard Tabs */}
       <Tabs defaultValue="audiences" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="audiences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Target Management
@@ -321,17 +321,9 @@ export const AdminInterface = ({
             <Edit3 className="h-4 w-4" />
             Campaign Scripts
           </TabsTrigger>
-          <TabsTrigger value="permissions" className="flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            User Permissions
-          </TabsTrigger>
           <TabsTrigger value="campaigns" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             Campaign Monitor
-          </TabsTrigger>
-          <TabsTrigger value="launcher" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Campaign Launcher
           </TabsTrigger>
         </TabsList>
 
@@ -439,16 +431,8 @@ export const AdminInterface = ({
           </Card>
         </TabsContent>
 
-        <TabsContent value="permissions" className="mt-8">
-          <UserPermissionManagement />
-        </TabsContent>
-
         <TabsContent value="campaigns" className="mt-8">
           <AdminCampaignMonitor />
-        </TabsContent>
-
-        <TabsContent value="launcher" className="mt-8">
-          <AdminCampaignLauncher />
         </TabsContent>
 
       </Tabs>

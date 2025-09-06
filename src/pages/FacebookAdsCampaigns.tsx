@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
+import { SuperAdminInterface } from "@/components/campaigns/SuperAdminInterface";
 
 const FacebookAdsCampaigns = () => {
   const { user, signOut, profile, refreshProfile } = useAuth();
@@ -453,15 +454,7 @@ const FacebookAdsCampaigns = () => {
           </div>
 
           {isAdmin && (
-          <AdminInterface 
-            campaignTargets={campaignTargets}
-            setCampaignTargets={setCampaignTargets}
-            editingTarget={editingTarget}
-            setEditingTarget={setEditingTarget}
-            showTargetDialog={showTargetDialog}
-            setShowTargetDialog={setShowTargetDialog}
-            refreshTargets={refreshTargets}
-          />
+            <SuperAdminInterface />
           )}
 
           <FacebookAdsCatalog
