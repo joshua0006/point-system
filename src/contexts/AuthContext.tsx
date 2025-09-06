@@ -68,25 +68,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           // Defer profile and subscription fetch to avoid blocking auth state updates
-          setTimeout(async () => {
+          requestIdleCallback(async () => {
             if (!mounted) return;
             
             try {
-              // Fetch profile
-              const { data: profileData, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single();
+              // Parallel fetch for better performance
+              const [profileResult, subscriptionResult] = await Promise.allSettled([
+                supabase.from('profiles').select('*').eq('user_id', session.user.id).single(),
+                supabase.functions.invoke('check-subscription')
+              ]);
               
               if (!mounted) return;
               
-              if (error) {
-                console.error('Error fetching profile:', error);
-                setProfile(null);
+              // Handle profile result
+              if (profileResult.status === 'fulfilled' && !profileResult.value.error) {
+                setProfile(profileResult.value.data);
+                console.log('Profile loaded successfully:', profileResult.value.data);
               } else {
-                setProfile(profileData);
-                console.log('Profile loaded successfully:', profileData);
+                console.error('Error fetching profile:', profileResult.status === 'fulfilled' ? profileResult.value.error : profileResult.reason);
+                setProfile(null);
+              }
+
+              // Handle subscription result  
+              if (subscriptionResult.status === 'fulfilled' && !subscriptionResult.value.error) {
+                console.log('✅ Subscription loaded successfully:', subscriptionResult.value.data);
+                setSubscription(subscriptionResult.value.data);
+              } else {
+                console.error('❌ Error fetching subscription:', subscriptionResult.status === 'fulfilled' ? subscriptionResult.value.error : subscriptionResult.reason);
+                setSubscription(null);
               }
 
               // Set up real-time subscription for profile updates
@@ -112,27 +121,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   }
                 )
                 .subscribe();
-
-              // Fetch subscription status
-              try {
-                console.log('🔄 Fetching subscription status...');
-                const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
-                
-                if (subscriptionError) {
-                  console.error('❌ Error fetching subscription:', subscriptionError);
-                  setSubscription(null);
-                } else {
-                  console.log('✅ Subscription loaded successfully:', subscriptionData);
-                  setSubscription(subscriptionData);
-                }
-              } catch (err) {
-                console.error('Subscription fetch error:', err);
-                setSubscription(null);
-              }
             } catch (err) {
-              console.error('Profile fetch error:', err);
+              console.error('Profile/subscription fetch error:', err);
             }
-          }, 0);
+          });
         } else {
           setProfile(null);
           setSubscription(null);

@@ -10,7 +10,7 @@ import { ArrowRight, Target, Phone, Users, BarChart3, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Lazy load heavy components
+// Lazy load heavy components for optimal performance
 const ActiveCampaigns = lazy(() => import('@/components/campaigns/ActiveCampaigns').then(m => ({ default: m.ActiveCampaigns })));
 const SuperAdminInterface = lazy(() => import('@/components/campaigns/SuperAdminInterface').then(m => ({ default: m.SuperAdminInterface })));
 
