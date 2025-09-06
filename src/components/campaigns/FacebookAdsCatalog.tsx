@@ -154,12 +154,10 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
     }
     
     const audienceInfo = getTargetAudienceInfo(selectedTemplate);
-    const currentBalance = profile?.flexi_credits_balance || 0;
     
     const budgetValid = campaignData.budget >= audienceInfo.budgetRange.min && 
                        campaignData.budget <= audienceInfo.budgetRange.max;
     const nameValid = campaignData.consultantName.trim() !== '';
-    const balanceValid = currentBalance >= campaignData.budget;
     
     console.log('canProceed validation:', {
       selectedTemplate: !!selectedTemplate,
@@ -168,12 +166,10 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
       budgetValid,
       consultantName: campaignData.consultantName,
       nameValid,
-      currentBalance,
-      balanceValid,
-      canProceed: budgetValid && nameValid && balanceValid
+      canProceed: budgetValid && nameValid
     });
     
-    return budgetValid && nameValid && balanceValid;
+    return budgetValid && nameValid;
   };
 
   if (loading) {
@@ -316,16 +312,9 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                   min={getTargetAudienceInfo(selectedTemplate).budgetRange.min}
                   max={getTargetAudienceInfo(selectedTemplate).budgetRange.max}
                 />
-                <div className="text-xs mt-1">
-                  <p className="text-muted-foreground">
-                    Your balance: {profile?.flexi_credits_balance || 0} points
-                  </p>
-                  {campaignData.budget > (profile?.flexi_credits_balance || 0) && (
-                    <p className="text-destructive font-medium">
-                      Insufficient balance. Reduce budget to {profile?.flexi_credits_balance || 0} points or add more credits.
-                    </p>
-                  )}
-                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your balance: {profile?.flexi_credits_balance || 0} points
+                </p>
               </div>
 
               {/* Proration toggle */}
