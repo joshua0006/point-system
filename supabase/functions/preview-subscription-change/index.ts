@@ -34,10 +34,16 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    // Validate environment variables  
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    if (!supabaseUrl || !supabaseAnonKey || !stripeKey) {
+      throw new Error("Missing required environment variables");
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
@@ -55,7 +61,7 @@ serve(async (req) => {
     }
     logStep("Product ID found", { credits, productId });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 

@@ -34,10 +34,16 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    // Validate environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    if (!supabaseUrl || !supabaseAnonKey || !stripeKey) {
+      throw new Error("Missing required environment variables");
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
@@ -56,7 +62,7 @@ serve(async (req) => {
     }
     logStep("Product ID found", { credits, productId });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -161,36 +167,53 @@ serve(async (req) => {
       });
 
       // Create Supabase client with service role key to bypass RLS
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!supabaseServiceKey) {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY not set");
+      }
+
       const supabaseService = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        supabaseUrl,
+        supabaseServiceKey,
         { auth: { persistSession: false } }
       );
 
-      // Add full upgrade credits immediately
-      const { error: creditsError } = await supabaseService.rpc('increment_flexi_credits_balance', {
-        user_id: user.id,
-        credits_to_add: upgradeCredits
-      });
+      // Check for existing upgrade transaction to prevent duplicates
+      const { data: existingUpgrade } = await supabaseService
+        .from('flexi_credits_transactions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('description', `Plan upgrade credits - Subscription ${updatedSubscription.id}`)
+        .maybeSingle();
 
-      if (creditsError) {
-        logStep("Error adding upgrade credits", creditsError);
-        // Don't throw here - subscription was updated successfully
+      if (existingUpgrade) {
+        logStep("Upgrade credits already granted", { subscriptionId: updatedSubscription.id });
       } else {
-        // Create transaction record
-        const { error: transactionError } = await supabaseService
-          .from('flexi_credits_transactions')
-          .insert({
-            user_id: user.id,
-            type: 'purchase',
-            amount: upgradeCredits,
-            description: `Plan upgrade credits - Immediate full difference`
-          });
+        // Add full upgrade credits immediately
+        const { error: creditsError } = await supabaseService.rpc('increment_flexi_credits_balance', {
+          user_id: user.id,
+          credits_to_add: upgradeCredits
+        });
 
-        if (transactionError) {
-          logStep("Error creating upgrade transaction record", transactionError);
+        if (creditsError) {
+          logStep("Error adding upgrade credits", creditsError);
+          // Don't throw here - subscription was updated successfully
         } else {
-          logStep("Successfully granted full upgrade credits", { upgradeCredits });
+          // Create transaction record
+          const { error: transactionError } = await supabaseService
+            .from('flexi_credits_transactions')
+            .insert({
+              user_id: user.id,
+              type: 'purchase',
+              amount: upgradeCredits,
+              description: `Plan upgrade credits - Subscription ${updatedSubscription.id}`
+            });
+
+          if (transactionError) {
+            logStep("Error creating upgrade transaction record", transactionError);
+          } else {
+            logStep("Successfully granted full upgrade credits", { upgradeCredits });
+          }
         }
       }
     }

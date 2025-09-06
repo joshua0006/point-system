@@ -3,7 +3,64 @@ project_id = "rrnaquethuzvbsxcssss"
 [functions.ad-copy-generator]
 verify_jwt = true
 
+[functions.admin-campaign-launcher]
+verify_jwt = true
+
+[functions.admin-user-management]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.consultant-ai-assistant]
+verify_jwt = true
+
+[functions.create-points-checkout]
+verify_jwt = true
+
+[functions.create-subscription-checkout]
+verify_jwt = true
+
+[functions.create-va-support-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.delete-payment-method]
+verify_jwt = true
+
 [functions.generate-ai-images]
+verify_jwt = true
+
+[functions.generate-booking-messages]
+verify_jwt = true
+
+[functions.instant-charge]
+verify_jwt = true
+
+[functions.list-payment-methods]
+verify_jwt = true
+
+[functions.manual-add-points]
+verify_jwt = true
+
+[functions.preview-subscription-change]
+verify_jwt = true
+
+[functions.process-monthly-billing]
+verify_jwt = false
+
+[functions.regenerate-campaign-scripts]
+verify_jwt = true
+
+[functions.send-auto-reply]
+verify_jwt = false
+
+[functions.setup-demo-data]
+verify_jwt = false
+
+[functions.setup-payment-method]
 verify_jwt = true
 
 [functions.stripe-webhook]
@@ -12,5 +69,5 @@ verify_jwt = false
 [functions.update-subscription]
 verify_jwt = true
 
-[functions.preview-subscription-change]
+[functions.validate-billing-system]
 verify_jwt = true

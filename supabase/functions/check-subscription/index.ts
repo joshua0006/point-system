@@ -29,10 +29,15 @@ serve(async (req) => {
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    // Validate environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Missing required Supabase environment variables");
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
     const token = authHeader.replace("Bearer ", "");
     logStep("Authenticating user with token");
@@ -86,24 +91,42 @@ serve(async (req) => {
       const amount = price.unit_amount || 0;
       const amountInDollars = amount / 100;
       
-      // Determine subscription tier and credits from amount
-      creditsPerMonth = amountInDollars; // 1:1 ratio
+      // Get credits and plan details from subscription metadata
+      creditsPerMonth = parseInt(subscription.metadata?.credits || "0");
+      planName = subscription.metadata?.plan_name || "Custom Plan";
       
-      if (amountInDollars === 250) {
-        subscriptionTier = "starter";
-        planName = "Starter Plan";
-      } else if (amountInDollars === 500) {
-        subscriptionTier = "plus";
-        planName = "Plus Plan";
-      } else if (amountInDollars === 750) {
-        subscriptionTier = "pro";
-        planName = "Pro Plan";
-      } else if (amountInDollars === 1000) {
+      // Determine subscription tier based on credits or amount
+      if (creditsPerMonth >= 1000) {
         subscriptionTier = "ultra";
-        planName = "Ultra Plan";
+      } else if (creditsPerMonth >= 750) {
+        subscriptionTier = "pro";
+      } else if (creditsPerMonth >= 500) {
+        subscriptionTier = "plus";
+      } else if (creditsPerMonth >= 250) {
+        subscriptionTier = "starter";
       } else {
         subscriptionTier = "custom";
-        planName = "Custom Plan";
+      }
+      
+      // Fallback to price-based calculation if no metadata
+      if (!creditsPerMonth) {
+        creditsPerMonth = amountInDollars; // 1:1 ratio fallback
+        if (amountInDollars >= 1000) {
+          subscriptionTier = "ultra";
+          planName = "Ultra Plan";
+        } else if (amountInDollars >= 750) {
+          subscriptionTier = "pro";
+          planName = "Pro Plan";
+        } else if (amountInDollars >= 500) {
+          subscriptionTier = "plus";
+          planName = "Plus Plan";
+        } else if (amountInDollars >= 250) {
+          subscriptionTier = "starter";
+          planName = "Starter Plan";
+        } else {
+          subscriptionTier = "custom";
+          planName = "Custom Plan";
+        }
       }
       
       logStep("Determined subscription details", { 

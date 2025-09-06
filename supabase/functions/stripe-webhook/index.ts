@@ -60,49 +60,120 @@ serve(async (req) => {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      logStep("Processing checkout session", { sessionId: session.id });
+      logStep("Processing checkout session", { sessionId: session.id, mode: session.mode });
 
-      // Extract metadata from the session
-      const userId = session.metadata?.user_id;
-      const pointsToAdd = parseInt(session.metadata?.points || "0");
+      // Handle subscription checkout
+      if (session.mode === 'subscription') {
+        const userId = session.metadata?.user_id;
+        const creditsToAdd = parseInt(session.metadata?.credits || "0");
 
-      if (!userId || !pointsToAdd) {
-        logStep("Missing metadata", { userId, pointsToAdd });
-        throw new Error("Missing user_id or points in session metadata");
-      }
+        if (!userId || !creditsToAdd) {
+          logStep("Missing subscription metadata", { userId, creditsToAdd, metadata: session.metadata });
+          throw new Error("Missing user_id or credits in session metadata");
+        }
 
-      logStep("Adding points to user", { userId, pointsToAdd });
+        // Check for existing transaction to prevent duplicate credits
+        const { data: existingTransaction } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .select('id')
+          .eq('description', `Initial subscription credits - Session ${session.id}`)
+          .maybeSingle();
 
-      // Add points to user's balance using the existing database function
-      const { error: pointsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
-        user_id: userId,
-        credits_to_add: pointsToAdd
-      });
+        if (existingTransaction) {
+          logStep("Subscription credits already granted", { sessionId: session.id });
+          return new Response(JSON.stringify({ received: true, message: "Credits already granted" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
 
-      if (pointsError) {
-        logStep("Error adding points", pointsError);
-        throw pointsError;
-      }
+        logStep("Adding initial subscription credits to user", { userId, creditsToAdd });
 
-      // Create a transaction record for audit trail
-      const { error: transactionError } = await supabaseClient
-        .from('flexi_credits_transactions')
-        .insert({
+        // Add credits to user's balance using the existing database function
+        const { error: creditsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
           user_id: userId,
-          type: 'purchase',
-          amount: pointsToAdd,
-          description: `Stripe Checkout payment - Session ${session.id}`
+          credits_to_add: creditsToAdd
         });
 
-      if (transactionError) {
-        logStep("Error creating transaction record", transactionError);
-        // Don't throw here - points were already added, transaction record is just for audit
-      }
+        if (creditsError) {
+          logStep("Error adding subscription credits", creditsError);
+          throw creditsError;
+        }
 
-      logStep("Successfully processed checkout", { userId, pointsToAdd, sessionId: session.id });
+        // Create a transaction record for audit trail
+        const { error: transactionError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: userId,
+            type: 'purchase',
+            amount: creditsToAdd,
+            description: `Initial subscription credits - Session ${session.id}`
+          });
+
+        if (transactionError) {
+          logStep("Error creating subscription transaction record", transactionError);
+          // Don't throw here - credits were already added, transaction record is just for audit
+        }
+
+        logStep("Successfully processed subscription checkout", { userId, creditsToAdd, sessionId: session.id });
+      } else {
+        // Handle one-time checkout (points purchase)
+        const userId = session.metadata?.user_id;
+        const pointsToAdd = parseInt(session.metadata?.points || "0");
+
+        if (!userId || !pointsToAdd) {
+          logStep("Missing points metadata", { userId, pointsToAdd });
+          throw new Error("Missing user_id or points in session metadata");
+        }
+
+        // Check for existing transaction to prevent duplicate credits
+        const { data: existingTransaction } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .select('id')
+          .eq('description', `Stripe Checkout payment - Session ${session.id}`)
+          .maybeSingle();
+
+        if (existingTransaction) {
+          logStep("Points already granted", { sessionId: session.id });
+          return new Response(JSON.stringify({ received: true, message: "Points already granted" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+
+        logStep("Adding points to user", { userId, pointsToAdd });
+
+        // Add points to user's balance using the existing database function
+        const { error: pointsError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
+          user_id: userId,
+          credits_to_add: pointsToAdd
+        });
+
+        if (pointsError) {
+          logStep("Error adding points", pointsError);
+          throw pointsError;
+        }
+
+        // Create a transaction record for audit trail
+        const { error: transactionError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: userId,
+            type: 'purchase',
+            amount: pointsToAdd,
+            description: `Stripe Checkout payment - Session ${session.id}`
+          });
+
+        if (transactionError) {
+          logStep("Error creating transaction record", transactionError);
+          // Don't throw here - points were already added, transaction record is just for audit
+        }
+
+        logStep("Successfully processed points checkout", { userId, pointsToAdd, sessionId: session.id });
+      }
     }
 
-    // Handle subscription payments - only for regular monthly billing, not proration
+    // Handle subscription payments - only for regular monthly billing, not upgrades/changes
     if (event.type === "invoice.payment_succeeded") {
       const invoice = event.data.object;
       logStep("Processing invoice payment", { invoiceId: invoice.id, billing_reason: invoice.billing_reason });
@@ -111,6 +182,15 @@ serve(async (req) => {
       if (invoice.billing_reason === 'subscription_update') {
         logStep("Skipping proration invoice - credits handled immediately", { invoiceId: invoice.id });
         return new Response(JSON.stringify({ received: true, message: "Proration invoice skipped" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      // Skip subscription creation invoices - credits handled in checkout
+      if (invoice.billing_reason === 'subscription_create') {
+        logStep("Skipping subscription creation invoice - credits handled in checkout", { invoiceId: invoice.id });
+        return new Response(JSON.stringify({ received: true, message: "Subscription creation invoice skipped" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
@@ -143,7 +223,7 @@ serve(async (req) => {
         .from('profiles')
         .select('user_id')
         .eq('email', customerEmail)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profile) {
         logStep("User profile not found", { email: customerEmail, error: profileError });
@@ -156,6 +236,21 @@ serve(async (req) => {
       if (!creditsToAdd) {
         logStep("No credits amount found in subscription metadata", { subscriptionMetadata: subscription.metadata });
         throw new Error("No credits amount found in subscription metadata");
+      }
+
+      // Check for existing transaction to prevent duplicate credits
+      const { data: existingTransaction } = await supabaseClient
+        .from('flexi_credits_transactions')
+        .select('id')
+        .eq('description', `Monthly subscription renewal - Invoice ${invoice.id}`)
+        .maybeSingle();
+
+      if (existingTransaction) {
+        logStep("Monthly credits already granted", { invoiceId: invoice.id });
+        return new Response(JSON.stringify({ received: true, message: "Monthly credits already granted" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
       }
 
       logStep("Adding monthly subscription credits to user", { userId: profile.user_id, creditsToAdd });
