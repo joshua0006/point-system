@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthContext } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,15 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, profile, loading, signOut } = useAuth();
+  // Check if AuthContext is available first
+  const authContext = useContext(AuthContext);
+  
+  // If no auth context, redirect to auth page
+  if (!authContext) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  const { user, profile, loading, signOut } = authContext;
 
   if (loading) {
     return (

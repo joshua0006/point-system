@@ -38,9 +38,14 @@ interface AuthContextType {
   refreshSubscription: () => Promise<void>;
 }
 
+// Create context first
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Export AuthContext for defensive usage in hooks  
+export { AuthContext };
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('AuthProvider: Initializing...');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -337,6 +342,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshSubscription,
   };
 
+  console.log('AuthProvider: Providing value:', { user: !!user, profile: !!profile, loading });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
@@ -347,6 +353,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-// Export AuthContext for defensive usage in hooks
-export { AuthContext };
