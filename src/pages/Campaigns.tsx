@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
@@ -8,11 +8,26 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowRight, Target, Phone, Users, BarChart3, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ActiveCampaigns } from '@/components/campaigns/ActiveCampaigns';
-import { SuperAdminInterface } from '@/components/campaigns/SuperAdminInterface';
 import { useAuth } from '@/contexts/AuthContext';
 
-const Campaigns = () => {
+// Lazy load heavy components
+const ActiveCampaigns = lazy(() => import('@/components/campaigns/ActiveCampaigns').then(m => ({ default: m.ActiveCampaigns })));
+const SuperAdminInterface = lazy(() => import('@/components/campaigns/SuperAdminInterface').then(m => ({ default: m.SuperAdminInterface })));
+
+const LoadingSkeleton = () => (
+  <div className="space-y-4">
+    {[1, 2, 3].map(i => (
+      <Card key={i}>
+        <CardContent className="p-6">
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-2 animate-pulse"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const Campaigns = React.memo(() => {
   const isMobile = useIsMobile();
   const { profile } = useAuth();
   const [hideInactiveCampaigns, setHideInactiveCampaigns] = useState(false);
@@ -150,15 +165,19 @@ const Campaigns = () => {
             </TabsContent>
 
             <TabsContent value="active" className="mt-6">
-              <ActiveCampaigns 
-                hideInactiveCampaigns={hideInactiveCampaigns}
-                setHideInactiveCampaigns={setHideInactiveCampaigns}
-              />
+              <Suspense fallback={<LoadingSkeleton />}>
+                <ActiveCampaigns 
+                  hideInactiveCampaigns={hideInactiveCampaigns}
+                  setHideInactiveCampaigns={setHideInactiveCampaigns}
+                />
+              </Suspense>
             </TabsContent>
 
             {isAdmin && (
               <TabsContent value="admin" className="mt-6">
-                <SuperAdminInterface />
+                <Suspense fallback={<div className="h-96 w-full bg-gray-200 rounded animate-pulse" />}>
+                  <SuperAdminInterface />
+                </Suspense>
               </TabsContent>
             )}
           </Tabs>
@@ -166,6 +185,8 @@ const Campaigns = () => {
       </ResponsiveContainer>
     </div>
   );
-};
+});
+
+Campaigns.displayName = "Campaigns";
 
 export default Campaigns;
