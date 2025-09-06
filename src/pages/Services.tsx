@@ -9,7 +9,8 @@ import { useServices, useCategories } from '@/hooks/useServices';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Loader2, BarChart3, Presentation, Smartphone, GraduationCap, ExternalLink } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 
@@ -119,6 +120,66 @@ const Services = () => {
             <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
               Discover expert consultants and book services using your points
             </p>
+          </div>
+
+          {/* External Platforms Section */}
+          <div className={isMobile ? "mb-6" : "mb-8"}>
+            <h3 className={isMobile ? "text-lg font-semibold text-foreground mb-3" : "text-xl font-semibold text-foreground mb-4"}>
+              External Platforms
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Button 
+                variant="outline" 
+                className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-primary/5 hover:border-primary/30 transition-all"
+                onClick={() => window.open('http://track.themoneybees.co/', '_blank')}
+              >
+                <BarChart3 className="w-6 h-6 text-primary" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">Track</div>
+                  <div className="text-xs text-muted-foreground">MoneyBees</div>
+                </div>
+                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-accent/5 hover:border-accent/30 transition-all"
+                onClick={() => window.open('http://present.themoneybees.co/', '_blank')}
+              >
+                <Presentation className="w-6 h-6 text-accent" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">Present</div>
+                  <div className="text-xs text-muted-foreground">MoneyBees</div>
+                </div>
+                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-secondary/5 hover:border-secondary/30 transition-all"
+                onClick={() => window.open('https://app.themoneybees.co/', '_blank')}
+              >
+                <Smartphone className="w-6 h-6 text-secondary" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">App</div>
+                  <div className="text-xs text-muted-foreground">MoneyBees</div>
+                </div>
+                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="h-auto p-4 flex flex-col items-center space-y-2 hover:bg-orange-500/5 hover:border-orange-500/30 transition-all"
+                onClick={() => window.open('https://academy.finternship.com/', '_blank')}
+              >
+                <GraduationCap className="w-6 h-6 text-orange-500" />
+                <div className="text-center">
+                  <div className="font-medium text-sm">Academy</div>
+                  <div className="text-xs text-muted-foreground">Finternship</div>
+                </div>
+                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+              </Button>
+            </div>
           </div>
 
           {isMobile ? (
