@@ -47,7 +47,8 @@ export const ActiveCampaigns = ({ hideInactiveCampaigns, setHideInactiveCampaign
       if (hideInactiveCampaigns) {
         filteredData = filteredData.filter(campaign => 
           campaign.billing_status === 'active' || 
-          campaign.billing_status === 'paused'
+          campaign.billing_status === 'paused' ||
+          campaign.billing_status === 'paused_insufficient_funds'
         );
       }
 
@@ -78,6 +79,7 @@ export const ActiveCampaigns = ({ hideInactiveCampaigns, setHideInactiveCampaign
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
       case 'paused': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'paused_insufficient_funds': return 'bg-red-100 text-red-800 border-red-200';
+      case 'stopped': return 'bg-red-100 text-red-800 border-red-200';
       case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -215,7 +217,9 @@ export const ActiveCampaigns = ({ hideInactiveCampaigns, setHideInactiveCampaign
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={statusColor}>
                       {campaign.billing_status === 'paused_insufficient_funds' 
-                        ? 'Paused (Low Balance)' 
+                        ? 'Paused (Low Balance)'
+                        : campaign.billing_status === 'stopped'
+                        ? 'Stopped'
                         : campaign.billing_status.charAt(0).toUpperCase() + campaign.billing_status.slice(1)
                       }
                     </Badge>
