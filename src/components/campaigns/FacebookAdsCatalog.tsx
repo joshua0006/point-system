@@ -153,23 +153,17 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
       return false;
     }
     
-    const audienceInfo = getTargetAudienceInfo(selectedTemplate);
-    
-    const budgetValid = campaignData.budget >= audienceInfo.budgetRange.min && 
-                       campaignData.budget <= audienceInfo.budgetRange.max;
     const nameValid = campaignData.consultantName.trim() !== '';
     
     console.log('canProceed validation:', {
       selectedTemplate: !!selectedTemplate,
       budget: campaignData.budget,
-      budgetRange: audienceInfo.budgetRange,
-      budgetValid,
       consultantName: campaignData.consultantName,
       nameValid,
-      canProceed: budgetValid && nameValid
+      canProceed: nameValid
     });
     
-    return budgetValid && nameValid;
+    return nameValid;
   };
 
   if (loading) {
@@ -309,8 +303,6 @@ export const FacebookAdsCatalog = ({ onComplete, onBack, userBalance, campaignTa
                   value={campaignData.budget || ''}
                   onChange={(e) => setCampaignData(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
                   placeholder={`Recommended: ${getTargetAudienceInfo(selectedTemplate).budgetRange.recommended}`}
-                  min={getTargetAudienceInfo(selectedTemplate).budgetRange.min}
-                  max={getTargetAudienceInfo(selectedTemplate).budgetRange.max}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Your balance: {profile?.flexi_credits_balance || 0} points
