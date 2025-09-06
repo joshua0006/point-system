@@ -14,6 +14,9 @@ import SellerDashboard from "./pages/SellerDashboard";
 import ConsultantDashboard from "./pages/ConsultantDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Marketplace from "./pages/Marketplace";
+import Services from "./pages/Services";
+import Campaigns from "./pages/Campaigns";
+import Gifting from "./pages/Gifting";
 import ServiceDetail from "./pages/ServiceDetail";
 import Messages from "./pages/Messages";
 import ConsultantProfile from "./pages/ConsultantProfile";
@@ -45,6 +48,9 @@ const App = () => (
               <Route path="/consultant-dashboard" element={<ProtectedRoute><ConsultantDashboard /></ProtectedRoute>} />
               <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
               <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
+              <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
+              <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+              <Route path="/gifting" element={<ProtectedRoute><Gifting /></ProtectedRoute>} />
               <Route path="/service/:serviceId" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/consultant/:userId" element={<ProtectedRoute><ConsultantProfile /></ProtectedRoute>} />

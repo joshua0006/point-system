@@ -20,7 +20,10 @@ import {
   Settings,
   LogOut,
   Bot,
-  X
+  X,
+  ChevronDown,
+  Gift,
+  Megaphone
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -64,7 +67,7 @@ export function Navigation() {
   const getNavItems = (): NavItem[] => {
     if (userRole === "consultant") {
       return [
-        { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["consultant"] },
+        { path: "/services", label: "Services", icon: Search, roles: ["consultant"] },
         { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant"], hasNotification: unreadCount > 0 },
         { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] },
       ];
@@ -72,7 +75,7 @@ export function Navigation() {
 
     // For other users, use the existing mode-based logic
     const buyerNavItems = [
-      { path: "/marketplace", label: "Marketplace", icon: Search, roles: ["user", "admin"] },
+      { path: "/services", label: "Services", icon: Search, roles: ["user", "admin"] },
       { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "admin"], hasNotification: unreadCount > 0 },
       { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
       { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
@@ -148,6 +151,46 @@ export function Navigation() {
               <div className="hidden md:flex items-center space-x-1">
                 {filteredNavItems.map((item) => {
                   const Icon = item.icon;
+                  
+                  // Special handling for Services to show marketplace dropdown
+                  if (item.path === "/services") {
+                    return (
+                      <DropdownMenu key="marketplace">
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant={["/services", "/campaigns", "/gifting"].includes(location.pathname) ? "default" : "ghost"}
+                            size="sm"
+                            className="flex items-center space-x-2"
+                          >
+                            <Search className="w-4 h-4" />
+                            <span>Marketplace</span>
+                            <ChevronDown className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <DropdownMenuItem asChild>
+                            <Link to="/services" className="flex items-center space-x-2 cursor-pointer">
+                              <Search className="w-4 h-4" />
+                              <span>Services</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/campaigns" className="flex items-center space-x-2 cursor-pointer">
+                              <Megaphone className="w-4 h-4" />
+                              <span>Campaigns</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/gifting" className="flex items-center space-x-2 cursor-pointer">
+                              <Gift className="w-4 h-4" />
+                              <span>Gifting</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    );
+                  }
+                  
                   return (
                     <Link key={item.path} to={item.path}>
                       <Button
@@ -231,6 +274,42 @@ export function Navigation() {
                           {/* Navigation Items */}
                           {filteredNavItems.map((item) => {
                             const Icon = item.icon;
+                            
+                            // Special handling for Services to show marketplace submenu
+                            if (item.path === "/services") {
+                              return (
+                                <div key="marketplace-mobile" className="space-y-1">
+                                  <div className="px-3 py-2 text-sm font-medium text-muted-foreground">
+                                    Marketplace
+                                  </div>
+                                  <Link
+                                    to="/services"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent"
+                                  >
+                                    <Search className="w-4 h-4 mr-3" />
+                                    Services
+                                  </Link>
+                                  <Link
+                                    to="/campaigns"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent"
+                                  >
+                                    <Megaphone className="w-4 h-4 mr-3" />
+                                    Campaigns
+                                  </Link>
+                                  <Link
+                                    to="/gifting"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent"
+                                  >
+                                    <Gift className="w-4 h-4 mr-3" />
+                                    Gifting
+                                  </Link>
+                                </div>
+                              );
+                            }
+                            
                             return (
                               <Link
                                 key={item.path}
