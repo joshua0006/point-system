@@ -117,7 +117,13 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
       <Card>
         <CardContent className="p-4">
           <div className="flex justify-between">
-            <Button variant="outline" onClick={onBack}>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                console.log('Back button clicked');
+                onBack();
+              }}
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Methods
             </Button>
