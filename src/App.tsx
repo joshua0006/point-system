@@ -16,6 +16,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Marketplace from "./pages/Marketplace";
 import Services from "./pages/Services";
 import Campaigns from "./pages/Campaigns";
+import FacebookAdsCampaigns from "./pages/FacebookAdsCampaigns";
+import ColdCallingCampaigns from "./pages/ColdCallingCampaigns";
+import VASupportCampaigns from "./pages/VASupportCampaigns";
 import Gifting from "./pages/Gifting";
 import ServiceDetail from "./pages/ServiceDetail";
 import Messages from "./pages/Messages";
@@ -50,6 +53,9 @@ const App = () => (
               <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
               <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
               <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+              <Route path="/campaigns/facebook-ads" element={<ProtectedRoute><FacebookAdsCampaigns /></ProtectedRoute>} />
+              <Route path="/campaigns/cold-calling" element={<ProtectedRoute><ColdCallingCampaigns /></ProtectedRoute>} />
+              <Route path="/campaigns/va-support" element={<ProtectedRoute><VASupportCampaigns /></ProtectedRoute>} />
               <Route path="/gifting" element={<ProtectedRoute><Gifting /></ProtectedRoute>} />
               <Route path="/service/:serviceId" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
