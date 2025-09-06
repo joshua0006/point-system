@@ -10,6 +10,8 @@ import { DashboardModals } from "@/components/dashboard/DashboardModals";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { SuccessModal } from "@/components/SuccessModal";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
+import { SubscriptionDebugPanel } from "@/components/SubscriptionDebugPanel";
 import {
   TrendingUp,
   Calendar,
@@ -244,6 +246,16 @@ export default function UserDashboard() {
           <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground"}>
             Track your flexi-credits, bookings, and consultation history
           </p>
+        </div>
+
+        {/* Subscription Status */}
+        <div className={isMobile ? "mb-6" : "mb-8"}>
+          <SubscriptionStatusCard compact={isMobile} />
+        </div>
+
+        {/* Debug Panel - Remove this after testing */}
+        <div className={isMobile ? "mb-6" : "mb-8"}>
+          <SubscriptionDebugPanel />
         </div>
 
         {/* Stats Cards */}

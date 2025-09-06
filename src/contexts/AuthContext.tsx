@@ -115,14 +115,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               // Fetch subscription status
               try {
+                console.log('🔄 Fetching subscription status...');
                 const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
                 
                 if (subscriptionError) {
-                  console.error('Error fetching subscription:', subscriptionError);
+                  console.error('❌ Error fetching subscription:', subscriptionError);
                   setSubscription(null);
                 } else {
+                  console.log('✅ Subscription loaded successfully:', subscriptionData);
                   setSubscription(subscriptionData);
-                  console.log('Subscription loaded successfully:', subscriptionData);
                 }
               } catch (err) {
                 console.error('Subscription fetch error:', err);
@@ -317,14 +318,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     try {
+      console.log('🔄 Refreshing subscription status for user:', user.email);
       const { data: subscriptionData, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
-        console.error('Error refreshing subscription:', error);
+        console.error('❌ Error refreshing subscription:', error);
         setSubscription(null);
       } else {
+        console.log('✅ Subscription refreshed successfully:', subscriptionData);
         setSubscription(subscriptionData);
-        console.log('Subscription refreshed:', subscriptionData);
       }
     } catch (err) {
       console.error('Subscription refresh error:', err);
