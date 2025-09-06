@@ -70,15 +70,35 @@ const [editingPermission, setEditingPermission] = useState<UserPermission | null
     try {
       setLoading(true);
       
-      // Fetch permissions with user data
+      // Fetch permissions data first
       const { data: permissionsData, error: permissionsError } = await supabase
         .from('user_campaign_permissions')
-        .select(`
-          *,
-          profiles!inner(full_name, email)
-        `);
+        .select('*');
 
       if (permissionsError) throw permissionsError;
+
+      // Get unique user IDs from permissions
+      const userIds = [...new Set(permissionsData?.map(p => p.user_id) || [])];
+      
+      // Fetch user profiles for these IDs
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create a map of user profiles by user_id
+      const profilesMap = (profilesData || []).reduce((acc, profile) => {
+        acc[profile.user_id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Merge permissions with profiles
+      const permissionsWithProfiles = (permissionsData || []).map(permission => ({
+        ...permission,
+        profiles: profilesMap[permission.user_id] || null
+      }));
 
       // Fetch user groups
       const { data: groupsData, error: groupsError } = await supabase
@@ -102,7 +122,7 @@ const [editingPermission, setEditingPermission] = useState<UserPermission | null
 
       if (usersError) throw usersError;
 
-      setPermissions((permissionsData || []) as any);
+      setPermissions(permissionsWithProfiles as any);
       setUserGroups(groupsData || []);
       setAccessRules(rulesData || []);
       setUsers(usersData || []);
