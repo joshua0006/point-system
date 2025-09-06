@@ -47,6 +47,8 @@ export interface UserStats {
 export function useDashboardData() {
   const { user } = useAuth();
   
+  console.log('useDashboardData initialized with user:', user?.id);
+  
   // Modal states
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
   const [spentModalOpen, setSpentModalOpen] = useState(false);
@@ -80,13 +82,17 @@ export function useDashboardData() {
   const fetchUserData = async () => {
     if (!user) return;
 
+    console.log('fetchUserData called for user:', user.id);
+
     try {
       // Fetch user profile for points balance
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('flexi_credits_balance')
         .eq('user_id', user.id)
         .single();
+
+      console.log('Profile fetch result:', { profile, profileError });
 
       // Fetch points transactions
       const { data: transactions } = await supabase
@@ -207,6 +213,8 @@ export function useDashboardData() {
 
   const spentTransactions = allTransactions.filter(t => t.type === 'spent');
   const recentTransactions = allTransactions.slice(0, 3);
+
+  console.log('useDashboardData returning userStats:', userStats);
 
   return {
     // Modal states

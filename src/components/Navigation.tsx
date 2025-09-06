@@ -413,7 +413,7 @@ export function Navigation() {
           setTopUpModalOpen(true);
         }}
         userStats={{
-          totalPoints: 0,
+          totalPoints: profile?.flexi_credits_balance || 0,
           pointsSpent: 0,
           pointsEarned: 0,
           servicesBooked: 0,
