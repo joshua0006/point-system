@@ -412,6 +412,13 @@ export function Navigation() {
           setBalanceModalOpen(false);
           setTopUpModalOpen(true);
         }}
+        userStats={{
+          totalPoints: 0,
+          pointsSpent: 0,
+          pointsEarned: 0,
+          servicesBooked: 0,
+          completedSessions: 0
+        }}
       />
 
       {/* Top Up Modal */}

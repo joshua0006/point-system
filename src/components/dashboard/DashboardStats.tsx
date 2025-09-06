@@ -36,8 +36,12 @@ export function DashboardStats({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{userStats.totalPoints.toLocaleString()}</div>
-          <p className="text-xs opacity-90">points available</p>
+          <div className={`text-2xl font-bold ${userStats.totalPoints < 0 ? 'text-destructive' : ''}`}>
+            {userStats.totalPoints < 0 ? 'Owes ' : ''}{Math.abs(userStats.totalPoints).toLocaleString()}{userStats.totalPoints < 0 ? ' pts' : ''}
+          </div>
+          <p className="text-xs opacity-90">
+            {userStats.totalPoints < 0 ? 'points owed' : 'points available'}
+          </p>
         </CardContent>
       </Card>
 

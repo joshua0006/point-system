@@ -7,9 +7,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Plus, DollarSign, Star, Clock, Calendar, MapPin } from "lucide-react";
+import { TrendingUp, TrendingDown, Plus, DollarSign, Star, Clock, Calendar, MapPin, ArrowUp, ArrowDown, Wallet } from "lucide-react";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useReviews, useRatingStats } from "@/hooks/useReviews";
+import { UserStats } from "@/hooks/useDashboardData";
 import { useState } from "react";
 
 // Utility function to convert technical transaction names to simple English
@@ -77,10 +78,28 @@ interface Transaction {
 // Balance Details Modal
 interface BalanceDetailsModalProps extends BaseModalProps {
   onTopUp?: () => void;
+  onViewUpcomingCharges?: () => void;
+  userStats?: UserStats;
 }
 
-export function BalanceDetailsModal({ open, onOpenChange, onTopUp }: BalanceDetailsModalProps) {
+export function BalanceDetailsModal({ 
+  open, 
+  onOpenChange, 
+  onTopUp, 
+  onViewUpcomingCharges,
+  userStats 
+}: BalanceDetailsModalProps) {
   const { data: transactions, isLoading, error } = useTransactionHistory();
+
+  const defaultStats: UserStats = {
+    totalPoints: 0,
+    pointsSpent: 0,
+    pointsEarned: 0,
+    servicesBooked: 0,
+    completedSessions: 0
+  };
+
+  const stats = userStats || defaultStats;
 
   return (
     <DataModal
@@ -93,12 +112,71 @@ export function BalanceDetailsModal({ open, onOpenChange, onTopUp }: BalanceDeta
       data={transactions}
       emptyMessage="No transactions found. Your transaction history will appear here."
       footer={
-        onTopUp && (
-          <Button onClick={onTopUp} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Top Up Wallet
-          </Button>
-        )
+        <div className="space-y-2">
+          {/* Balance Summary */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className={`text-3xl font-bold mb-2 ${stats.totalPoints < 0 ? 'text-destructive' : 'text-primary'}`}>
+                  {stats.totalPoints < 0 ? 'Owes ' : ''}{Math.abs(stats.totalPoints).toLocaleString()}{stats.totalPoints < 0 ? ' pts' : ''}
+                </div>
+                <p className="text-muted-foreground">
+                  {stats.totalPoints < 0 ? 'Total Flexi-Credits Owed' : 'Total Flexi-Credits Available'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <span>Credits Earned</span>
+                  <ArrowUp className="w-4 h-4 text-success" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">
+                  +{stats.pointsEarned.toLocaleString()}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <span>Credits Spent</span>
+                  <ArrowDown className="w-4 h-4 text-destructive" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">
+                  -{stats.pointsSpent.toLocaleString()}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="pt-4 border-t space-y-2">
+            {onTopUp && (
+              <Button onClick={onTopUp} className="w-full">
+                <Plus className="w-4 h-4 mr-2" />
+                Top Up Credits
+              </Button>
+            )}
+            
+            {onViewUpcomingCharges && (
+              <Button 
+                variant="outline"
+                onClick={onViewUpcomingCharges}
+                className="w-full"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                View Upcoming Charges
+              </Button>
+            )}
+          </div>
+        </div>
       }
     >
       <ScrollArea className="h-96">

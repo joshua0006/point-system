@@ -1026,6 +1026,71 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          addon_details: Json | null
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string | null
+          id: string
+          order_number: string
+          package_details: Json | null
+          payment_method: string | null
+          sales_user_id: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          addon_details?: Json | null
+          created_at?: string
+          currency?: string
+          customer_email: string
+          customer_name?: string | null
+          id?: string
+          order_number?: string
+          package_details?: Json | null
+          payment_method?: string | null
+          sales_user_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          addon_details?: Json | null
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string | null
+          id?: string
+          order_number?: string
+          package_details?: Json | null
+          payment_method?: string | null
+          sales_user_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_sales_user_id_fkey"
+            columns: ["sales_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       package_categories: {
         Row: {
           created_at: string
@@ -1243,6 +1308,77 @@ export type Database = {
         }
         Relationships: []
       }
+      proposals: {
+        Row: {
+          accepted_at: string | null
+          addon_details: Json | null
+          created_at: string
+          created_by: string
+          currency: string
+          customer_email: string
+          customer_name: string | null
+          customer_user_id: string | null
+          description: string | null
+          id: string
+          package_details: Json
+          sent_at: string | null
+          status: string
+          title: string
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          addon_details?: Json | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          customer_email: string
+          customer_name?: string | null
+          customer_user_id?: string | null
+          description?: string | null
+          id?: string
+          package_details: Json
+          sent_at?: string | null
+          status?: string
+          title: string
+          total_amount: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          addon_details?: Json | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string | null
+          customer_user_id?: string | null
+          description?: string | null
+          id?: string
+          package_details?: Json
+          sent_at?: string | null
+          status?: string
+          title?: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           booking_id: string
@@ -1280,6 +1416,55 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          customer_user_id: string
+          id: string
+          is_active: boolean
+          sales_user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_user_id: string
+          id?: string
+          is_active?: boolean
+          sales_user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_user_id?: string
+          id?: string
+          is_active?: boolean
+          sales_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_assignments_customer_user_id_fkey"
+            columns: ["customer_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_assignments_sales_user_id_fkey"
+            columns: ["sales_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -1433,6 +1618,62 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_accounts: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
+          phone: string | null
+          position: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_campaign_permissions: {
         Row: {
@@ -1601,12 +1842,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      upcoming_flexi_charges: {
+        Row: {
+          amount: number | null
+          billing_status: string | null
+          campaign_id: string | null
+          campaign_name: string | null
+          consultant_name: string | null
+          days_until_charge: number | null
+          due_date: string | null
+          is_overdue: boolean | null
+          participant_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "lead_gen_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      generate_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_role: {
+        Args: { check_user_id: string }
+        Returns: string
+      }
       increment_flexi_credits_balance: {
         Args: { credits_to_add: number; user_id: string }
         Returns: undefined
+      }
+      my_upcoming_flexi_charges: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number
+          billing_status: string
+          campaign_id: string
+          campaign_name: string
+          consultant_name: string
+          days_until_charge: number
+          due_date: string
+          is_overdue: boolean
+          participant_id: string
+        }[]
       }
     }
     Enums: {
@@ -1627,7 +1912,7 @@ export type Database = {
         | "admin_credit"
         | "initial_credit"
         | "earning"
-      user_role: "user" | "consultant" | "admin"
+      user_role: "user" | "consultant" | "admin" | "sales"
       wishlist_category:
         | "things_to_do"
         | "places_to_go"
@@ -1779,7 +2064,7 @@ export const Constants = {
         "initial_credit",
         "earning",
       ],
-      user_role: ["user", "consultant", "admin"],
+      user_role: ["user", "consultant", "admin", "sales"],
       wishlist_category: [
         "things_to_do",
         "places_to_go",

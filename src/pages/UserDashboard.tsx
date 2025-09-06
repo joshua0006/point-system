@@ -38,6 +38,8 @@ export default function UserDashboard() {
     setRecentBookingsModalOpen,
     topUpModalOpen,
     setTopUpModalOpen,
+    upcomingChargesModalOpen,
+    setUpcomingChargesModalOpen,
     userStats,
     allTransactions,
     spentTransactions,
@@ -257,8 +259,12 @@ export default function UserDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{consultantProfile.pointsBalance.toLocaleString()}</div>
-              <p className="text-xs opacity-90">available flexi-credits</p>
+              <div className={`text-2xl font-bold ${consultantProfile.pointsBalance < 0 ? 'text-destructive' : ''}`}>
+                {consultantProfile.pointsBalance < 0 ? 'Owes ' : ''}{Math.abs(consultantProfile.pointsBalance).toLocaleString()}{consultantProfile.pointsBalance < 0 ? ' pts' : ''}
+              </div>
+              <p className="text-xs opacity-90">
+                {consultantProfile.pointsBalance < 0 ? 'flexi-credits owed' : 'available flexi-credits'}
+              </p>
             </CardContent>
           </Card>
 
@@ -393,6 +399,8 @@ export default function UserDashboard() {
         setRecentBookingsModalOpen={setRecentBookingsModalOpen}
         topUpModalOpen={topUpModalOpen}
         setTopUpModalOpen={setTopUpModalOpen}
+        upcomingChargesModalOpen={upcomingChargesModalOpen}
+        setUpcomingChargesModalOpen={setUpcomingChargesModalOpen}
         allTransactions={allTransactions}
         spentTransactions={spentTransactions}
         bookedServices={bookedServices}
