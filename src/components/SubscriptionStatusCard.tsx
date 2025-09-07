@@ -75,11 +75,24 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
       window.open(data.url, '_blank');
     } catch (error: any) {
       console.error('Error opening customer portal:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to open billing portal",
-        variant: "destructive",
-      });
+      
+      // Check if it's a Stripe Customer Portal configuration error
+      const isPortalConfigError = error.message?.includes('No configuration provided') || 
+                                 error.message?.includes('default configuration has not been created');
+      
+      if (isPortalConfigError) {
+        toast({
+          title: "Customer Portal Not Configured",
+          description: "The billing portal needs to be set up in your Stripe dashboard first. Please configure it in your Stripe settings.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to open billing portal",
+          variant: "destructive",
+        });
+      }
     } finally {
       setOpeningPortal(false);
     }
