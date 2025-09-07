@@ -7,6 +7,7 @@ import { useState } from "react";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { TopUpModal } from "@/components/TopUpModal";
 
 interface SubscriptionStatusCardProps {
   showActions?: boolean;
@@ -17,6 +18,8 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
   const { profile, subscription, refreshSubscription } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [changingPlan, setChangingPlan] = useState(false);
+  const [planModalOpen, setPlanModalOpen] = useState(false);
   const [realTimeBalance, setRealTimeBalance] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -62,6 +65,26 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
       });
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleChangePlan = async () => {
+    setChangingPlan(true);
+    try {
+      setPlanModalOpen(true);
+      toast({
+        title: "Plan Selection",
+        description: "Choose your new subscription plan below.",
+      });
+    } catch (error: any) {
+      console.error('Error opening plan modal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open plan selection",
+        variant: "destructive",
+      });
+    } finally {
+      setChangingPlan(false);
     }
   };
 
@@ -228,7 +251,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
         </div>
 
         {showActions && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button
               variant="outline"
               size="sm"
@@ -237,6 +260,15 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
               {refreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleChangePlan}
+              disabled={changingPlan}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              {changingPlan ? 'Opening...' : 'Change Plan'}
             </Button>
             {subscription?.subscribed && (
               <Button
@@ -252,6 +284,11 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
           </div>
         )}
       </CardContent>
+      
+      <TopUpModal 
+        isOpen={planModalOpen}
+        onClose={() => setPlanModalOpen(false)}
+      />
     </Card>
   );
 };

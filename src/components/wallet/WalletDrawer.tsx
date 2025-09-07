@@ -243,7 +243,19 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                   <UpcomingChargesTable charges={upcomingCharges || []} />
                 </TabsContent>
                 
-                <TabsContent value="subscription">
+                <TabsContent value="subscription" className="space-y-4">
+                  <div className="bg-muted/30 p-4 rounded-lg border">
+                    <h4 className="font-medium text-sm mb-2">💡 How to Change Your Plan</h4>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      • Click "Change Plan" to upgrade or downgrade your subscription
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      • Use "Manage Billing" to update payment methods and view invoices
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      All changes go through Stripe's secure checkout for your protection
+                    </p>
+                  </div>
                   <SubscriptionStatusCard showActions={true} />
                 </TabsContent>
               </div>
