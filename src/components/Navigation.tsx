@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMode } from "@/contexts/ModeContext";
 import { ModeToggle } from "@/components/ModeToggle";
-import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
-import { TopUpModal } from "@/components/TopUpModal";
+import { WalletDrawer } from "@/components/wallet/WalletDrawer";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -46,8 +45,6 @@ export function Navigation() {
   const { isSellerMode, toggleMode, canAccessSellerMode } = useMode();
   
   const userRole = profile?.role || "user";
-  const [balanceModalOpen, setBalanceModalOpen] = useState(false);
-  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -222,15 +219,14 @@ export function Navigation() {
               )}
               
               {profile ? (
-                <>
-                  <div 
-                    className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors"
-                    onClick={() => setBalanceModalOpen(true)}
-                  >
-                    <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-                    <span className="font-semibold text-foreground text-sm sm:text-base">{profile?.flexi_credits_balance?.toLocaleString() || 0}</span>
-                    <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">flexi-credits</span>
-                  </div>
+                  <>
+                  <WalletDrawer>
+                    <div className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors">
+                      <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
+                      <span className="font-semibold text-foreground text-sm sm:text-base">{profile?.flexi_credits_balance?.toLocaleString() || 0}</span>
+                      <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">flexi-credits</span>
+                    </div>
+                  </WalletDrawer>
                   
                   
                   {isMobile ? (
@@ -394,29 +390,6 @@ export function Navigation() {
       </nav>
 
       <BreadcrumbsBar />
-
-      {/* Balance Details Modal */}
-      <BalanceDetailsModal
-        open={balanceModalOpen}
-        onOpenChange={setBalanceModalOpen}
-        onTopUp={() => {
-          setBalanceModalOpen(false);
-          setTopUpModalOpen(true);
-        }}
-        userStats={{
-          totalPoints: profile?.flexi_credits_balance || 0,
-          pointsSpent: 0,
-          pointsEarned: 0,
-          servicesBooked: 0,
-          completedSessions: 0
-        }}
-      />
-
-      {/* Top Up Modal */}
-      <TopUpModal 
-        isOpen={topUpModalOpen}
-        onClose={() => setTopUpModalOpen(false)}
-      />
     </>
   );
 }

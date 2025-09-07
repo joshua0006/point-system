@@ -12,6 +12,7 @@ import { SuccessModal } from "@/components/SuccessModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { SubscriptionDebugPanel } from "@/components/SubscriptionDebugPanel";
+import { WalletDrawer } from "@/components/wallet/WalletDrawer";
 import {
   TrendingUp,
   Calendar,
@@ -260,25 +261,24 @@ export default function UserDashboard() {
 
         {/* Stats Cards */}
         <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"}>
-          <Card 
-            className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setBalanceModalOpen(true)}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Flexi-Credits Balance
-                <Wallet className="w-4 h-4" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${consultantProfile.pointsBalance < 0 ? 'text-destructive' : ''}`}>
-                {consultantProfile.pointsBalance < 0 ? 'Owes ' : ''}{Math.abs(consultantProfile.pointsBalance).toLocaleString()}{consultantProfile.pointsBalance < 0 ? ' pts' : ''}
-              </div>
-              <p className="text-xs opacity-90">
-                {consultantProfile.pointsBalance < 0 ? 'flexi-credits owed' : 'available flexi-credits'}
-              </p>
-            </CardContent>
-          </Card>
+          <WalletDrawer>
+            <Card className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-sm font-medium">
+                  Flexi-Credits Balance
+                  <Wallet className="w-4 h-4" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${consultantProfile.pointsBalance < 0 ? 'text-red-200' : ''}`}>
+                  {consultantProfile.pointsBalance < 0 ? 'Owes ' : ''}{Math.abs(consultantProfile.pointsBalance).toLocaleString()}{consultantProfile.pointsBalance < 0 ? ' pts' : ''}
+                </div>
+                <p className="text-xs opacity-90">
+                  {consultantProfile.pointsBalance < 0 ? 'flexi-credits owed' : 'available flexi-credits'}
+                </p>
+              </CardContent>
+            </Card>
+          </WalletDrawer>
 
           <Card 
             className="cursor-pointer hover:shadow-lg transition-shadow"
