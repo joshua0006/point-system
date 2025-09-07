@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw, CreditCard } from "lucide-react";
 import { useState } from "react";
+import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,12 +17,39 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
   const { profile, subscription, refreshSubscription } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [realTimeBalance, setRealTimeBalance] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // Fetch real-time balance from transactions
+  const fetchRealTimeBalance = async () => {
+    if (!profile?.user_id) return;
+    
+    try {
+      const { data: transactions, error } = await supabase
+        .from('flexi_credits_transactions')
+        .select('amount')
+        .eq('user_id', profile.user_id);
+      
+      if (error) throw error;
+      
+      const calculatedBalance = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      setRealTimeBalance(calculatedBalance);
+    } catch (error) {
+      console.error('Error fetching real-time balance:', error);
+      setRealTimeBalance(profile?.flexi_credits_balance || 0);
+    }
+  };
+
+  // Fetch real-time balance on component mount and when profile changes
+  React.useEffect(() => {
+    fetchRealTimeBalance();
+  }, [profile?.user_id]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       await refreshSubscription();
+      await fetchRealTimeBalance(); // Also refresh the balance
       toast({
         title: "Status Updated",
         description: "Subscription status has been refreshed",
@@ -67,6 +95,8 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
   };
 
   const getStatusInfo = () => {
+    const currentBalance = realTimeBalance !== null ? realTimeBalance : (profile?.flexi_credits_balance || 0);
+    
     if (!subscription) {
       return {
         status: "Loading",
@@ -85,14 +115,13 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
       };
     }
 
-    // Check if user has negative balance
-    const balance = profile?.flexi_credits_balance || 0;
-    if (balance < 0) {
+    // Check if user has negative balance using real-time balance
+    if (currentBalance < 0) {
       return {
         status: "Action Required",
         color: "bg-red-500",
         icon: AlertTriangle,
-        description: `Negative balance (${balance} credits). Subscribe or add credits to continue using services.`
+        description: `Negative balance (${currentBalance.toLocaleString()} credits). Subscribe or add credits to continue using services.`
       };
     }
 
@@ -106,7 +135,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
-  const balance = profile?.flexi_credits_balance || 0;
+  const balance = realTimeBalance !== null ? realTimeBalance : (profile?.flexi_credits_balance || 0);
 
   if (compact) {
     return (
