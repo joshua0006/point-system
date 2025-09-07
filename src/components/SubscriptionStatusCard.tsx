@@ -95,7 +95,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
   };
 
   const getStatusInfo = () => {
-    const currentBalance = realTimeBalance !== null ? realTimeBalance : (profile?.flexi_credits_balance || 0);
+    const currentBalance = profile?.flexi_credits_balance || 0;
     
     if (!subscription) {
       return {
@@ -135,7 +135,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
-  const balance = realTimeBalance !== null ? realTimeBalance : (profile?.flexi_credits_balance || 0);
+  const balance = profile?.flexi_credits_balance || 0;
 
   if (compact) {
     return (
