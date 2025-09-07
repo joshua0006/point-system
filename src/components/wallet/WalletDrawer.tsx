@@ -24,11 +24,9 @@ import {
   Clock
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { TopUpModal } from "@/components/TopUpModal";
-import { PaymentMethodsTab } from "@/components/settings/PaymentMethodsTab";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { TransactionsTable } from "./TransactionsTable";
 import { UpcomingChargesTable } from "./UpcomingChargesTable";
@@ -45,7 +43,6 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
   const { profile } = useAuth();
   const { data: transactions } = useTransactionHistory();
   const { data: upcomingCharges } = useUpcomingCharges();
-  const { paymentMethods } = usePaymentMethods();
   
   const currentBalance = profile?.flexi_credits_balance || 0;
   const isNegativeBalance = currentBalance < 0;
@@ -80,7 +77,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
           
           <div className="flex-1 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-5 mx-6 mt-4">
+              <TabsList className="grid w-full grid-cols-4 mx-6 mt-4">
                 <TabsTrigger value="overview" className="flex items-center gap-1">
                   <Wallet className="w-4 h-4" />
                   <span className="hidden sm:inline">Overview</span>
@@ -92,10 +89,6 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                 <TabsTrigger value="upcoming" className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   <span className="hidden sm:inline">Upcoming</span>
-                </TabsTrigger>
-                <TabsTrigger value="payment-methods" className="flex items-center gap-1">
-                  <CreditCard className="w-4 h-4" />
-                  <span className="hidden sm:inline">Cards</span>
                 </TabsTrigger>
                 <TabsTrigger value="subscription" className="flex items-center gap-1">
                   <Settings className="w-4 h-4" />
@@ -139,7 +132,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                   </Card>
 
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Card>
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
@@ -166,21 +159,6 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                             <p className="text-xs text-muted-foreground">Credits earned</p>
                           </div>
                           <TrendingUp className="w-8 h-8 text-success" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground">Payment Methods</p>
-                            <p className="text-2xl font-bold">
-                              {paymentMethods.length}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Cards on file</p>
-                          </div>
-                          <CreditCard className="w-8 h-8 text-muted-foreground" />
                         </div>
                       </CardContent>
                     </Card>
@@ -263,10 +241,6 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                 
                 <TabsContent value="upcoming">
                   <UpcomingChargesTable charges={upcomingCharges || []} />
-                </TabsContent>
-                
-                <TabsContent value="payment-methods">
-                  <PaymentMethodsTab />
                 </TabsContent>
                 
                 <TabsContent value="subscription">
