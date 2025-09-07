@@ -11,7 +11,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { SuccessModal } from "@/components/SuccessModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
-import { SubscriptionDebugPanel } from "@/components/SubscriptionDebugPanel";
+
 import { WalletDrawer } from "@/components/wallet/WalletDrawer";
 import {
   TrendingUp,
@@ -254,10 +254,6 @@ export default function UserDashboard() {
           <SubscriptionStatusCard compact={isMobile} />
         </div>
 
-        {/* Debug Panel - Remove this after testing */}
-        <div className={isMobile ? "mb-6" : "mb-8"}>
-          <SubscriptionDebugPanel />
-        </div>
 
         {/* Stats Cards */}
         <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"}>
