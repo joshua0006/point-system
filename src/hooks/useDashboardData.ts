@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,6 +59,9 @@ export function useDashboardData() {
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [upcomingChargesModalOpen, setUpcomingChargesModalOpen] = useState(false);
 
+  // Loading state
+  const [isLoading, setIsLoading] = useState(true);
+
   // Data states
   const [userStats, setUserStats] = useState<UserStats>({
     totalPoints: 0,
@@ -76,6 +78,7 @@ export function useDashboardData() {
   useEffect(() => {
     if (user) {
       fetchUserData();
+      setupRealtimeSubscriptions();
     }
   }, [user]);
 
@@ -83,44 +86,59 @@ export function useDashboardData() {
     if (!user) return;
 
     console.log('fetchUserData called for user:', user.id);
+    setIsLoading(true);
 
     try {
-      // Fetch user profile for points balance
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('flexi_credits_balance')
-        .eq('user_id', user.id)
-        .single();
+      // Optimize: Fetch all data in parallel to reduce loading time
+      const [
+        { data: profile, error: profileError },
+        { data: transactions },
+        { data: bookings },
+      ] = await Promise.all([
+        // Fetch user profile for points balance
+        supabase
+          .from('profiles')
+          .select('flexi_credits_balance')
+          .eq('user_id', user.id)
+          .single(),
+        
+        // Fetch only recent transactions (limit to 20 for performance)
+        supabase
+          .from('flexi_credits_transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+
+        // Fetch bookings with proper joins (limit to 50 for performance)
+        supabase
+          .from('bookings')
+          .select(`
+            *,
+            services!inner(title, duration_minutes),
+            consultants!bookings_consultant_id_fkey(user_id)
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50)
+      ]);
 
       console.log('Profile fetch result:', { profile, profileError });
 
-      // Fetch points transactions
-      const { data: transactions } = await supabase
-        .from('flexi_credits_transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      // Fetch bookings with proper joins
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          services!inner(title, duration_minutes),
-          consultants!bookings_consultant_id_fkey(user_id)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      // Get consultant profiles separately
+      // Get consultant profiles separately (only if needed)
+      let consultantProfiles: any[] = [];
       const consultantUserIds = bookings?.map(b => {
         const consultant = Array.isArray(b.consultants) ? b.consultants[0] : b.consultants;
         return consultant?.user_id;
       }).filter(Boolean) || [];
-      const { data: consultantProfiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .in('user_id', consultantUserIds);
+
+      if (consultantUserIds.length > 0) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', consultantUserIds);
+        consultantProfiles = data || [];
+      }
 
       // Process transactions - classify by amount sign for accuracy
       const processedTransactions: Transaction[] = (transactions || []).map(t => {
@@ -208,7 +226,48 @@ export function useDashboardData() {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       // Keep default empty state on error
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const setupRealtimeSubscriptions = () => {
+    if (!user?.id) return;
+
+    // Set up real-time updates for points transactions and bookings
+    const channel = supabase
+      .channel('buyer-dashboard-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'flexi_credits_transactions',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Transaction updated:', payload);
+          fetchUserData(); // Refresh data
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Booking updated:', payload);
+          fetchUserData(); // Refresh data
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const spentTransactions = allTransactions.filter(t => t.type === 'spent');
@@ -244,6 +303,9 @@ export function useDashboardData() {
     bookedServices,
     upcomingBookings,
     recentTransactions,
+    
+    // Loading state
+    isLoading,
     
     // Refresh function
     refreshData: fetchUserData,
