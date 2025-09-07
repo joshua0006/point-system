@@ -6,7 +6,7 @@ import { useMode } from "@/contexts/ModeContext";
 import { ModeToggle } from "@/components/ModeToggle";
 import { BalanceDetailsModal } from "@/components/dashboard/BalanceDetailsModal";
 import { TopUpModal } from "@/components/TopUpModal";
-import { useUnreadMessageCount } from "@/hooks/useMessages";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { 
@@ -14,7 +14,6 @@ import {
   Users, 
   Wallet, 
   Search,
-  MessageCircle,
   BarChart3,
   Menu,
   Settings,
@@ -45,7 +44,7 @@ export function Navigation() {
   const location = useLocation();
   const { profile, signOut } = useAuth();
   const { isSellerMode, toggleMode, canAccessSellerMode } = useMode();
-  const { data: unreadCount = 0 } = useUnreadMessageCount();
+  
   const userRole = profile?.role || "user";
   const [balanceModalOpen, setBalanceModalOpen] = useState(false);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
@@ -68,7 +67,7 @@ export function Navigation() {
     if (userRole === "consultant") {
       return [
         { path: "/services", label: "Services", icon: Search, roles: ["consultant"] },
-        { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["consultant"], hasNotification: unreadCount > 0 },
+        
         { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] },
       ];
     }
@@ -76,14 +75,14 @@ export function Navigation() {
     // For other users, use the existing mode-based logic
     const buyerNavItems = [
       { path: "/services", label: "Services", icon: Search, roles: ["user", "admin"] },
-      { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["user", "admin"], hasNotification: unreadCount > 0 },
+      
       { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
       { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
     ];
 
     const sellerNavItems = [
       { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["admin"] },
-      { path: "/messages", label: "Messages", icon: MessageCircle, roles: ["admin"], hasNotification: unreadCount > 0 },
+      
       { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
     ];
 
@@ -233,20 +232,12 @@ export function Navigation() {
                     <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">flexi-credits</span>
                   </div>
                   
-                  {unreadCount > 0 && !isMobile && (
-                    <div className="bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 font-medium">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </div>
-                  )}
                   
                   {isMobile ? (
                     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                       <SheetTrigger asChild>
                         <Button variant="outline" size="sm" className="relative">
                           <Menu className="w-4 h-4" />
-                          {unreadCount > 0 && (
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-                          )}
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="right" className="w-80">

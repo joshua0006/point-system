@@ -25,7 +25,7 @@ const ColdCallingCampaigns = lazy(() => import("./pages/ColdCallingCampaigns"));
 const VASupportCampaigns = lazy(() => import("./pages/VASupportCampaigns"));
 const Gifting = lazy(() => import("./pages/Gifting"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
-const Messages = lazy(() => import("./pages/Messages"));
+
 const ConsultantProfile = lazy(() => import("./pages/ConsultantProfile"));
 const BuyerProfile = lazy(() => import("./pages/BuyerProfile"));
 const SellerProfile = lazy(() => import("./pages/SellerProfile"));
@@ -130,11 +130,6 @@ const App = () => (
               <Route path="/service/:serviceId" element={
                 <Suspense fallback={<PageSkeleton />}>
                   <ProtectedRoute><ServiceDetail /></ProtectedRoute>
-                </Suspense>
-              } />
-              <Route path="/messages" element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <ProtectedRoute><Messages /></ProtectedRoute>
                 </Suspense>
               } />
               <Route path="/consultant/:userId" element={
