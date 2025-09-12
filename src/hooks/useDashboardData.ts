@@ -105,7 +105,15 @@ export function useDashboardData() {
         // Fetch only recent transactions (limit to 20 for performance)
         supabase
           .from('flexi_credits_transactions')
-          .select('*')
+          .select(`
+            *,
+            bookings(
+              consultant_id,
+              consultants!bookings_consultant_id_fkey(
+                user_id
+              )
+            )
+          `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(20),
@@ -127,16 +135,31 @@ export function useDashboardData() {
 
       // Get consultant profiles separately (only if needed)
       let consultantProfiles: any[] = [];
-      const consultantUserIds = bookings?.map(b => {
+      
+      // Collect consultant user IDs from bookings
+      const bookingConsultantIds = bookings?.map(b => {
         const consultant = Array.isArray(b.consultants) ? b.consultants[0] : b.consultants;
         return consultant?.user_id;
       }).filter(Boolean) || [];
 
-      if (consultantUserIds.length > 0) {
+      // Collect consultant user IDs from transactions with bookings
+      const transactionConsultantIds = (transactions || [])
+        .map(t => {
+          if (t.bookings?.consultants) {
+            const consultant = Array.isArray(t.bookings.consultants) ? t.bookings.consultants[0] : t.bookings.consultants;
+            return consultant?.user_id;
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      const allConsultantIds = [...new Set([...bookingConsultantIds, ...transactionConsultantIds])];
+
+      if (allConsultantIds.length > 0) {
         const { data } = await supabase
           .from('profiles')
           .select('user_id, full_name')
-          .in('user_id', consultantUserIds);
+          .in('user_id', allConsultantIds);
         consultantProfiles = data || [];
       }
 
@@ -145,10 +168,19 @@ export function useDashboardData() {
         // Positive amounts are earned, negative amounts are spent
         const transactionType = t.amount > 0 ? 'earned' as const : 'spent' as const;
         
+        // Get consultant name if transaction is linked to a booking
+        let consultantName: string | undefined;
+        if (t.bookings?.consultants) {
+          const consultant = Array.isArray(t.bookings.consultants) ? t.bookings.consultants[0] : t.bookings.consultants;
+          const consultantProfile = consultantProfiles?.find(p => p.user_id === consultant?.user_id);
+          consultantName = consultantProfile?.full_name;
+        }
+        
         return {
           id: t.id,
           type: transactionType,
           service: t.description || 'Transaction',
+          consultant: consultantName,
           points: Math.abs(t.amount),
           date: new Date(t.created_at).toISOString().split('T')[0],
           status: 'completed'
