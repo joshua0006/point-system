@@ -405,7 +405,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           price: pendingUpgrade.price
         } : { name: "", credits: 0, price: 0 }}
         upgradeAmount={prorationDetails?.prorationAmount || (pendingUpgrade && subscription?.subscribed 
-          ? Math.max(0, pendingUpgrade.price - (subscription.credits_per_month || 0))
+          ? pendingUpgrade.price - (subscription.credits_per_month || 0)
           : pendingUpgrade?.price || 0)
         }
         prorationDetails={prorationDetails}
