@@ -344,7 +344,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
                       ) : isCurrentPlan(pkg.points) ? (
                         "Current Plan"
                       ) : subscription?.subscribed ? (
-                        pkg.price > (subscription.credits_per_month || 0) 
+                        pkg.points > (subscription.credits_per_month || 0) 
                           ? `Upgrade to ${pkg.title}` 
                           : `Downgrade to ${pkg.title}`
                       ) : (
