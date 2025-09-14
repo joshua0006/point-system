@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useUserSubscription } from '@/hooks/useUserSubscription';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -297,6 +298,7 @@ function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModalProps) 
 
 export function UserManagement() {
   const { profile } = useAuth();
+  const { fetchUserSubscription, getSubscriptionBadge, isLoading: isSubscriptionLoading, getSubscription } = useUserSubscription();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -591,21 +593,31 @@ export function UserManagement() {
                          {(user.flexi_credits_balance || 0).toLocaleString()} flexi credits
                        </div>
                      </TableCell>
-                     <TableCell>
-                       <div className="flex items-center gap-2">
-                         <Badge variant="secondary">No Active Plan</Badge>
-                         <Button
-                           onClick={() => {
-                             setSelectedUser(user);
-                             setSubscriptionModalOpen(true);
-                           }}
-                           size="sm"
-                           variant="outline"
-                         >
-                           View Sub
-                         </Button>
-                       </div>
-                     </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const subscription = getSubscription(user.user_id);
+                            const loading = isSubscriptionLoading(user.user_id);
+                            const badge = getSubscriptionBadge(
+                              subscription || { isActive: false, planName: 'No Plan', subscriptionTier: 'none', creditsPerMonth: 0 },
+                              loading
+                            );
+                            return <Badge variant={badge.variant}>{badge.text}</Badge>;
+                          })()}
+                          <Button
+                            onClick={async () => {
+                              setSelectedUser(user);
+                              setSubscriptionModalOpen(true);
+                              // Fetch subscription data when modal opens
+                              await fetchUserSubscription(user.user_id, user.email);
+                            }}
+                            size="sm"
+                            variant="outline"
+                          >
+                            View Sub
+                          </Button>
+                        </div>
+                      </TableCell>
                     <TableCell>
                       <div className="text-sm text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString()}
@@ -705,21 +717,70 @@ export function UserManagement() {
                   Subscription information for {selectedUser.full_name || selectedUser.email}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Status</label>
-                    <div className="text-lg font-semibold">Inactive</div>
-                  </div>
-                    <div>
-                     <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
-                     <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} flexi credits</div>
+               <div className="space-y-4 py-4">
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="text-sm font-medium text-muted-foreground">Status</label>
+                     {(() => {
+                       const subscription = getSubscription(selectedUser.user_id);
+                       const loading = isSubscriptionLoading(selectedUser.user_id);
+                       
+                       if (loading) {
+                         return <div className="text-lg font-semibold">Loading...</div>;
+                       }
+                       
+                       if (!subscription || !subscription.isActive) {
+                         return <div className="text-lg font-semibold text-muted-foreground">Inactive</div>;
+                       }
+                       
+                       return <div className="text-lg font-semibold text-green-600">Active</div>;
+                     })()}
                    </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  No active subscription plan found for this user.
-                </div>
-              </div>
+                     <div>
+                      <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
+                      <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} flexi credits</div>
+                    </div>
+                 </div>
+                 {(() => {
+                   const subscription = getSubscription(selectedUser.user_id);
+                   const loading = isSubscriptionLoading(selectedUser.user_id);
+                   
+                   if (loading) {
+                     return <div className="text-sm text-muted-foreground">Loading subscription details...</div>;
+                   }
+                   
+                   if (!subscription || !subscription.isActive) {
+                     return <div className="text-sm text-muted-foreground">No active subscription plan found for this user.</div>;
+                   }
+                   
+                   return (
+                     <div className="space-y-3">
+                       <div className="grid grid-cols-2 gap-4">
+                         <div>
+                           <label className="text-sm font-medium text-muted-foreground">Plan Name</label>
+                           <div className="text-sm font-medium">{subscription.planName}</div>
+                         </div>
+                         <div>
+                           <label className="text-sm font-medium text-muted-foreground">Monthly Credits</label>
+                           <div className="text-sm font-medium">{subscription.creditsPerMonth.toLocaleString()}</div>
+                         </div>
+                       </div>
+                       {subscription.endDate && (
+                         <div>
+                           <label className="text-sm font-medium text-muted-foreground">Next Renewal</label>
+                           <div className="text-sm font-medium">{new Date(subscription.endDate).toLocaleDateString()}</div>
+                         </div>
+                       )}
+                       {subscription.subscriptionId && (
+                         <div>
+                           <label className="text-sm font-medium text-muted-foreground">Subscription ID</label>
+                           <div className="text-xs font-mono text-muted-foreground">{subscription.subscriptionId}</div>
+                         </div>
+                       )}
+                     </div>
+                   );
+                 })()}
+               </div>
             </DialogContent>
           </Dialog>
 
