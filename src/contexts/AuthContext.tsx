@@ -67,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Ensure loading stays true until profile/subscription fetched
+          setLoading(true);
           // Defer profile and subscription fetch to avoid blocking auth state updates
           requestIdleCallback(async () => {
             if (!mounted) return;
@@ -123,6 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .subscribe();
             } catch (err) {
               console.error('Profile/subscription fetch error:', err);
+            } finally {
+              if (mounted) setLoading(false);
             }
           });
         } else {
@@ -135,7 +139,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
         
-        setLoading(false);
+        if (!session?.user) {
+          setLoading(false);
+        }
       }
     );
 
