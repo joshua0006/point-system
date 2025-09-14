@@ -39,6 +39,7 @@ interface TopUpModalProps {
 
 function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
   const [flexiCredits, setFlexiCredits] = useState("");
+  const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -57,13 +58,23 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
       return;
     }
 
+    if (!reason.trim()) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a reason for adding flexi credits.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('admin-user-management', {
         body: {
           action: 'topup_points',
           userId: user.user_id,
-          points: creditsAmount
+          points: creditsAmount,
+          reason: reason.trim()
         }
       });
 
@@ -75,6 +86,7 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
       });
 
       setFlexiCredits("");
+      setReason("");
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -114,9 +126,27 @@ function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalProps) {
               step="0.1"
             />
           </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason for Adding Credits *</label>
+            <Textarea
+              placeholder="Explain why flexi credits are being added..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-green-800 text-sm">
+              <Plus className="w-4 h-4" />
+              <span className="font-medium">Adding Credits</span>
+            </div>
+            <p className="text-green-700 text-sm mt-1">
+              This will permanently add flexi credits to the user's account and send email notifications.
+            </p>
+          </div>
           <Button 
             onClick={handleTopUp} 
-            disabled={loading || !flexiCredits || flexiCredits.trim() === '' || parseFloat(flexiCredits) <= 0}
+            disabled={loading || !flexiCredits || flexiCredits.trim() === '' || parseFloat(flexiCredits) <= 0 || !reason.trim()}
             className="w-full"
           >
             {loading ? "Adding..." : `Add ${flexiCredits || 0} Flexi Credits`}

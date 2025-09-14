@@ -114,24 +114,25 @@ serve(async (req) => {
           user_id: userId,
           amount: points,
           type: 'admin_credit',
-          description: `Admin credit - ${points} flexi credits added by admin`
+          description: `Admin credit - ${points} flexi credits added by admin: ${reason || 'No reason provided'}`
         });
 
       if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
 
-      // Send email notifications
-      try {
-        await supabaseClient.functions.invoke('send-admin-notification', {
-          body: {
-            type: 'points_added',
-            userEmail: currentProfile.email,
-            userName: currentProfile.full_name || currentProfile.email,
-            adminEmail: adminProfile.email,
-            adminName: adminProfile.full_name || adminProfile.email,
-            amount: points,
-            userBalance: newBalance
-          }
-        });
+        // Send email notifications
+        try {
+          await supabaseClient.functions.invoke('send-admin-notification', {
+            body: {
+              type: 'points_added',
+              userEmail: currentProfile.email,
+              userName: currentProfile.full_name || currentProfile.email,
+              adminEmail: adminProfile.email,
+              adminName: adminProfile.full_name || adminProfile.email,
+              amount: points,
+              reason: reason || 'No reason provided',
+              userBalance: newBalance
+            }
+          });
         logStep("Email notifications sent successfully");
       } catch (emailError: any) {
         logStep("Email notification failed", { error: emailError.message });
