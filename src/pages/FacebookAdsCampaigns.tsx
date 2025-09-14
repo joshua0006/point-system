@@ -278,7 +278,7 @@ const FacebookAdsCampaigns = () => {
     if (!pendingCampaign || !user?.id) return;
 
     try {
-      const { method, budget, consultantName, targetAudience } = pendingCampaign;
+      const { method, budget, targetAudience } = pendingCampaign;
       const now = new Date();
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       const day = now.getDate();
@@ -375,7 +375,7 @@ const FacebookAdsCampaigns = () => {
           campaign_id: campaignData.id,
           user_id: user.id,
           budget_contribution: budget,
-          consultant_name: consultantName || profile?.full_name || 'Unknown',
+          consultant_name: profile?.full_name || 'Unknown',
           next_billing_date: nextBillingDate.toISOString().split('T')[0],
           last_billed_date: new Date().toISOString().split('T')[0],
           billing_status: 'active',
@@ -487,7 +487,7 @@ const FacebookAdsCampaigns = () => {
                   <strong>Budget:</strong> ${pendingCampaign?.budget}
                 </div>
                 <div>
-                  <strong>Consultant:</strong> {pendingCampaign?.consultantName}
+                  <strong>Consultant:</strong> {profile?.full_name || 'Unknown'}
                 </div>
                 <div>
                   <strong>Target Audience:</strong> {pendingCampaign?.targetAudience?.name}

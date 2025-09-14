@@ -26,7 +26,7 @@ const ColdCallingCampaigns = () => {
     if (!user?.id) return;
 
     try {
-      const { method, hours, consultantName, budget } = campaignData;
+      const { method, hours, budget } = campaignData;
       const amountToDeduct = budget;
 
       console.log('Starting cold calling campaign creation...');
@@ -114,7 +114,7 @@ const ColdCallingCampaigns = () => {
           campaign_id: campaignData_db.id,
           user_id: user.id,
           budget_contribution: budget,
-          consultant_name: consultantName || profile?.full_name || 'Unknown',
+          consultant_name: profile?.full_name || 'Unknown',
           next_billing_date: nextBillingDate.toISOString().split('T')[0],
           last_billed_date: new Date().toISOString().split('T')[0],
           billing_status: 'active',

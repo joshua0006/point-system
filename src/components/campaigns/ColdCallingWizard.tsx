@@ -14,21 +14,19 @@ interface ColdCallingWizardProps {
 
 export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCallingWizardProps) => {
   const [selectedHours, setSelectedHours] = useState<number | null>(null);
-  const [consultantName, setConsultantName] = useState('');
 
   const handleLaunch = () => {
-    if (selectedHours && consultantName.trim()) {
+    if (selectedHours) {
       onComplete({
         method: 'cold-calling',
         hours: selectedHours,
-        consultantName,
         budget: selectedHours * 6
       });
     }
   };
 
   const canProceed = () => {
-    if (!selectedHours || consultantName.trim() === '') return false;
+    if (!selectedHours) return false;
     const balanceAfterDeduction = userBalance - (selectedHours * 6);
     return balanceAfterDeduction >= -1000;
   };
@@ -52,17 +50,6 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
           <CardTitle>Campaign Settings</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="consultant-name">Your Name</Label>
-            <Input
-              id="consultant-name"
-              placeholder="Enter your full name"
-              value={consultantName}
-              onChange={(e) => setConsultantName(e.target.value)}
-              required
-            />
-          </div>
-
           <div>
             <Label className="text-base font-medium mb-4 block">Select Monthly Hours</Label>
             <div className="grid grid-cols-2 gap-4">

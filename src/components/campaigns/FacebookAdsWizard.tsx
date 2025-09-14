@@ -29,18 +29,9 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
     method: 'facebook-ads',
     targetAudience: null as any,
     campaignType: null as string | null,
-    budget: 0,
-    consultantName: ''
+    budget: 0
   });
 
-  useEffect(() => {
-    if (profile?.full_name && !campaignData.consultantName) {
-      setCampaignData(prev => ({
-        ...prev,
-        consultantName: profile.full_name
-      }));
-    }
-  }, [profile?.full_name, campaignData.consultantName]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -76,12 +67,6 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
     }));
   };
 
-  const handleConsultantNameChange = (name: string) => {
-    setCampaignData(prev => ({
-      ...prev,
-      consultantName: name
-    }));
-  };
 
   const handleLaunch = () => {
     onComplete(campaignData);
@@ -91,7 +76,7 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
     switch (currentStep) {
       case 1: return !!campaignData.targetAudience;
       case 2: return !!campaignData.campaignType;
-      case 3: return campaignData.budget > 0 && campaignData.consultantName.trim() !== '' && userBalance >= campaignData.budget;
+      case 3: return campaignData.budget > 0 && userBalance >= campaignData.budget;
       default: return false;
     }
   };
@@ -222,17 +207,6 @@ export const FacebookAdsWizard = ({ onComplete, onBack, userBalance, campaignTar
                 <CardTitle>Campaign Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="consultant-name">Your Name</Label>
-                  <Input
-                    id="consultant-name"
-                    placeholder="Enter your full name"
-                    value={campaignData.consultantName}
-                    onChange={(e) => handleConsultantNameChange(e.target.value)}
-                    required
-                  />
-                </div>
-                
                 <div>
                   <Label htmlFor="budget">Monthly Budget (Points)</Label>
                   <Input
