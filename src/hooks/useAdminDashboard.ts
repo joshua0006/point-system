@@ -174,7 +174,7 @@ export function useAdminDashboard() {
           `)
           .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(30),
+          .limit(50),
         
         // Recent monthly billing transactions (last 14 days)
         supabase
