@@ -170,7 +170,7 @@ serve(async (req) => {
 
     // Send email to user
     const userEmailResponse = await resend.emails.send({
-      from: "Admin Team <onboarding@resend.dev>",
+      from: "Admin Team <admin@mail.themoneybees.co>",
       to: [userEmail],
       subject: `Account Update: ${amount} flexi credits ${isAddition ? 'added to' : 'deducted from'} your account`,
       html: userEmailHtml,
@@ -182,7 +182,7 @@ serve(async (req) => {
 
     // Send notification to master admin
     const adminEmailResponse = await resend.emails.send({
-      from: "System Notifications <onboarding@resend.dev>",
+      from: "System Notifications <notifications@mail.themoneybees.co>",
       to: [adminEmail],
       subject: `Admin Action: ${amount} flexi credits ${isAddition ? 'added to' : 'deducted from'} ${userName}'s account`,
       html: adminEmailHtml,
