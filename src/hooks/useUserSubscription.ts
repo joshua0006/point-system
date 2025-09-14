@@ -38,11 +38,11 @@ export function useUserSubscription() {
       if (error) throw error;
 
       const subscription: SubscriptionData = {
-        isActive: data?.isActive || false,
-        planName: data?.planName || 'No Plan',
-        subscriptionTier: data?.subscriptionTier || 'none',
-        creditsPerMonth: data?.creditsPerMonth || 0,
-        endDate: data?.endDate,
+        isActive: Boolean(data?.subscribed),
+        planName: data?.plan_name || 'No Plan',
+        subscriptionTier: data?.subscription_tier || 'none',
+        creditsPerMonth: data?.credits_per_month ?? 0,
+        endDate: data?.subscription_end || data?.endDate,
         subscriptionId: data?.subscriptionId
       };
 
