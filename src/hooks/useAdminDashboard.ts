@@ -15,7 +15,8 @@ export interface RecentActivity {
   type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "wallet_topup" | "campaign_purchase" | "service_purchase" | "points_deducted" | "monthly_billing" | "campaign_status_change" | "admin_credit" | "admin_debit";
   description: string;
   points: number;
-  timestamp: string;
+  timestamp: string; // formatted for display
+  rawTimestamp: string; // raw ISO string for sorting
 }
 
 export function useAdminDashboard() {
@@ -34,6 +35,46 @@ export function useAdminDashboard() {
   useEffect(() => {
     if (user) {
       fetchAdminData();
+      
+      // Set up real-time listeners for activity updates
+      const flexi_credits_channel = supabase
+        .channel('admin-flexi-credits')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'flexi_credits_transactions'
+        }, () => {
+          fetchAdminData();
+        })
+        .subscribe();
+
+      const bookings_channel = supabase
+        .channel('admin-bookings')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bookings'
+        }, () => {
+          fetchAdminData();
+        })
+        .subscribe();
+
+      const campaigns_channel = supabase
+        .channel('admin-campaigns')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'lead_gen_campaigns'
+        }, () => {
+          fetchAdminData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(flexi_credits_channel);
+        supabase.removeChannel(bookings_channel);
+        supabase.removeChannel(campaigns_channel);
+      };
     }
   }, [user]);
 
@@ -160,7 +201,7 @@ export function useAdminDashboard() {
           .order('joined_at', { ascending: false })
           .limit(20),
         
-        // Recent points transactions (all types, last 14 days)
+        // Recent points transactions (all types, last 30 days for better coverage)
         supabase
           .from('flexi_credits_transactions')
           .select(`
@@ -172,9 +213,9 @@ export function useAdminDashboard() {
             user_id,
             booking_id
           `)
-          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(50),
+          .limit(100),
         
         // Recent monthly billing transactions (last 14 days)
         supabase
@@ -292,6 +333,7 @@ export function useAdminDashboard() {
           description: `${userName} booked ${booking.services?.title || 'service'}`,
           points: booking.points_spent,
           timestamp: formatTimestamp(booking.created_at),
+          rawTimestamp: booking.created_at,
         });
       });
 
@@ -304,6 +346,7 @@ export function useAdminDashboard() {
           description: `${consultantName} added ${service.title}`,
           points: 0,
           timestamp: formatTimestamp(service.created_at),
+          rawTimestamp: service.created_at,
         });
       });
 
@@ -316,6 +359,7 @@ export function useAdminDashboard() {
           description: `${booking.services?.title || 'Service'} completed by ${consultantName}`,
           points: booking.points_spent,
           timestamp: formatTimestamp(booking.updated_at),
+          rawTimestamp: booking.updated_at,
         });
       });
 
@@ -328,6 +372,7 @@ export function useAdminDashboard() {
           description: `${creatorName} created campaign "${campaign.name}" with $${campaign.total_budget} budget`,
           points: campaign.total_budget,
           timestamp: formatTimestamp(campaign.created_at),
+          rawTimestamp: campaign.created_at,
         });
       });
 
@@ -340,6 +385,7 @@ export function useAdminDashboard() {
           description: `🎯 ${userName} signed up for Facebook ads campaign with $${participation.budget_contribution} contribution`,
           points: participation.budget_contribution,
           timestamp: formatTimestamp(participation.joined_at),
+          rawTimestamp: participation.joined_at,
         });
       });
 
@@ -401,6 +447,7 @@ export function useAdminDashboard() {
           description,
           points: Math.abs(transaction.amount),
           timestamp: formatTimestamp(transaction.created_at),
+          rawTimestamp: transaction.created_at,
         });
       });
 
@@ -413,13 +460,14 @@ export function useAdminDashboard() {
           description: `Monthly billing: $${billing.amount} charged to ${userName} for campaign`,
           points: billing.amount,
           timestamp: formatTimestamp(billing.created_at),
+          rawTimestamp: billing.created_at,
         });
       });
 
-      // Sort by timestamp and take top 10
+      // Sort by raw timestamp and take top 20
       const sortedActivities = activities
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, 10);
+        .sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime())
+        .slice(0, 20);
 
       setRecentActivity(sortedActivities);
 
