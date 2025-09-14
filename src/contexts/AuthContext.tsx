@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               // Parallel fetch for better performance
               const [profileResult, subscriptionResult] = await Promise.allSettled([
-                supabase.from('profiles').select('*').eq('user_id', session.user.id).single(),
+                supabase.from('profiles').select('*').eq('user_id', session.user.id.toString()).single(),
                 supabase.functions.invoke('check-subscription')
               ]);
               
@@ -111,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     event: 'UPDATE',
                     schema: 'public',
                     table: 'profiles',
-                    filter: `user_id=eq.${session.user.id}`
+                     filter: `user_id=eq.${session.user.id.toString()}`
                   },
                   (payload) => {
                     if (mounted) {
@@ -161,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('user_id', session.user.id.toString())
               .single();
             
             if (mounted) {
@@ -187,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   event: 'UPDATE',
                   schema: 'public',
                   table: 'profiles',
-                  filter: `user_id=eq.${session.user.id}`
+                  filter: `user_id=eq.${session.user.id.toString()}`
                 },
                 (payload) => {
                   if (mounted) {
@@ -291,7 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id.toString())
         .single();
       
       if (error) {
