@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                    ) : (
                      <div className="text-2xl font-bold text-foreground">{(stats?.totalUsers || 0).toLocaleString()}</div>
                    )}
-                  <p className="text-xs text-muted-foreground">approved users</p>
+                  <p className="text-xs text-muted-foreground">total registered users</p>
                 </CardContent>
               </Card>
 

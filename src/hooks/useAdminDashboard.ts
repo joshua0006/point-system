@@ -98,11 +98,10 @@ export function useAdminDashboard() {
         recentPointsTransactionsResponse,
         recentMonthlyBillingResponse,
       ] = await Promise.all([
-        // Total approved users
+        // Total users (all registered users)
         supabase
           .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('approval_status', 'approved'),
+          .select('id', { count: 'exact', head: true }),
         
         // Active consultants
         supabase
