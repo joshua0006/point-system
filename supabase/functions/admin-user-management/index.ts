@@ -243,6 +243,43 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'delete_user') {
+      if (!userId || !reason) {
+        throw new Error("Valid userId and reason required");
+      }
+
+      // Check if user exists and is not an admin
+      const { data: userProfile, error: fetchError } = await supabaseClient
+        .from('profiles')
+        .select('role, email, full_name')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) throw new Error(`Error fetching user profile: ${fetchError.message}`);
+      
+      if (userProfile.role === 'admin') {
+        throw new Error("Cannot delete admin users");
+      }
+
+      // Delete the user profile (this will cascade delete related records)
+      const { error: deleteError } = await supabaseClient
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteError) throw new Error(`Error deleting user: ${deleteError.message}`);
+
+      logStep("User deleted", { userId, userEmail: userProfile.email, reason, deletedBy: user.id });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `User ${userProfile.full_name || userProfile.email} deleted successfully` 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     throw new Error("Invalid action");
 
   } catch (error) {

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { BillingProfileModal } from "@/components/admin/BillingProfileModal";
-import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle, Receipt } from "lucide-react";
+import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle, Receipt, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserProfile {
@@ -277,6 +277,9 @@ export function UserManagement() {
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
   const [revokeReason, setRevokeReason] = useState("");
   const [revokeLoading, setRevokeLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
@@ -344,6 +347,11 @@ export function UserManagement() {
     setRevokeDialogOpen(true);
   };
 
+  const handleDeleteClick = (user: UserProfile) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
   const handleRevokeAccess = async () => {
     if (!selectedUser || !revokeReason.trim()) {
       toast({
@@ -384,6 +392,49 @@ export function UserManagement() {
       });
     } finally {
       setRevokeLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser || !deleteReason.trim()) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a reason for deleting the user.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('admin-user-management', {
+        body: {
+          action: 'delete_user',
+          userId: selectedUser.user_id,
+          reason: deleteReason.trim()
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "User Deleted",
+        description: `Successfully deleted user ${selectedUser.full_name || selectedUser.email}.`,
+      });
+
+      setDeleteDialogOpen(false);
+      setDeleteReason("");
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -558,14 +609,24 @@ export function UserManagement() {
                            Revoke
                          </Button>
                         )}
-                        <Button
-                          onClick={() => handleBillingClick(user)}
-                          size="sm"
-                          variant="outline"
-                        >
-                          <Receipt className="w-4 h-4 mr-1" />
-                          Billing
-                        </Button>
+                         <Button
+                           onClick={() => handleBillingClick(user)}
+                           size="sm"
+                           variant="outline"
+                         >
+                           <Receipt className="w-4 h-4 mr-1" />
+                           Billing
+                         </Button>
+                         {user.role !== 'admin' && (
+                           <Button
+                             onClick={() => handleDeleteClick(user)}
+                             size="sm"
+                             variant="destructive"
+                           >
+                             <Trash2 className="w-4 h-4 mr-1" />
+                             Delete
+                           </Button>
+                         )}
                        </div>
                     </TableCell>
                   </TableRow>
@@ -669,6 +730,53 @@ export function UserManagement() {
               className="bg-destructive hover:bg-destructive/90"
             >
               {revokeLoading ? "Revoking..." : "Revoke Access"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete User Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Delete User
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {selectedUser?.full_name || selectedUser?.email} and all their associated data. 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Reason for Deletion *</label>
+              <Textarea
+                placeholder="Explain why this user is being deleted..."
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-red-800 text-sm">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Permanent Action</span>
+              </div>
+              <p className="text-red-700 text-sm mt-1">
+                This will permanently delete the user and ALL their data including transactions, 
+                bookings, and messages. This action cannot be reversed.
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteReason("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={deleteLoading || !deleteReason.trim()}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleteLoading ? "Deleting..." : "Delete User"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
