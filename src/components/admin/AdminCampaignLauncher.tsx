@@ -22,7 +22,7 @@ interface UserProfile {
   full_name: string | null;
   bio: string | null;
   avatar_url: string | null;
-  role: 'user' | 'consultant' | 'admin' | 'sales';
+  role: 'user' | 'consultant' | 'admin' | 'sales' | 'master_admin';
   flexi_credits_balance: number;
   created_at: string;
   updated_at: string;

@@ -21,7 +21,7 @@ interface UserProfile {
   full_name: string | null;
   bio: string | null;
   avatar_url: string | null;
-  role: 'user' | 'consultant' | 'admin' | 'sales';
+  role: 'user' | 'consultant' | 'admin' | 'sales' | 'master_admin';
   flexi_credits_balance: number;
   created_at: string;
   updated_at: string;
@@ -305,12 +305,12 @@ export function UserManagement() {
   };
 
   useEffect(() => {
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' || profile?.role === 'master_admin') {
       fetchUsers();
     }
   }, [profile]);
 
-  if (profile?.role !== 'admin') {
+  if (profile?.role !== 'admin' && profile?.role !== 'master_admin') {
     return (
       <Card>
         <CardContent className="p-6">
@@ -539,14 +539,15 @@ export function UserManagement() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        user.role === 'admin' ? 'destructive' :
-                        user.role === 'consultant' ? 'default' : 'secondary'
-                      }>
-                        {user.role}
-                      </Badge>
-                    </TableCell>
+                     <TableCell>
+                       <Badge variant={
+                         user.role === 'master_admin' ? 'destructive' :
+                         user.role === 'admin' ? 'destructive' :
+                         user.role === 'consultant' ? 'default' : 'secondary'
+                       }>
+                         {user.role === 'master_admin' ? 'Master Admin' : user.role}
+                       </Badge>
+                     </TableCell>
                     <TableCell>
                       <Badge variant={
                         user.approval_status === 'approved' ? 'default' :
@@ -599,16 +600,16 @@ export function UserManagement() {
                           <Minus className="w-4 h-4 mr-1" />
                           Deduct
                         </Button>
-                        {user.approval_status === 'approved' && user.role !== 'admin' && (
-                         <Button
-                           onClick={() => handleRevokeClick(user)}
-                           size="sm"
-                           variant="destructive"
-                         >
-                           <UserX className="w-4 h-4 mr-1" />
-                           Revoke
-                         </Button>
-                        )}
+                         {user.approval_status === 'approved' && user.role !== 'admin' && user.role !== 'master_admin' && (
+                          <Button
+                            onClick={() => handleRevokeClick(user)}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            <UserX className="w-4 h-4 mr-1" />
+                            Revoke
+                          </Button>
+                         )}
                          <Button
                            onClick={() => handleBillingClick(user)}
                            size="sm"
@@ -617,7 +618,19 @@ export function UserManagement() {
                            <Receipt className="w-4 h-4 mr-1" />
                            Billing
                          </Button>
-                         {user.role !== 'admin' && (
+                         {/* Master admin can delete anyone except themselves and other master admins */}
+                         {profile?.role === 'master_admin' && user.user_id !== profile.user_id && user.role !== 'master_admin' && (
+                           <Button
+                             onClick={() => handleDeleteClick(user)}
+                             size="sm"
+                             variant="destructive"
+                           >
+                             <Trash2 className="w-4 h-4 mr-1" />
+                             Delete
+                           </Button>
+                         )}
+                         {/* Regular admin can only delete non-admin users */}
+                         {profile?.role === 'admin' && user.role !== 'admin' && user.role !== 'master_admin' && (
                            <Button
                              onClick={() => handleDeleteClick(user)}
                              size="sm"

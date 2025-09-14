@@ -43,14 +43,14 @@ serve(async (req) => {
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
 
-    // Check if user is admin
+    // Check if user is admin or master admin
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (profileError || profile?.role !== 'admin') {
+    if (profileError || !['admin', 'master_admin'].includes(profile?.role)) {
       throw new Error("Insufficient permissions - admin access required");
     }
 
@@ -248,17 +248,28 @@ serve(async (req) => {
         throw new Error("Valid userId and reason required");
       }
 
-      // Check if user exists and is not an admin
+      // Check if user exists and get their info
       const { data: userProfile, error: fetchError } = await supabaseClient
         .from('profiles')
-        .select('role, email, full_name')
+        .select('role, email, full_name, user_id')
         .eq('user_id', userId)
         .single();
 
       if (fetchError) throw new Error(`Error fetching user profile: ${fetchError.message}`);
       
-      if (userProfile.role === 'admin') {
-        throw new Error("Cannot delete admin users");
+      // Prevent users from deleting themselves
+      if (userProfile.user_id === user.id) {
+        throw new Error("Cannot delete your own account");
+      }
+
+      // Only master_admin can delete admin users, regular admins cannot
+      if (userProfile.role === 'admin' && profile.role !== 'master_admin') {
+        throw new Error("Only master admin can delete admin users");
+      }
+
+      // Master admins cannot delete other master admins (safety measure)
+      if (userProfile.role === 'master_admin') {
+        throw new Error("Cannot delete master admin users");
       }
 
       // Delete the user profile (this will cascade delete related records)
