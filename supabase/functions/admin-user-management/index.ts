@@ -80,14 +80,23 @@ serve(async (req) => {
         throw new Error("Valid userId and positive flexi credits amount required");
       }
 
-      // Get current balance first
+      // Get current balance and user details first
       const { data: currentProfile, error: fetchError } = await supabaseClient
         .from('profiles')
-        .select('flexi_credits_balance')
+        .select('flexi_credits_balance, email, full_name')
         .eq('user_id', userId)
         .single();
 
       if (fetchError) throw new Error(`Error fetching user profile: ${fetchError.message}`);
+
+      // Get admin details for email notification
+      const { data: adminProfile, error: adminError } = await supabaseClient
+        .from('profiles')
+        .select('email, full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (adminError) throw new Error(`Error fetching admin profile: ${adminError.message}`);
 
       // Update the user's flexi credits balance
       const newBalance = (currentProfile.flexi_credits_balance || 0) + points;
@@ -109,6 +118,25 @@ serve(async (req) => {
         });
 
       if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
+
+      // Send email notifications
+      try {
+        await supabaseClient.functions.invoke('send-admin-notification', {
+          body: {
+            type: 'points_added',
+            userEmail: currentProfile.email,
+            userName: currentProfile.full_name || currentProfile.email,
+            adminEmail: adminProfile.email,
+            adminName: adminProfile.full_name || adminProfile.email,
+            amount: points,
+            userBalance: newBalance
+          }
+        });
+        logStep("Email notifications sent successfully");
+      } catch (emailError: any) {
+        logStep("Email notification failed", { error: emailError.message });
+        // Don't fail the main operation if email fails
+      }
 
       logStep("Flexi credits topped up", { userId, points });
 
@@ -197,21 +225,26 @@ serve(async (req) => {
         throw new Error("Valid userId and positive flexi credits amount required");
       }
 
-      // First, get current balance to check if deduction is possible
-      const { data: profile, error: profileError } = await supabaseClient
+      // First, get current balance and user details to check if deduction is possible
+      const { data: currentProfile, error: profileError } = await supabaseClient
         .from('profiles')
-        .select('flexi_credits_balance')
+        .select('flexi_credits_balance, email, full_name')
         .eq('user_id', userId)
         .single();
 
       if (profileError) throw new Error(`Error fetching user profile: ${profileError.message}`);
 
-      if (profile.flexi_credits_balance < points) {
-        throw new Error(`Insufficient balance. User has ${profile.flexi_credits_balance} flexi credits, cannot deduct ${points}`);
-      }
+      // Get admin details for email notification
+      const { data: adminProfile, error: adminError } = await supabaseClient
+        .from('profiles')
+        .select('email, full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (adminError) throw new Error(`Error fetching admin profile: ${adminError.message}`);
 
       // Deduct points by updating balance directly
-      const newBalance = profile.flexi_credits_balance - points;
+      const newBalance = (currentProfile.flexi_credits_balance || 0) - points;
       const { error: updateError } = await supabaseClient
         .from('profiles')
         .update({ flexi_credits_balance: newBalance })
@@ -231,12 +264,32 @@ serve(async (req) => {
 
       if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
 
+      // Send email notifications
+      try {
+        await supabaseClient.functions.invoke('send-admin-notification', {
+          body: {
+            type: 'points_deducted',
+            userEmail: currentProfile.email,
+            userName: currentProfile.full_name || currentProfile.email,
+            adminEmail: adminProfile.email,
+            adminName: adminProfile.full_name || adminProfile.email,
+            amount: points,
+            reason: reason || 'No reason provided',
+            userBalance: newBalance
+          }
+        });
+        logStep("Email notifications sent successfully");
+      } catch (emailError: any) {
+        logStep("Email notification failed", { error: emailError.message });
+        // Don't fail the main operation if email fails
+      }
+
       logStep("Flexi credits deducted", { userId, points, reason });
 
       return new Response(JSON.stringify({ 
         success: true, 
         message: `${points} flexi credits deducted successfully`,
-        newBalance: profile.flexi_credits_balance - points
+        newBalance: newBalance
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

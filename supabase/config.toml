@@ -57,6 +57,9 @@ verify_jwt = true
 [functions.send-auto-reply]
 verify_jwt = false
 
+[functions.send-admin-notification]
+verify_jwt = false
+
 [functions.setup-demo-data]
 verify_jwt = false
 
