@@ -13,8 +13,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
-import { Search, Megaphone, Gift } from 'lucide-react';
+import { Search, Megaphone, Gift, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,8 +25,12 @@ const Marketplace = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const { data: services = [], isLoading: servicesLoading, error: servicesError } = useServices();
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
+
+  // Check if user is admin
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'master_admin';
 
   console.log('Marketplace render - Services:', services, 'Loading:', servicesLoading, 'Error:', servicesError);
   console.log('Marketplace render - Categories:', categories, 'Loading:', categoriesLoading, 'Error:', categoriesError);
@@ -110,6 +115,29 @@ const Marketplace = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      
+      {/* Admin Dashboard Access */}
+      {isAdmin && (
+        <div className="bg-primary/5 border-b border-primary/10">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium text-primary">Admin Access</span>
+              </div>
+              <Button
+                onClick={() => navigate('/admin-dashboard')}
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Admin Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <MarketplaceHero servicesCount={services.length} />
       
