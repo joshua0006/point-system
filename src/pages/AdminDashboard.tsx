@@ -27,7 +27,7 @@ import {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const { stats, recentActivity, loading, error } = useAdminDashboard();
+  const { stats, recentActivity, loading, error, refreshData } = useAdminDashboard();
   
   // Shared campaign targets state
   const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
@@ -165,10 +165,19 @@ export default function AdminDashboard() {
             {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Activity className="w-5 h-5" />
-                  <span>Recent Activity</span>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Activity className="w-5 h-5" />
+                    <span>Recent Activity</span>
+                  </CardTitle>
+                  <button
+                    onClick={refreshData}
+                    disabled={loading}
+                    className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {loading ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
