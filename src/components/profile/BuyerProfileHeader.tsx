@@ -57,7 +57,7 @@ export function BuyerProfileHeader({
             <div className="flex flex-col items-center lg:items-start">
               <Avatar className="w-32 h-32 ring-4 ring-background shadow-xl">
                 <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
-                <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-accent text-white">
+                <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-accent text-primary-foreground">
                   {profile.full_name?.charAt(0) || profile.email.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>

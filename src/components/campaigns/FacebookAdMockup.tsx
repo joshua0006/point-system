@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Share } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FacebookAdMockupProps {
   adContent: {
@@ -14,12 +15,12 @@ interface FacebookAdMockupProps {
 
 export const FacebookAdMockup = ({ adContent, className }: FacebookAdMockupProps) => {
   return (
-    <Card className={`w-full max-w-md bg-white ${className}`}>
+    <Card className={cn("w-full max-w-md bg-card", className)}>
       <CardContent className="p-0">
         {/* Facebook Post Header */}
-        <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+        <div className="flex items-center gap-3 p-4 border-b border-border">
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">YB</span>
+            <span className="text-primary-foreground font-bold text-sm">YB</span>
           </div>
           <div>
             <div className="font-semibold text-sm text-gray-900">Your Business</div>
@@ -49,7 +50,7 @@ export const FacebookAdMockup = ({ adContent, className }: FacebookAdMockupProps
 
         {/* CTA Button */}
         <div className="px-4 pb-4">
-          <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors">
+          <button className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors">
             {adContent.cta}
           </button>
         </div>

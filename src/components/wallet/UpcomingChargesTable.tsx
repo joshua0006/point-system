@@ -125,7 +125,7 @@ export function UpcomingChargesTable({ charges }: UpcomingChargesTableProps) {
             </p>
             <div className="space-y-2">
               {overdueCharges.map((charge) => (
-                <div key={charge.participant_id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-destructive/20">
+                <div key={charge.participant_id} className="flex items-center justify-between p-3 bg-card rounded-lg border border-destructive/20">
                   <div>
                     <p className="font-medium text-sm">{charge.campaign_name}</p>
                     <p className="text-xs text-muted-foreground">
