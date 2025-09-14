@@ -1912,7 +1912,7 @@ export type Database = {
         | "admin_credit"
         | "initial_credit"
         | "earning"
-      user_role: "user" | "consultant" | "admin" | "sales"
+      user_role: "user" | "consultant" | "admin" | "sales" | "master_admin"
       wishlist_category:
         | "things_to_do"
         | "places_to_go"
@@ -2064,7 +2064,7 @@ export const Constants = {
         "initial_credit",
         "earning",
       ],
-      user_role: ["user", "consultant", "admin", "sales"],
+      user_role: ["user", "consultant", "admin", "sales", "master_admin"],
       wishlist_category: [
         "things_to_do",
         "places_to_go",
