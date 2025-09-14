@@ -98,10 +98,19 @@ export function useAdminDashboard() {
         recentPointsTransactionsResponse,
         recentMonthlyBillingResponse,
       ] = await Promise.all([
-        // Total users (all registered users)
-        supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true }),
+        // Total users - use supabase.auth.admin for admin queries
+        fetch(`https://rrnaquethuzvbsxcssss.supabase.co/rest/v1/profiles?select=id`, {
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJybmFxdWV0aHV6dmJzeGNzc3NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzA0NDYsImV4cCI6MjA2NzMwNjQ0Nn0.gGNkG0ck5DmKe9Xc5EVXWxDDTVheAz3WDz-Cot7A7eI',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'count=exact'
+          }
+        }).then(async (res) => {
+          const countHeader = res.headers.get('Content-Range');
+          const count = countHeader ? parseInt(countHeader.split('/')[1]) : 0;
+          return { count };
+        }),
         
         // Active consultants
         supabase
