@@ -1,0 +1,1 @@
+UPDATE profiles SET email = 'leotanjs95@gmail.com' WHERE email = 'leotanjs95@gmail.copm'
