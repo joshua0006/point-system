@@ -194,6 +194,9 @@ export default function AdminDashboard() {
                           activity.type === 'campaign_joined' ? 'bg-blue-500' :
                           activity.type === 'wallet_topup' ? 'bg-green-500' :
                           activity.type === 'campaign_purchase' ? 'bg-orange-500' :
+                          activity.type === 'admin_credit' ? 'bg-emerald-600' :
+                          activity.type === 'admin_debit' ? 'bg-red-500' :
+                          activity.type === 'points_deducted' ? 'bg-yellow-500' :
                           activity.type === 'campaign' ? 'bg-warning' : 'bg-muted-foreground'
                         }`} />
                         <div className="flex-1 min-w-0">

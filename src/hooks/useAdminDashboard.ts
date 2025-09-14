@@ -12,7 +12,7 @@ export interface AdminStats {
 
 export interface RecentActivity {
   id: string;
-  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "wallet_topup" | "campaign_purchase" | "service_purchase" | "points_deducted" | "monthly_billing" | "campaign_status_change";
+  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "wallet_topup" | "campaign_purchase" | "service_purchase" | "points_deducted" | "monthly_billing" | "campaign_status_change" | "admin_credit" | "admin_debit";
   description: string;
   points: number;
   timestamp: string;
@@ -353,6 +353,8 @@ export function useAdminDashboard() {
         const isServicePurchase = transaction.booking_id !== null;
         const isCampaignRelated = transaction.description?.toLowerCase().includes('campaign') || 
                                    transaction.description?.toLowerCase().includes('lead generation');
+        const isAdminDeduction = transaction.type === 'refund' && 
+                                 transaction.description?.toLowerCase().includes('admin deduction');
         
         switch (transaction.type) {
           case 'purchase':
@@ -368,12 +370,17 @@ export function useAdminDashboard() {
             }
             break;
           case 'refund':
-            activityType = 'points_deducted';
-            description = `${Math.abs(transaction.amount)} points refunded to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
+            if (isAdminDeduction) {
+              activityType = 'admin_debit';
+              description = `📉 Admin deducted ${Math.abs(transaction.amount)} flexi credits from ${userName}${transaction.description ? ` - ${transaction.description.replace('Admin deduction - ', '')}` : ''}`;
+            } else {
+              activityType = 'points_deducted';
+              description = `${Math.abs(transaction.amount)} points refunded to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
+            }
             break;
           case 'admin_credit':
-            activityType = 'wallet_topup';
-            description = `Admin credited ${Math.abs(transaction.amount)} points to ${userName}${transaction.description ? ` - ${transaction.description}` : ''}`;
+            activityType = 'admin_credit';
+            description = `💰 Admin credited ${Math.abs(transaction.amount)} flexi credits to ${userName}${transaction.description ? ` - ${transaction.description.replace('Admin credit - ', '')}` : ''}`;
             break;
           case 'initial_credit':
             activityType = 'wallet_topup';
