@@ -17,7 +17,14 @@ import {
   Briefcase,
   Link as LinkIcon,
   Archive,
-  Wallet
+  Wallet,
+  Target,
+  Phone,
+  Headphones,
+  Sparkles,
+  PenTool,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react"
 
 import {
@@ -35,12 +42,20 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 interface NavItem {
   title: string
   url: string
   icon: any
   badge?: string
+  roles: string[]
+}
+
+interface NavGroup {
+  title: string
+  icon: any
+  items: NavItem[]
   roles: string[]
 }
 
@@ -52,12 +67,67 @@ export function AppSidebar() {
   const currentPath = location.pathname
   const userRole = profile?.role || "user"
 
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    campaigns: true,
+    aiTools: false,
+    gifting: false,
+  })
+
   const isCollapsed = state === "collapsed"
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path)
 
-  // Navigation items based on user role and mode
-  const getNavItems = (): NavItem[] => {
+  const toggleGroup = (groupKey: string) => {
+    setOpenGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }))
+  }
+
+  // Check if any item in a group is active
+  const isGroupActive = (items: NavItem[]) => {
+    return items.some(item => isActive(item.url))
+  }
+
+  // Navigation groups based on user role
+  const getNavGroups = (): NavGroup[] => {
+    const campaignGroup: NavGroup = {
+      title: "Campaigns",
+      icon: Megaphone,
+      roles: ["user", "admin"],
+      items: [
+        { title: "All Campaigns", url: "/campaigns", icon: BarChart3, roles: ["user", "admin"] },
+        { title: "Facebook Ads", url: "/campaigns/facebook-ads", icon: Target, roles: ["user", "admin"] },
+        { title: "Cold Calling", url: "/campaigns/cold-calling", icon: Phone, roles: ["user", "admin"] },
+        { title: "VA Support", url: "/campaigns/va-support", icon: Headphones, roles: ["user", "admin"] },
+      ]
+    }
+
+    const aiToolsGroup: NavGroup = {
+      title: "AI Tools",
+      icon: Bot,
+      roles: ["user", "consultant", "admin"],
+      items: [
+        { title: "AI Assistant", url: "/ai-assistant", icon: Sparkles, roles: ["consultant", "admin"] },
+        { title: "Ad Copy Generator", url: "/ad-copy-generator", icon: PenTool, roles: ["user", "admin"] },
+      ]
+    }
+
+    const giftingGroup: NavGroup = {
+      title: "Gifting",
+      icon: Gift,
+      roles: ["user", "admin"],
+      items: [
+        { title: "Gift Merchants", url: "/gifting", icon: Gift, roles: ["user", "admin"] },
+      ]
+    }
+
+    if (userRole === "consultant") {
+      return [aiToolsGroup]
+    }
+
+    return [campaignGroup, aiToolsGroup, giftingGroup]
+  }
+
+  // Single navigation items (not in groups)
+  const getSingleNavItems = (): NavItem[] => {
     const baseItems: NavItem[] = [
       { title: "Home", url: "/", icon: Home, roles: ["user", "consultant", "admin"] },
     ]
@@ -66,7 +136,6 @@ export function AppSidebar() {
       return [
         ...baseItems,
         { title: "Services", url: "/services", icon: Search, roles: ["consultant"] },
-        { title: "AI Assistant", url: "/ai-assistant", icon: Bot, roles: ["consultant"] },
         { title: "Dashboard", url: "/consultant-dashboard", icon: BarChart3, roles: ["consultant"] },
         { title: "Messages", url: "/messages", icon: Archive, roles: ["consultant"] },
         { title: "Settings", url: "/settings", icon: Settings, roles: ["consultant"] },
@@ -74,13 +143,8 @@ export function AppSidebar() {
     }
 
     // For regular users and admins
-    const marketplaceItems: NavItem[] = [
-      { title: "Marketplace", url: "/services", icon: Search, roles: ["user", "admin"] },
-      { title: "Campaigns", url: "/campaigns", icon: Megaphone, roles: ["user", "admin"] },
-      { title: "Gifting", url: "/gifting", icon: Gift, roles: ["user", "admin"] },
-    ]
-
     const userItems: NavItem[] = [
+      { title: "Marketplace", url: "/marketplace", icon: Search, roles: ["user", "admin"] },
       { title: "Dashboard", url: "/dashboard", icon: BarChart3, roles: ["user", "admin"] },
       { title: "Messages", url: "/messages", icon: Archive, roles: ["user", "admin"] },
     ]
@@ -104,14 +168,14 @@ export function AppSidebar() {
 
     return [
       ...baseItems,
-      ...marketplaceItems,
       ...userItems,
       ...(userRole === "admin" ? adminItems : []),
       ...settingsItems,
     ]
   }
 
-  const navItems = getNavItems().filter(item => item.roles.includes(userRole))
+  const navGroups = getNavGroups().filter(group => group.roles.includes(userRole))
+  const singleNavItems = getSingleNavItems().filter(item => item.roles.includes(userRole))
 
   const getNavClass = (path: string) => {
     return isActive(path) 
@@ -128,7 +192,7 @@ export function AppSidebar() {
           </div>
           {!isCollapsed && (
             <div>
-              <h2 className="font-bold text-lg text-foreground">ConsultHub</h2>
+              <h2 className="font-bold text-lg text-foreground">AgentHub</h2>
               <p className="text-xs text-muted-foreground">v2.0</p>
             </div>
           )}
@@ -136,13 +200,14 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-4">
+        {/* Single Navigation Items */}
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {singleNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild className="h-10">
                     <NavLink 
@@ -167,6 +232,64 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Grouped Navigation Items */}
+        {navGroups.map((group) => {
+          const groupKey = group.title.toLowerCase().replace(/\s+/g, '')
+          const isOpen = openGroups[groupKey]
+          const hasActiveItem = isGroupActive(group.items)
+          
+          return (
+            <SidebarGroup key={group.title}>
+              <Collapsible open={isOpen || isCollapsed} onOpenChange={() => !isCollapsed && toggleGroup(groupKey)}>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton className={`h-10 w-full justify-start ${hasActiveItem ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`}>
+                    <group.icon className="h-4 w-4 flex-shrink-0" />
+                    {!isCollapsed && (
+                      <>
+                        <span className="flex-1 text-left">{group.title}</span>
+                        {isOpen ? (
+                          <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                        )}
+                      </>
+                    )}
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                
+                {!isCollapsed && (
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu className="ml-4">
+                        {group.items.map((item) => (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild className="h-9">
+                              <NavLink 
+                                to={item.url} 
+                                className={({ isActive: navIsActive }) => 
+                                  `flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${getNavClass(item.url)}`
+                                }
+                              >
+                                <item.icon className="h-3 w-3 flex-shrink-0" />
+                                <span className="flex-1">{item.title}</span>
+                                {item.badge && (
+                                  <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                )}
+              </Collapsible>
+            </SidebarGroup>
+          )
+        })}
       </SidebarContent>
 
       <SidebarFooter className="border-t p-2">
