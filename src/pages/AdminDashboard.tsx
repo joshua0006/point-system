@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigation } from "@/components/Navigation";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,20 +36,8 @@ export default function AdminDashboard() {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Admin Dashboard" description="Monitor platform performance and manage users">
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Monitor platform performance and manage users
-          </p>
-        </div>
-
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="grid w-full max-w-5xl grid-cols-5">
@@ -262,6 +250,6 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </SidebarLayout>
   );
 }
