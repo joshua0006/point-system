@@ -1,404 +1,163 @@
 
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Wallet, Phone, Target, Users, Loader2 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { Megaphone, Bot, Gift, BarChart3, Target, Phone, Headphones, Sparkles, PenTool } from 'lucide-react';
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-
-  // Removed automatic redirect - let users stay on homepage
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSigningIn(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast({
-          title: "Sign In Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: "Successfully signed in to your account.",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSigningIn(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName || !email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSigningIn(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/marketplace`,
-        },
-      });
-
-      if (error) {
-        if (error.message.includes('User already registered')) {
-          toast({
-            title: "Account Already Exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive",
-          });
-          setIsSignUp(false); // Switch to sign-in mode
-          return;
-        }
-        throw error;
-      }
-
-      if (data.user && !data.user.email_confirmed_at) {
-        toast({
-          title: "Account Created!",
-          description: "Your account is pending admin approval. You'll receive an email once approved.",
-        });
-      } else if (data.user) {
-        toast({
-          title: "Welcome!",
-          description: "Your account has been created and is pending approval.",
-        });
-      }
-      
-      // Clear form
-      setFullName('');
-      setEmail('');
-      setPassword('');
-      setIsSignUp(false);
-      
-    } catch (error: any) {
-      toast({
-        title: "Sign Up Failed",
-        description: error.message || "Failed to create account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSigningIn(false);
-    }
-  };
-
-  const handleQuickDemo = async (accountType: 'buyer' | 'consultant' | 'admin') => {
-    setIsSigningIn(true);
-    try {
-      // Generate demo credentials
-      const timestamp = Date.now();
-      const demoEmail = `demo-${accountType}-${timestamp}@demo.com`;
-      const demoPassword = 'demo123';
-      const fullName = `Demo ${accountType.charAt(0).toUpperCase() + accountType.slice(1)}`;
-      const isConsultant = accountType === 'consultant' || accountType === 'admin';
-
-      // Create demo account with the edge function
-      const { data, error } = await supabase.functions.invoke('setup-demo-data', {
-        body: { 
-          email: demoEmail,
-          password: demoPassword,
-          fullName: fullName,
-          autoConfirm: true,
-          isConsultant: isConsultant
-        }
-      });
-
-      if (error) throw error;
-
-      // Sign in with the demo credentials
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: demoPassword,
-      });
-
-      if (signInError) throw signInError;
-
-      toast({
-        title: "Demo Account Ready",
-        description: `Signed in as ${accountType} demo account`,
-      });
-    } catch (error) {
-      console.error('Demo setup error:', error);
-      toast({
-        title: "Demo Setup Failed",
-        description: "Could not set up demo account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSigningIn(false);
-    }
-  };
-
-  // Show loading while auth is being checked
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-xl text-foreground">AgentHub</span>
-            </Link>
-          </div>
+    <SidebarLayout title="Dashboard" description="Welcome to your AgentHub dashboard">
+      <div className="p-6 space-y-6">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to AgentHub</h1>
+          <p className="text-muted-foreground">
+            Manage your campaigns, access AI tools, and explore gifting options.
+          </p>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 sm:py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            
-            {/* Left Side - Information */}
-            <div className="text-center lg:text-left">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
-                Agent Portal
-              </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-                Access your business support tools and services. Sign in to manage your 
-                lead generation campaigns, cold calling operations, and client support services.
-              </p>
-              
-              {/* Services Available */}
-              <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Lead Generation</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Advanced campaign management and targeting tools</p>
-                  </div>
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Campaigns Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Megaphone className="w-5 h-5 text-primary" />
                 </div>
-                
-                <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Cold Calling</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Automated dialing systems and call tracking</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Client Support</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Comprehensive customer relationship management</p>
-                  </div>
+                <div>
+                  <CardTitle className="text-lg">Campaigns</CardTitle>
+                  <p className="text-sm text-muted-foreground">Manage your marketing campaigns</p>
                 </div>
               </div>
-            </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                <Link to="/campaigns/facebook-ads">
+                  <Target className="w-4 h-4 mr-2" />
+                  Facebook Ads
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                <Link to="/campaigns/cold-calling">
+                  <Phone className="w-4 h-4 mr-2" />
+                  Cold Calling
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                <Link to="/campaigns/va-support">
+                  <Headphones className="w-4 h-4 mr-2" />
+                  VA Support
+                </Link>
+              </Button>
+              <Button className="w-full mt-2" asChild>
+                <Link to="/campaigns">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  View All Campaigns
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
 
-            <div>
-              <Card className="p-4 sm:p-6 lg:p-8">
-                <CardHeader className="text-center pb-4 sm:pb-6 px-0">
-                  <CardTitle className="text-xl sm:text-2xl font-bold">
-                    {isSignUp ? 'Create Account' : 'Sign In'}
-                  </CardTitle>
-                  <p className="text-muted-foreground text-sm sm:text-base">
-                    {isSignUp ? 'Join the agent network' : 'Access your agent dashboard'}
-                  </p>
-                </CardHeader>
-                
-                <CardContent className="space-y-4 sm:space-y-6 px-0">
-                  <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-3 sm:space-y-4">
-                    {isSignUp && (
-                      <div className="space-y-1 sm:space-y-2">
-                        <Label htmlFor="fullName" className="text-sm">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          disabled={isSigningIn}
-                          required
-                          className="h-11 sm:h-10"
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="space-y-1 sm:space-y-2">
-                      <Label htmlFor="email" className="text-sm">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={isSigningIn}
-                        required
-                        className="h-11 sm:h-10"
-                      />
-                    </div>
-                    
-                    <div className="space-y-1 sm:space-y-2">
-                      <Label htmlFor="password" className="text-sm">Password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder={isSignUp ? "Create a password (min 6 characters)" : "Enter your password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={isSigningIn}
-                        required
-                        minLength={isSignUp ? 6 : undefined}
-                        className="h-11 sm:h-10"
-                      />
-                    </div>
-                    
-                    <Button type="submit" className="w-full h-11 sm:h-10" disabled={isSigningIn}>
-                      {isSigningIn ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {isSignUp ? 'Creating Account...' : 'Signing In...'}
-                        </>
-                      ) : (
-                        isSignUp ? 'Create Account' : 'Sign In'
-                      )}
-                    </Button>
-                  </form>
-                  
-                  <div className="text-center">
-                    <Button
-                      variant="link"
-                      onClick={() => {
-                        setIsSignUp(!isSignUp);
-                        setEmail('');
-                        setPassword('');
-                        setFullName('');
-                      }}
-                      disabled={isSigningIn}
-                      className="text-sm"
-                    >
-                      {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-                    </Button>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or try a demo</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickDemo('consultant')}
-                      disabled={isSigningIn}
-                      className="text-xs h-9"
-                    >
-                      Agent Demo
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickDemo('buyer')}
-                      disabled={isSigningIn}
-                      className="text-xs h-9"
-                    >
-                      Client Demo
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickDemo('admin')}
-                      disabled={isSigningIn}
-                      className="text-xs h-9"
-                    >
-                      Admin Demo
-                    </Button>
-                  </div>
-                  
-                  {isSignUp && (
-                    <p className="text-center text-sm text-muted-foreground">
-                      Account requires admin approval before access is granted
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          {/* AI Tools Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">AI Tools</CardTitle>
+                  <p className="text-sm text-muted-foreground">Powered by artificial intelligence</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                <Link to="/ai-assistant">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AI Assistant
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                <Link to="/ad-copy-generator">
+                  <PenTool className="w-4 h-4 mr-2" />
+                  Ad Copy Generator
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Gifting Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                  <Gift className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Gifting</CardTitle>
+                  <p className="text-sm text-muted-foreground">Send gifts to your clients</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" asChild>
+                <Link to="/gifting">
+                  <Gift className="w-4 h-4 mr-2" />
+                  Explore Gifts
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity or Stats could go here */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Stats</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Active Campaigns:</span>
+                  <span className="font-medium">3</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Leads:</span>
+                  <span className="font-medium">127</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Conversion Rate:</span>
+                  <span className="font-medium text-green-600">12.4%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Getting Started</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <p className="text-muted-foreground mb-3">
+                  New to AgentHub? Here's how to get started:
+                </p>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• Set up your first campaign</li>
+                  <li>• Try our AI tools for content creation</li>
+                  <li>• Explore gifting options for clients</li>
+                  <li>• Check your dashboard regularly</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 
