@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
-import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, Wallet, MessageSquare } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, MessageSquare } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PaymentMethodsTab } from "@/components/settings/PaymentMethodsTab";
+
 import { TransactionHistoryModal } from "@/components/settings/TransactionHistoryModal";
 import { AutoReplySettings } from "@/components/settings/AutoReplySettings";
 import { useQuery } from "@tanstack/react-query";
@@ -137,7 +137,7 @@ const Settings = () => {
     <SidebarLayout title="Settings" description="Manage your account settings and preferences">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -149,10 +149,6 @@ const Settings = () => {
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Security
-            </TabsTrigger>
-            <TabsTrigger value="payment-methods" className="flex items-center gap-2">
-              <Wallet className="h-4 w-4" />
-              Payment Methods
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
@@ -296,10 +292,6 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="payment-methods">
-            <PaymentMethodsTab />
           </TabsContent>
 
           <TabsContent value="billing">
