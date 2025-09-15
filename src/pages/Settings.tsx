@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Navigation } from "@/components/Navigation";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, Wallet, MessageSquare } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -134,15 +134,8 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Settings" description="Manage your account settings and preferences">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center gap-3 mb-8">
-          <SettingsIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Settings</h1>
-        </div>
-
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
@@ -365,7 +358,7 @@ const Settings = () => {
           onClose={() => setTransactionHistoryOpen(false)}
         />
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 
