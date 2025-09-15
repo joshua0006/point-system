@@ -144,7 +144,6 @@ export function AppSidebar() {
 
     // For regular users and admins
     const userItems: NavItem[] = [
-      { title: "Marketplace", url: "/marketplace", icon: Search, roles: ["user", "admin"] },
       { title: "Dashboard", url: "/dashboard", icon: BarChart3, roles: ["user", "admin"] },
       { title: "Messages", url: "/messages", icon: Archive, roles: ["user", "admin"] },
     ]
