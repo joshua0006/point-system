@@ -65,7 +65,7 @@ export function AppSidebar() {
   const { profile } = useAuth()
   const { isSellerMode } = useMode()
   const currentPath = location.pathname
-  const userRole = profile?.role || "user"
+  const userRole = profile?.role === "master_admin" ? "admin" : (profile?.role || "user")
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     campaigns: true,
