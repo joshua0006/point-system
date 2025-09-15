@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigation } from "@/components/Navigation";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { DashboardModals } from "@/components/dashboard/DashboardModals";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { SuccessModal } from "@/components/SuccessModal";
@@ -62,9 +62,7 @@ export default function UserDashboard() {
   // Real-time subscriptions are now handled in useDashboardData hook
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout>
       <div className={isMobile ? "container mx-auto px-2 py-4" : "container mx-auto px-4 py-8"}>
         {/* Header */}
         <div className={isMobile ? "mb-6" : "mb-8"}>
@@ -252,6 +250,6 @@ export default function UserDashboard() {
         type={successModalData.type}
         amount={successModalData.amount}
       />
-    </div>
+    </SidebarLayout>
   );
 }
