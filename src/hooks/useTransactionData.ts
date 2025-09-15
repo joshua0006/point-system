@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,7 +17,7 @@ export function useTransactionData() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -73,13 +73,13 @@ export function useTransactionData() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       fetchTransactions();
     }
-  }, [user]);
+  }, [user, fetchTransactions]);
 
   // Calculate transaction stats
   const spentTransactions = transactions.filter(t => t.type === 'spent');

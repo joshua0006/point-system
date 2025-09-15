@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -31,7 +31,7 @@ export function useBookingData() {
   const [upcomingBookings, setUpcomingBookings] = useState<UpcomingSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -100,13 +100,13 @@ export function useBookingData() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       fetchBookings();
     }
-  }, [user]);
+  }, [user, fetchBookings]);
 
   // Calculate booking stats
   const servicesBooked = bookedServices.length;

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModalState } from "./useModalState";
@@ -19,12 +19,19 @@ export interface UserStats {
 export function useDashboardData() {
   const { user, profile } = useAuth();
   
-  console.log('useDashboardData initialized with user:', user?.id);
-  
   // Use focused hooks for different data types
   const modalState = useModalState();
   const transactionData = useTransactionData();
   const bookingData = useBookingData();
+
+  // Memoize refresh functions to prevent unnecessary re-renders
+  const memoizedRefreshTransactions = useCallback(() => {
+    transactionData.refreshTransactions();
+  }, [transactionData.refreshTransactions]);
+
+  const memoizedRefreshBookings = useCallback(() => {
+    bookingData.refreshBookings();
+  }, [bookingData.refreshBookings]);
 
   // Setup real-time subscriptions
   useEffect(() => {
@@ -40,8 +47,7 @@ export function useDashboardData() {
             filter: `user_id=eq.${user.id}`
           },
           () => {
-            console.log('Transaction updated - refreshing data');
-            transactionData.refreshTransactions();
+            memoizedRefreshTransactions();
           }
         )
         .on(
@@ -53,8 +59,7 @@ export function useDashboardData() {
             filter: `user_id=eq.${user.id}`
           },
           () => {
-            console.log('Booking updated - refreshing data');
-            bookingData.refreshBookings();
+            memoizedRefreshBookings();
           }
         )
         .subscribe();
@@ -63,7 +68,7 @@ export function useDashboardData() {
         supabase.removeChannel(channel);
       };
     }
-  }, [user?.id]);
+  }, [user?.id, memoizedRefreshTransactions, memoizedRefreshBookings]);
 
   // Calculate combined stats from hooks
   const userStats: UserStats = {
@@ -76,12 +81,10 @@ export function useDashboardData() {
 
   const isLoading = transactionData.isLoading || bookingData.isLoading;
   
-  const refreshData = () => {
-    transactionData.refreshTransactions();
-    bookingData.refreshBookings();
-  };
-
-  console.log('useDashboardData returning userStats:', userStats);
+  const refreshData = useCallback(() => {
+    memoizedRefreshTransactions();
+    memoizedRefreshBookings();
+  }, [memoizedRefreshTransactions, memoizedRefreshBookings]);
 
   return {
     // Modal states (destructured from modalState hook)

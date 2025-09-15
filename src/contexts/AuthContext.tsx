@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -45,7 +45,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export { AuthContext };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('AuthProvider: Initializing...');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -331,7 +330,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     session,
     profile,
@@ -340,9 +339,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     refreshProfile,
     refreshSubscription,
-  };
+  }), [user, session, profile, subscription, loading]);
 
-  console.log('AuthProvider: Providing value:', { user: !!user, profile: !!profile, loading });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
