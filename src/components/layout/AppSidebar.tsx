@@ -137,7 +137,6 @@ export function AppSidebar() {
         ...baseItems,
         { title: "Services", url: "/services", icon: Search, roles: ["consultant"] },
         { title: "Dashboard", url: "/consultant-dashboard", icon: BarChart3, roles: ["consultant"] },
-        { title: "Messages", url: "/messages", icon: Archive, roles: ["consultant"] },
         { title: "Settings", url: "/settings", icon: Settings, roles: ["consultant"] },
       ]
     }
@@ -145,7 +144,6 @@ export function AppSidebar() {
     // For regular users and admins
     const userItems: NavItem[] = [
       { title: "Dashboard", url: "/dashboard", icon: BarChart3, roles: ["user", "admin"] },
-      { title: "Messages", url: "/messages", icon: Archive, roles: ["user", "admin"] },
     ]
 
     const adminItems: NavItem[] = [
