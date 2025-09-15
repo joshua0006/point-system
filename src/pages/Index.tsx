@@ -113,49 +113,6 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Recent Activity or Stats could go here */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Active Campaigns:</span>
-                  <span className="font-medium">3</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Leads:</span>
-                  <span className="font-medium">127</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Conversion Rate:</span>
-                  <span className="font-medium text-green-600">12.4%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Getting Started</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <p className="text-muted-foreground mb-3">
-                  New to AgentHub? Here's how to get started:
-                </p>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li>• Set up your first campaign</li>
-                  <li>• Try our AI tools for content creation</li>
-                  <li>• Explore gifting options for clients</li>
-                  <li>• Check your dashboard regularly</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </SidebarLayout>
   );
