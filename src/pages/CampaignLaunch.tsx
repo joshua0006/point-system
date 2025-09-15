@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,14 +9,17 @@ import { ArrowRight, Target, Phone, Users, CreditCard, ArrowLeft } from 'lucide-
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopUpModal } from '@/components/TopUpModal';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Import components normally for now - they export named exports, not default
 import { CampaignLaunchSuccessModal } from '@/components/campaigns/CampaignLaunchSuccessModal';
 import { CampaignMethodSelector } from '@/components/campaigns/CampaignMethodSelector';
 import { FacebookAdsCatalog } from '@/components/campaigns/FacebookAdsCatalog';
 import { ColdCallingWizard } from '@/components/campaigns/ColdCallingWizard';
 import { VASupportPlans } from '@/components/campaigns/VASupportPlans';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { SidebarLayout } from '@/components/layout/SidebarLayout';
 
 const CampaignLaunch = React.memo(() => {
   const isMobile = useIsMobile();
@@ -420,6 +423,8 @@ const CampaignLaunch = React.memo(() => {
     </SidebarLayout>
   );
 });
+
+// Skeleton component for campaign flow loading moved to PageSkeleton.tsx
 
 CampaignLaunch.displayName = 'CampaignLaunch';
 

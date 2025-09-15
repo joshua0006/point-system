@@ -1,8 +1,6 @@
-
-import { useState } from "react";
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Phone, Zap } from "lucide-react";
 
@@ -12,7 +10,7 @@ interface ColdCallingWizardProps {
   userBalance: number;
 }
 
-export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCallingWizardProps) => {
+export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance }: ColdCallingWizardProps) => {
   const [selectedHours, setSelectedHours] = useState<number | null>(null);
 
   const handleLaunch = () => {
@@ -20,7 +18,8 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
       onComplete({
         method: 'cold-calling',
         hours: selectedHours,
-        budget: selectedHours * 6
+        budget: selectedHours * 6,
+        consultantName: 'Cold Calling Team'
       });
     }
   };
@@ -106,10 +105,7 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
           <div className="flex justify-between">
             <Button 
               variant="outline" 
-              onClick={() => {
-                console.log('Back button clicked');
-                onBack();
-              }}
+              onClick={onBack}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Methods
@@ -128,4 +124,8 @@ export const ColdCallingWizard = ({ onComplete, onBack, userBalance }: ColdCalli
       </Card>
     </div>
   );
-};
+});
+
+ColdCallingWizard.displayName = 'ColdCallingWizard';
+
+export default ColdCallingWizard;

@@ -1,4 +1,4 @@
-
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, Phone, MessageSquare } from "lucide-react";
@@ -7,7 +7,7 @@ interface CampaignMethodSelectorProps {
   onMethodSelect: (method: 'facebook-ads' | 'cold-calling' | 'va-support') => void;
 }
 
-export const CampaignMethodSelector = ({ onMethodSelect }: CampaignMethodSelectorProps) => {
+export const CampaignMethodSelector = React.memo(({ onMethodSelect }: CampaignMethodSelectorProps) => {
   return (
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto">
@@ -107,4 +107,8 @@ export const CampaignMethodSelector = ({ onMethodSelect }: CampaignMethodSelecto
       </div>
     </div>
   );
-};
+});
+
+CampaignMethodSelector.displayName = 'CampaignMethodSelector';
+
+export default CampaignMethodSelector;
