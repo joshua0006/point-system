@@ -11,7 +11,7 @@ import { Suspense, lazy } from "react";
 import { PageSkeleton, DashboardSkeleton } from "@/components/PageSkeleton";
 
 // Lazy load all pages for optimal performance
-const Index = lazy(() => import("./pages/Index"));
+const Index = lazy(() => import("./pages/Index").then(module => ({ default: module.default })));
 const Auth = lazy(() => import("./pages/Auth"));
 const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
