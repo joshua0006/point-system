@@ -93,7 +93,8 @@ export function AppSidebar() {
       icon: Megaphone,
       roles: ["user", "admin"],
       items: [
-        { title: "All Campaigns", url: "/campaigns", icon: BarChart3, roles: ["user", "admin"] },
+        { title: "My Campaigns", url: "/campaigns/my-campaigns", icon: BarChart3, roles: ["user", "admin"] },
+        { title: "Launch Campaign", url: "/campaigns/launch", icon: Target, roles: ["user", "admin"] },
         { title: "Facebook Ads", url: "/campaigns/facebook-ads", icon: Target, roles: ["user", "admin"] },
         { title: "Cold Calling", url: "/campaigns/cold-calling", icon: Phone, roles: ["user", "admin"] },
         { title: "VA Support", url: "/campaigns/va-support", icon: Headphones, roles: ["user", "admin"] },

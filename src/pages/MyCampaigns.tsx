@@ -1,5 +1,4 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import { AdminInterface } from '@/components/campaigns/AdminInterface';
 import { useToast } from '@/hooks/use-toast';
 import { useCampaignTargets } from '@/hooks/useCampaignTargets';
 import { supabase } from '@/integrations/supabase/client';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 
 // Lazy load heavy components for optimal performance
 const ActiveCampaigns = lazy(() => import('@/components/campaigns/ActiveCampaigns').then(m => ({ default: m.ActiveCampaigns })));
@@ -189,20 +189,9 @@ const MyCampaigns = React.memo(() => {
   const hasCampaigns = userCampaigns && userCampaigns.length > 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="My Campaigns" description="Manage your active lead generation campaigns">
       <ResponsiveContainer>
         <div className={isMobile ? "pt-4" : "pt-8"}>
-          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-            <h1 className={isMobile ? "text-xl font-bold text-foreground mb-2" : "text-2xl sm:text-3xl font-bold text-foreground mb-2"}>
-              My Campaigns
-            </h1>
-            <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-              Manage your active lead generation campaigns
-            </p>
-          </div>
-
           {/* Wallet Balance Card and Launch Button */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Card className="w-full max-w-md">
@@ -330,7 +319,7 @@ const MyCampaigns = React.memo(() => {
         onClose={() => setTopUpModalOpen(false)}
         onSuccess={handleTopUpSuccess}
       />
-    </div>
+    </SidebarLayout>
   );
 });
 

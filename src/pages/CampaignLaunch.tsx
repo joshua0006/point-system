@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +16,7 @@ import { ColdCallingWizard } from '@/components/campaigns/ColdCallingWizard';
 import { VASupportPlans } from '@/components/campaigns/VASupportPlans';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 
 const CampaignLaunch = React.memo(() => {
   const isMobile = useIsMobile();
@@ -282,9 +282,7 @@ const CampaignLaunch = React.memo(() => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Launch New Campaign" description="Select a campaign type to get started">
       <ResponsiveContainer>
         <div className={isMobile ? "pt-4" : "pt-8"}>
           <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
@@ -299,12 +297,6 @@ const CampaignLaunch = React.memo(() => {
                 Back to My Campaigns
               </Button>
             </div>
-            <h1 className={isMobile ? "text-xl font-bold text-foreground mb-2" : "text-2xl sm:text-3xl font-bold text-foreground mb-2"}>
-              Launch New Campaign
-            </h1>
-            <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-              Select a campaign type to get started
-            </p>
           </div>
 
           {/* Wallet Balance Card */}
@@ -425,7 +417,7 @@ const CampaignLaunch = React.memo(() => {
         onClose={() => setTopUpModalOpen(false)}
         onSuccess={handleTopUpSuccess}
       />
-    </div>
+    </SidebarLayout>
   );
 });
 
