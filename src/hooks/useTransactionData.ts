@@ -22,38 +22,22 @@ export function useTransactionData() {
 
     setIsLoading(true);
     try {
-      const [{ data: transactionsData }, { data: consultantProfiles }] = await Promise.all([
-        // Fetch transactions with booking relationships
-        supabase
-          .from('flexi_credits_transactions')
-          .select(`
-            *,
-            bookings(
-              consultant_id,
-              consultants!bookings_consultant_id_fkey(user_id)
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(50),
+      // Fetch recent transactions for the user (no broken joins)
+      const { data: transactionsData, error } = await supabase
+        .from('flexi_credits_transactions')
+        .select('id, type, amount, description, created_at, booking_id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-        // Fetch consultant profiles for name mapping
-        supabase
-          .from('profiles')
-          .select('user_id, full_name')
-      ]);
+      if (error) throw error;
 
       // Process transactions
       const processedTransactions: Transaction[] = (transactionsData || []).map(t => {
         const transactionType = t.amount > 0 ? 'earned' as const : 'spent' as const;
         
-        // Get consultant name if transaction is linked to a booking
-        let consultantName: string | undefined;
-        if (t.bookings?.consultants) {
-          const consultant = Array.isArray(t.bookings.consultants) ? t.bookings.consultants[0] : t.bookings.consultants;
-          const consultantProfile = consultantProfiles?.find(p => p.user_id === consultant?.user_id);
-          consultantName = consultantProfile?.full_name;
-        }
+        // Consultant info not joined in this query; can be fetched separately if needed
+        let consultantName: string | undefined = undefined;
         
         return {
           id: t.id,
