@@ -83,12 +83,17 @@ export function useAdminDashboard() {
       setLoading(true);
       setError(null);
 
-      // Fetch stats in parallel
+      // Fetch admin stats first
+      const adminStatsResponse = await supabase.rpc('get_admin_stats');
+      
+      if (adminStatsResponse.error) {
+        throw new Error(`Admin access denied: ${adminStatsResponse.error.message}`);
+      }
+
+      const adminStats = adminStatsResponse.data;
+
+      // Fetch other data in parallel
       const [
-        usersResponse,
-        consultantsResponse,
-        servicesResponse,
-        bookingsResponse,
         transactionsResponse,
         recentBookingsResponse,
         recentServicesResponse,
@@ -98,37 +103,6 @@ export function useAdminDashboard() {
         recentPointsTransactionsResponse,
         recentMonthlyBillingResponse,
       ] = await Promise.all([
-        // Total users - use supabase.auth.admin for admin queries
-        fetch(`https://rrnaquethuzvbsxcssss.supabase.co/rest/v1/profiles?select=id`, {
-          headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJybmFxdWV0aHV6dmJzeGNzc3NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MzA0NDYsImV4cCI6MjA2NzMwNjQ0Nn0.gGNkG0ck5DmKe9Xc5EVXWxDDTVheAz3WDz-Cot7A7eI',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'count=exact'
-          }
-        }).then(async (res) => {
-          const countHeader = res.headers.get('Content-Range');
-          const count = countHeader ? parseInt(countHeader.split('/')[1]) : 0;
-          return { count };
-        }),
-        
-        // Active consultants
-        supabase
-          .from('consultants')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_active', true),
-        
-        // Active services
-        supabase
-          .from('services')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_active', true),
-        
-        // Active bookings
-        supabase
-          .from('bookings')
-          .select('id', { count: 'exact', head: true })
-          .in('status', ['pending', 'confirmed']),
         
         // Monthly volume (current month purchases)
         supabase
@@ -241,11 +215,18 @@ export function useAdminDashboard() {
           .limit(20),
       ]);
 
-      // Process stats
-      const totalUsers = usersResponse.count || 0;
-      const activeConsultants = consultantsResponse.count || 0;
-      const activeServices = servicesResponse.count || 0;
-      const activeBookings = bookingsResponse.count || 0;
+      // Process stats from admin function
+      const adminStatsData = adminStats as { 
+        total_users: number; 
+        active_consultants: number; 
+        active_services: number; 
+        active_bookings: number; 
+      };
+      
+      const totalUsers = adminStatsData.total_users || 0;
+      const activeConsultants = adminStatsData.active_consultants || 0;
+      const activeServices = adminStatsData.active_services || 0;
+      const activeBookings = adminStatsData.active_bookings || 0;
       const monthlyVolume = transactionsResponse.data?.reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
 
       setStats({

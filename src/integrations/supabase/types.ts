@@ -1871,6 +1871,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_admin_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_user_role: {
         Args: { check_user_id: string }
         Returns: string
