@@ -240,6 +240,59 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?mode=reset`,
+      });
+      
+      if (error) throw error;
+
+      // Send custom email using our edge function
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-password-reset', {
+          body: {
+            email: email,
+            resetUrl: `${window.location.origin}/auth?mode=reset&email=${encodeURIComponent(email)}`,
+          }
+        });
+
+        if (emailError) {
+          console.error('Custom email error:', emailError);
+          // Still show success since Supabase reset was sent
+        }
+      } catch (emailErr) {
+        console.error('Email function error:', emailErr);
+        // Still show success since Supabase reset was sent
+      }
+      
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Please check your email for instructions to reset your password.",
+      });
+    } catch (error: any) {
+      console.error('Forgot password error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send password reset email.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Show loading while auth context is initializing
   if (loading) {
     return (
@@ -340,13 +393,23 @@ const Auth = () => {
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
                 
-                <div className="text-center">
+                <div className="text-center space-y-2">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={handleForgotPassword}
+                    disabled={isLoading}
+                    className="text-sm w-full"
+                  >
+                    Forgot your password?
+                  </Button>
+                  
                   <Button 
                     type="button" 
                     variant="link" 
                     onClick={handleResendConfirmation}
                     disabled={isLoading}
-                    className="text-sm"
+                    className="text-sm text-muted-foreground"
                   >
                     Resend confirmation email
                   </Button>
