@@ -29,7 +29,7 @@ const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ConsultantProfile = lazy(() => import("./pages/ConsultantProfile"));
 const BuyerProfile = lazy(() => import("./pages/BuyerProfile"));
 const SellerProfile = lazy(() => import("./pages/SellerProfile"));
-const LeadGenCampaigns = lazy(() => import("./pages/LeadGenCampaigns"));
+
 const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const AdCopyGenerator = lazy(() => import("./pages/AdCopyGenerator"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -155,11 +155,6 @@ const App = () => (
               <Route path="/profile/seller/:userId" element={
                 <Suspense fallback={<PageSkeleton />}>
                   <ProtectedRoute><SellerProfile /></ProtectedRoute>
-                </Suspense>
-              } />
-              <Route path="/lead-gen-campaigns" element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <ProtectedRoute><LeadGenCampaigns /></ProtectedRoute>
                 </Suspense>
               } />
               <Route path="/ai-assistant" element={
