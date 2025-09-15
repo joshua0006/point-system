@@ -1,13 +1,19 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Target, Zap } from "lucide-react";
+import { ArrowLeft, Target, Zap, Users } from "lucide-react";
+import { CampaignCard } from "./CampaignCard";
+import { ScriptDrawer } from "./ScriptDrawer";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 interface FacebookAdsCatalogProps {
   onComplete: (campaignData: any) => void;
@@ -16,73 +22,85 @@ interface FacebookAdsCatalogProps {
   campaignTargets: any[];
 }
 
-export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: FacebookAdsCatalogProps) {
+export const FacebookAdsCatalog = React.memo(({ onComplete, onBack, userBalance, campaignTargets }: FacebookAdsCatalogProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
   
-  const [campaignTemplates, setCampaignTemplates] = useState([]);
+  const [campaignTemplates, setCampaignTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showLaunchModal, setShowLaunchModal] = useState(false);
-  const [campaignData, setCampaignData] = useState({
-    budget: 500,
+  const [showScriptDrawer, setShowScriptDrawer] = useState(false);
+  const [scriptDrawerData, setScriptDrawerData] = useState<any>(null);
+  const [activeAudience, setActiveAudience] = useState<string>("all");
+  const [campaignData, setCampaignData] = useState<any>({
+    budget: 0,
     consultantName: profile?.full_name || '',
     targetAudience: null,
     campaignType: null
   });
   const [prorateFirstMonth, setProrateFirstMonth] = useState(true);
 
-  // Mock templates - replace with actual Supabase call when TS issues resolved
-  const mockTemplates = [
-    {
-      id: '1',
-      name: 'NSF Financial Planning',
-      description: 'Targeted campaign for National Service personnel',
-      target_audience: 'nsf',
-      campaign_angle: 'financial_planning',
-      template_config: {
-        budget: 500,
-        expected_leads: 15,
-        cost_per_lead: 33,
-        duration_days: 30
-      }
-    },
-    {
-      id: '2',
-      name: 'Seniors Retirement Planning',
-      description: 'Focused on pre-retirees and retirees aged 55+',
-      target_audience: 'seniors',
-      campaign_angle: 'retirement_planning',
-      template_config: {
-        budget: 700,
-        expected_leads: 20,
-        cost_per_lead: 35,
-        duration_days: 30
-      }
-    },
-    {
-      id: '3',
-      name: 'General Investment Advisory',
-      description: 'General public investment and wealth management',
-      target_audience: 'general',
-      campaign_angle: 'investment_advisory',
-      template_config: {
-        budget: 600,
-        expected_leads: 18,
-        cost_per_lead: 33,
-        duration_days: 30
-      }
+  const loadCampaignsData = async () => {
+    try {
+      setLoading(true);
+      const { data: templates, error } = await supabase
+        .from('campaign_templates')
+        .select('*')
+        .eq('is_active', true)
+        .eq('campaign_type', 'facebook_ads')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCampaignTemplates(templates || []);
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load campaign templates.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    // Simulate loading
-    setLoading(true);
-    setTimeout(() => {
-      setCampaignTemplates(mockTemplates as any);
-      setLoading(false);
-    }, 1000);
+    loadCampaignsData();
   }, []);
+
+  useEffect(() => {
+    if (profile?.full_name && !campaignData.consultantName) {
+      setCampaignData(prev => ({
+        ...prev,
+        consultantName: profile.full_name || ''
+      }));
+    }
+  }, [profile?.full_name, campaignData.consultantName]);
+
+  interface AudienceGroup {
+    name: string;
+    templates: any[];
+  }
+
+  const getAudienceGroups = (): Record<string, AudienceGroup> => {
+    const groups: Record<string, AudienceGroup> = {
+      all: { name: "All Audiences", templates: campaignTemplates }
+    };
+
+    campaignTemplates.forEach(template => {
+      const audience = template.target_audience || 'general';
+      if (!groups[audience]) {
+        groups[audience] = {
+          name: getAudienceName(audience),
+          templates: []
+        };
+      }
+      groups[audience].templates.push(template);
+    });
+
+    return groups;
+  };
 
   const getAudienceName = (audienceKey: string): string => {
     const names: Record<string, string> = {
@@ -96,16 +114,22 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
 
   const handleCampaignSelect = (template: any) => {
     setSelectedTemplate(template);
-    setCampaignData({
-      ...campaignData,
+    setCampaignData(prev => ({
+      ...prev,
       budget: template.template_config?.budget || 500,
       targetAudience: {
         id: template.target_audience,
         name: getAudienceName(template.target_audience)
       },
-      campaignType: template.campaign_angle || template.name
-    });
+      campaignType: template.campaign_angle || template.name,
+      template: template
+    }));
     setShowLaunchModal(true);
+  };
+
+  const handleScriptView = (template: any) => {
+    setScriptDrawerData(template);
+    setShowScriptDrawer(true);
   };
 
   const handleLaunch = () => {
@@ -133,6 +157,8 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
     const balanceAfterDeduction = balance - budget;
     return balanceAfterDeduction >= -1000;
   };
+
+  const audienceGroups = getAudienceGroups();
 
   if (loading) {
     return (
@@ -162,42 +188,47 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
         </CardHeader>
       </Card>
 
-      {/* Templates Grid */}
+      {/* Audience Tabs */}
       <Card>
-        <CardContent className="p-6 space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {campaignTemplates.map((template: any) => (
-              <div key={template.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <h3 className="font-medium mb-2">{template.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
-                
-                {template.template_config && (
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span>Expected Leads:</span>
-                      <span className="font-medium">{template.template_config.expected_leads}</span>
+        <CardContent className="p-0">
+          <Tabs value={activeAudience} onValueChange={setActiveAudience} className="w-full">
+            <div className="border-b bg-muted/30 px-6 pt-6">
+              <TabsList className="grid w-full grid-cols-5">
+                {Object.entries(audienceGroups).map(([key, group]) => (
+                  <TabsTrigger key={key} value={key} className="text-xs">
+                    {group.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+
+            {Object.entries(audienceGroups).map(([key, group]: [string, any]) => (
+              <TabsContent key={key} value={key} className="p-6 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {group.templates?.map((template: any, index: number) => (
+                    <div key={template.id || index} className="border rounded-lg p-4">
+                      <h3 className="font-medium mb-2">{template.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
+                      <div className="flex gap-2">
+                        <Button onClick={() => handleCampaignSelect(template)} size="sm">
+                          Select
+                        </Button>
+                        <Button variant="outline" onClick={() => handleScriptView(template)} size="sm">
+                          View Script
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Cost per Lead:</span>
-                      <span className="font-medium">{template.template_config.cost_per_lead}pts</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Recommended Budget:</span>
-                      <span className="font-medium">{template.template_config.budget}pts</span>
-                    </div>
+                  ))}
+                </div>
+
+                {(!group.templates || group.templates.length === 0) && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No templates available for this audience segment.
                   </div>
                 )}
-
-                <Button 
-                  onClick={() => handleCampaignSelect(template)} 
-                  size="sm" 
-                  className="w-full"
-                >
-                  Select Template
-                </Button>
-              </div>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         </CardContent>
       </Card>
 
@@ -229,13 +260,13 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
               <div className="grid gap-4">
                 <div>
                   <Label className="text-sm font-medium">Campaign Template</Label>
-                  <p className="text-sm text-muted-foreground">{(selectedTemplate as any).name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedTemplate.name}</p>
                 </div>
                 
                 <div>
                   <Label className="text-sm font-medium">Target Audience</Label>
                   <p className="text-sm text-muted-foreground">
-                    {getAudienceName((selectedTemplate as any).target_audience)}
+                    {getAudienceName(selectedTemplate.target_audience)}
                   </p>
                 </div>
               </div>
@@ -250,14 +281,14 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
                     min="100"
                     max="5000"
                     value={campaignData.budget}
-                    onChange={(e) => setCampaignData({
-                      ...campaignData,
+                    onChange={(e) => setCampaignData(prev => ({
+                      ...prev,
                       budget: parseInt(e.target.value) || 0
-                    })}
+                    }))}
                     className="mt-1"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: {(selectedTemplate as any).template_config?.budget || 500} points
+                    Recommended: {selectedTemplate.template_config?.budget || 500} points
                   </p>
                 </div>
 
@@ -266,10 +297,10 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
                   <Input
                     id="consultant"
                     value={campaignData.consultantName}
-                    onChange={(e) => setCampaignData({
-                      ...campaignData,
+                    onChange={(e) => setCampaignData(prev => ({
+                      ...prev,
                       consultantName: e.target.value
-                    })}
+                    }))}
                     className="mt-1"
                     placeholder="Your name for the campaign"
                   />
@@ -298,20 +329,20 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
               )}
 
               {/* Expected Results */}
-              {(selectedTemplate as any).template_config && (
+              {selectedTemplate.template_config && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                   <h4 className="font-medium mb-2">Expected Campaign Performance</h4>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div className="text-center">
-                      <div className="font-semibold">{(selectedTemplate as any).template_config.expected_leads || 'N/A'}</div>
+                      <div className="font-semibold">{selectedTemplate.template_config.expected_leads || 'N/A'}</div>
                       <div className="text-muted-foreground">Leads/Month</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-semibold">{(selectedTemplate as any).template_config.cost_per_lead || 'N/A'}</div>
+                      <div className="font-semibold">{selectedTemplate.template_config.cost_per_lead || 'N/A'}</div>
                       <div className="text-muted-foreground">Cost per Lead</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-semibold">{(selectedTemplate as any).template_config.duration_days || 30} days</div>
+                      <div className="font-semibold">{selectedTemplate.template_config.duration_days || 30} days</div>
                       <div className="text-muted-foreground">Duration</div>
                     </div>
                   </div>
@@ -334,6 +365,23 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Script Drawer */}
+      {scriptDrawerData && (
+        <ScriptDrawer
+          isOpen={showScriptDrawer}
+          onClose={() => setShowScriptDrawer(false)}
+          campaignTitle={scriptDrawerData.name || 'Campaign'}
+          targetAudience={scriptDrawerData.target_audience || 'general'}
+          scripts={scriptDrawerData.scripts || []}
+          templateId={scriptDrawerData.id || ''}
+          campaignAngle={scriptDrawerData.campaign_angle}
+        />
+      )}
     </div>
   );
-}
+});
+
+FacebookAdsCatalog.displayName = 'FacebookAdsCatalog';
+
+export default FacebookAdsCatalog;
