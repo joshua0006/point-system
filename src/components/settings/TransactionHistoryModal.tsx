@@ -100,15 +100,15 @@ export const TransactionHistoryModal = ({ isOpen, onClose }: TransactionHistoryM
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden">
+        <DialogHeader className="pb-4">
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
             Transaction History
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 overflow-hidden">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-4">
             <Card className="border border-green-200 bg-green-50/50">
@@ -143,47 +143,51 @@ export const TransactionHistoryModal = ({ isOpen, onClose }: TransactionHistoryM
           <Separator />
 
           {/* Transaction List */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Recent Transactions</h3>
-            <ScrollArea className="h-96">
+          <div className="min-h-0 flex-1">
+            <h3 className="text-lg font-semibold mb-3">Recent Transactions</h3>
+            <ScrollArea className="h-[300px] pr-4">
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : transactions.length === 0 ? (
-                <div className="text-center py-8">
-                  <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <div className="text-center py-12">
+                  <Receipt className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">No Transactions Yet</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                     Your transaction history will appear here once you start making purchases.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {transactions.map((transaction) => (
-                    <Card key={transaction.id} className="border border-border/60">
+                    <Card key={transaction.id} className="hover:shadow-sm transition-shadow">
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {getTransactionIcon(transaction.type, transaction.amount)}
-                            <div>
-                              <div className="font-medium">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className="mt-1">
+                              {getTransactionIcon(transaction.type, transaction.amount)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-sm truncate">
                                 {transaction.description || getTransactionTypeLabel(transaction.type)}
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar className="h-3 w-3" />
-                                {format(new Date(transaction.created_at), 'MMM d, yyyy h:mm a')}
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                <Calendar className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">
+                                  {format(new Date(transaction.created_at), 'MMM d, yyyy h:mm a')}
+                                </span>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <Badge 
                               variant="secondary"
-                              className={getTransactionColor(transaction.type, transaction.amount)}
+                              className={`text-xs ${getTransactionColor(transaction.type, transaction.amount)}`}
                             >
                               {getTransactionTypeLabel(transaction.type)}
                             </Badge>
-                            <div className={`text-lg font-bold ${
+                            <div className={`text-sm font-bold whitespace-nowrap ${
                               transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
                             }`}>
                               {transaction.amount > 0 ? '+' : ''}{transaction.amount.toLocaleString()}
@@ -199,8 +203,8 @@ export const TransactionHistoryModal = ({ isOpen, onClose }: TransactionHistoryM
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end pt-4 border-t">
-            <Button onClick={onClose}>
+          <div className="flex justify-end pt-4 border-t mt-4">
+            <Button onClick={onClose} className="px-6">
               Close
             </Button>
           </div>
