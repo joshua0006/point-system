@@ -1,4 +1,5 @@
 import React from 'react';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdCopyWizard } from '@/components/adcopy/AdCopyWizard';
 import { Badge } from '@/components/ui/badge';
@@ -6,18 +7,15 @@ import { Sparkles, Target, Zap, PenTool } from 'lucide-react';
 
 const AdCopyGenerator = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
-      <div className="mx-auto max-w-7xl">
-        {/* Header Section */}
+    <SidebarLayout title="AI Ad Copy Generator" description="Create high-converting ad copy that captures attention and drives action">
+      <div className="bg-gradient-to-br from-background to-muted/20 p-4 min-h-full">
+        <div className="mx-auto max-w-7xl">
+        {/* Header Section - simplified since title is in SidebarLayout */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <PenTool className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="mb-4 text-4xl font-bold text-foreground">
-            AI Ad Copy Generator
-          </h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Create high-converting ad copy that captures attention, sparks curiosity, and drives action. 
             Our AI follows proven copywriting frameworks to generate compelling ads for any platform.
           </p>
         </div>
@@ -98,8 +96,9 @@ const AdCopyGenerator = () => {
 
         {/* Main Wizard */}
         <AdCopyWizard />
+        </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 

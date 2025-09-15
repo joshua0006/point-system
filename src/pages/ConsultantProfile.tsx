@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { AllServicesModal } from '@/components/profile/AllServicesModal';
 import { ReviewsModal } from '@/components/profile/ReviewsModal';
@@ -122,23 +122,21 @@ export default function ConsultantProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+      <SidebarLayout title="Loading Profile..." description="Please wait while we load the consultant profile">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Loading profile...</div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   if (!profile || !profile.consultant) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+      <SidebarLayout title="Profile Not Found" description="The requested consultant profile could not be found">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Consultant profile not found</div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
@@ -149,9 +147,7 @@ export default function ConsultantProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title={`${profile?.full_name || 'Consultant'} Profile`} description="View consultant profile, services, and reviews">
       <div className="container mx-auto px-4 py-8">
         <ConsultantProfileHeader
           profile={profile}
@@ -199,6 +195,6 @@ export default function ConsultantProfile() {
         consultantName={profile?.full_name || 'Professional Consultant'}
         onServiceDetails={handleServiceDetails}
       />
-    </div>
+    </SidebarLayout>
   );
 }

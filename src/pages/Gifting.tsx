@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigation } from '@/components/Navigation';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import GiftingMerchants from '@/components/marketplace/GiftingMerchants';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
@@ -8,24 +8,13 @@ const Gifting = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Gifting Merchants" description="Send thoughtful gifts to your clients and partners">
       <ResponsiveContainer>
         <div className={isMobile ? "pt-4" : "pt-8"}>
-          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-            <h1 className={isMobile ? "text-xl font-bold text-foreground mb-2" : "text-2xl sm:text-3xl font-bold text-foreground mb-2"}>
-              Gifting Merchants
-            </h1>
-            <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-              Send thoughtful gifts to your clients and partners
-            </p>
-          </div>
-          
           <GiftingMerchants />
         </div>
       </ResponsiveContainer>
-    </div>
+    </SidebarLayout>
   );
 };
 

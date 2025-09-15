@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { MarketplaceHero } from '@/components/marketplace/MarketplaceHero';
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
 import { MobileMarketplaceFilters } from '@/components/marketplace/MobileMarketplaceFilters';
@@ -62,9 +62,7 @@ const Services = () => {
     console.error('Services errors:', { servicesError, categoriesError });
     
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        
+      <SidebarLayout title="Services Error" description="There was an error loading services">
         <div className="container mx-auto px-4 py-16">
           <Card className="p-8 text-center border-destructive/20">
             <CardContent>
@@ -84,16 +82,14 @@ const Services = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   // Show loading state
   if (servicesLoading || categoriesLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        
+      <SidebarLayout title="Loading Services..." description="Please wait while we load the available services">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
@@ -101,14 +97,12 @@ const Services = () => {
             <p className="text-muted-foreground">Getting the latest services for you</p>
           </div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Services" description="Browse and book professional consultation services">
       <MarketplaceHero servicesCount={services.length} />
       
       <ResponsiveContainer>
@@ -221,7 +215,7 @@ const Services = () => {
           />
         </div>
       </ResponsiveContainer>
-    </div>
+    </SidebarLayout>
   );
 };
 

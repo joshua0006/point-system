@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Navigation } from '@/components/Navigation';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { ChatModeToggle } from '@/components/chat/ChatModeToggle';
@@ -120,17 +120,10 @@ const Messages = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Messages" description="Manage your conversations and communications">
       <ResponsiveContainer>
         <div className="max-w-4xl mx-auto">
           <div className={isMobile ? "flex flex-col gap-4 mb-4" : "flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4"}>
-            <div className="flex items-center gap-3">
-              <MessageCircle className={isMobile ? "h-6 w-6 text-primary" : "h-6 w-6 sm:h-8 sm:w-8 text-primary"} />
-              <h1 className={isMobile ? "text-xl font-bold text-foreground" : "text-2xl sm:text-3xl font-bold text-foreground"}>Messages</h1>
-            </div>
-            
             {/* Show mode toggle only for consultants */}
             {profile?.role === 'consultant' && (
               <div className={isMobile ? "flex items-center justify-center gap-2" : "flex items-center gap-3 sm:gap-4"}>
@@ -197,7 +190,7 @@ const Messages = () => {
         open={chatOpen}
         onOpenChange={handleChatClose}
       />
-      
+
       <UndoToast
         open={undoToastOpen}
         onClose={() => setUndoToastOpen(false)}
@@ -209,7 +202,7 @@ const Messages = () => {
         }}
         message={undoToastMessage}
       />
-    </div>
+    </SidebarLayout>
   );
 };
 

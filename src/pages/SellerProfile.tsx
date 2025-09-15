@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { BuyerProfileHeader } from '@/components/profile/BuyerProfileHeader';
 import { BuyerProfileStats } from '@/components/profile/BuyerProfileStats';
@@ -53,32 +53,28 @@ export default function SellerProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+      <SidebarLayout title="Loading Profile..." description="Please wait while we load the seller profile">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Loading profile...</div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+      <SidebarLayout title="Profile Not Found" description="The requested seller profile could not be found">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Profile not found</div>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   const isOwnProfile = currentUserProfile?.user_id === userId;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title={`${profile?.full_name || 'Seller'} Profile`} description="View seller profile and activity">
       <div className="container mx-auto px-4 py-8">
         <BuyerProfileHeader
           profile={profile}
@@ -98,6 +94,6 @@ export default function SellerProfile() {
           consultant={consultant}
         />
       )}
-    </div>
+    </SidebarLayout>
   );
 }

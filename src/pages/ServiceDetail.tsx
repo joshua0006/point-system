@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -167,8 +167,7 @@ const ServiceDetail = () => {
   if (!service) {
     console.log('ServiceDetail - No service found for ID:', serviceId);
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+      <SidebarLayout title="Service Not Found" description="The requested service could not be found">
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Service not found</h1>
           <p className="text-muted-foreground mb-4">
@@ -179,7 +178,7 @@ const ServiceDetail = () => {
             Back to Marketplace
           </Button>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
@@ -188,9 +187,7 @@ const ServiceDetail = () => {
                         'Unknown Consultant';
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title={service?.title || 'Service Details'} description="View service details and book a consultation">
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Button 
@@ -450,7 +447,7 @@ const ServiceDetail = () => {
           setChatOpen(true);
         }}
       />
-    </div>
+    </SidebarLayout>
   );
 };
 
