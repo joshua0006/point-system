@@ -20,13 +20,7 @@ const Index = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
 
-  useEffect(() => {
-    // If user is authenticated and page has loaded, redirect to marketplace
-    if (!loading && user) {
-      console.log('Authenticated user detected on index page, redirecting to marketplace...');
-      navigate('/marketplace', { replace: true });
-    }
-  }, [user, loading, navigate]);
+  // Removed automatic redirect - let users stay on homepage
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,11 +195,6 @@ const Index = () => {
         </div>
       </div>
     );
-  }
-
-  // If user is authenticated, don't render the login page (redirect will happen via useEffect)
-  if (user) {
-    return null;
   }
 
   return (
