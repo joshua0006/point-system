@@ -20,6 +20,8 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const Services = lazy(() => import("./pages/Services"));
 const Campaigns = lazy(() => import("./pages/Campaigns"));
+const CampaignLaunch = lazy(() => import("./pages/CampaignLaunch"));
+const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const FacebookAdsCampaigns = lazy(() => import("./pages/FacebookAdsCampaigns"));
 const ColdCallingCampaigns = lazy(() => import("./pages/ColdCallingCampaigns"));
 const VASupportCampaigns = lazy(() => import("./pages/VASupportCampaigns"));
@@ -105,6 +107,16 @@ const App = () => (
               <Route path="/campaigns" element={
                 <Suspense fallback={<PageSkeleton />}>
                   <ProtectedRoute><Campaigns /></ProtectedRoute>
+                </Suspense>
+              } />
+              <Route path="/campaigns/launch" element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <ProtectedRoute><CampaignLaunch /></ProtectedRoute>
+                </Suspense>
+              } />
+              <Route path="/campaigns/my-campaigns" element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <ProtectedRoute><MyCampaigns /></ProtectedRoute>
                 </Suspense>
               } />
               <Route path="/campaigns/facebook-ads" element={
