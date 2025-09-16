@@ -220,7 +220,7 @@ const CampaignLaunch = React.memo(() => {
       }
 
       // Prepare success modal data
-      setSuccessCampaignDetails({
+      const campaignDetails = {
         id: campaign.id,
         name: campaignName,
         description:
@@ -235,7 +235,36 @@ const CampaignLaunch = React.memo(() => {
         budget: budget,
         consultantName: pendingCampaign.consultantName,
         hours: pendingCampaign.hours
-      });
+      };
+
+      setSuccessCampaignDetails(campaignDetails);
+
+      // Send campaign launch emails
+      try {
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-campaign-launch-emails', {
+          body: {
+            campaignId: campaign.id,
+            campaignName: campaignName,
+            campaignType: pendingCampaign.method,
+            targetAudience: pendingCampaign.targetAudience?.name,
+            budget: budget,
+            consultantName: pendingCampaign.consultantName,
+            hours: pendingCampaign.hours,
+            userEmail: user.email,
+            userName: profile?.full_name || user.email || 'User'
+          }
+        });
+
+        if (emailError) {
+          console.error('Failed to send campaign launch emails:', emailError);
+          // Don't fail the campaign launch if emails fail, just log it
+        } else {
+          console.log('Campaign launch emails sent successfully:', emailResult);
+        }
+      } catch (emailError) {
+        console.error('Error sending campaign launch emails:', emailError);
+        // Don't fail the campaign launch if emails fail
+      }
 
       await refreshProfile();
       setShowCheckoutModal(false);
@@ -244,7 +273,7 @@ const CampaignLaunch = React.memo(() => {
       setCurrentFlow('method-selection');
       toast({
         title: "Campaign Launched Successfully! 🎉",
-        description: `${amountToDeduct} points deducted from your account.`
+        description: `${amountToDeduct} points deducted from your account. Confirmation emails sent!`
       });
     } catch (error) {
       console.error('Campaign creation failed:', error);

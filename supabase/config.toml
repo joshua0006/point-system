@@ -54,11 +54,14 @@ verify_jwt = false
 [functions.regenerate-campaign-scripts]
 verify_jwt = true
 
+[functions.send-admin-notification]
+verify_jwt = false
+
 [functions.send-auto-reply]
 verify_jwt = false
 
-[functions.send-admin-notification]
-verify_jwt = false
+[functions.send-campaign-launch-emails]
+verify_jwt = true
 
 [functions.setup-demo-data]
 verify_jwt = false
