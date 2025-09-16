@@ -31,6 +31,11 @@ export const CampaignLaunchSuccessModal = ({
   onClose, 
   campaignDetails 
 }: CampaignLaunchSuccessModalProps) => {
+  // Return early if campaignDetails is null
+  if (!campaignDetails) {
+    return null;
+  }
+  
   const isFacebookAds = campaignDetails.method === 'facebook-ads';
   const isColdCalling = campaignDetails.method === 'cold-calling';
   const isVA = campaignDetails.method === 'va-support';
