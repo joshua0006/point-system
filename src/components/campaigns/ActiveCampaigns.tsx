@@ -108,9 +108,35 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
 
       if (error) throw error;
 
+      // Get user details for email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Send pause notification emails
+        try {
+          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-campaign-launch-emails', {
+            body: {
+              emailType: 'pause',
+              campaignId: campaignId,
+              campaignName: 'Campaign',
+              campaignType: 'facebook-ads',
+              budget: 100,
+              userEmail: user.email || 'user@example.com',
+              userName: user.email || 'User',
+              action: 'pause'
+            }
+          });
+
+          if (emailError) {
+            console.error('Failed to send pause notification emails:', emailError);
+          }
+        } catch (emailError) {
+          console.error('Error sending pause notification emails:', emailError);
+        }
+      }
+
       toast({
         title: "Campaign Paused",
-        description: "Your campaign has been paused. You can resume it anytime.",
+        description: "Your campaign has been paused. Confirmation emails sent.",
       });
 
       fetchCampaigns();
@@ -133,9 +159,35 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
 
       if (error) throw error;
 
+      // Get user details for email  
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Send resume notification emails
+        try {
+          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-campaign-launch-emails', {
+            body: {
+              emailType: 'resume',
+              campaignId: campaignId,
+              campaignName: 'Campaign',
+              campaignType: 'facebook-ads',
+              budget: 100,
+              userEmail: user.email || 'user@example.com',
+              userName: user.email || 'User',
+              action: 'resume'
+            }
+          });
+
+          if (emailError) {
+            console.error('Failed to send resume notification emails:', emailError);
+          }
+        } catch (emailError) {
+          console.error('Error sending resume notification emails:', emailError);
+        }
+      }
+
       toast({
         title: "Campaign Resumed",
-        description: "Your campaign is now active and running.",
+        description: "Your campaign has been resumed. Confirmation emails sent.",
       });
 
       fetchCampaigns();

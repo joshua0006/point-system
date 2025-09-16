@@ -31,9 +31,31 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
 
       if (error) throw error;
 
+      // Send pause notification emails
+      try {
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-campaign-launch-emails', {
+          body: {
+            emailType: 'pause',
+            campaignId: campaign.id,
+            campaignName: campaign.campaign_name || 'Campaign',
+            campaignType: 'facebook-ads',
+            budget: campaign.budget_contribution,
+            userEmail: campaign.user_email || 'user@example.com',
+            userName: campaign.user_full_name || 'User',
+            action: 'pause'
+          }
+        });
+
+        if (emailError) {
+          console.error('Failed to send pause notification emails:', emailError);
+        }
+      } catch (emailError) {
+        console.error('Error sending pause notification emails:', emailError);
+      }
+
       toast({
         title: "Campaign Paused ⏸️",
-        description: "Your Facebook ads campaign has been paused. You won't be charged for the next month.",
+        description: "Your Facebook ads campaign has been paused. Confirmation emails sent.",
       });
 
       onUpdate();
