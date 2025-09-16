@@ -63,6 +63,9 @@ verify_jwt = false
 [functions.send-campaign-launch-emails]
 verify_jwt = true
 
+[functions.send-subscription-emails]
+verify_jwt = true
+
 [functions.setup-demo-data]
 verify_jwt = false
 

@@ -58,19 +58,29 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       }
     } else {
       // Direct subscription for new users
-      const success = await processSubscriptionChange(plan.credits);
-      if (success) {
+      const result = await processSubscriptionChange(plan.credits, subscription?.subscribed || false);
+      if (result.success) {
+        // Refresh subscription and profile data
+        await refreshSubscription();
         onClose();
+        if (onSuccess) {
+          onSuccess(plan.price, true);
+        }
       }
     }
   };
 
   const handleUpgradeConfirm = async () => {
     if (pendingUpgrade) {
-      const success = await processSubscriptionChange(pendingUpgrade.credits);
-      if (success) {
+      const result = await processSubscriptionChange(pendingUpgrade.credits, subscription?.subscribed || false);
+      if (result.success) {
+        // Refresh subscription and profile data
+        await refreshSubscription();
         onClose();
         setShowConfirmationModal(false);
+        if (onSuccess) {
+          onSuccess(pendingUpgrade.price, true);
+        }
       }
     }
   };

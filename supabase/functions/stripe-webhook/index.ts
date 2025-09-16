@@ -178,10 +178,50 @@ serve(async (req) => {
       const invoice = event.data.object;
       logStep("Processing invoice payment", { invoiceId: invoice.id, billing_reason: invoice.billing_reason });
 
-      // Skip proration invoices - credits are handled immediately in update-subscription
+      // For subscription updates (upgrades/downgrades), send confirmation email
       if (invoice.billing_reason === 'subscription_update') {
+        logStep("Processing subscription update confirmation email", { invoiceId: invoice.id });
+        
+        try {
+          // Get subscription details
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+          const customer = await stripe.customers.retrieve(invoice.customer);
+          
+          if (customer.email) {
+            // Find user profile
+            const { data: profile } = await supabaseClient
+              .from('profiles')
+              .select('user_id, full_name')
+              .eq('email', customer.email)
+              .maybeSingle();
+            
+            if (profile) {
+              // Send upgrade confirmation email
+              const creditsPerMonth = parseInt(subscription.metadata?.credits || "0");
+              
+              await supabaseClient.functions.invoke('send-subscription-emails', {
+                body: {
+                  emailType: 'upgrade',
+                  subscriptionData: {
+                    credits: creditsPerMonth,
+                    planName: subscription.metadata?.plan_name || `Pro ${Math.ceil(creditsPerMonth / 100)} Plan`,
+                    upgradeCreditsAdded: creditsPerMonth - (parseInt(subscription.metadata?.previous_credits || "0"))
+                  }
+                },
+                headers: {
+                  Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+                }
+              });
+              
+              logStep("Subscription upgrade email sent", { userId: profile.user_id, email: customer.email });
+            }
+          }
+        } catch (emailError) {
+          logStep("Failed to send upgrade confirmation email", { error: emailError.message });
+        }
+        
         logStep("Skipping proration invoice - credits handled immediately", { invoiceId: invoice.id });
-        return new Response(JSON.stringify({ received: true, message: "Proration invoice skipped" }), {
+        return new Response(JSON.stringify({ received: true, message: "Proration invoice processed" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });

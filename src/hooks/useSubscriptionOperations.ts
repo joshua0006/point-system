@@ -43,24 +43,56 @@ export function useSubscriptionOperations() {
     }
   };
 
-  const processSubscriptionChange = async (credits: number) => {
+  const processSubscriptionChange = async (credits: number, hasSubscription: boolean) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-        body: { credits }
-      });
-      
-      if (error) throw error;
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-      
-      toast({
-        title: "Redirected to Stripe Checkout",
-        description: "Complete your payment in the new tab to activate your subscription.",
-      });
-      
-      return true;
+      if (hasSubscription) {
+        // For existing subscribers, use update-subscription for proper proration
+        const { data, error } = await supabase.functions.invoke('update-subscription', {
+          body: { credits }
+        });
+        
+        if (error) throw error;
+        
+        // Send confirmation email
+        try {
+          await supabase.functions.invoke('send-subscription-emails', {
+            body: { 
+              emailType: 'upgrade',
+              subscriptionData: { 
+                credits, 
+                upgradeCreditsAdded: data.upgrade_credits_added 
+              }
+            }
+          });
+        } catch (emailError) {
+          console.warn('Failed to send confirmation email:', emailError);
+        }
+        
+        toast({
+          title: "Subscription Updated Successfully!",
+          description: `Your plan has been upgraded and ${data.upgrade_credits_added || 0} credits have been added to your account.`,
+        });
+        
+        return { success: true, data };
+      } else {
+        // For new subscribers, use create-subscription-checkout
+        const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+          body: { credits }
+        });
+        
+        if (error) throw error;
+        
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+        
+        toast({
+          title: "Redirected to Stripe Checkout",
+          description: "Complete your payment in the new tab to activate your subscription.",
+        });
+        
+        return { success: true, data };
+      }
     } catch (error: any) {
       console.error('Error processing subscription:', error);
       toast({
@@ -68,7 +100,7 @@ export function useSubscriptionOperations() {
         description: error.message || "Failed to process subscription",
         variant: "destructive",
       });
-      return false;
+      return { success: false, error: error.message };
     } finally {
       setLoading(false);
     }
