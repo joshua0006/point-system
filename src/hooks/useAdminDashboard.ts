@@ -273,7 +273,7 @@ export function useAdminDashboard() {
       const [userProfiles, consultantProfiles] = await Promise.all([
         userIds.size > 0 ? supabase
           .from('profiles')
-          .select('user_id, full_name')
+          .select('user_id, full_name, email')
           .in('user_id', Array.from(userIds)) : Promise.resolve({ data: [] }),
         consultantIds.size > 0 ? supabase
           .from('consultants')
@@ -301,8 +301,10 @@ export function useAdminDashboard() {
       // Create lookup maps
       const userProfileMap = new Map<string, string>();
       userProfiles.data?.forEach(p => {
-        if (p.user_id && p.full_name) {
-          userProfileMap.set(p.user_id, p.full_name);
+        if (p.user_id) {
+          // Use full_name or email as fallback
+          const displayName = p.full_name || p.email || 'User';
+          userProfileMap.set(p.user_id, displayName);
         }
       });
 
