@@ -80,12 +80,13 @@ export function useSubscriptionOperations() {
           
           toast({
             title: "Redirected to Payment",
-            description: `Complete your S$${data.billing_info?.immediate_charge || 0} payment to upgrade your plan.`,
+            description: `Complete your payment to upgrade your plan.`,
           });
         } else {
+          // Handle downgrade or no checkout needed
           toast({
             title: "Subscription Updated Successfully!",
-            description: `Your plan has been upgraded and ${data.upgrade_credits_added || 0} credits have been added to your account.`,
+            description: data.message || "Your subscription has been updated.",
           });
         }
         

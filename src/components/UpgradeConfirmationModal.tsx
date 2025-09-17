@@ -94,14 +94,27 @@ export function UpgradeConfirmationModal({
                   <p className="text-sm text-muted-foreground">
                     {upgradeAmount >= 0 
                       ? `You'll get ${Math.abs(additionalCredits)} additional credits immediately and pay S$${upgradeAmount} now.`
-                      : `You'll get ${Math.abs(additionalCredits)} fewer credits and save money starting next month.`
+                      : `Starting next month, you'll get ${Math.abs(additionalCredits)} fewer credits and save S$${Math.abs(upgradeAmount)} monthly.`
                     }
                   </p>
-                  {upgradeAmount >= 0 && (
+                  {upgradeAmount >= 0 ? (
                     <div className="bg-primary/10 rounded p-3 border border-primary/20 mt-2">
                       <p className="font-medium text-sm text-primary">Payment Details:</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         • Pay S${upgradeAmount} now for the upgrade
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        • Starting next month: S${newPlan.price}/month
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-green-50 rounded p-3 border border-green-200 mt-2">
+                      <p className="font-medium text-sm text-green-700">Savings Details:</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        • No immediate charge
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        • Your existing credits don't expire
                       </p>
                       <p className="text-xs text-muted-foreground">
                         • Starting next month: S${newPlan.price}/month

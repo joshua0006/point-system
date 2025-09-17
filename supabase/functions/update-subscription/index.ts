@@ -129,74 +129,74 @@ serve(async (req) => {
 
     const idempotencyKey = `update-${user.id}-${credits}-${Date.now()}`;
 
-    // For subscription upgrades, create a checkout for the difference and schedule subscription change
-    logStep("Creating upgrade checkout", {
-      currentCredits,
-      newCredits,
-      upgradeDifference,
-      upgradeAmount: upgradeDifference * 100 // $1 per credit difference
-    });
-
-    // Create a checkout session for the upgrade difference
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'sgd',
-            product_data: {
-              name: `Upgrade to ${planName}`,
-              description: `Upgrade difference: ${upgradeDifference} credits`,
-            },
-            unit_amount: Math.max(0, upgradeDifference * 100), // $1 per credit difference in cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment', // One-time payment for the difference
-      success_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_success=true`,
-      cancel_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_cancelled=true`,
-      metadata: {
-        user_id: user.id,
-        upgrade_type: 'subscription_change',
-        old_credits: currentCredits.toString(),
-        new_credits: newCredits.toString(),
-        subscription_id: currentSubscription.id,
-        new_price_id: newPriceId,
-        plan_name: planName
-      }
-    });
-
-    // Schedule the subscription change for the next billing period
-    // Update the subscription to change at the next billing cycle (no immediate proration)
-    await stripe.subscriptions.update(currentSubscription.id, {
-      items: [
-        {
-          id: currentSubscription.items.data[0].id,
-          price: newPriceId,
-        },
-      ],
-      proration_behavior: "none", // No immediate proration, change takes effect next cycle
-      metadata: {
-        user_id: user.id,
-        credits: credits.toString(),
-        plan_name: planName,
-        previous_credits: currentCredits.toString(),
-        scheduled_upgrade: 'true'
-      },
-    }, {
-      idempotencyKey: `schedule-${idempotencyKey}`
-    });
-
-    logStep("Checkout session created", { 
-      sessionId: session.id,
-      checkoutUrl: session.url,
-      upgradeAmount: upgradeDifference * 100
-    });
-
-    // Grant immediate credits for the upgrade (they'll be charged via checkout)
+    // Handle upgrades vs downgrades differently
     if (upgradeDifference > 0) {
+      // UPGRADE: Create checkout for difference and schedule subscription change
+      logStep("Creating upgrade checkout", {
+        currentCredits,
+        newCredits,
+        upgradeDifference,
+        upgradeAmount: upgradeDifference * 100
+      });
+
+      // Create a checkout session for the upgrade difference
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'sgd',
+              product_data: {
+                name: `Upgrade to ${planName}`,
+                description: `Upgrade difference: ${upgradeDifference} credits`,
+              },
+              unit_amount: upgradeDifference * 100, // $1 per credit difference in cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment', // One-time payment for the difference
+        success_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_success=true`,
+        cancel_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_cancelled=true`,
+        metadata: {
+          user_id: user.id,
+          upgrade_type: 'subscription_change',
+          old_credits: currentCredits.toString(),
+          new_credits: newCredits.toString(),
+          subscription_id: currentSubscription.id,
+          new_price_id: newPriceId,
+          plan_name: planName
+        }
+      });
+
+      // Schedule the subscription change for the next billing period
+      await stripe.subscriptions.update(currentSubscription.id, {
+        items: [
+          {
+            id: currentSubscription.items.data[0].id,
+            price: newPriceId,
+          },
+        ],
+        proration_behavior: "none", // No immediate proration, change takes effect next cycle
+        metadata: {
+          user_id: user.id,
+          credits: credits.toString(),
+          plan_name: planName,
+          previous_credits: currentCredits.toString(),
+          scheduled_upgrade: 'true'
+        },
+      }, {
+        idempotencyKey: `schedule-${idempotencyKey}`
+      });
+
+      logStep("Checkout session created", { 
+        sessionId: session.id,
+        checkoutUrl: session.url,
+        upgradeAmount: upgradeDifference * 100
+      });
+
+      // Grant immediate credits for the upgrade (they'll be charged via checkout)
       const { error: creditError } = await supabaseService
         .rpc('increment_flexi_credits_balance', {
           user_id: user.id,
@@ -226,24 +226,102 @@ serve(async (req) => {
       } else {
         logStep("Credit transaction logged successfully");
       }
-    }
 
-    return new Response(JSON.stringify({
-      success: true,
-      checkout_url: session.url,
-      subscription_id: currentSubscription.id,
-      upgrade_credits_added: upgradeDifference,
-      message: "Checkout session created for subscription upgrade",
-      billing_info: {
-        immediate_charge: `S$${upgradeDifference}`,
-        next_billing_date: "1st of next month",
-        new_monthly_amount: `S$${newCredits}`,
-        explanation: `You'll pay S$${upgradeDifference} now for ${upgradeDifference} additional credits. Starting next month, you'll be charged S$${newCredits} monthly.`
+      return new Response(JSON.stringify({
+        success: true,
+        checkout_url: session.url,
+        subscription_id: currentSubscription.id,
+        upgrade_credits_added: upgradeDifference,
+        message: "Checkout session created for subscription upgrade",
+        billing_info: {
+          immediate_charge: `S$${upgradeDifference}`,
+          next_billing_date: "1st of next month",
+          new_monthly_amount: `S$${newCredits}`,
+          explanation: `You'll pay S$${upgradeDifference} now for ${upgradeDifference} additional credits. Starting next month, you'll be charged S$${newCredits} monthly.`
+        }
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+      
+    } else if (upgradeDifference < 0) {
+      // DOWNGRADE: Just update subscription for next billing cycle, no immediate changes
+      logStep("Processing subscription downgrade", {
+        currentCredits,
+        newCredits,
+        creditReduction: Math.abs(upgradeDifference)
+      });
+
+      // Update subscription to take effect next billing cycle
+      const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
+        items: [
+          {
+            id: currentSubscription.items.data[0].id,
+            price: newPriceId,
+          },
+        ],
+        proration_behavior: "none", // No immediate changes, takes effect next cycle
+        metadata: {
+          user_id: user.id,
+          credits: credits.toString(),
+          plan_name: planName,
+          previous_credits: currentCredits.toString(),
+          scheduled_downgrade: 'true'
+        },
+      }, {
+        idempotencyKey
+      });
+
+      logStep("Subscription downgrade scheduled", {
+        subscriptionId: updatedSubscription.id,
+        effectiveNextCycle: true
+      });
+
+      // Send confirmation email for downgrade
+      try {
+        await supabaseService.functions.invoke('send-subscription-emails', {
+          body: { 
+            emailType: 'downgrade',
+            subscriptionData: { 
+              credits: newCredits,
+              planName: planName,
+              oldCredits: currentCredits,
+              savingsAmount: Math.abs(upgradeDifference)
+            }
+          }
+        });
+      } catch (emailError) {
+        logStep("Warning: Failed to send downgrade confirmation email", { error: emailError });
       }
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+
+      return new Response(JSON.stringify({
+        success: true,
+        subscription_id: updatedSubscription.id,
+        message: "Subscription downgrade scheduled for next billing cycle",
+        billing_info: {
+          next_billing_date: "1st of next month",
+          new_monthly_amount: `S$${newCredits}`,
+          monthly_savings: `S$${Math.abs(upgradeDifference)}`,
+          explanation: `Your subscription will be downgraded to ${planName} starting next month. You'll be charged S$${newCredits} monthly and save S$${Math.abs(upgradeDifference)} per month. Your existing credits don't expire.`
+        }
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+      
+    } else {
+      // Same plan - no changes needed
+      logStep("No plan change detected", { currentCredits, newCredits });
+      
+      return new Response(JSON.stringify({
+        success: true,
+        message: "No changes made - you're already on this plan",
+        subscription_id: currentSubscription.id
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
