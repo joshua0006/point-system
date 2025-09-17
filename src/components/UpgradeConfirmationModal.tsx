@@ -68,9 +68,7 @@ export function UpgradeConfirmationModal({
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-2">
             {currentPlan 
-              ? (upgradeAmount >= 0 
-                  ? "Upgrade your plan - you'll only pay the difference for the remaining days this month" 
-                  : "Downgrade your plan - new rate applies starting next month")
+              ? "You'll pay the upgrade difference now and your monthly billing will change starting next month"
               : "Here's what happens when you subscribe:"
             }
           </p>
@@ -93,33 +91,22 @@ export function UpgradeConfirmationModal({
                   <span>{newPlan.credits} credits</span>
                 </div>
                 <div className="pt-2 border-t border-border/30">
-                  {prorationDetails ? (
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        {upgradeAmount >= 0 
-                          ? `You'll get ${Math.abs(additionalCredits)} ${additionalCredits >= 0 ? 'additional' : 'fewer'} credits immediately.`
-                          : `You'll get ${Math.abs(additionalCredits)} fewer credits starting next month.`
-                        }
+                  <p className="text-sm text-muted-foreground">
+                    {upgradeAmount >= 0 
+                      ? `You'll get ${Math.abs(additionalCredits)} additional credits immediately and pay S$${upgradeAmount} now.`
+                      : `You'll get ${Math.abs(additionalCredits)} fewer credits and save money starting next month.`
+                    }
+                  </p>
+                  {upgradeAmount >= 0 && (
+                    <div className="bg-primary/10 rounded p-3 border border-primary/20 mt-2">
+                      <p className="font-medium text-sm text-primary">Payment Details:</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        • Pay S${upgradeAmount} now for the upgrade
                       </p>
-                      {prorationDetails.prorationAmount > 0 && (
-                        <div className="bg-primary/10 rounded p-3 border border-primary/20">
-                          <p className="font-medium text-sm text-primary">Proration Details:</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            You'll be charged S${(prorationDetails.prorationAmount / 100).toFixed(2)} immediately for the remaining days in this billing period.
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Next billing: {formattedDate}
-                          </p>
-                        </div>
-                      )}
+                      <p className="text-xs text-muted-foreground">
+                        • Starting next month: S${newPlan.price}/month
+                      </p>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {upgradeAmount >= 0 
-                        ? `You'll get ${Math.abs(additionalCredits)} ${additionalCredits >= 0 ? 'additional' : 'fewer'} credits immediately and be charged S$${upgradeAmount} for the remaining days.`
-                        : `You'll get ${Math.abs(additionalCredits)} fewer credits and save money starting next month.`
-                      }
-                    </p>
                   )}
                 </div>
               </div>
@@ -152,7 +139,7 @@ export function UpgradeConfirmationModal({
                  <span className="text-sm">
                    {currentPlan ? 
                      (upgradeAmount >= 0 
-                       ? "Prorated billing - only pay the difference" 
+                       ? "Pay once for upgrade, then new monthly rate"
                        : "Lower monthly rate starting next billing cycle"
                      ) 
                      : `S${newPlan.price}/month subscription`
@@ -190,11 +177,11 @@ export function UpgradeConfirmationModal({
                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                    Processing...
                  </div>
-               ) : (
-                 currentPlan 
-                   ? (upgradeAmount >= 0 ? "Confirm Upgrade" : "Confirm Downgrade")
-                   : "Confirm Subscription"
-               )}
+                ) : (
+                  currentPlan 
+                    ? (upgradeAmount >= 0 ? "Pay for Upgrade" : "Confirm Downgrade")
+                    : "Confirm Subscription"
+                )}
             </Button>
           </div>
         </div>

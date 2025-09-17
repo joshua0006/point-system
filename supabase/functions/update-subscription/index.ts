@@ -34,23 +34,24 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Validate environment variables
+    // Validate environment variables  
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     
-    if (!supabaseUrl || !supabaseAnonKey || !stripeKey) {
+    if (!supabaseUrl || !supabaseAnonKey || !stripeKey || !supabaseServiceKey) {
       throw new Error("Missing required environment variables");
     }
 
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
-
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { credits } = await req.json();
@@ -113,142 +114,131 @@ serve(async (req) => {
       logStep("Created new price", { priceId: newPriceId, unitAmount: credits * 100 });
     }
 
-    // Determine plan name based on credits
-    const planName = `Pro ${Math.ceil(credits / 100)} Plan`;
-
-    // Generate idempotency key for safe retries
-    const idempotencyKey = `update-${currentSubscription.id}-${credits}-${Date.now()}`;
-
-    // Get current subscription item
-    const subscriptionItem = currentSubscription.items.data[0];
-
-    // Get current plan details for proration calculation
-    const currentSubscriptionItem = currentSubscription.items.data[0];
-    const currentPrice = await stripe.prices.retrieve(currentSubscriptionItem.price.id);
-    const currentCredits = parseInt(currentSubscription.metadata?.credits || "0");
+    // Get current and new price details
+    const currentPrice = await stripe.prices.retrieve(currentSubscription.items.data[0].price.id);
+    const newPrice = await stripe.prices.retrieve(newPriceId);
     
-    logStep("Current plan details", { 
-      currentCredits, 
-      newCredits: credits,
-      currentPrice: currentPrice.unit_amount 
+    const currentCredits = currentPrice.unit_amount! / 100;
+    const newCredits = credits;
+    const upgradeDifference = newCredits - currentCredits;
+    
+    logStep("Current plan details", { currentCredits, newCredits, currentPrice: currentPrice.unit_amount });
+
+    // Create plan name based on credits
+    const planName = `Pro ${newCredits / 100} Plan`;
+
+    const idempotencyKey = `update-${user.id}-${credits}-${Date.now()}`;
+
+    // For subscription upgrades, create a checkout for the difference and schedule subscription change
+    logStep("Creating upgrade checkout", {
+      currentCredits,
+      newCredits,
+      upgradeDifference,
+      upgradeAmount: upgradeDifference * 100 // $1 per credit difference
     });
 
-    // Calculate billing cycle anchor to the 1st of next month if not already aligned
-    const nowUtc = new Date();
-    const currentAnchor = currentSubscription.billing_cycle_anchor
-      ? new Date(currentSubscription.billing_cycle_anchor * 1000)
-      : null;
-    const isAlreadyFirst = currentAnchor ? currentAnchor.getUTCDate() === 1 : false;
-    const nextMonthFirstUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth() + 1, 1, 0, 0, 0));
-    const billingCycleAnchor = isAlreadyFirst ? undefined : Math.floor(nextMonthFirstUtc.getTime() / 1000);
+    // Create a checkout session for the upgrade difference
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'sgd',
+            product_data: {
+              name: `Upgrade to ${planName}`,
+              description: `Upgrade difference: ${upgradeDifference} credits`,
+            },
+            unit_amount: Math.max(0, upgradeDifference * 100), // $1 per credit difference in cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment', // One-time payment for the difference
+      success_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_success=true`,
+      cancel_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_cancelled=true`,
+      metadata: {
+        user_id: user.id,
+        upgrade_type: 'subscription_change',
+        old_credits: currentCredits.toString(),
+        new_credits: newCredits.toString(),
+        subscription_id: currentSubscription.id,
+        new_price_id: newPriceId,
+        plan_name: planName
+      }
+    });
 
-    // Add validation to ensure billing cycle is properly set
-    if (!isAlreadyFirst) {
-      logStep("Billing cycle will be aligned to 1st of next month", {
-        currentAnchor: currentAnchor?.toISOString() || null,
-        newAnchor: new Date(billingCycleAnchor * 1000).toISOString(),
-      });
-    } else {
-      logStep("Billing cycle already aligned to 1st of month", {
-        currentAnchor: currentAnchor?.toISOString() || null,
-      });
-    }
-
-    // Update subscription maintaining 1st-of-month billing cycle
-    const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
+    // Schedule the subscription change for the next billing period
+    // Update the subscription to change at the next billing cycle (no immediate proration)
+    await stripe.subscriptions.update(currentSubscription.id, {
       items: [
         {
-          id: subscriptionItem.id,
+          id: currentSubscription.items.data[0].id,
           price: newPriceId,
         },
       ],
-      proration_behavior: "always_invoice", // Immediate proration for current month only
-      billing_cycle_anchor: billingCycleAnchor, // If undefined, Stripe keeps existing anchor
+      proration_behavior: "none", // No immediate proration, change takes effect next cycle
       metadata: {
         user_id: user.id,
         credits: credits.toString(),
         plan_name: planName,
         previous_credits: currentCredits.toString(),
+        scheduled_upgrade: 'true'
       },
     }, {
-      idempotencyKey
+      idempotencyKey: `schedule-${idempotencyKey}`
     });
 
-    logStep("Updated subscription", { 
-      subscriptionId: updatedSubscription.id,
-      newPriceId 
+    logStep("Checkout session created", { 
+      sessionId: session.id,
+      checkoutUrl: session.url,
+      upgradeAmount: upgradeDifference * 100
     });
 
-    // For upgrades, grant full credit difference immediately (no proration)
-    if (credits > currentCredits) {
-      const upgradeCredits = credits - currentCredits;
-      
-      logStep("Granting full upgrade credits immediately", { 
-        upgradeCredits,
-        currentCredits,
-        newCredits: credits
-      });
-
-      // Create Supabase client with service role key to bypass RLS
-      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-      if (!supabaseServiceKey) {
-        throw new Error("SUPABASE_SERVICE_ROLE_KEY not set");
-      }
-
-      const supabaseService = createClient(
-        supabaseUrl,
-        supabaseServiceKey,
-        { auth: { persistSession: false } }
-      );
-
-      // Check for existing upgrade transaction to prevent duplicates
-      const { data: existingUpgrade } = await supabaseService
-        .from('flexi_credits_transactions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('description', `Plan upgrade credits - Subscription ${updatedSubscription.id}`)
-        .maybeSingle();
-
-      if (existingUpgrade) {
-        logStep("Upgrade credits already granted", { subscriptionId: updatedSubscription.id });
-      } else {
-        // Add full upgrade credits immediately
-        const { error: creditsError } = await supabaseService.rpc('increment_flexi_credits_balance', {
+    // Grant immediate credits for the upgrade (they'll be charged via checkout)
+    if (upgradeDifference > 0) {
+      const { error: creditError } = await supabaseService
+        .rpc('increment_flexi_credits_balance', {
           user_id: user.id,
-          credits_to_add: upgradeCredits
+          credits_to_add: upgradeDifference
         });
 
-        if (creditsError) {
-          logStep("Error adding upgrade credits", creditsError);
-          // Don't throw here - subscription was updated successfully
-        } else {
-          // Create transaction record
-          const { error: transactionError } = await supabaseService
-            .from('flexi_credits_transactions')
-            .insert({
-              user_id: user.id,
-              type: 'purchase',
-              amount: upgradeCredits,
-              description: `Plan upgrade credits - Subscription ${updatedSubscription.id}`
-            });
+      if (creditError) {
+        logStep("Warning: Failed to grant immediate credits", { error: creditError.message });
+      } else {
+        logStep("Credits granted successfully", { creditsAdded: upgradeDifference });
+      }
 
-          if (transactionError) {
-            logStep("Error creating upgrade transaction record", transactionError);
-          } else {
-            logStep("Successfully granted full upgrade credits", { upgradeCredits });
-          }
-        }
+      // Log transaction for the immediate credit grant
+      const { error: transactionError } = await supabaseService
+        .from('flexi_credits_transactions')
+        .insert({
+          user_id: user.id,
+          amount: upgradeDifference,
+          transaction_type: 'subscription_upgrade',
+          description: `Upgrade credits for ${planName} (${upgradeDifference} credits)`,
+          stripe_payment_intent_id: session.id,
+          reference_id: currentSubscription.id
+        });
+
+      if (transactionError) {
+        logStep("Warning: Failed to log credit transaction", { error: transactionError.message });
+      } else {
+        logStep("Credit transaction logged successfully");
       }
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      subscription_id: updatedSubscription.id,
-      message: "Subscription updated successfully - Prorated charge for current month only, future billing remains on 1st",
-      upgrade_credits_added: credits > currentCredits ? (credits - currentCredits) : 0,
+    return new Response(JSON.stringify({
+      success: true,
+      checkout_url: session.url,
+      subscription_id: currentSubscription.id,
+      upgrade_credits_added: upgradeDifference,
+      message: "Checkout session created for subscription upgrade",
       billing_info: {
+        immediate_charge: `S$${upgradeDifference}`,
         next_billing_date: "1st of next month",
-        charge_explanation: "You were charged the prorated difference for the remaining days this month. Your regular billing cycle continues on the 1st of each month."
+        new_monthly_amount: `S$${newCredits}`,
+        explanation: `You'll pay S$${upgradeDifference} now for ${upgradeDifference} additional credits. Starting next month, you'll be charged S$${newCredits} monthly.`
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

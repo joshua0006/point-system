@@ -74,10 +74,20 @@ export function useSubscriptionOperations() {
           console.warn('Failed to send confirmation email:', emailError);
         }
         
-        toast({
-          title: "Subscription Updated Successfully!",
-          description: `Your plan has been upgraded and ${data.upgrade_credits_added || 0} credits have been added to your account.`,
-        });
+        if (data.checkout_url) {
+          // Open Stripe checkout for upgrade payment
+          window.open(data.checkout_url, '_blank');
+          
+          toast({
+            title: "Redirected to Payment",
+            description: `Complete your S$${data.billing_info?.immediate_charge || 0} payment to upgrade your plan.`,
+          });
+        } else {
+          toast({
+            title: "Subscription Updated Successfully!",
+            description: `Your plan has been upgraded and ${data.upgrade_credits_added || 0} credits have been added to your account.`,
+          });
+        }
         
         return { success: true, data };
       } else {

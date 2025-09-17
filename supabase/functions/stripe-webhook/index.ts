@@ -62,6 +62,45 @@ serve(async (req) => {
       const session = event.data.object;
       logStep("Processing checkout session", { sessionId: session.id, mode: session.mode });
 
+      // Handle subscription upgrade payment
+      if (session.mode === 'payment' && session.metadata?.upgrade_type === 'subscription_change') {
+        const userId = session.metadata.user_id;
+        const upgradeCredits = parseInt(session.metadata.new_credits) - parseInt(session.metadata.old_credits);
+        
+        logStep("Processing subscription upgrade payment", {
+          userId,
+          oldCredits: session.metadata.old_credits,
+          newCredits: session.metadata.new_credits,
+          upgradeCredits,
+          sessionId: session.id
+        });
+
+        // The credits were already granted in update-subscription function
+        // Here we just need to send a confirmation email
+        try {
+          await supabaseClient.functions.invoke('send-subscription-emails', {
+            body: { 
+              emailType: 'upgrade',
+              subscriptionData: { 
+                credits: parseInt(session.metadata.new_credits),
+                upgradeCreditsAdded: upgradeCredits,
+                planName: session.metadata.plan_name,
+                upgradeAmount: upgradeCredits
+              },
+              userEmail: session.customer_details?.email
+            }
+          });
+          logStep("Upgrade confirmation email sent");
+        } catch (emailError) {
+          logStep("Warning: Failed to send upgrade confirmation email", { error: emailError });
+        }
+
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       // Handle subscription checkout
       if (session.mode === 'subscription') {
         const userId = session.metadata?.user_id;
