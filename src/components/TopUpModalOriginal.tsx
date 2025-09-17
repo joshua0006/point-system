@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Shield, CreditCard, RefreshCw, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate } from "@/utils/dateUtils";
 import { UpgradeConfirmationModal } from "@/components/UpgradeConfirmationModal";
 
 interface TopUpModalProps {
@@ -173,14 +174,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  // Remove formatDate function - using utility instead
 
   const isCurrentPlan = (credits: number) => {
     return subscription?.subscribed && subscription?.credits_per_month === credits;

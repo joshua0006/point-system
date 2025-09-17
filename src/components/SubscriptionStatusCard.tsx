@@ -8,6 +8,7 @@ import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TopUpModal } from "@/components/TopUpModal";
+import { formatDate } from "@/utils/dateUtils";
 
 interface SubscriptionStatusCardProps {
   showActions?: boolean;
@@ -121,14 +122,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // Remove formatDate function - using utility instead
 
   const getStatusInfo = () => {
     const currentBalance = profile?.flexi_credits_balance || 0;

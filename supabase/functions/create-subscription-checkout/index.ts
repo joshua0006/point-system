@@ -106,9 +106,9 @@ serve(async (req) => {
     // Generate idempotency key for safe retries
     const idempotencyKey = `checkout-${user.id}-${credits}-${Date.now()}`;
 
-    // Calculate billing cycle anchor to the 1st of next month
+    // Calculate billing cycle anchor to the 1st of next month using UTC
     const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0));
     const billingCycleAnchor = Math.floor(nextMonth.getTime() / 1000);
     
     logStep("Billing cycle anchor calculated", { 

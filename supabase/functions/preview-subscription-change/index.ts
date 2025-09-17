@@ -139,6 +139,9 @@ serve(async (req) => {
       isUpgrade: newPriceAmount > currentPriceAmount
     });
 
+    // Calculate next billing date (always 1st of next month) as ISO string
+    const nextBillingDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0));
+
     return new Response(JSON.stringify({ 
       success: true,
       current_amount: currentPriceAmount / 100,
@@ -147,10 +150,11 @@ serve(async (req) => {
       is_upgrade: newPriceAmount > currentPriceAmount,
       immediate_charge: proratedAmount > 0,
       upgrade_credits: newPriceAmount > currentPriceAmount ? (credits - (currentPriceAmount / 100)) : 0,
+      next_billing_date: nextBillingDate.toISOString(), // Return proper ISO date
       billing_details: {
         days_remaining: daysRemaining,
         days_in_month: daysInMonth,
-        next_billing_date: `1st of ${new Date(now.getFullYear(), now.getMonth() + 1).toLocaleString('default', { month: 'long' })}`
+        next_billing_date_formatted: `1st of ${nextBillingDate.toLocaleString('default', { month: 'long' })}`
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

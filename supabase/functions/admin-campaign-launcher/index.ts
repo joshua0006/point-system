@@ -99,10 +99,13 @@ serve(async (req) => {
           throw new Error('Failed to create campaign')
         }
 
-        // Add user as participant
-        const nextBillingDate = new Date(startDate);
-        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-        nextBillingDate.setDate(1);
+        // Add user as participant with proper UTC billing date calculation
+        const nowUtc = new Date();
+        const nextBillingDate = new Date(Date.UTC(
+          nowUtc.getUTCFullYear(),
+          nowUtc.getUTCMonth() + 1,
+          1, 0, 0, 0
+        ));
 
         // Compute derived monthly budget if proration is enabled
         let monthlyBudget: number | null = null;

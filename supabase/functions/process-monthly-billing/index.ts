@@ -151,10 +151,13 @@ serve(async (req) => {
           // Don't throw - this is legacy and not critical
         }
 
-        // Update participant's next billing date (next month, 1st day)
-        const nextBillingDate = new Date();
-        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-        nextBillingDate.setDate(1);
+        // Update participant's next billing date (1st of next month UTC)
+        const nowUtc = new Date();
+        const nextBillingDate = new Date(Date.UTC(
+          nowUtc.getUTCFullYear(),
+          nowUtc.getUTCMonth() + 1,
+          1, 0, 0, 0
+        ));
 
         const { error: updateError } = await supabase
           .from('campaign_participants')

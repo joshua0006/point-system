@@ -46,8 +46,14 @@ export function UpgradeConfirmationModal({
     ? newPlan.credits - currentPlan.credits 
     : newPlan.credits;
 
-  const nextBillingDate = new Date();
-  nextBillingDate.setMonth(nextBillingDate.getMonth() + 1, 1);
+  // Use actual subscription data instead of hardcoded date calculation
+  const nextBillingDate = prorationDetails?.nextBillingDate 
+    ? new Date(prorationDetails.nextBillingDate) 
+    : (() => {
+        const date = new Date();
+        return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1, 0, 0, 0));
+      })();
+  
   const formattedDate = nextBillingDate.toLocaleDateString('en-US', { 
     month: 'long', 
     day: 'numeric' 
@@ -102,7 +108,7 @@ export function UpgradeConfirmationModal({
                             You'll be charged S${(prorationDetails.prorationAmount / 100).toFixed(2)} immediately for the remaining days in this billing period.
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Next billing: {new Date(prorationDetails.nextBillingDate).toLocaleDateString()}
+                            Next billing: {formattedDate}
                           </p>
                         </div>
                       )}

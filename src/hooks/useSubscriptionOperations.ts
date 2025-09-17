@@ -13,7 +13,12 @@ export interface ProrationDetails {
   currentAmount: number;
   newAmount: number;
   prorationAmount: number;
-  nextBillingDate: string;
+  nextBillingDate: string; // ISO date string
+  billingDetails?: {
+    daysRemaining: number;
+    daysInMonth: number;
+    nextBillingDateFormatted: string;
+  };
 }
 
 export function useSubscriptionOperations() {

@@ -142,11 +142,17 @@ serve(async (req) => {
     const nextMonthFirstUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth() + 1, 1, 0, 0, 0));
     const billingCycleAnchor = isAlreadyFirst ? undefined : Math.floor(nextMonthFirstUtc.getTime() / 1000);
 
-    logStep("Billing cycle alignment", {
-      currentAnchor: currentAnchor?.toISOString() || null,
-      aligningToFirst: !isAlreadyFirst,
-      anchorTimestamp: billingCycleAnchor || null,
-    });
+    // Add validation to ensure billing cycle is properly set
+    if (!isAlreadyFirst) {
+      logStep("Billing cycle will be aligned to 1st of next month", {
+        currentAnchor: currentAnchor?.toISOString() || null,
+        newAnchor: new Date(billingCycleAnchor * 1000).toISOString(),
+      });
+    } else {
+      logStep("Billing cycle already aligned to 1st of month", {
+        currentAnchor: currentAnchor?.toISOString() || null,
+      });
+    }
 
     // Update subscription maintaining 1st-of-month billing cycle
     const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
