@@ -133,6 +133,21 @@ serve(async (req) => {
       currentPrice: currentPrice.unit_amount 
     });
 
+    // Calculate billing cycle anchor to the 1st of next month if not already aligned
+    const nowUtc = new Date();
+    const currentAnchor = currentSubscription.billing_cycle_anchor
+      ? new Date(currentSubscription.billing_cycle_anchor * 1000)
+      : null;
+    const isAlreadyFirst = currentAnchor ? currentAnchor.getUTCDate() === 1 : false;
+    const nextMonthFirstUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth() + 1, 1, 0, 0, 0));
+    const billingCycleAnchor = isAlreadyFirst ? undefined : Math.floor(nextMonthFirstUtc.getTime() / 1000);
+
+    logStep("Billing cycle alignment", {
+      currentAnchor: currentAnchor?.toISOString() || null,
+      aligningToFirst: !isAlreadyFirst,
+      anchorTimestamp: billingCycleAnchor || null,
+    });
+
     // Update subscription maintaining 1st-of-month billing cycle
     const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
       items: [
@@ -141,14 +156,14 @@ serve(async (req) => {
           price: newPriceId,
         },
       ],
-      proration_behavior: "always_invoice", // This ensures immediate proration for current month only
+      proration_behavior: "always_invoice", // Immediate proration for current month only
+      billing_cycle_anchor: billingCycleAnchor, // If undefined, Stripe keeps existing anchor
       metadata: {
         user_id: user.id,
         credits: credits.toString(),
         plan_name: planName,
         previous_credits: currentCredits.toString(),
       },
-      // Don't change billing_cycle_anchor - keeps billing on 1st of month
     }, {
       idempotencyKey
     });

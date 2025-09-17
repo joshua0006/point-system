@@ -82,8 +82,14 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      const actualEnd = new Date(subscription.current_period_end * 1000).toISOString();
+
+      // Always display next billing as the 1st of the upcoming month
+      const nowUtc = new Date();
+      const displayNextFirstUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth() + 1, 1, 0, 0, 0));
+      subscriptionEnd = displayNextFirstUtc.toISOString();
+
+      logStep("Active subscription found", { subscriptionId: subscription.id, actualEnd, displayNextFirstUtc: subscriptionEnd });
       
       // Get the price details to determine credits and plan name
       const priceId = subscription.items.data[0].price.id;
