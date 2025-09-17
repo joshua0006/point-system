@@ -133,7 +133,7 @@ serve(async (req) => {
       currentPrice: currentPrice.unit_amount 
     });
 
-    // Update the subscription with proration
+    // Update subscription maintaining 1st-of-month billing cycle
     const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
       items: [
         {
@@ -141,13 +141,14 @@ serve(async (req) => {
           price: newPriceId,
         },
       ],
-      proration_behavior: "always_invoice", // This ensures immediate proration
+      proration_behavior: "always_invoice", // This ensures immediate proration for current month only
       metadata: {
         user_id: user.id,
         credits: credits.toString(),
         plan_name: planName,
         previous_credits: currentCredits.toString(),
       },
+      // Don't change billing_cycle_anchor - keeps billing on 1st of month
     }, {
       idempotencyKey
     });
@@ -222,8 +223,12 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       subscription_id: updatedSubscription.id,
-      message: "Subscription updated successfully - Full upgrade difference charged immediately",
-      upgrade_credits_added: credits > currentCredits ? (credits - currentCredits) : 0
+      message: "Subscription updated successfully - Prorated charge for current month only, future billing remains on 1st",
+      upgrade_credits_added: credits > currentCredits ? (credits - currentCredits) : 0,
+      billing_info: {
+        next_billing_date: "1st of next month",
+        charge_explanation: "You were charged the prorated difference for the remaining days this month. Your regular billing cycle continues on the 1st of each month."
+      }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

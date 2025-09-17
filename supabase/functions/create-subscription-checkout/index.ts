@@ -106,7 +106,18 @@ serve(async (req) => {
     // Generate idempotency key for safe retries
     const idempotencyKey = `checkout-${user.id}-${credits}-${Date.now()}`;
 
-    // Create checkout session with fixed price
+    // Calculate billing cycle anchor to the 1st of next month
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const billingCycleAnchor = Math.floor(nextMonth.getTime() / 1000);
+    
+    logStep("Billing cycle anchor calculated", { 
+      currentDate: now.toISOString(),
+      nextBillingDate: nextMonth.toISOString(),
+      billingCycleAnchor 
+    });
+
+    // Create checkout session with fixed price and billing cycle anchor
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -129,7 +140,8 @@ serve(async (req) => {
           user_id: user.id,
           credits: credits.toString(),
           plan_name: planName
-        }
+        },
+        billing_cycle_anchor: billingCycleAnchor
       },
       payment_method_types: ['card'],
       billing_address_collection: 'auto',

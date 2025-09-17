@@ -115,15 +115,27 @@ serve(async (req) => {
     // Get current subscription item
     const subscriptionItem = currentSubscription.items.data[0];
 
-    // Calculate full difference (no proration)
+    // Calculate prorated amount based on remaining days in current month
     const currentPriceAmount = (await stripe.prices.retrieve(subscriptionItem.price.id)).unit_amount || 0;
     const newPriceAmount = credits * 100;
-    const fullDifference = Math.max(0, newPriceAmount - currentPriceAmount) / 100; // Full difference in dollars
-
+    
+    // Calculate days remaining in current month for proration
+    const now = new Date();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+    const daysRemaining = Math.max(1, endOfMonth.getDate() - now.getDate() + 1);
+    const daysInMonth = endOfMonth.getDate();
+    
+    // Calculate prorated difference for remaining days only
+    const monthlyDifference = (newPriceAmount - currentPriceAmount) / 100;
+    const proratedAmount = Math.max(0, (monthlyDifference * daysRemaining) / daysInMonth);
+    
     logStep("Preview calculation completed", { 
-      currentPriceAmount,
-      newPriceAmount,
-      fullDifference,
+      currentPriceAmount: currentPriceAmount / 100,
+      newPriceAmount: newPriceAmount / 100,
+      monthlyDifference,
+      daysRemaining,
+      daysInMonth,
+      proratedAmount,
       isUpgrade: newPriceAmount > currentPriceAmount
     });
 
@@ -131,10 +143,15 @@ serve(async (req) => {
       success: true,
       current_amount: currentPriceAmount / 100,
       new_amount: newPriceAmount / 100,
-      prorated_amount: fullDifference, // This is the full difference, not prorated
+      prorated_amount: Math.round(proratedAmount * 100) / 100, // Round to 2 decimal places
       is_upgrade: newPriceAmount > currentPriceAmount,
-      immediate_charge: fullDifference > 0,
-      upgrade_credits: newPriceAmount > currentPriceAmount ? (credits - (currentPriceAmount / 100)) : 0
+      immediate_charge: proratedAmount > 0,
+      upgrade_credits: newPriceAmount > currentPriceAmount ? (credits - (currentPriceAmount / 100)) : 0,
+      billing_details: {
+        days_remaining: daysRemaining,
+        days_in_month: daysInMonth,
+        next_billing_date: `1st of ${new Date(now.getFullYear(), now.getMonth() + 1).toLocaleString('default', { month: 'long' })}`
+      }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
