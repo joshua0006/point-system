@@ -285,7 +285,12 @@ export function useAdminDashboard() {
         userIds.add(transaction.user_id);
       });
 
+      recentMonthlyBillingResponse.data?.forEach(billing => {
+        userIds.add(billing.user_id);
+      });
+
       // Fetch profiles for users and consultants
+      console.log('🔍 Fetching profiles for user IDs:', Array.from(userIds));
       const [userProfiles, consultantProfiles] = await Promise.all([
         userIds.size > 0 ? supabase
           .from('profiles')
@@ -316,11 +321,13 @@ export function useAdminDashboard() {
 
       // Create lookup maps
       const userProfileMap = new Map<string, string>();
+      console.log('👥 User profiles fetched:', userProfiles.data?.length);
       userProfiles.data?.forEach(p => {
         if (p.user_id) {
           // Use full_name or email as fallback
           const displayName = p.full_name || p.email || 'User';
           userProfileMap.set(p.user_id, displayName);
+          console.log('📝 Mapped user:', p.user_id, '->', displayName);
         }
       });
 
@@ -410,7 +417,8 @@ export function useAdminDashboard() {
       console.log('💳 Processing points/credit transactions:', recentPointsTransactionsResponse.data?.length, 'transactions');
       recentPointsTransactionsResponse.data?.forEach(transaction => {
         console.log('📊 Processing transaction:', transaction);
-        const userName = userProfileMap.get(transaction.user_id) || 'User';
+        console.log('🔍 Looking up user:', transaction.user_id, 'in map:', userProfileMap.has(transaction.user_id));
+        const userName = userProfileMap.get(transaction.user_id) || `User ${transaction.user_id.slice(0, 8)}`;
         let activityType: RecentActivity['type'] = 'wallet_topup';
         let description = '';
         let category: RecentActivity['category'] = 'credit';
