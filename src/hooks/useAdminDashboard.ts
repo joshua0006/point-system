@@ -79,14 +79,14 @@ export function useAdminDashboard() {
   }, [user]);
 
   const fetchAdminData = async () => {
+    console.log('🔄 Starting admin data fetch...');
     try {
       setLoading(true);
       setError(null);
 
-      
-
       // Fetch admin stats first
       const adminStatsResponse = await supabase.rpc('get_admin_stats');
+      console.log('📊 Admin stats response:', adminStatsResponse);
       
       if (adminStatsResponse.error) {
         throw new Error(`Admin access denied: ${adminStatsResponse.error.message}`);
@@ -216,6 +216,12 @@ export function useAdminDashboard() {
           .order('created_at', { ascending: false })
           .limit(20),
       ]);
+
+      console.log('🔍 Query responses:');
+      console.log('- Transactions response:', transactionsResponse);
+      console.log('- Recent bookings response:', recentBookingsResponse);
+      console.log('- Recent points transactions response:', recentPointsTransactionsResponse);
+      console.log('- Recent points transactions data:', recentPointsTransactionsResponse.data);
 
       // Process stats from admin function
       const adminStatsData = adminStats as { 
@@ -383,8 +389,10 @@ export function useAdminDashboard() {
       });
 
       // Add recent points transactions
+      console.log('💳 Processing points/credit transactions:', recentPointsTransactionsResponse.data?.length, 'transactions');
+      console.log('💳 Raw transactions data:', recentPointsTransactionsResponse.data);
       recentPointsTransactionsResponse.data?.forEach(transaction => {
-        
+        console.log('📊 Processing transaction:', transaction);
         const userName = userProfileMap.get(transaction.user_id) || 'User';
         let activityType: RecentActivity['type'] = 'wallet_topup';
         let description = '';
@@ -463,6 +471,8 @@ export function useAdminDashboard() {
         .sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime())
         .slice(0, 20);
 
+      console.log('📈 Final activities count:', sortedActivities.length);
+      console.log('📈 Final activities:', sortedActivities);
 
       setRecentActivity(sortedActivities);
 
