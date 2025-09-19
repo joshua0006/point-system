@@ -340,6 +340,28 @@ export function useAdminDashboard() {
         }
       });
 
+      // Fallback: fetch from user_accounts for users without a profile row
+      const missingUserIds = Array.from(userIds).filter((id) => !userProfileMap.has(id));
+      if (missingUserIds.length > 0) {
+        const accountsRes = await supabase
+          .from('user_accounts')
+          .select('user_id, full_name, email')
+          .in('user_id', missingUserIds);
+        if (accountsRes.data) {
+          accountsRes.data.forEach((a: any) => {
+            if (a.user_id && !userProfileMap.has(a.user_id)) {
+              const nameFromFull = toFirstName(a.full_name);
+              const nameFromEmail = toFirstName(a.email);
+              const displayName = nameFromFull || nameFromEmail || 'user';
+              userProfileMap.set(a.user_id, displayName);
+              console.log('🧾 Fallback mapped from user_accounts:', a.user_id, '->', displayName);
+            }
+          });
+        } else if (accountsRes.error) {
+          console.warn('⚠️ user_accounts fetch error:', accountsRes.error.message);
+        }
+      }
+
       const consultantProfileMap = new Map<string, string>();
       consultantProfiles.data?.forEach(c => {
         if (c.id && c.profile?.full_name) {
