@@ -43,7 +43,8 @@ export function useAdminDashboard() {
           event: '*',
           schema: 'public',
           table: 'flexi_credits_transactions'
-        }, () => {
+        }, (payload) => {
+          console.log('💳 Flexi credits transaction change detected:', payload);
           fetchAdminData();
         })
         .subscribe();
@@ -82,6 +83,8 @@ export function useAdminDashboard() {
     try {
       setLoading(true);
       setError(null);
+
+      console.log('🔄 Fetching admin data...');
 
       // Fetch admin stats first
       const adminStatsResponse = await supabase.rpc('get_admin_stats');
@@ -382,6 +385,7 @@ export function useAdminDashboard() {
 
       // Add recent points transactions
       recentPointsTransactionsResponse.data?.forEach(transaction => {
+        console.log('📊 Processing transaction:', transaction);
         const userName = userProfileMap.get(transaction.user_id) || 'User';
         let activityType: RecentActivity['type'] = 'wallet_topup';
         let description = '';
@@ -459,6 +463,9 @@ export function useAdminDashboard() {
       const sortedActivities = activities
         .sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime())
         .slice(0, 20);
+
+      console.log('📈 Setting recent activities:', sortedActivities.length, 'activities');
+      console.log('Recent activities:', sortedActivities);
 
       setRecentActivity(sortedActivities);
 
