@@ -12,11 +12,17 @@ export interface AdminStats {
 
 export interface RecentActivity {
   id: string;
-  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | "wallet_topup" | "campaign_purchase" | "service_purchase" | "points_deducted" | "monthly_billing" | "campaign_status_change" | "admin_credit" | "admin_debit";
+  type: "booking" | "service" | "completion" | "campaign" | "campaign_created" | "campaign_joined" | 
+        "wallet_topup" | "campaign_purchase" | "service_purchase" | "points_deducted" | "monthly_billing" | 
+        "campaign_status_change" | "admin_credit" | "admin_debit" | "subscription_upgrade" | 
+        "subscription_downgrade" | "subscription_cancelled" | "proration_credit" | "referral_bonus" | 
+        "commission_payment" | "manual_adjustment" | "refund" | "payment_failed" | "stripe_payment";
   description: string;
   points: number;
   timestamp: string; // formatted for display
   rawTimestamp: string; // raw ISO string for sorting
+  category: "credit" | "debit" | "campaign" | "subscription" | "booking" | "system";
+  emoji?: string;
 }
 
 export function useAdminDashboard() {
@@ -29,6 +35,8 @@ export function useAdminDashboard() {
     monthlyVolume: 0,
   });
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [filteredActivity, setFilteredActivity] = useState<RecentActivity[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,7 +121,7 @@ export function useAdminDashboard() {
           .eq('type', 'purchase')
           .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
         
-        // Recent bookings for activity (last 14 days)
+        // Recent bookings for activity (last 30 days)
         supabase
           .from('bookings')
           .select(`
@@ -124,11 +132,11 @@ export function useAdminDashboard() {
             user_id,
             services!inner(title)
           `)
-          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(20),
+          .limit(50),
         
-        // Recent services for activity (last 14 days)
+        // Recent services for activity (last 30 days)
         supabase
           .from('services')
           .select(`
@@ -137,11 +145,11 @@ export function useAdminDashboard() {
             created_at,
             consultant_id
           `)
-          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(20),
+          .limit(50),
         
-        // Recent completions (last 14 days)
+        // Recent completions (last 30 days)
         supabase
           .from('bookings')
           .select(`
@@ -152,11 +160,11 @@ export function useAdminDashboard() {
             services!inner(title)
           `)
           .eq('status', 'completed')
-          .gte('updated_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('updated_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('updated_at', { ascending: false })
-          .limit(20),
+          .limit(50),
         
-        // Recent campaign creations (last 14 days)
+        // Recent campaign creations (last 30 days)
         supabase
           .from('lead_gen_campaigns')
           .select(`
@@ -167,11 +175,11 @@ export function useAdminDashboard() {
             created_by,
             status
           `)
-          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(20),
+          .limit(50),
         
-        // Recent campaign participations (last 14 days)
+        // Recent campaign participations (last 30 days)
         supabase
           .from('campaign_participants')
           .select(`
@@ -181,9 +189,9 @@ export function useAdminDashboard() {
             consultant_name,
             user_id
           `)
-          .gte('joined_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('joined_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('joined_at', { ascending: false })
-          .limit(20),
+          .limit(50),
         
         // Recent points transactions (all types, last 30 days for better coverage)
         supabase
@@ -201,7 +209,7 @@ export function useAdminDashboard() {
           .order('created_at', { ascending: false })
           .limit(100),
         
-        // Recent monthly billing transactions (last 14 days)
+        // Recent monthly billing transactions (last 30 days)
         supabase
           .from('monthly_billing_transactions')
           .select(`
@@ -212,9 +220,9 @@ export function useAdminDashboard() {
             campaign_id,
             created_at
           `)
-          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .order('created_at', { ascending: false })
-          .limit(20),
+          .limit(50),
       ]);
 
       console.log('🔍 Query responses:');
@@ -333,6 +341,8 @@ export function useAdminDashboard() {
           points: booking.points_spent,
           timestamp: formatTimestamp(booking.created_at),
           rawTimestamp: booking.created_at,
+          category: 'booking',
+          emoji: '📅',
         });
       });
 
@@ -346,6 +356,8 @@ export function useAdminDashboard() {
           points: 0,
           timestamp: formatTimestamp(service.created_at),
           rawTimestamp: service.created_at,
+          category: 'system',
+          emoji: '🔧',
         });
       });
 
@@ -359,6 +371,8 @@ export function useAdminDashboard() {
           points: booking.points_spent,
           timestamp: formatTimestamp(booking.updated_at),
           rawTimestamp: booking.updated_at,
+          category: 'booking',
+          emoji: '✅',
         });
       });
 
@@ -372,6 +386,8 @@ export function useAdminDashboard() {
           points: campaign.total_budget,
           timestamp: formatTimestamp(campaign.created_at),
           rawTimestamp: campaign.created_at,
+          category: 'campaign',
+          emoji: '🚀',
         });
       });
 
@@ -381,66 +397,130 @@ export function useAdminDashboard() {
         activities.push({
           id: `campaign-joined-${participation.id}`,
           type: 'campaign_joined',
-          description: `🎯 ${userName} signed up for Facebook ads campaign with $${participation.budget_contribution} contribution`,
+          description: `${userName} signed up for Facebook ads campaign with $${participation.budget_contribution} contribution`,
           points: participation.budget_contribution,
           timestamp: formatTimestamp(participation.joined_at),
           rawTimestamp: participation.joined_at,
+          category: 'campaign',
+          emoji: '🎯',
         });
       });
 
-      // Add recent points transactions
+      // Add recent points transactions with enhanced categorization
       console.log('💳 Processing points/credit transactions:', recentPointsTransactionsResponse.data?.length, 'transactions');
-      console.log('💳 Raw transactions data:', recentPointsTransactionsResponse.data);
       recentPointsTransactionsResponse.data?.forEach(transaction => {
         console.log('📊 Processing transaction:', transaction);
         const userName = userProfileMap.get(transaction.user_id) || 'User';
         let activityType: RecentActivity['type'] = 'wallet_topup';
         let description = '';
+        let category: RecentActivity['category'] = 'credit';
+        let emoji = '💰';
         
-        // Determine activity type based on transaction details
+        // Enhanced transaction type detection
         const isServicePurchase = transaction.booking_id !== null;
         const isCampaignRelated = transaction.description?.toLowerCase().includes('campaign') || 
-                                   transaction.description?.toLowerCase().includes('lead generation');
-        const isAdminDeduction = transaction.type === 'refund' && 
-                                 transaction.description?.toLowerCase().includes('admin deduction');
+                                   transaction.description?.toLowerCase().includes('lead generation') ||
+                                   transaction.description?.toLowerCase().includes('facebook ads');
+        const isSubscriptionRelated = transaction.description?.toLowerCase().includes('subscription') ||
+                                       transaction.description?.toLowerCase().includes('plan upgrade') ||
+                                       transaction.description?.toLowerCase().includes('downgrade');
+        const isAdminAction = transaction.description?.toLowerCase().includes('admin');
+        const isStripePayment = transaction.description?.toLowerCase().includes('stripe') ||
+                                 transaction.description?.toLowerCase().includes('payment intent');
         
         switch (transaction.type) {
           case 'purchase':
+            category = 'debit';
             if (isServicePurchase) {
               activityType = 'service_purchase';
               description = `${userName} purchased service for ${Math.abs(transaction.amount)} points`;
+              emoji = '🛒';
             } else if (isCampaignRelated) {
               activityType = 'campaign_purchase';
-              description = `${userName} invested ${Math.abs(transaction.amount)} points in Facebook ad campaign${transaction.description ? ` (${transaction.description})` : ''}`;
+              description = `${userName} invested ${Math.abs(transaction.amount)} points in ad campaign`;
+              emoji = '📈';
+            } else if (isStripePayment) {
+              activityType = 'stripe_payment';
+              description = `${userName} purchased ${Math.abs(transaction.amount)} credits via Stripe`;
+              category = 'credit';
+              emoji = '💳';
             } else {
-              activityType = 'wallet_topup';
-              description = `💰 ${userName} topped up ${Math.abs(transaction.amount)} points${transaction.description ? ` via ${transaction.description}` : ''}`;
+              activityType = 'manual_adjustment';
+              description = `${userName} spent ${Math.abs(transaction.amount)} points`;
+              emoji = '💸';
             }
             break;
+            
           case 'refund':
-            if (isAdminDeduction) {
+            if (isAdminAction && transaction.amount < 0) {
               activityType = 'admin_debit';
-              description = `📉 Admin deducted ${Math.abs(transaction.amount)} flexi credits from ${userName}${transaction.description ? ` - ${transaction.description.replace('Admin deduction - ', '')}` : ''}`;
+              description = `Admin deducted ${Math.abs(transaction.amount)} credits from ${userName}`;
+              category = 'debit';
+              emoji = '🔻';
             } else {
-              activityType = 'points_deducted';
-              description = `${Math.abs(transaction.amount)} points refunded to ${userName}${transaction.description ? ` (${transaction.description})` : ''}`;
+              activityType = 'refund';
+              description = `${Math.abs(transaction.amount)} points refunded to ${userName}`;
+              category = 'credit';
+              emoji = '↩️';
             }
             break;
+            
           case 'admin_credit':
             activityType = 'admin_credit';
-            description = `💰 Admin credited ${Math.abs(transaction.amount)} flexi credits to ${userName}${transaction.description ? ` - ${transaction.description.replace('Admin credit - ', '')}` : ''}`;
+            description = `Admin credited ${Math.abs(transaction.amount)} credits to ${userName}`;
+            const reason = transaction.description?.replace('Admin credit - ', '').replace(/flexi credits added by admin: /, '');
+            if (reason && reason !== 'nil' && reason !== 'no reason') {
+              description += ` (${reason})`;
+            }
+            emoji = '🔝';
             break;
+            
           case 'initial_credit':
             activityType = 'wallet_topup';
-            description = `${userName} received ${Math.abs(transaction.amount)} welcome points`;
+            description = `${userName} received ${Math.abs(transaction.amount)} welcome credits`;
+            emoji = '🎉';
             break;
+            
           case 'earning':
-            activityType = 'wallet_topup';
-            description = `${userName} earned ${Math.abs(transaction.amount)} points${transaction.description ? ` from ${transaction.description}` : ''}`;
+            if (transaction.description?.toLowerCase().includes('referral')) {
+              activityType = 'referral_bonus';
+              description = `${userName} earned ${Math.abs(transaction.amount)} referral bonus`;
+              emoji = '🤝';
+            } else if (transaction.description?.toLowerCase().includes('commission')) {
+              activityType = 'commission_payment';
+              description = `${userName} received ${Math.abs(transaction.amount)} commission`;
+              emoji = '💼';
+            } else {
+              activityType = 'wallet_topup';
+              description = `${userName} earned ${Math.abs(transaction.amount)} points`;
+              emoji = '⭐';
+            }
             break;
+            
           default:
-            activityType = 'wallet_topup';
-            description = `${userName} ${transaction.type} ${Math.abs(transaction.amount)} points`;
+            // Handle subscription-related transactions
+            if (isSubscriptionRelated) {
+              if (transaction.description?.toLowerCase().includes('upgrade')) {
+                activityType = 'subscription_upgrade';
+                description = `${userName} upgraded subscription (+${Math.abs(transaction.amount)} credits)`;
+                category = 'subscription';
+                emoji = '⬆️';
+              } else if (transaction.description?.toLowerCase().includes('downgrade')) {
+                activityType = 'subscription_downgrade';
+                description = `${userName} scheduled subscription downgrade`;
+                category = 'subscription';
+                emoji = '⬇️';
+              } else if (transaction.description?.toLowerCase().includes('proration')) {
+                activityType = 'proration_credit';
+                description = `${userName} received ${Math.abs(transaction.amount)} proration credit`;
+                category = 'subscription';
+                emoji = '⚖️';
+              }
+            } else {
+              activityType = 'manual_adjustment';
+              description = `${userName} - ${transaction.type}: ${Math.abs(transaction.amount)} points`;
+              emoji = '🔧';
+            }
         }
 
         activities.push({
@@ -450,6 +530,8 @@ export function useAdminDashboard() {
           points: Math.abs(transaction.amount),
           timestamp: formatTimestamp(transaction.created_at),
           rawTimestamp: transaction.created_at,
+          category,
+          emoji,
         });
       });
 
@@ -463,18 +545,21 @@ export function useAdminDashboard() {
           points: billing.amount,
           timestamp: formatTimestamp(billing.created_at),
           rawTimestamp: billing.created_at,
+          category: 'debit',
+          emoji: '📅',
         });
       });
 
-      // Sort by raw timestamp and take top 20
+      // Sort by raw timestamp and take top 50 for better coverage
       const sortedActivities = activities
         .sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime())
-        .slice(0, 20);
+        .slice(0, 50);
 
       console.log('📈 Final activities count:', sortedActivities.length);
       console.log('📈 Final activities:', sortedActivities);
 
       setRecentActivity(sortedActivities);
+      setFilteredActivity(sortedActivities);
 
     } catch (err) {
       console.error('Error fetching admin data:', err);
@@ -500,9 +585,22 @@ export function useAdminDashboard() {
     }
   };
 
+  const filterActivities = (filter: string) => {
+    setActiveFilter(filter);
+    if (filter === "all") {
+      setFilteredActivity(recentActivity);
+    } else {
+      const filtered = recentActivity.filter(activity => activity.category === filter);
+      setFilteredActivity(filtered);
+    }
+  };
+
   return {
     stats,
-    recentActivity,
+    recentActivity: filteredActivity,
+    allActivity: recentActivity,
+    activeFilter,
+    filterActivities,
     loading,
     error,
     refreshData: fetchAdminData,
