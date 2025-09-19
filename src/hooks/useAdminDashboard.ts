@@ -25,6 +25,14 @@ export interface RecentActivity {
   emoji?: string;
 }
 
+// Normalize to first name (lowercase)
+const toFirstName = (value?: string | null) => {
+  if (!value) return null;
+  const base = value.includes('@') ? value.split('@')[0] : value;
+  const first = base.trim().split(/\s+/)[0];
+  return first.toLowerCase();
+};
+
 export function useAdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<AdminStats>({
@@ -324,8 +332,9 @@ export function useAdminDashboard() {
       console.log('👥 User profiles fetched:', userProfiles.data?.length);
       userProfiles.data?.forEach(p => {
         if (p.user_id) {
-          // Use full_name or email as fallback
-          const displayName = p.full_name || p.email || 'User';
+          const nameFromFull = toFirstName(p.full_name);
+          const nameFromEmail = toFirstName(p.email);
+          const displayName = nameFromFull || nameFromEmail || 'user';
           userProfileMap.set(p.user_id, displayName);
           console.log('📝 Mapped user:', p.user_id, '->', displayName);
         }
@@ -340,7 +349,7 @@ export function useAdminDashboard() {
 
       // Add recent bookings
       recentBookingsResponse.data?.forEach(booking => {
-        const userName = userProfileMap.get(booking.user_id) || 'User';
+        const userName = userProfileMap.get(booking.user_id) || 'user';
         activities.push({
           id: `booking-${booking.id}`,
           type: 'booking',
@@ -400,7 +409,7 @@ export function useAdminDashboard() {
 
       // Add recent campaign participations
       recentCampaignParticipationsResponse.data?.forEach(participation => {
-        const userName = participation.consultant_name || userProfileMap.get(participation.user_id) || 'User';
+        const userName = participation.consultant_name || userProfileMap.get(participation.user_id) || 'user';
         activities.push({
           id: `campaign-joined-${participation.id}`,
           type: 'campaign_joined',
@@ -418,7 +427,7 @@ export function useAdminDashboard() {
       recentPointsTransactionsResponse.data?.forEach(transaction => {
         console.log('📊 Processing transaction:', transaction);
         console.log('🔍 Looking up user:', transaction.user_id, 'in map:', userProfileMap.has(transaction.user_id));
-        const userName = userProfileMap.get(transaction.user_id) || `User ${transaction.user_id.slice(0, 8)}`;
+        const userName = userProfileMap.get(transaction.user_id) || 'user';
         let activityType: RecentActivity['type'] = 'wallet_topup';
         let description = '';
         let category: RecentActivity['category'] = 'credit';
