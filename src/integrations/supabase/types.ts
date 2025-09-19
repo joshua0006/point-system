@@ -1906,6 +1906,10 @@ export type Database = {
       }
     }
     Functions: {
+      current_user_profile_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
