@@ -215,10 +215,8 @@ serve(async (req) => {
         .insert({
           user_id: user.id,
           amount: upgradeDifference,
-          transaction_type: 'subscription_upgrade',
-          description: `Upgrade credits for ${planName} (${upgradeDifference} credits)`,
-          stripe_payment_intent_id: session.id,
-          reference_id: currentSubscription.id
+          type: 'purchase',
+          description: `Plan upgrade credits - ${planName} (${upgradeDifference} credits)`
         });
 
       if (transactionError) {
@@ -294,6 +292,20 @@ serve(async (req) => {
         logStep("Downgrade confirmation email sent");
       } catch (emailError) {
         logStep("Warning: Failed to send downgrade confirmation email", { error: emailError });
+      }
+
+      // Log transaction for the downgrade (no credits added, just audit trail)
+      const { error: downgradeTransactionError } = await supabaseService
+        .from('flexi_credits_transactions')
+        .insert({
+          user_id: user.id,
+          amount: 0, // No credits added/removed
+          type: 'refund', // Using refund type to indicate plan change
+          description: `Plan downgrade scheduled - ${planName} (effective next billing cycle)`
+        });
+
+      if (downgradeTransactionError) {
+        logStep("Warning: Failed to log downgrade transaction", { error: downgradeTransactionError.message });
       }
 
       // IMPORTANT: Do NOT add any credits for downgrades

@@ -56,6 +56,7 @@ export function useTransactionData() {
           service = `Admin Deduction: ${t.description?.replace('Admin deduction - ', '').replace(' flexi credits deducted by admin:', '') || 'Credits deducted'}`;
         } else if (t.description?.toLowerCase().includes('subscription') || 
                    t.description?.toLowerCase().includes('plan upgrade') ||
+                   t.description?.toLowerCase().includes('plan downgrade') ||
                    t.description?.toLowerCase().includes('monthly subscription')) {
           category = 'subscription';
           icon = '📋';
