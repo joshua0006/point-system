@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface Profile {
   id: string;
@@ -60,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session?.user?.email);
+        logger.log('Auth state changed:', event, session?.user?.email);
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -84,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Handle profile result
               if (profileResult.status === 'fulfilled' && !profileResult.value.error) {
                 setProfile(profileResult.value.data);
-                console.log('Profile loaded successfully:', profileResult.value.data);
+                logger.log('Profile loaded successfully:', profileResult.value.data);
               } else {
                 console.error('Error fetching profile:', profileResult.status === 'fulfilled' ? profileResult.value.error : profileResult.reason);
                 setProfile(null);
@@ -92,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               // Handle subscription result  
               if (subscriptionResult.status === 'fulfilled' && !subscriptionResult.value.error) {
-                console.log('✅ Subscription loaded successfully:', subscriptionResult.value.data);
+                logger.log('✅ Subscription loaded successfully:', subscriptionResult.value.data);
                 setSubscription(subscriptionResult.value.data);
               } else {
                 console.error('❌ Error fetching subscription:', subscriptionResult.status === 'fulfilled' ? subscriptionResult.value.error : subscriptionResult.reason);
@@ -116,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   },
                   (payload) => {
                     if (mounted) {
-                      console.log('Profile updated via realtime:', payload.new);
+                      logger.log('Profile updated via realtime:', payload.new);
                       setProfile(payload.new as Profile);
                     }
                   }
@@ -156,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        console.log('Initial session check:', session?.user?.email);
+        logger.log('Initial session check:', session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -175,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(null);
               } else {
                 setProfile(profileData);
-                console.log('Profile loaded during init:', profileData);
+                logger.log('Profile loaded during init:', profileData);
               }
             }
 
@@ -196,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 },
                 (payload) => {
                   if (mounted) {
-                    console.log('Profile updated via realtime:', payload.new);
+                    logger.log('Profile updated via realtime:', payload.new);
                     setProfile(payload.new as Profile);
                   }
                 }
@@ -213,7 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   setSubscription(null);
                 } else {
                   setSubscription(subscriptionData);
-                  console.log('Subscription loaded during init:', subscriptionData);
+                  logger.log('Subscription loaded during init:', subscriptionData);
                 }
               }
             } catch (err) {
@@ -304,7 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(null);
       } else {
         setProfile(profileData);
-        console.log('Profile refreshed:', profileData);
+        logger.log('Profile refreshed:', profileData);
       }
     } catch (err) {
       console.error('Profile refresh error:', err);
@@ -315,14 +316,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     try {
-      console.log('🔄 Refreshing subscription status for user:', user.email);
+      logger.log('🔄 Refreshing subscription status for user:', user.email);
       const { data: subscriptionData, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
         console.error('❌ Error refreshing subscription:', error);
         setSubscription(null);
       } else {
-        console.log('✅ Subscription refreshed successfully:', subscriptionData);
+        logger.log('✅ Subscription refreshed successfully:', subscriptionData);
         setSubscription(subscriptionData);
       }
     } catch (err) {

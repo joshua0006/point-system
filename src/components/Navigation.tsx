@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMode } from "@/contexts/ModeContext";
 import { ModeToggle } from "@/components/ModeToggle";
 import { WalletDrawer } from "@/components/wallet/WalletDrawer";
+import { navigationConfig, sellerNavigationConfig } from "@/config/navigation";
+import { UserRole } from "@/config/types";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -44,46 +46,20 @@ export function Navigation() {
   const { profile, signOut } = useAuth();
   const { isSellerMode, toggleMode, canAccessSellerMode } = useMode();
   
-  const userRole = profile?.role || "user";
+  const userRole = profile?.role as UserRole || "user";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Define navigation items type
-  type NavItem = {
-    path: string;
-    label: string;
-    icon: any;
-    roles: string[];
-    hasNotification?: boolean;
-  };
-
-  // Define navigation items - for consultants, show all three main tabs
-  const getNavItems = (): NavItem[] => {
+  // Get navigation items based on user role and mode
+  const getNavItems = () => {
     if (userRole === "consultant") {
-      return [
-        { path: "/services", label: "Services", icon: Search, roles: ["consultant"] },
-        
-        { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] },
-      ];
+      return navigationConfig.consultant;
     }
 
     // For other users, use the existing mode-based logic
-    const buyerNavItems = [
-      { path: "/services", label: "Services", icon: Search, roles: ["user", "admin"] },
-      
-      { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] },
-      { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
-    ];
-
-    const sellerNavItems = [
-      { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["admin"] },
-      
-      { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] },
-    ];
-
-    return isSellerMode ? sellerNavItems : buyerNavItems;
+    return isSellerMode ? sellerNavigationConfig : navigationConfig[userRole as keyof typeof navigationConfig] || [];
   };
 
   const navItems = getNavItems();

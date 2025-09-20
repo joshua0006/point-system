@@ -1,48 +1,29 @@
-import { useState } from "react";
+import { useDashboardModals } from './useModal';
 
+// Legacy hook for backward compatibility
 export function useModalState() {
-  const [balanceModalOpen, setBalanceModalOpen] = useState(false);
-  const [spentModalOpen, setSpentModalOpen] = useState(false);
-  const [servicesModalOpen, setServicesModalOpen] = useState(false);
-  const [completionModalOpen, setCompletionModalOpen] = useState(false);
-  const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
-  const [recentTransactionsModalOpen, setRecentTransactionsModalOpen] = useState(false);
-  const [recentBookingsModalOpen, setRecentBookingsModalOpen] = useState(false);
-  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
-  const [upcomingChargesModalOpen, setUpcomingChargesModalOpen] = useState(false);
-
-  const closeAllModals = () => {
-    setBalanceModalOpen(false);
-    setSpentModalOpen(false);
-    setServicesModalOpen(false);
-    setCompletionModalOpen(false);
-    setUpcomingModalOpen(false);
-    setRecentTransactionsModalOpen(false);
-    setRecentBookingsModalOpen(false);
-    setTopUpModalOpen(false);
-    setUpcomingChargesModalOpen(false);
-  };
+  const { openModal, closeModal, closeAllModals, isModalOpen } = useDashboardModals();
 
   return {
     // Modal states
-    balanceModalOpen,
-    setBalanceModalOpen,
-    spentModalOpen,
-    setSpentModalOpen,
-    servicesModalOpen,
-    setServicesModalOpen,
-    completionModalOpen,
-    setCompletionModalOpen,
-    upcomingModalOpen,
-    setUpcomingModalOpen,
-    recentTransactionsModalOpen,
-    setRecentTransactionsModalOpen,
-    recentBookingsModalOpen,
-    setRecentBookingsModalOpen,
-    topUpModalOpen,
-    setTopUpModalOpen,
-    upcomingChargesModalOpen,
-    setUpcomingChargesModalOpen,
+    balanceModalOpen: isModalOpen('balance'),
+    setBalanceModalOpen: (open: boolean) => open ? openModal('balance') : closeModal('balance'),
+    spentModalOpen: isModalOpen('spent'),
+    setSpentModalOpen: (open: boolean) => open ? openModal('spent') : closeModal('spent'),
+    servicesModalOpen: isModalOpen('services'),
+    setServicesModalOpen: (open: boolean) => open ? openModal('services') : closeModal('services'),
+    completionModalOpen: isModalOpen('completion'),
+    setCompletionModalOpen: (open: boolean) => open ? openModal('completion') : closeModal('completion'),
+    upcomingModalOpen: isModalOpen('upcoming'),
+    setUpcomingModalOpen: (open: boolean) => open ? openModal('upcoming') : closeModal('upcoming'),
+    recentTransactionsModalOpen: isModalOpen('recentTransactions'),
+    setRecentTransactionsModalOpen: (open: boolean) => open ? openModal('recentTransactions') : closeModal('recentTransactions'),
+    recentBookingsModalOpen: isModalOpen('recentBookings'),
+    setRecentBookingsModalOpen: (open: boolean) => open ? openModal('recentBookings') : closeModal('recentBookings'),
+    topUpModalOpen: isModalOpen('topUp'),
+    setTopUpModalOpen: (open: boolean) => open ? openModal('topUp') : closeModal('topUp'),
+    upcomingChargesModalOpen: isModalOpen('upcomingCharges'),
+    setUpcomingChargesModalOpen: (open: boolean) => open ? openModal('upcomingCharges') : closeModal('upcomingCharges'),
     
     // Utility
     closeAllModals,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '@/utils/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -292,7 +293,7 @@ export const AdCopyWizard = () => {
         }
         
         if (adCopyBlocks.length > 0) {
-          console.log('Extracted ad copies:', adCopyBlocks.length, 'blocks');
+          logger.log('Extracted ad copies:', adCopyBlocks.length, 'blocks');
           setAdCopies(adCopyBlocks);
         }
       }
@@ -302,11 +303,11 @@ export const AdCopyWizard = () => {
         const lines = data.message.split('\n');
         
         // Extract lines that start with IMAGE_PROMPT:
-        console.log('Searching for IMAGE_PROMPT lines in response...');
+        logger.log('Searching for IMAGE_PROMPT lines in response...');
         const prompts = lines
           .filter((line: string) => {
             const matches = line.trim().startsWith('IMAGE_PROMPT:');
-            if (matches) console.log('Found IMAGE_PROMPT line:', line);
+            if (matches) logger.log('Found IMAGE_PROMPT line:', line);
             return matches;
           })
           .map((line: string) => {
@@ -314,7 +315,7 @@ export const AdCopyWizard = () => {
             let prompt = line.replace(/^IMAGE_PROMPT:\s*/, '').trim();
             // Remove any leading brackets or formatting
             prompt = prompt.replace(/^\[/, '').replace(/\]$/, '').trim();
-            console.log('Processed prompt:', prompt);
+            logger.log('Processed prompt:', prompt);
             return prompt;
           })
           .filter((prompt: string) => {
@@ -326,13 +327,13 @@ export const AdCopyWizard = () => {
                    !prompt.toLowerCase().includes('recommended') &&
                    !prompt.toLowerCase().includes('camera angle') &&
                    !prompt.toLowerCase().includes('color palette');
-            console.log('Prompt validation result:', prompt, '-> Valid:', isValid);
+            logger.log('Prompt validation result:', prompt, '-> Valid:', isValid);
             return isValid;
           });
         
         // Fallback: if no IMAGE_PROMPT: markers found, try alternative extraction but be very strict
         if (prompts.length === 0) {
-          console.log('No IMAGE_PROMPT markers found, trying alternative extraction');
+          logger.log('No IMAGE_PROMPT markers found, trying alternative extraction');
           
           const fallbackPrompts = lines
             .filter((line: string) => {
