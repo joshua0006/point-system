@@ -136,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/user-dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
@@ -147,7 +147,7 @@ const handler = async (req: Request): Promise<Response> => {
                           display: inline-block;">
                   🏠 My Dashboard
                 </a>
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/settings" 
                    style="background: #f8f9ff; 
                           color: #667eea; 
                           border: 2px solid #667eea;
@@ -210,7 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/user-dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
@@ -221,7 +221,7 @@ const handler = async (req: Request): Promise<Response> => {
                           display: inline-block;">
                   🏠 My Dashboard
                 </a>
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/settings" 
                    style="background: #f8f9ff; 
                           color: #667eea; 
                           border: 2px solid #667eea;
@@ -282,7 +282,7 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/user-dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
@@ -293,7 +293,7 @@ const handler = async (req: Request): Promise<Response> => {
                           display: inline-block;">
                   🚀 Start Using Credits
                 </a>
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/marketplace" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/marketplace" 
                    style="background: #f8f9ff; 
                           color: #667eea; 
                           border: 2px solid #667eea;
@@ -318,7 +318,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>Credits per Month:</strong> ${subscriptionData.credits}</p>
             <p><strong>Subscription Time:</strong> ${new Date().toLocaleString()}</p>
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard" 
+              <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/admin-dashboard" 
                  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                         color: white; 
                         padding: 15px 30px; 
@@ -329,7 +329,7 @@ const handler = async (req: Request): Promise<Response> => {
                         display: inline-block;">
                 🏠 Admin Dashboard
               </a>
-              <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard?tab=billing" 
+              <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/admin-dashboard?tab=billing" 
                  style="background: #f8f9ff; 
                         color: #667eea; 
                         border: 2px solid #667eea;
@@ -351,7 +351,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send user email
     const userEmailResponse = await resend.emails.send({
-      from: "FlexiLeads <noreply@mail.themoneybees.co>",
+      from: "AgentHub <noreply@mail.themoneybees.co>",
       to: [userEmail!],
       subject: userSubject,
       html: userHtml,
@@ -361,7 +361,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send admin email
     const adminEmailResponse = await resend.emails.send({
-      from: "FlexiLeads System <noreply@mail.themoneybees.co>",
+      from: "AgentHub System <noreply@mail.themoneybees.co>",
       to: ["leotanjs95@gmail.com"], // Replace with actual admin email
       subject: adminSubject,
       html: adminHtml,
