@@ -1,13 +1,15 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, Phone, MessageSquare } from "lucide-react";
 
 interface CampaignMethodSelectorProps {
-  onMethodSelect: (method: 'facebook-ads' | 'cold-calling' | 'va-support') => void;
+  // No props needed since we're navigating directly
 }
 
-export const CampaignMethodSelector = React.memo(({ onMethodSelect }: CampaignMethodSelectorProps) => {
+export const CampaignMethodSelector = React.memo(() => {
+  const navigate = useNavigate();
   return (
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto">
@@ -20,7 +22,7 @@ export const CampaignMethodSelector = React.memo(({ onMethodSelect }: CampaignMe
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
         <Card 
           className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
-          onClick={() => onMethodSelect('facebook-ads')}
+          onClick={() => navigate('/campaigns/facebook-ads')}
         >
           <CardContent className="p-8 text-center">
             <div className="bg-blue-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
@@ -49,7 +51,7 @@ export const CampaignMethodSelector = React.memo(({ onMethodSelect }: CampaignMe
 
         <Card 
           className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
-          onClick={() => onMethodSelect('cold-calling')}
+          onClick={() => navigate('/campaigns/cold-calling')}
         >
           <CardContent className="p-8 text-center">
             <div className="bg-green-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
@@ -78,7 +80,7 @@ export const CampaignMethodSelector = React.memo(({ onMethodSelect }: CampaignMe
 
         <Card 
           className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border-2 hover:border-primary/20"
-          onClick={() => onMethodSelect('va-support')}
+          onClick={() => navigate('/campaigns/va-support')}
         >
           <CardContent className="p-8 text-center">
             <div className="bg-purple-500/10 p-6 rounded-2xl mb-6 w-fit mx-auto group-hover:scale-110 transition-transform">
