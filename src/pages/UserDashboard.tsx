@@ -149,7 +149,7 @@ export default function UserDashboard() {
                   My Campaigns
                 </div>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/my-campaigns">
+                  <Link to="/campaigns/my-campaigns">
                     View All
                   </Link>
                 </Button>
