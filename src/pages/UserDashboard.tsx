@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { DashboardModals } from "@/components/dashboard/DashboardModals";
@@ -11,12 +12,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { DashboardSkeleton } from "@/components/PageSkeleton";
 import { WalletDrawer } from "@/components/wallet/WalletDrawer";
+import { useUserCampaigns } from "@/hooks/useUserCampaigns";
+import { Link } from "react-router-dom";
 import {
   TrendingUp,
-  Calendar,
-  CheckCircle,
   Wallet,
-  Users
+  Target,
+  Plus
 } from "lucide-react";
 
 export default function UserDashboard() {
@@ -27,16 +29,8 @@ export default function UserDashboard() {
     setBalanceModalOpen,
     spentModalOpen,
     setSpentModalOpen,
-    servicesModalOpen,
-    setServicesModalOpen,
-    completionModalOpen,
-    setCompletionModalOpen,
-    upcomingModalOpen,
-    setUpcomingModalOpen,
     recentTransactionsModalOpen,
     setRecentTransactionsModalOpen,
-    recentBookingsModalOpen,
-    setRecentBookingsModalOpen,
     topUpModalOpen,
     setTopUpModalOpen,
     upcomingChargesModalOpen,
@@ -44,12 +38,12 @@ export default function UserDashboard() {
     userStats,
     allTransactions,
     spentTransactions,
-    bookedServices,
-    upcomingBookings,
     recentTransactions,
     refreshData,
     isLoading,
   } = useDashboardData();
+  
+  const { campaigns, isLoading: campaignsLoading } = useUserCampaigns();
   
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
@@ -81,7 +75,7 @@ export default function UserDashboard() {
 
 
         {/* Stats Cards */}
-        <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"}>
+        <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"}>
           <WalletDrawer>
             <Card className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
@@ -116,40 +110,6 @@ export default function UserDashboard() {
               <p className="text-xs text-muted-foreground">flexi-credits spent</p>
             </CardContent>
           </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setServicesModalOpen(true)}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Services Booked
-                <Calendar className="w-4 h-4 text-primary" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{userStats.servicesBooked}</div>
-              <p className="text-xs text-muted-foreground">total bookings</p>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setCompletionModalOpen(true)}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm font-medium">
-                Completion Rate
-                <CheckCircle className="w-4 h-4 text-success" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {userStats.servicesBooked > 0 ? Math.round((userStats.completedSessions / userStats.servicesBooked) * 100) : 0}%
-              </div>
-              <p className="text-xs text-muted-foreground">success rate</p>
-            </CardContent>
-          </Card>
         </div>
 
         <div className={isMobile ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 lg:grid-cols-2 gap-8"}>
@@ -181,30 +141,53 @@ export default function UserDashboard() {
             </CardContent>
           </Card>
           
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setRecentBookingsModalOpen(true)}
-          >
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Recent Bookings
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  My Campaigns
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/my-campaigns">
+                    View All
+                  </Link>
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {bookedServices.slice(0, 5).map((booking) => (
-                <div key={booking.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                  <div>
-                    <p className="font-medium">{booking.service}</p>
-                    <p className="text-sm text-muted-foreground">{booking.date}</p>
-                  </div>
-                  <Badge variant={booking.status === 'completed' ? 'default' : 'secondary'}>
-                    {booking.status}
-                  </Badge>
+              {campaignsLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
                 </div>
-              ))}
-              {bookedServices.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">No bookings yet</p>
+              ) : campaigns.length > 0 ? (
+                <div className="space-y-3">
+                  {campaigns.map((campaign) => (
+                    <div key={campaign.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                      <div>
+                        <p className="font-medium">{campaign.lead_gen_campaigns.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {campaign.leads_received} leads • ${campaign.budget_contribution}/month
+                        </p>
+                      </div>
+                      <Badge variant={campaign.billing_status === 'active' ? 'default' : 'secondary'}>
+                        {campaign.billing_status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground mb-3">No campaigns yet</p>
+                  <Button asChild size="sm">
+                    <Link to="/campaigns/launch">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Launch Campaign
+                    </Link>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -216,24 +199,14 @@ export default function UserDashboard() {
         setBalanceModalOpen={setBalanceModalOpen}
         spentModalOpen={spentModalOpen}
         setSpentModalOpen={setSpentModalOpen}
-        servicesModalOpen={servicesModalOpen}
-        setServicesModalOpen={setServicesModalOpen}
-        completionModalOpen={completionModalOpen}
-        setCompletionModalOpen={setCompletionModalOpen}
-        upcomingModalOpen={upcomingModalOpen}
-        setUpcomingModalOpen={setUpcomingModalOpen}
         recentTransactionsModalOpen={recentTransactionsModalOpen}
         setRecentTransactionsModalOpen={setRecentTransactionsModalOpen}
-        recentBookingsModalOpen={recentBookingsModalOpen}
-        setRecentBookingsModalOpen={setRecentBookingsModalOpen}
         topUpModalOpen={topUpModalOpen}
         setTopUpModalOpen={setTopUpModalOpen}
         upcomingChargesModalOpen={upcomingChargesModalOpen}
         setUpcomingChargesModalOpen={setUpcomingChargesModalOpen}
         allTransactions={allTransactions}
         spentTransactions={spentTransactions}
-        bookedServices={bookedServices}
-        upcomingBookings={upcomingBookings}
         userStats={userStats}
         onTopUpSuccess={(amount, showSuccessModal) => {
           refreshData();

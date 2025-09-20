@@ -15,16 +15,16 @@ interface DashboardModalsProps {
   setBalanceModalOpen: (open: boolean) => void;
   spentModalOpen: boolean;
   setSpentModalOpen: (open: boolean) => void;
-  servicesModalOpen: boolean;
-  setServicesModalOpen: (open: boolean) => void;
-  completionModalOpen: boolean;
-  setCompletionModalOpen: (open: boolean) => void;
-  upcomingModalOpen: boolean;
-  setUpcomingModalOpen: (open: boolean) => void;
+  servicesModalOpen?: boolean;
+  setServicesModalOpen?: (open: boolean) => void;
+  completionModalOpen?: boolean;
+  setCompletionModalOpen?: (open: boolean) => void;
+  upcomingModalOpen?: boolean;
+  setUpcomingModalOpen?: (open: boolean) => void;
   recentTransactionsModalOpen: boolean;
   setRecentTransactionsModalOpen: (open: boolean) => void;
-  recentBookingsModalOpen: boolean;
-  setRecentBookingsModalOpen: (open: boolean) => void;
+  recentBookingsModalOpen?: boolean;
+  setRecentBookingsModalOpen?: (open: boolean) => void;
   topUpModalOpen: boolean;
   setTopUpModalOpen: (open: boolean) => void;
   upcomingChargesModalOpen?: boolean;
@@ -33,8 +33,8 @@ interface DashboardModalsProps {
   // Data
   allTransactions: Transaction[];
   spentTransactions: any[];
-  bookedServices: BookedService[];
-  upcomingBookings: UpcomingSession[];
+  bookedServices?: BookedService[];
+  upcomingBookings?: UpcomingSession[];
   userStats: UserStats;
   
   // Callbacks
@@ -90,22 +90,22 @@ export function DashboardModals({
       />
       
       <ServicesBookedModal
-        open={servicesModalOpen}
-        onOpenChange={setServicesModalOpen}
-        bookedServices={bookedServices}
+        open={servicesModalOpen || false}
+        onOpenChange={setServicesModalOpen || (() => {})}
+        bookedServices={bookedServices || []}
       />
       
       <CompletionRateModal
-        open={completionModalOpen}
-        onOpenChange={setCompletionModalOpen}
-        services={bookedServices}
-        overallRate={Math.round((userStats.completedSessions / userStats.servicesBooked) * 100)}
+        open={completionModalOpen || false}
+        onOpenChange={setCompletionModalOpen || (() => {})}
+        services={bookedServices || []}
+        overallRate={userStats.servicesBooked > 0 ? Math.round((userStats.completedSessions / userStats.servicesBooked) * 100) : 0}
       />
       
       <UpcomingSessionsModal
-        open={upcomingModalOpen}
-        onOpenChange={setUpcomingModalOpen}
-        sessions={upcomingBookings}
+        open={upcomingModalOpen || false}
+        onOpenChange={setUpcomingModalOpen || (() => {})}
+        sessions={upcomingBookings || []}
       />
       
       <RecentTransactionsModal
@@ -115,9 +115,9 @@ export function DashboardModals({
       />
       
       <RecentBookingsModal
-        open={recentBookingsModalOpen}
-        onOpenChange={setRecentBookingsModalOpen}
-        bookings={bookedServices}
+        open={recentBookingsModalOpen || false}
+        onOpenChange={setRecentBookingsModalOpen || (() => {})}
+        bookings={bookedServices || []}
       />
 
       <TopUpModal 
