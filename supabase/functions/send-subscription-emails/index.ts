@@ -136,15 +136,27 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co" 
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
                           text-decoration: none; 
                           border-radius: 25px; 
                           font-weight: bold; 
+                          margin-right: 15px;
                           display: inline-block;">
-                  Access Your Account
+                  🏠 My Dashboard
+                </a>
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+                   style="background: #f8f9ff; 
+                          color: #667eea; 
+                          border: 2px solid #667eea;
+                          padding: 13px 30px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-weight: bold;
+                          display: inline-block;">
+                  💳 View Credits & Billing
                 </a>
               </div>
               
@@ -198,15 +210,27 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co" 
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
                           text-decoration: none; 
                           border-radius: 25px; 
                           font-weight: bold; 
+                          margin-right: 15px;
                           display: inline-block;">
-                  Manage Your Account
+                  🏠 My Dashboard
+                </a>
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+                   style="background: #f8f9ff; 
+                          color: #667eea; 
+                          border: 2px solid #667eea;
+                          padding: 13px 30px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-weight: bold;
+                          display: inline-block;">
+                  💰 Manage Subscription
                 </a>
               </div>
               
@@ -258,15 +282,27 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co" 
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
                           text-decoration: none; 
                           border-radius: 25px; 
                           font-weight: bold; 
+                          margin-right: 15px;
                           display: inline-block;">
-                  Start Using Your Credits
+                  🚀 Start Using Credits
+                </a>
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/marketplace" 
+                   style="background: #f8f9ff; 
+                          color: #667eea; 
+                          border: 2px solid #667eea;
+                          padding: 13px 30px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-weight: bold;
+                          display: inline-block;">
+                  🛍️ Browse Services
                 </a>
               </div>
             </div>
@@ -277,10 +313,34 @@ const handler = async (req: Request): Promise<Response> => {
         adminHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #333;">New Subscription Notification</h2>
-            <p><strong>User:</strong> ${userFullName} (${user.email})</p>
+            <p><strong>User:</strong> ${userFullName} (${userEmail})</p>
             <p><strong>Plan:</strong> ${planName}</p>
             <p><strong>Credits per Month:</strong> ${subscriptionData.credits}</p>
             <p><strong>Subscription Time:</strong> ${new Date().toLocaleString()}</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard" 
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; 
+                        padding: 15px 30px; 
+                        text-decoration: none; 
+                        border-radius: 25px; 
+                        font-weight: bold; 
+                        margin-right: 15px;
+                        display: inline-block;">
+                🏠 Admin Dashboard
+              </a>
+              <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard?tab=billing" 
+                 style="background: #f8f9ff; 
+                        color: #667eea; 
+                        border: 2px solid #667eea;
+                        padding: 13px 30px; 
+                        text-decoration: none; 
+                        border-radius: 25px; 
+                        font-weight: bold;
+                        display: inline-block;">
+                💰 View Revenue & Stats
+              </a>
+            </div>
           </div>
         `;
         break;

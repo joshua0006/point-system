@@ -125,6 +125,31 @@ async function handleLaunchEmail(data: CampaignLaunchEmailRequest): Promise<Resp
           </ul>
         </div>
         
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/campaigns" 
+             style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+                    color: white; 
+                    padding: 15px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold; 
+                    margin-right: 15px;
+                    display: inline-block;">
+            View My Campaigns
+          </a>
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+             style="background: #f8fafc; 
+                    color: #2563eb; 
+                    border: 2px solid #2563eb;
+                    padding: 13px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold;
+                    display: inline-block;">
+            View Points & Transactions
+          </a>
+        </div>
+        
         <div style="text-align: center; margin-top: 30px;">
           <p style="color: #6b7280;">Thank you for choosing our campaign management services!</p>
           <p style="color: #6b7280; font-size: 14px;">
@@ -167,6 +192,31 @@ async function handleLaunchEmail(data: CampaignLaunchEmailRequest): Promise<Resp
             <li>Assign to appropriate team members</li>
             <li>Schedule initial performance review</li>
           </ul>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard" 
+             style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+                    color: white; 
+                    padding: 15px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold; 
+                    margin-right: 15px;
+                    display: inline-block;">
+            🏠 Admin Dashboard
+          </a>
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard?tab=billing" 
+             style="background: #f8fafc; 
+                    color: #dc2626; 
+                    border: 2px solid #dc2626;
+                    padding: 13px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold;
+                    display: inline-block;">
+            💰 View Transactions
+          </a>
         </div>
         
         <div style="text-align: center; margin-top: 30px;">
@@ -259,6 +309,31 @@ async function handlePauseResumeEmail(data: CampaignPauseEmailRequest): Promise<
           `}
         </div>
         
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/campaigns" 
+             style="background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%); 
+                    color: white; 
+                    padding: 15px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold; 
+                    margin-right: 15px;
+                    display: inline-block;">
+            ${isPausing ? '📊 View Campaign Status' : '🚀 View Active Campaigns'}
+          </a>
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+             style="background: #f8fafc; 
+                    color: ${statusColor}; 
+                    border: 2px solid ${statusColor};
+                    padding: 13px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold;
+                    display: inline-block;">
+            💳 View Points & Billing
+          </a>
+        </div>
+        
         <div style="text-align: center; margin-top: 30px;">
           <p style="color: #6b7280;">Need help? Contact our support team anytime.</p>
           <p style="color: #6b7280; font-size: 14px;">
@@ -310,6 +385,31 @@ async function handlePauseResumeEmail(data: CampaignPauseEmailRequest): Promise<
               <li>Monitor for performance consistency</li>
             </ul>
           `}
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard" 
+             style="background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%); 
+                    color: white; 
+                    padding: 15px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold; 
+                    margin-right: 15px;
+                    display: inline-block;">
+            🏠 Admin Dashboard
+          </a>
+          <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard?tab=billing" 
+             style="background: #f8fafc; 
+                    color: ${statusColor}; 
+                    border: 2px solid ${statusColor};
+                    padding: 13px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    font-weight: bold;
+                    display: inline-block;">
+            💰 Monitor Transactions
+          </a>
         </div>
         
         <div style="text-align: center; margin-top: 30px;">
