@@ -6,7 +6,7 @@ import { ArrowLeft, Phone } from "lucide-react";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
@@ -15,6 +15,7 @@ import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunc
 const ColdCallingCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
@@ -193,7 +194,7 @@ const ColdCallingCampaigns = () => {
 
           <ColdCallingWizard
             onComplete={handleColdCallingComplete}
-            onBack={() => {}} // Not needed for dedicated page
+            onBack={() => navigate('/campaigns/launch')}
             userBalance={userBalance}
           />
         </div>
