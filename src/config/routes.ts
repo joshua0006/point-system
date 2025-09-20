@@ -168,7 +168,7 @@ export const routeConfig: RouteConfig[] = [
     skeleton: PageSkeleton,
   },
   {
-    path: '/settings',
+    path: '/settings/:tab?',
     component: Settings,
     protected: true,
     skeleton: PageSkeleton,

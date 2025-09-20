@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { TransactionHistoryModal } from "@/components/settings/TransactionHistoryModal";
 import { AutoReplySettings } from "@/components/settings/AutoReplySettings";
@@ -19,6 +20,8 @@ import { useQuery } from "@tanstack/react-query";
 const Settings = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { tab } = useParams<{ tab?: string }>();
   const [isLoading, setIsLoading] = useState(false);
   
   // Profile settings state
@@ -133,10 +136,20 @@ const Settings = () => {
     }
   };
 
+  // Get the active tab from URL or default to profile
+  const activeTab = tab || "profile";
+  const validTabs = ["profile", "notifications", "security", "billing", "auto-reply"];
+  const currentTab = validTabs.includes(activeTab) ? activeTab : "profile";
+
+  // Handle tab changes by navigating to the new URL
+  const handleTabChange = (newTab: string) => {
+    navigate(`/settings/${newTab}`);
+  };
+
   return (
     <SidebarLayout title="Settings" description="Manage your account settings and preferences">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
