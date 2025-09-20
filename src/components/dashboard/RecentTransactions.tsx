@@ -22,30 +22,24 @@ export function RecentTransactions({ transactions, onClick }: RecentTransactions
           {transactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
               <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  transaction.type === 'spent' 
-                    ? 'bg-destructive/10 text-destructive' 
-                    : 'bg-success/10 text-success'
-                }`}>
-                  {transaction.type === 'spent' ? (
-                    <TrendingUp className="w-4 h-4 rotate-45" />
-                  ) : (
-                    <TrendingUp className="w-4 h-4" />
-                  )}
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted">
+                  <span className="text-sm">{transaction.icon}</span>
                 </div>
                 <div>
                   <p className="font-medium text-sm text-foreground">{transaction.service}</p>
-                  {transaction.consultant && (
-                    <p className="text-xs text-muted-foreground">with {transaction.consultant}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">{transaction.date}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">{transaction.date}</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {transaction.category}
+                    </Badge>
+                  </div>
                 </div>
               </div>
               <div className="text-right">
                 <p className={`font-semibold ${
-                  transaction.type === 'spent' ? 'text-destructive' : 'text-success'
+                  transaction.subType === 'spent' ? 'text-red-600' : 'text-green-600'
                 }`}>
-                  {transaction.type === 'spent' ? '-' : '+'}{transaction.points}
+                  {transaction.subType === 'spent' ? '-' : '+'}{transaction.points}
                 </p>
                 <Badge variant="outline" className="text-xs">
                   {transaction.status}

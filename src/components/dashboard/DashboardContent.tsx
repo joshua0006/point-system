@@ -35,19 +35,43 @@ export const DashboardContent = memo(({
       </CardHeader>
       <CardContent>
         {recentTransactions.map((transaction) => (
-          <div key={transaction.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
-            <div>
-              <p className="font-medium">{transaction.service}</p>
-              <p className="text-sm text-muted-foreground">{transaction.date}</p>
+          <div key={transaction.id} className="flex justify-between items-center py-3 border-b last:border-b-0">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted">
+                <span className="text-sm">{transaction.icon}</span>
+              </div>
+              <div>
+                <p className="font-medium text-sm">{transaction.service}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-muted-foreground">{transaction.date}</p>
+                  <Badge variant="secondary" className="text-xs">
+                    {transaction.category}
+                  </Badge>
+                </div>
+              </div>
             </div>
-            <div className={`font-semibold ${transaction.type === 'earned' ? 'text-success' : 'text-destructive'}`}>
-              {transaction.type === 'earned' ? '+' : '-'}{transaction.points} credits
+            <div className={`font-semibold text-sm ${
+              transaction.subType === 'earned' 
+                ? 'text-green-600' 
+                : 'text-red-600'
+            }`}>
+              {transaction.subType === 'earned' ? '+' : '-'}{transaction.points} credits
             </div>
           </div>
         ))}
         {recentTransactions.length === 0 && (
           <p className="text-muted-foreground text-center py-4">No transactions yet</p>
         )}
+        <div className="mt-4 pt-3 border-t">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => openModal('recentTransactions')}
+            className="w-full"
+          >
+            View All Transactions
+          </Button>
+        </div>
       </CardContent>
     </Card>
     
