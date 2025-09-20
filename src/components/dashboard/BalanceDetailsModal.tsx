@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, ArrowUp, ArrowDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserStats } from "@/hooks/useDashboardData";
+import { memo } from "react";
 
 interface BalanceDetailsModalProps {
   open: boolean;
@@ -14,17 +15,15 @@ interface BalanceDetailsModalProps {
   userStats: UserStats;
 }
 
-export function BalanceDetailsModal({ 
+export const BalanceDetailsModal = memo(({ 
   open, 
   onOpenChange, 
   onTopUp, 
   onViewUpcomingCharges,
   userStats 
-}: BalanceDetailsModalProps) {
+}: BalanceDetailsModalProps) => {
   const isMobile = useIsMobile();
 
-  // Debug logging
-  console.log('BalanceDetailsModal userStats:', userStats);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -98,4 +97,4 @@ export function BalanceDetailsModal({
       </DialogContent>
     </Dialog>
   );
-}
+});

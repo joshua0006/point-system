@@ -1,7 +1,6 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useModalState } from "./useModalState";
 import { useTransactionData, type Transaction } from "./useTransactionData";
 import { useBookingData, type BookedService, type UpcomingSession } from "./useBookingData";
 
@@ -20,7 +19,6 @@ export function useDashboardData() {
   const { user, profile } = useAuth();
   
   // Use focused hooks for different data types
-  const modalState = useModalState();
   const transactionData = useTransactionData();
   const bookingData = useBookingData();
 
@@ -70,16 +68,25 @@ export function useDashboardData() {
     }
   }, [user?.id, memoizedRefreshTransactions, memoizedRefreshBookings]);
 
-  // Calculate combined stats from hooks
-  const userStats: UserStats = {
+  // Calculate combined stats from hooks - memoized for performance
+  const userStats: UserStats = useMemo(() => ({
     totalPoints: profile?.flexi_credits_balance || 0,
     pointsSpent: transactionData.totalSpent,
     pointsEarned: transactionData.totalEarned,
     servicesBooked: bookingData.servicesBooked,
     completedSessions: bookingData.completedSessions,
-  };
+  }), [
+    profile?.flexi_credits_balance,
+    transactionData.totalSpent,
+    transactionData.totalEarned,
+    bookingData.servicesBooked,
+    bookingData.completedSessions,
+  ]);
 
-  const isLoading = transactionData.isLoading || bookingData.isLoading;
+  const isLoading = useMemo(() => 
+    transactionData.isLoading || bookingData.isLoading,
+    [transactionData.isLoading, bookingData.isLoading]
+  );
   
   const refreshData = useCallback(() => {
     memoizedRefreshTransactions();
@@ -87,9 +94,6 @@ export function useDashboardData() {
   }, [memoizedRefreshTransactions, memoizedRefreshBookings]);
 
   return {
-    // Modal states (destructured from modalState hook)
-    ...modalState,
-    
     // Data
     userStats,
     allTransactions: transactionData.transactions,

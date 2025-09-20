@@ -7,6 +7,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { UserStats } from "@/hooks/useDashboardData";
+import { memo, useMemo } from "react";
 
 interface DashboardStatsProps {
   userStats: UserStats;
@@ -16,13 +17,27 @@ interface DashboardStatsProps {
   onCompletionClick: () => void;
 }
 
-export function DashboardStats({ 
+export const DashboardStats = memo(({ 
   userStats, 
   onBalanceClick, 
   onSpentClick, 
   onServicesClick, 
   onCompletionClick 
-}: DashboardStatsProps) {
+}: DashboardStatsProps) => {
+  const completionRate = useMemo(() => {
+    return userStats.servicesBooked > 0 
+      ? Math.round((userStats.completedSessions / userStats.servicesBooked) * 100) 
+      : 0;
+  }, [userStats.completedSessions, userStats.servicesBooked]);
+
+  const balanceDisplay = useMemo(() => ({
+    amount: Math.abs(userStats.totalPoints).toLocaleString(),
+    isNegative: userStats.totalPoints < 0,
+    label: userStats.totalPoints < 0 ? 'points owed' : 'points available',
+    displayText: userStats.totalPoints < 0 
+      ? `Owes ${Math.abs(userStats.totalPoints).toLocaleString()} pts`
+      : `${Math.abs(userStats.totalPoints).toLocaleString()}`
+  }), [userStats.totalPoints]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card 
@@ -36,11 +51,11 @@ export function DashboardStats({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${userStats.totalPoints < 0 ? 'text-destructive' : ''}`}>
-            {userStats.totalPoints < 0 ? 'Owes ' : ''}{Math.abs(userStats.totalPoints).toLocaleString()}{userStats.totalPoints < 0 ? ' pts' : ''}
+          <div className={`text-2xl font-bold ${balanceDisplay.isNegative ? 'text-destructive' : ''}`}>
+            {balanceDisplay.displayText}
           </div>
           <p className="text-xs opacity-90">
-            {userStats.totalPoints < 0 ? 'points owed' : 'points available'}
+            {balanceDisplay.label}
           </p>
         </CardContent>
       </Card>
@@ -89,14 +104,14 @@ export function DashboardStats({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">
-            {userStats.servicesBooked > 0 ? Math.round((userStats.completedSessions / userStats.servicesBooked) * 100) : 0}%
+            {completionRate}%
           </div>
           <Progress 
-            value={userStats.servicesBooked > 0 ? (userStats.completedSessions / userStats.servicesBooked) * 100 : 0} 
+            value={completionRate} 
             className="mt-2" 
           />
         </CardContent>
       </Card>
     </div>
   );
-}
+});
