@@ -146,12 +146,12 @@ function getTransactionUrl(role: string): string {
     case 'sales':
       return `${baseUrl}/seller-dashboard`;
     default:
-      return `${baseUrl}/settings`;
+      return `${baseUrl}/dashboard`;
   }
 }
 
 function getSettingsUrl(role: string): string {
-  return "https://rrnaquethuzvbsxcssss.supabase.co/settings";
+  return "https://rrnaquethuzvbsxcssss.supabase.co/dashboard";
 }
 
 function generateEmailContent(
