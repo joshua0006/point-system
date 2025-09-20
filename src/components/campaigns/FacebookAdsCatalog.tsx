@@ -174,14 +174,6 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
                 {template.template_config && (
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
-                      <span>Expected Leads:</span>
-                      <span className="font-medium">{template.template_config.expected_leads}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Cost per Lead:</span>
-                      <span className="font-medium">{template.template_config.cost_per_lead}pts</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
                       <span>Recommended Budget:</span>
                       <span className="font-medium">{template.template_config.budget}pts</span>
                     </div>
@@ -297,26 +289,6 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
                 </div>
               )}
 
-              {/* Expected Results */}
-              {(selectedTemplate as any).template_config && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">Expected Campaign Performance</h4>
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div className="text-center">
-                      <div className="font-semibold">{(selectedTemplate as any).template_config.expected_leads || 'N/A'}</div>
-                      <div className="text-muted-foreground">Leads/Month</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold">{(selectedTemplate as any).template_config.cost_per_lead || 'N/A'}</div>
-                      <div className="text-muted-foreground">Cost per Lead</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold">{(selectedTemplate as any).template_config.duration_days || 30} days</div>
-                      <div className="text-muted-foreground">Duration</div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
