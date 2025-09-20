@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StatsCard } from "@/components/ui/stats-card";
 import { useAdminBilling } from "@/hooks/useAdminBilling";
 import { 
   DollarSign, 
@@ -32,160 +32,77 @@ export function BillingOverview() {
     <div className="space-y-6">
       {/* Revenue Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-success to-success/80 text-success-foreground">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Total Revenue
-              <DollarSign className="w-4 h-4" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-24 mb-2 bg-success-foreground/20" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {(stats?.totalRevenue || 0).toLocaleString()} pts
-              </div>
-            )}
-            <p className="text-xs opacity-90">Lifetime earnings</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Monthly Recurring
-              <TrendingUp className="w-4 h-4" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-20 mb-2 bg-primary-foreground/20" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {(stats?.monthlyRecurringRevenue || 0).toLocaleString()} pts
-              </div>
-            )}
-            <p className="text-xs opacity-90">MRR from subscriptions</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Active Subscriptions
-              <CreditCard className="w-4 h-4 text-accent" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold text-accent">
-                {stats?.activeSubscriptions || 0}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">Paying subscribers</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Total Users
-              <Users className="w-4 h-4 text-primary" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold text-foreground">
-                {stats?.totalUsers || 0}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">Registered users</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Total Revenue"
+          value={`${(stats?.totalRevenue || 0).toLocaleString()} pts`}
+          subtitle="Lifetime earnings"
+          icon={DollarSign}
+          loading={isLoading}
+          variant="success"
+        />
+        
+        <StatsCard
+          title="Monthly Recurring"
+          value={`${(stats?.monthlyRecurringRevenue || 0).toLocaleString()} pts`}
+          subtitle="MRR from subscriptions"
+          icon={TrendingUp}
+          loading={isLoading}
+          variant="primary"
+        />
+        
+        <StatsCard
+          title="Active Subscriptions"
+          value={stats?.activeSubscriptions || 0}
+          subtitle="Paying subscribers"
+          icon={CreditCard}
+          loading={isLoading}
+        />
+        
+        <StatsCard
+          title="Total Users"
+          value={stats?.totalUsers || 0}
+          subtitle="Registered users"
+          icon={Users}
+          loading={isLoading}
+        />
       </div>
 
       {/* Financial Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Top-Up Revenue
-              <PiggyBank className="w-4 h-4 text-success" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-20 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold text-success">
-                {(stats?.topUpRevenue || 0).toLocaleString()}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">From point purchases</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Subscription Revenue
-              <Receipt className="w-4 h-4 text-primary" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-20 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold text-primary">
-                {(stats?.subscriptionRevenue || 0).toLocaleString()}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">From subscriptions</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Avg User Balance
-              <Coins className="w-4 h-4 text-accent" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-20 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold text-accent">
-                {Math.round(stats?.averageUserBalance || 0).toLocaleString()}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">Points per user</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-sm font-medium">
-              Total Transactions
-              <Activity className="w-4 h-4 text-muted-foreground" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-20 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold text-foreground">
-                {(stats?.totalTransactions || 0).toLocaleString()}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Top-Up Revenue"
+          value={(stats?.topUpRevenue || 0).toLocaleString()}
+          subtitle="From point purchases"
+          icon={PiggyBank}
+          loading={isLoading}
+          className="text-success"
+        />
+        
+        <StatsCard
+          title="Subscription Revenue"
+          value={(stats?.subscriptionRevenue || 0).toLocaleString()}
+          subtitle="From subscriptions"
+          icon={Receipt}
+          loading={isLoading}
+          className="text-primary"
+        />
+        
+        <StatsCard
+          title="Avg User Balance"
+          value={Math.round(stats?.averageUserBalance || 0).toLocaleString()}
+          subtitle="Points per user"
+          icon={Coins}
+          loading={isLoading}
+          className="text-accent"
+        />
+        
+        <StatsCard
+          title="Total Transactions"
+          value={(stats?.totalTransactions || 0).toLocaleString()}
+          subtitle="All time"
+          icon={Activity}
+          loading={isLoading}
+        />
       </div>
 
       {/* Quick Insights */}

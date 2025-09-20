@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { logger } from "@/utils/logger";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Navigation } from "@/components/Navigation";
@@ -68,7 +68,7 @@ const FacebookAdsCampaigns = () => {
       }
 
       const isUserAdmin = data === 'admin';
-      console.log('Admin check result:', { data, isUserAdmin });
+      logger.log('Admin check result:', { data, isUserAdmin });
       setIsAdmin(isUserAdmin);
     } catch (error) {
       console.error('Error in checkAdminStatus:', error);
@@ -287,9 +287,9 @@ const FacebookAdsCampaigns = () => {
       const isProrated = !!pendingCampaign.prorateFirstMonth;
       const amountToDeduct = isProrated ? proratedAmount : budget;
 
-      console.log('Starting campaign creation process...');
-      console.log('Budget (monthly):', budget, 'Amount to deduct (now):', amountToDeduct, 'User Balance:', userBalance);
-      console.log('Pending Campaign:', pendingCampaign);
+      logger.log('Starting campaign creation process...');
+      logger.log('Budget (monthly):', budget, 'Amount to deduct (now):', amountToDeduct, 'User Balance:', userBalance);
+      logger.log('Pending Campaign:', pendingCampaign);
 
       // Check if balance would go below -1000 limit
       const balanceAfterDeduction = userBalance - amountToDeduct;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface QueryOptions {
   cacheKey?: string;
@@ -32,10 +32,12 @@ export const useOptimizedQuery = <T>(
       if (cacheKey) {
         const cached = queryCache.get(cacheKey);
         if (cached && Date.now() < cached.expiry) {
+          logger.debug('Cache hit for query:', cacheKey);
           setData(cached.data);
           setLoading(false);
           return;
         }
+        logger.debug('Cache miss for query:', cacheKey);
       }
 
       setLoading(true);
@@ -55,9 +57,11 @@ export const useOptimizedQuery = <T>(
       setData(result);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error');
+      logger.error('Query failed:', error, 'Retry count:', retryCount);
       
       // Retry logic
       if (retryCount < retry) {
+        logger.debug(`Retrying query (${retryCount + 1}/${retry}) after ${retryDelay * (retryCount + 1)}ms`);
         setTimeout(() => fetchData(retryCount + 1), retryDelay * (retryCount + 1));
         return;
       }
@@ -74,6 +78,7 @@ export const useOptimizedQuery = <T>(
 
   const refetch = useCallback(() => {
     if (cacheKey) {
+      logger.debug('Clearing cache for refetch:', cacheKey);
       queryCache.delete(cacheKey);
     }
     return fetchData();

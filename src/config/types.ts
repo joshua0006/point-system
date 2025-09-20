@@ -23,6 +23,20 @@ export interface Profile {
   onboarding_completed: boolean;
 }
 
+export interface UserProfile extends Profile {
+  // Alias for admin components
+}
+
+// Campaign Target Interface
+export interface CampaignTarget {
+  id: string;
+  name: string;
+  status: 'active' | 'inactive';
+  campaignTypes: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 // Navigation Types
 export interface NavItem {
   path: string;

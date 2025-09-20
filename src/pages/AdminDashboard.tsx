@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Target
 } from "lucide-react";
+import type { CampaignTarget } from "@/config/types";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -31,7 +32,7 @@ export default function AdminDashboard() {
   
   // Shared campaign targets state
   const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
-  const [editingTarget, setEditingTarget] = useState<any>(null);
+  const [editingTarget, setEditingTarget] = useState<CampaignTarget | null>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
 
 
