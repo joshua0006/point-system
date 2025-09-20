@@ -90,6 +90,17 @@ serve(async (req) => {
                 ` : ''}
               </div>
               
+              <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
+                   style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 10px;">
+                  🏠 View Dashboard
+                </a>
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+                   style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                  📊 View Transactions
+                </a>
+              </div>
+              
               <p style="color: #6b7280; margin: 0; font-size: 14px; text-align: center;">
                 If you have any questions about this transaction, please contact our support team.
               </p>
@@ -149,6 +160,17 @@ serve(async (req) => {
                   <p style="color: #1f2937; margin: 5px 0 0 0; padding: 10px; background-color: white; border-radius: 4px; border-left: 4px solid ${actionColor};">${reason}</p>
                 </div>
                 ` : ''}
+              </div>
+              
+              <div style="text-align: center; margin-bottom: 20px;">
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard" 
+                   style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 10px;">
+                  🏠 Admin Dashboard
+                </a>
+                <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard?tab=billing" 
+                   style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                  📊 View All Transactions
+                </a>
               </div>
               
               <p style="color: #6b7280; margin: 0; font-size: 14px; text-align: center;">
