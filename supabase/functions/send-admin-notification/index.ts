@@ -91,11 +91,11 @@ serve(async (req) => {
               </div>
               
               <div style="text-align: center; margin-bottom: 20px;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/user-dashboard" 
+                <a href="${Deno.env.get('SITE_URL') || 'https://your-domain.com'}/user-dashboard" 
                    style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 10px;">
                   🏠 View Dashboard
                 </a>
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/settings" 
+                <a href="${Deno.env.get('SITE_URL') || 'https://your-domain.com'}/settings" 
                    style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
                   📊 View Transactions
                 </a>
@@ -163,11 +163,11 @@ serve(async (req) => {
               </div>
               
               <div style="text-align: center; margin-bottom: 20px;">
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard" 
+                <a href="${Deno.env.get('SITE_URL') || 'https://your-domain.com'}/admin-dashboard" 
                    style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 10px;">
                   🏠 Admin Dashboard
                 </a>
-                <a href="https://rrnaquethuzvbsxcssss.supabase.co/admin-dashboard?tab=billing" 
+                <a href="${Deno.env.get('SITE_URL') || 'https://your-domain.com'}/admin-dashboard?tab=billing" 
                    style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
                   📊 View All Transactions
                 </a>
