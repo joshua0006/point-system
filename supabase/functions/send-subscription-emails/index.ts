@@ -136,27 +136,15 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/user-dashboard" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
                           text-decoration: none; 
                           border-radius: 25px; 
-                          font-weight: bold; 
-                          margin-right: 15px;
-                          display: inline-block;">
-                  🏠 My Dashboard
-                </a>
-                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/settings" 
-                   style="background: #f8f9ff; 
-                          color: #667eea; 
-                          border: 2px solid #667eea;
-                          padding: 13px 30px; 
-                          text-decoration: none; 
-                          border-radius: 25px; 
                           font-weight: bold;
                           display: inline-block;">
-                  💳 View Credits & Billing
+                  🏠 My Dashboard
                 </a>
               </div>
               
@@ -210,27 +198,15 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/user-dashboard" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
                           text-decoration: none; 
                           border-radius: 25px; 
-                          font-weight: bold; 
-                          margin-right: 15px;
-                          display: inline-block;">
-                  🏠 My Dashboard
-                </a>
-                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/settings" 
-                   style="background: #f8f9ff; 
-                          color: #667eea; 
-                          border: 2px solid #667eea;
-                          padding: 13px 30px; 
-                          text-decoration: none; 
-                          border-radius: 25px; 
                           font-weight: bold;
                           display: inline-block;">
-                  💰 Manage Subscription
+                  🏠 My Dashboard
                 </a>
               </div>
               
@@ -282,27 +258,15 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/user-dashboard" 
+                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/dashboard" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
                           text-decoration: none; 
                           border-radius: 25px; 
-                          font-weight: bold; 
-                          margin-right: 15px;
-                          display: inline-block;">
-                  🚀 Start Using Credits
-                </a>
-                <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/marketplace" 
-                   style="background: #f8f9ff; 
-                          color: #667eea; 
-                          border: 2px solid #667eea;
-                          padding: 13px 30px; 
-                          text-decoration: none; 
-                          border-radius: 25px; 
                           font-weight: bold;
                           display: inline-block;">
-                  🛍️ Browse Services
+                  🚀 Go to Dashboard
                 </a>
               </div>
             </div>
