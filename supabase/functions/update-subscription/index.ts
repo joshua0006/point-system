@@ -287,12 +287,21 @@ serve(async (req) => {
               planName: planName,
               oldCredits: currentCredits,
               savingsAmount: Math.abs(upgradeDifference)
-            }
+            },
+            userEmail: user.email
           }
         });
+        logStep("Downgrade confirmation email sent");
       } catch (emailError) {
         logStep("Warning: Failed to send downgrade confirmation email", { error: emailError });
       }
+
+      // IMPORTANT: Do NOT add any credits for downgrades
+      // Existing credits remain in account, but no new credits are added
+      logStep("Downgrade completed - no credits added", {
+        existingCreditsPreserved: true,
+        newCreditsAdded: 0
+      });
 
       return new Response(JSON.stringify({
         success: true,

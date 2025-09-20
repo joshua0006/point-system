@@ -235,32 +235,59 @@ serve(async (req) => {
               .maybeSingle();
             
             if (profile) {
-              // Send upgrade confirmation email
               const creditsPerMonth = parseInt(subscription.metadata?.credits || "0");
+              const previousCredits = parseInt(subscription.metadata?.previous_credits || "0");
+              const creditsDifference = creditsPerMonth - previousCredits;
               
-              await supabaseClient.functions.invoke('send-subscription-emails', {
-                body: {
-                  emailType: 'upgrade',
-                  subscriptionData: {
-                    credits: creditsPerMonth,
-                    planName: subscription.metadata?.plan_name || `Pro ${Math.ceil(creditsPerMonth / 100)} Plan`,
-                    upgradeCreditsAdded: creditsPerMonth - (parseInt(subscription.metadata?.previous_credits || "0"))
-                  }
-                },
-                headers: {
-                  Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
-                }
+              // Determine if this is an upgrade or downgrade
+              const isUpgrade = creditsDifference > 0;
+              const isDowngrade = creditsDifference < 0;
+              
+              logStep("Subscription update type determined", { 
+                creditsPerMonth, 
+                previousCredits, 
+                creditsDifference, 
+                isUpgrade, 
+                isDowngrade 
               });
               
-              logStep("Subscription upgrade email sent", { userId: profile.user_id, email: customer.email });
+              // Only send email, don't add any credits here for downgrades
+              if (isUpgrade) {
+                await supabaseClient.functions.invoke('send-subscription-emails', {
+                  body: {
+                    emailType: 'upgrade',
+                    subscriptionData: {
+                      credits: creditsPerMonth,
+                      planName: subscription.metadata?.plan_name || `Pro ${Math.ceil(creditsPerMonth / 100)} Plan`,
+                      upgradeCreditsAdded: creditsDifference
+                    },
+                    userEmail: customer.email
+                  }
+                });
+                logStep("Subscription upgrade email sent", { userId: profile.user_id, email: customer.email });
+              } else if (isDowngrade) {
+                await supabaseClient.functions.invoke('send-subscription-emails', {
+                  body: {
+                    emailType: 'downgrade',
+                    subscriptionData: {
+                      credits: creditsPerMonth,
+                      planName: subscription.metadata?.plan_name || `Pro ${Math.ceil(creditsPerMonth / 100)} Plan`,
+                      oldCredits: previousCredits,
+                      savingsAmount: Math.abs(creditsDifference)
+                    },
+                    userEmail: customer.email
+                  }
+                });
+                logStep("Subscription downgrade email sent", { userId: profile.user_id, email: customer.email });
+              }
             }
           }
         } catch (emailError) {
-          logStep("Failed to send upgrade confirmation email", { error: emailError.message });
+          logStep("Failed to send subscription change confirmation email", { error: emailError.message });
         }
         
-        logStep("Skipping proration invoice - credits handled immediately", { invoiceId: invoice.id });
-        return new Response(JSON.stringify({ received: true, message: "Proration invoice processed" }), {
+        logStep("Skipping proration invoice - no credits added for subscription updates", { invoiceId: invoice.id });
+        return new Response(JSON.stringify({ received: true, message: "Subscription update processed" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
@@ -287,6 +314,18 @@ serve(async (req) => {
       // Get subscription details
       const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
       logStep("Retrieved subscription", { subscriptionId: subscription.id });
+
+      // Check if this is a downgrade transition period - don't add credits if scheduled downgrade
+      if (subscription.metadata?.scheduled_downgrade === 'true') {
+        logStep("Skipping credit addition - scheduled downgrade in progress", { 
+          subscriptionId: subscription.id,
+          scheduledDowngrade: true 
+        });
+        return new Response(JSON.stringify({ received: true, message: "Credits skipped during downgrade transition" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
 
       // Find user by customer email
       const customer = await stripe.customers.retrieve(invoice.customer);
