@@ -84,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification email
     const emailResponse = await resend.emails.send({
-      from: "FlexiLeads System <notifications@flexileads.com>",
+      from: "FlexiLeads System <notifications@mail.themoneybees.co>",
       to: [recipientEmail],
       subject: subject,
       html: html,

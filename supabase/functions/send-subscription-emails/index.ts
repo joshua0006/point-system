@@ -351,7 +351,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send user email
     const userEmailResponse = await resend.emails.send({
-      from: "FlexiLeads <noreply@flexileads.com>",
+      from: "FlexiLeads <noreply@mail.themoneybees.co>",
       to: [userEmail!],
       subject: userSubject,
       html: userHtml,
@@ -361,7 +361,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send admin email
     const adminEmailResponse = await resend.emails.send({
-      from: "FlexiLeads System <noreply@flexileads.com>",
+      from: "FlexiLeads System <noreply@mail.themoneybees.co>",
       to: ["leotanjs95@gmail.com"], // Replace with actual admin email
       subject: adminSubject,
       html: adminHtml,
