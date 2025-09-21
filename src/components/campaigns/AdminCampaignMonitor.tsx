@@ -6,9 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight, User, Pause, Play, Edit, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminOperations } from "@/hooks/admin/useAdminOperations";
 
 interface UserGroup {
   userId: string;
@@ -24,12 +27,15 @@ interface UserGroup {
 
 export const AdminCampaignMonitor = () => {
   const { toast } = useToast();
+  const { loading: operationsLoading } = useAdminOperations();
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showActiveOnly, setShowActiveOnly] = useState(true);
-  const [viewMode, setViewMode] = useState('campaigns'); // 'campaigns' or 'users'
+  const [viewMode, setViewMode] = useState('users'); // Default to 'users' view
+  const [editingBudget, setEditingBudget] = useState(null);
+  const [budgetInputValue, setBudgetInputValue] = useState('');
 
   useEffect(() => {
     fetchAllCampaigns();
@@ -149,6 +155,110 @@ export const AdminCampaignMonitor = () => {
   const getUserInitials = (name?: string): string => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handlePauseCampaign = async (participationId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-campaign-launcher', {
+        body: {
+          action: 'pause_campaign',
+          participantId: participationId
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Campaign has been paused successfully.",
+      });
+
+      // Refresh the data
+      fetchAllCampaigns();
+    } catch (error) {
+      console.error('Error pausing campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to pause campaign.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResumeCampaign = async (participationId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-campaign-launcher', {
+        body: {
+          action: 'resume_campaign',
+          participantId: participationId
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Campaign has been resumed successfully.",
+      });
+
+      // Refresh the data
+      fetchAllCampaigns();
+    } catch (error) {
+      console.error('Error resuming campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resume campaign.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditBudget = (participationId: string, currentBudget: number) => {
+    setEditingBudget(participationId);
+    setBudgetInputValue(currentBudget.toString());
+  };
+
+  const handleSaveBudget = async (participationId: string) => {
+    try {
+      const newBudget = parseInt(budgetInputValue);
+      if (isNaN(newBudget) || newBudget <= 0) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid budget amount.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('campaign_participants')
+        .update({ budget_contribution: newBudget })
+        .eq('id', participationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Budget updated successfully.",
+      });
+
+      setEditingBudget(null);
+      setBudgetInputValue('');
+      // Refresh the data
+      fetchAllCampaigns();
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update budget.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBudget(null);
+    setBudgetInputValue('');
   };
 
   if (loading) {
@@ -297,9 +407,46 @@ export const AdminCampaignMonitor = () => {
                               {isColdCalling ? 'Cold Calling' : 'Facebook Ads'}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-medium">
-                            {participation.budget_contribution.toLocaleString()} points
-                          </TableCell>
+                           <TableCell className="font-medium">
+                             {editingBudget === participation.id ? (
+                               <div className="flex items-center gap-2">
+                                 <Input
+                                   type="number"
+                                   value={budgetInputValue}
+                                   onChange={(e) => setBudgetInputValue(e.target.value)}
+                                   className="w-20"
+                                   min="1"
+                                 />
+                                 <span className="text-sm text-muted-foreground">pts</span>
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={() => handleSaveBudget(participation.id)}
+                                   disabled={operationsLoading}
+                                 >
+                                   <Save className="h-3 w-3" />
+                                 </Button>
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={handleCancelEdit}
+                                 >
+                                   <X className="h-3 w-3" />
+                                 </Button>
+                               </div>
+                             ) : (
+                               <div className="flex items-center gap-2">
+                                 <span>{participation.budget_contribution.toLocaleString()} points</span>
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={() => handleEditBudget(participation.id, participation.budget_contribution)}
+                                 >
+                                   <Edit className="h-3 w-3" />
+                                 </Button>
+                               </div>
+                             )}
+                           </TableCell>
                           <TableCell>
                             <Badge variant={getStatusColor(participation.billing_status)}>
                               {participation.billing_status?.replace('_', ' ').toUpperCase()}
@@ -308,16 +455,39 @@ export const AdminCampaignMonitor = () => {
                           <TableCell>
                             {new Date(participation.joined_at).toLocaleDateString()}
                           </TableCell>
-                          <TableCell>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openCampaignDetails(participation)}
-                            >
-                              <Eye className="h-3 w-3 mr-1" />
-                              Details
-                            </Button>
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex items-center gap-2">
+                               {participation.billing_status === 'active' ? (
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={() => handlePauseCampaign(participation.id)}
+                                   disabled={operationsLoading}
+                                 >
+                                   <Pause className="h-3 w-3 mr-1" />
+                                   Pause
+                                 </Button>
+                               ) : (
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={() => handleResumeCampaign(participation.id)}
+                                   disabled={operationsLoading}
+                                 >
+                                   <Play className="h-3 w-3 mr-1" />
+                                   Resume
+                                 </Button>
+                               )}
+                               <Button
+                                 size="sm"
+                                 variant="outline"
+                                 onClick={() => openCampaignDetails(participation)}
+                               >
+                                 <Eye className="h-3 w-3 mr-1" />
+                                 Details
+                               </Button>
+                             </div>
+                           </TableCell>
                         </TableRow>
                       );
                     })}
@@ -393,30 +563,98 @@ export const AdminCampaignMonitor = () => {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                  <Badge variant="outline" className="text-xs">
-                                    {isColdCalling ? 'Cold Calling' : 'Facebook Ads'}
-                                  </Badge>
-                                  <div className="text-right">
-                                    <div className="font-semibold">
-                                      {participation.budget_contribution.toLocaleString()} pts
-                                    </div>
-                                    <Badge 
-                                      variant={getStatusColor(participation.billing_status)}
-                                      className="text-xs"
-                                    >
-                                      {participation.billing_status?.replace('_', ' ').toUpperCase()}
-                                    </Badge>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => openCampaignDetails(participation)}
-                                  >
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    Details
-                                  </Button>
-                                </div>
+                                 <div className="flex items-center gap-4">
+                                   <Badge variant="outline" className="text-xs">
+                                     {isColdCalling ? 'Cold Calling' : 'Facebook Ads'}
+                                   </Badge>
+                                   <div className="text-right">
+                                     {editingBudget === participation.id ? (
+                                       <div className="flex items-center gap-2">
+                                         <Input
+                                           type="number"
+                                           value={budgetInputValue}
+                                           onChange={(e) => setBudgetInputValue(e.target.value)}
+                                           className="w-20 h-8"
+                                           min="1"
+                                         />
+                                         <span className="text-xs text-muted-foreground">pts</span>
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           onClick={() => handleSaveBudget(participation.id)}
+                                           disabled={operationsLoading}
+                                           className="h-6 w-6 p-0"
+                                         >
+                                           <Save className="h-3 w-3" />
+                                         </Button>
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           onClick={handleCancelEdit}
+                                           className="h-6 w-6 p-0"
+                                         >
+                                           <X className="h-3 w-3" />
+                                         </Button>
+                                       </div>
+                                     ) : (
+                                       <div className="flex items-center gap-2">
+                                         <div>
+                                           <div className="font-semibold">
+                                             {participation.budget_contribution.toLocaleString()} pts
+                                           </div>
+                                           <Badge 
+                                             variant={getStatusColor(participation.billing_status)}
+                                             className="text-xs"
+                                           >
+                                             {participation.billing_status?.replace('_', ' ').toUpperCase()}
+                                           </Badge>
+                                         </div>
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           onClick={() => handleEditBudget(participation.id, participation.budget_contribution)}
+                                           className="h-6 w-6 p-0"
+                                         >
+                                           <Edit className="h-3 w-3" />
+                                         </Button>
+                                       </div>
+                                     )}
+                                   </div>
+                                   <div className="flex gap-1">
+                                     {participation.billing_status === 'active' ? (
+                                       <Button
+                                         size="sm"
+                                         variant="outline"
+                                         onClick={() => handlePauseCampaign(participation.id)}
+                                         disabled={operationsLoading}
+                                         className="h-8"
+                                       >
+                                         <Pause className="h-3 w-3 mr-1" />
+                                         Pause
+                                       </Button>
+                                     ) : (
+                                       <Button
+                                         size="sm"
+                                         variant="outline"
+                                         onClick={() => handleResumeCampaign(participation.id)}
+                                         disabled={operationsLoading}
+                                         className="h-8"
+                                       >
+                                         <Play className="h-3 w-3 mr-1" />
+                                         Resume
+                                       </Button>
+                                     )}
+                                     <Button
+                                       size="sm"
+                                       variant="outline"
+                                       onClick={() => openCampaignDetails(participation)}
+                                       className="h-8"
+                                     >
+                                       <Eye className="h-3 w-3 mr-1" />
+                                       Details
+                                     </Button>
+                                   </div>
+                                 </div>
                               </div>
                             );
                           })}
