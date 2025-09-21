@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 
 interface CampaignDetails {
   id: string;
@@ -31,6 +32,8 @@ export const CampaignLaunchSuccessModal = ({
   onClose, 
   campaignDetails 
 }: CampaignLaunchSuccessModalProps) => {
+  const navigate = useNavigate();
+  
   // Return early if campaignDetails is null
   if (!campaignDetails) {
     return null;
@@ -211,8 +214,14 @@ Next Steps:
           </Card>
 
           {/* Action Button */}
-          <Button onClick={onClose} className="w-full">
-            Continue
+          <Button 
+            onClick={() => {
+              onClose();
+              navigate('/campaigns/my-campaigns');
+            }} 
+            className="w-full"
+          >
+            Continue to My Campaigns
           </Button>
         </div>
       </DialogContent>
