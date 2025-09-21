@@ -301,9 +301,9 @@ export function useAdminActivity() {
       });
     });
 
-    // Process transactions
+    // Process transactions with enhanced categorization
     data.transactions.forEach(transaction => {
-      const activity = processTransaction(transaction, data.userProfileMap);
+      const activity = processTransactionEnhanced(transaction, data.userProfileMap);
       if (activity) activities.push(activity);
     });
 
@@ -325,114 +325,136 @@ export function useAdminActivity() {
     return activities;
   };
 
-  const processTransaction = (transaction: any, userProfileMap: Map<string, string>): RecentActivity | null => {
+  const processTransactionEnhanced = (transaction: any, userProfileMap: Map<string, string>): RecentActivity | null => {
     const userName = userProfileMap.get(transaction.user_id) || 'user';
     const context = getTransactionContext(transaction);
+    const amount = Math.abs(transaction.amount);
     
     let activityType: RecentActivity['type'] = 'wallet_topup';
     let description = '';
     let category: RecentActivity['category'] = 'credit';
     let emoji = '💰';
 
+    // Enhanced processing for admin actions and subscription changes
     switch (transaction.type) {
-      case 'purchase':
-        category = 'debit';
-        if (context.isServicePurchase) {
-          activityType = 'service_purchase';
-          description = `${userName} purchased service for ${Math.abs(transaction.amount)} points`;
-          emoji = '🛒';
-        } else if (context.isCampaignRelated) {
-          activityType = 'campaign_purchase';
-          description = `${userName} invested ${Math.abs(transaction.amount)} points in ad campaign`;
-          emoji = '📈';
-        } else if (context.isStripePayment) {
-          activityType = 'stripe_payment';
-          description = `${userName} purchased ${Math.abs(transaction.amount)} credits via Stripe`;
-          category = 'credit';
-          emoji = '💳';
+      case 'admin_credit':
+        activityType = 'admin_credit';
+        category = 'credit';
+        emoji = '🔝';
+        const creditReason = transaction.description?.replace('Admin credit - ', '').replace(/flexi credits added by admin: /, '').trim();
+        if (creditReason && creditReason !== 'nil' && creditReason !== 'no reason') {
+          description = `💰 Admin added ${amount} flexi credits to ${userName} - ${creditReason}`;
         } else {
-          activityType = 'manual_adjustment';
-          description = `${userName} spent ${Math.abs(transaction.amount)} points`;
-          emoji = '💸';
+          description = `💰 Admin added ${amount} flexi credits to ${userName}`;
         }
         break;
         
       case 'refund':
         if (context.isAdminAction && transaction.amount < 0) {
           activityType = 'admin_debit';
-          description = `Admin deducted ${Math.abs(transaction.amount)} credits from ${userName}`;
           category = 'debit';
           emoji = '🔻';
+          const debitReason = transaction.description?.replace('Admin deduction - ', '').replace(/flexi credits deducted by admin: /, '').trim();
+          if (debitReason && debitReason !== 'nil' && debitReason !== 'no reason') {
+            description = `⚠️ Admin deducted ${amount} flexi credits from ${userName} - ${debitReason}`;
+          } else {
+            description = `⚠️ Admin deducted ${amount} flexi credits from ${userName}`;
+          }
         } else {
           activityType = 'refund';
-          description = `${Math.abs(transaction.amount)} points refunded to ${userName}`;
           category = 'credit';
           emoji = '↩️';
+          description = `↩️ ${amount} flexi credits refunded to ${userName}`;
         }
         break;
         
-      case 'admin_credit':
-        activityType = 'admin_credit';
-        description = `Admin credited ${Math.abs(transaction.amount)} credits to ${userName}`;
-        const reason = transaction.description?.replace('Admin credit - ', '').replace(/flexi credits added by admin: /, '');
-        if (reason && reason !== 'nil' && reason !== 'no reason') {
-          description += ` (${reason})`;
+      case 'purchase':
+        category = 'debit';
+        if (context.isServicePurchase) {
+          activityType = 'service_purchase';
+          description = `🛒 ${userName} purchased service for ${amount} flexi credits`;
+          emoji = '🛒';
+        } else if (context.isCampaignRelated) {
+          activityType = 'campaign_purchase';
+          description = `📈 ${userName} invested ${amount} flexi credits in campaign`;
+          emoji = '📈';
+        } else if (context.isStripePayment) {
+          activityType = 'stripe_payment';
+          description = `💳 ${userName} purchased ${amount} flexi credits via Stripe`;
+          category = 'credit';
+          emoji = '💳';
+        } else {
+          activityType = 'manual_adjustment';
+          description = `💸 ${userName} spent ${amount} flexi credits`;
+          emoji = '💸';
         }
-        emoji = '🔝';
         break;
         
       case 'initial_credit':
         activityType = 'wallet_topup';
-        description = `${userName} received ${Math.abs(transaction.amount)} welcome credits`;
+        description = `🎉 ${userName} received ${amount} welcome flexi credits`;
         emoji = '🎉';
         break;
         
       case 'earning':
         if (transaction.description?.toLowerCase().includes('referral')) {
           activityType = 'referral_bonus';
-          description = `${userName} earned ${Math.abs(transaction.amount)} referral bonus`;
+          description = `🤝 ${userName} earned ${amount} flexi credits from referral bonus`;
           emoji = '🤝';
         } else if (transaction.description?.toLowerCase().includes('commission')) {
           activityType = 'commission_payment';
-          description = `${userName} received ${Math.abs(transaction.amount)} commission`;
+          description = `💼 ${userName} received ${amount} flexi credits as commission`;
           emoji = '💼';
         } else {
           activityType = 'wallet_topup';
-          description = `${userName} earned ${Math.abs(transaction.amount)} points`;
+          description = `⭐ ${userName} earned ${amount} flexi credits`;
           emoji = '⭐';
         }
         break;
         
       default:
-        if (context.isSubscriptionRelated) {
-          if (transaction.description?.toLowerCase().includes('upgrade')) {
+        // Enhanced subscription activity detection
+        const desc = transaction.description?.toLowerCase() || '';
+        if (context.isSubscriptionRelated || desc.includes('subscription') || desc.includes('plan') || desc.includes('upgrade') || desc.includes('downgrade')) {
+          category = 'subscription';
+          if (desc.includes('upgrade') || desc.includes('plan upgrade')) {
             activityType = 'subscription_upgrade';
-            description = `${userName} upgraded subscription (+${Math.abs(transaction.amount)} credits)`;
-            category = 'subscription';
+            description = `⬆️ ${userName} upgraded subscription plan (+${amount} flexi credits)`;
             emoji = '⬆️';
-          } else if (transaction.description?.toLowerCase().includes('downgrade')) {
+          } else if (desc.includes('downgrade') || desc.includes('plan downgrade')) {
             activityType = 'subscription_downgrade';
-            description = `${userName} scheduled subscription downgrade`;
-            category = 'subscription';
+            description = `⬇️ ${userName} downgraded subscription plan`;
             emoji = '⬇️';
-          } else if (transaction.description?.toLowerCase().includes('proration')) {
+          } else if (desc.includes('proration')) {
             activityType = 'proration_credit';
-            description = `${userName} received ${Math.abs(transaction.amount)} proration credit`;
-            category = 'subscription';
+            description = `⚖️ ${userName} received ${amount} flexi credits as proration credit`;
             emoji = '⚖️';
+          } else if (desc.includes('cancelled')) {
+            activityType = 'subscription_cancelled';
+            description = `❌ ${userName} cancelled subscription`;
+            emoji = '❌';
+          } else if (desc.includes('monthly subscription') || desc.includes('subscription renewal')) {
+            activityType = 'subscription_upgrade';
+            description = `🔄 ${userName} received ${amount} flexi credits from monthly subscription`;
+            emoji = '🔄';
+          } else {
+            activityType = 'subscription_upgrade';
+            description = `📋 ${userName} subscription activity: ${amount} flexi credits`;
+            emoji = '📋';
           }
         } else {
+          // Fallback for any other transaction types
           activityType = 'manual_adjustment';
-          description = `${userName} - ${transaction.type}: ${Math.abs(transaction.amount)} points`;
+          description = `🔧 ${userName} - ${transaction.type}: ${amount} flexi credits`;
           emoji = '🔧';
         }
     }
 
     return {
-      id: `points-${transaction.id}`,
+      id: `flexi-${transaction.id}`,
       type: activityType,
       description,
-      points: Math.abs(transaction.amount),
+      points: amount,
       timestamp: formatTimestamp(transaction.created_at),
       rawTimestamp: transaction.created_at,
       category,
