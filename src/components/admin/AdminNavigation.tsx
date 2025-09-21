@@ -33,22 +33,34 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
     },
     {
       path: '/admin-dashboard/services',
-      label: 'Service Management',
+      label: 'Service Management',  
       icon: Briefcase,
     },
     {
       path: '/admin-dashboard/campaigns',
       label: 'Campaign Management',
       icon: Target,
+      subPaths: [
+        '/admin-dashboard/campaigns/targets',
+        '/admin-dashboard/campaigns/scripts', 
+        '/admin-dashboard/campaigns/monitor'
+      ]
     },
   ];
+
+  const isActiveRoute = (item: typeof navItems[0]) => {
+    if (item.subPaths) {
+      return location.pathname === item.path || item.subPaths.some(subPath => location.pathname === subPath);
+    }
+    return location.pathname === item.path;
+  };
 
   return (
     <div className={cn("mb-8", className)}>
       <nav className="flex space-x-1 bg-muted/30 p-1 rounded-lg max-w-5xl">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = isActiveRoute(item);
           
           return (
             <NavLink

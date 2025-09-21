@@ -14,6 +14,9 @@ const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'));
 const AdminBilling = lazy(() => import('@/pages/admin/AdminBilling'));
 const AdminServices = lazy(() => import('@/pages/admin/AdminServices'));
 const AdminCampaigns = lazy(() => import('@/pages/admin/AdminCampaigns'));
+const AdminCampaignTargets = lazy(() => import('@/pages/admin/AdminCampaignTargets'));
+const AdminCampaignScripts = lazy(() => import('@/pages/admin/AdminCampaignScripts'));
+const AdminCampaignMonitorPage = lazy(() => import('@/pages/admin/AdminCampaignMonitor'));
 const Marketplace = lazy(() => import('@/pages/Marketplace'));
 const Services = lazy(() => import('@/pages/Services'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
@@ -97,6 +100,24 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/admin-dashboard/campaigns',
     component: AdminCampaigns,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/campaigns/targets',
+    component: AdminCampaignTargets,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/campaigns/scripts',
+    component: AdminCampaignScripts,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/campaigns/monitor',
+    component: AdminCampaignMonitorPage,
     protected: true,
     skeleton: DashboardSkeleton,
   },
