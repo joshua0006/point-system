@@ -86,19 +86,6 @@ export default function UserDashboard() {
         
         <DashboardHeader isMobile={isMobile} />
 
-        {/* Show fix button for missing Pro 10 credits */}
-        {user?.id === '952c1a39-f9bf-4f5d-ba81-fac0ab686384' && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-yellow-800">Missing Upgrade Credits</p>
-                <p className="text-sm text-yellow-600">Your Pro 5 → Pro 10 upgrade only added 100 credits instead of 500</p>
-              </div>
-              <FixUpgradeButton userId={user.id} />
-            </div>
-          </div>
-        )}
-
         {/* Subscription Status */}
         <div className={isMobile ? "mb-6" : "mb-8"}>
           <SubscriptionStatusCard compact={isMobile} />
