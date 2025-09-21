@@ -84,6 +84,7 @@ export const useCreateService = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['consultant-services'] });
       queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
     },
     onError: (error: Error) => {
       toast({
@@ -118,6 +119,7 @@ export const useUpdateService = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['consultant-services'] });
       queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
     },
     onError: (error: Error) => {
       toast({
@@ -149,13 +151,22 @@ export const useDeleteService = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['consultant-services'] });
       queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to delete service",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error.message.includes('23503')) {
+        toast({
+          title: "Cannot delete service",
+          description: "This service has existing bookings. Consider deactivating it instead.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed to delete service",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
 };
@@ -220,5 +231,50 @@ export const useUploadServiceImage = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+// Admin-specific service operations for creating services with advanced features
+export const useCreateServiceAdmin = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (serviceData: any) => {
+      // For admin, we can create services for any consultant or create system services
+      const insertData = {
+        ...serviceData,
+        consultant_id: serviceData.consultant_id || null,
+        category_id: serviceData.category_id || null,
+        image_url: serviceData.image_url || null,
+        is_active: serviceData.is_active ?? true,
+        service_type: serviceData.service_type || 'consulting',
+        features: serviceData.features || [],
+        includes: serviceData.includes || [],
+        excludes: serviceData.excludes || [],
+        service_tier: serviceData.service_tier || 'standard'
+      };
+
+      const { data, error } = await supabase
+        .from('services')
+        .insert([insertData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+    },
+    onError: (error: any) => {
+      console.error('Error creating service:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create service. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 };

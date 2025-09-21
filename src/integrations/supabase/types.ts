@@ -600,42 +600,54 @@ export type Database = {
           auto_reply_message: string | null
           bio: string | null
           calendar_link: string | null
+          cold_calling_rate: number | null
           created_at: string
           expertise_areas: string[] | null
           hourly_rate: number | null
           id: string
           is_active: boolean
+          lead_gen_rate: number | null
+          service_specialties: string[] | null
           tier: Database["public"]["Enums"]["consultant_tier"]
           updated_at: string
           user_id: string
+          va_support_rate: number | null
         }
         Insert: {
           auto_reply_enabled?: boolean | null
           auto_reply_message?: string | null
           bio?: string | null
           calendar_link?: string | null
+          cold_calling_rate?: number | null
           created_at?: string
           expertise_areas?: string[] | null
           hourly_rate?: number | null
           id?: string
           is_active?: boolean
+          lead_gen_rate?: number | null
+          service_specialties?: string[] | null
           tier?: Database["public"]["Enums"]["consultant_tier"]
           updated_at?: string
           user_id: string
+          va_support_rate?: number | null
         }
         Update: {
           auto_reply_enabled?: boolean | null
           auto_reply_message?: string | null
           bio?: string | null
           calendar_link?: string | null
+          cold_calling_rate?: number | null
           created_at?: string
           expertise_areas?: string[] | null
           hourly_rate?: number | null
           id?: string
           is_active?: boolean
+          lead_gen_rate?: number | null
+          service_specialties?: string[] | null
           tier?: Database["public"]["Enums"]["consultant_tier"]
           updated_at?: string
           user_id?: string
+          va_support_rate?: number | null
         }
         Relationships: []
       }
@@ -1515,10 +1527,15 @@ export type Database = {
           created_at: string
           description: string
           duration_minutes: number | null
+          excludes: Json | null
+          features: Json | null
           id: string
           image_url: string | null
+          includes: Json | null
           is_active: boolean
           price: number
+          service_tier: string | null
+          service_type: Database["public"]["Enums"]["service_type"] | null
           title: string
           updated_at: string
         }
@@ -1528,10 +1545,15 @@ export type Database = {
           created_at?: string
           description: string
           duration_minutes?: number | null
+          excludes?: Json | null
+          features?: Json | null
           id?: string
           image_url?: string | null
+          includes?: Json | null
           is_active?: boolean
           price: number
+          service_tier?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"] | null
           title: string
           updated_at?: string
         }
@@ -1541,10 +1563,15 @@ export type Database = {
           created_at?: string
           description?: string
           duration_minutes?: number | null
+          excludes?: Json | null
+          features?: Json | null
           id?: string
           image_url?: string | null
+          includes?: Json | null
           is_active?: boolean
           price?: number
+          service_tier?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"] | null
           title?: string
           updated_at?: string
         }
@@ -1953,6 +1980,12 @@ export type Database = {
       item_status: "pending" | "completed" | "in_progress"
       message_type: "text" | "system_notification"
       priority_level: "low" | "medium" | "high"
+      service_type:
+        | "consulting"
+        | "cold_calling"
+        | "va_support"
+        | "lead_generation"
+        | "other"
       transaction_type:
         | "purchase"
         | "refund"
@@ -2104,6 +2137,13 @@ export const Constants = {
       item_status: ["pending", "completed", "in_progress"],
       message_type: ["text", "system_notification"],
       priority_level: ["low", "medium", "high"],
+      service_type: [
+        "consulting",
+        "cold_calling",
+        "va_support",
+        "lead_generation",
+        "other",
+      ],
       transaction_type: [
         "purchase",
         "refund",
