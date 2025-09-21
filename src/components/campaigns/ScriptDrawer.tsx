@@ -72,7 +72,7 @@ export const ScriptDrawer = ({
     try {
       await navigator.clipboard.writeText(script);
       setCopiedScript(scriptType);
-      setTimeout(() => setCopiedScript(null), 2000);
+      setTimeout(() => setCopiedScript(null), 1500);
       toast({
         title: "Script copied!",
         description: "The script has been copied to your clipboard.",

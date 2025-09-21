@@ -58,8 +58,8 @@ export function ConversationList({ conversations, onSelectConversation, activeFi
       setUndoToast({ open: false, message: '', onUndo: () => {} });
     };
     
-    // Schedule deletion for after 10 seconds
-    deletionTimeout = setTimeout(executeDelete, 10000);
+    // Schedule deletion for after 8 seconds (faster)
+    deletionTimeout = setTimeout(executeDelete, 8000);
     
     // Show undo toast immediately
     setUndoToast({

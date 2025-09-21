@@ -1,11 +1,12 @@
 
+import { memo } from 'react';
 import { Search } from 'lucide-react';
 
 interface MarketplaceHeroProps {
   servicesCount: number;
 }
 
-export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
+export const MarketplaceHero = memo(function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
   return (
     <div className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b">
       <div className="container mx-auto px-4 py-16">
@@ -30,4 +31,4 @@ export function MarketplaceHero({ servicesCount }: MarketplaceHeroProps) {
       </div>
     </div>
   );
-}
+});

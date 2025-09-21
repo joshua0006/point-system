@@ -120,9 +120,9 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ imagePrompts, ad
       try {
         await generateImage(prompt);
         successCount++;
-        // Add delay between requests
+        // Add shorter delay between requests for faster generation
         if (prompt !== imagePrompts[imagePrompts.length - 1]) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       } catch (error) {
         console.error('Failed to generate image for prompt:', prompt, error);

@@ -48,12 +48,10 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
     setMessage(newMessage);
     setEmojiPickerOpen(false);
     
-    // Focus back to textarea and set cursor position
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + emoji.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
+    // Immediate focus back to textarea
+    textarea.focus();
+    const newCursorPos = start + emoji.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
   };
 
   return (

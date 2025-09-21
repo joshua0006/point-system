@@ -546,9 +546,7 @@ export const AdCopyWizard = () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedStates(prev => ({ ...prev, [id]: true }));
-      setTimeout(() => {
-        setCopiedStates(prev => ({ ...prev, [id]: false }));
-      }, 2000);
+      setTimeout(() => setCopiedStates(prev => ({ ...prev, [id]: false })), 1500);
       toast({
         title: "Copied!",
         description: "Ad copy has been copied to clipboard.",

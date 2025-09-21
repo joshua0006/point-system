@@ -65,10 +65,8 @@ const MyCampaigns = React.memo(() => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
 
-      // Refresh profile to show updated points
-      setTimeout(() => {
-        refreshProfile();
-      }, 1000);
+      // Refresh profile to show updated points immediately
+      refreshProfile();
     }
 
     const vaStatus = urlParams.get('va_subscribe');

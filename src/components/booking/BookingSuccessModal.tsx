@@ -83,10 +83,10 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
       // Generate AI messages
       generateMessages();
       
-      // Simulate booking progress for demo
-      const timer = setTimeout(() => setCurrentStep(1), 2000);
-      const timer2 = setTimeout(() => setCurrentStep(2), 4000);
-      const timer3 = setTimeout(() => setCurrentStep(3), 6000);
+      // Fast booking progress for demo
+      const timer = setTimeout(() => setCurrentStep(1), 800);
+      const timer2 = setTimeout(() => setCurrentStep(2), 1600);
+      const timer3 = setTimeout(() => setCurrentStep(3), 2400);
       
       return () => {
         clearTimeout(timer);
@@ -263,10 +263,8 @@ export function BookingSuccessModal({ open, onOpenChange, bookingDetails, conver
                                 setMessageSent(true);
                                 // Force refresh messages before opening chat
                                 await queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-                                // Give a moment for the query to refresh
-                                setTimeout(() => {
-                                  onMessageConsultant?.();
-                                }, 500);
+                                // Immediate navigation
+                                onMessageConsultant?.();
                               } catch (error) {
                                 console.error('Failed to send message:', error);
                               }

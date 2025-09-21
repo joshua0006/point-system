@@ -26,12 +26,12 @@ export function FixUpgradeButton({ userId }: { userId: string }) {
       });
 
       // Refresh the page to show updated balance
-      setTimeout(() => window.location.reload(), 1000);
+      window.location.reload();
       
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to fix credits",
+        title: "Fix failed",
+        description: error.message || "Failed to fix upgrade. Please contact support.",
         variant: "destructive"
       });
     } finally {

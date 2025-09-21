@@ -1,4 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { memo } from 'react';
+import { OptimizedCard, OptimizedCardContent } from "@/components/ui/optimized-card";
 import { Heart, MessageCircle, Share } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,11 +14,10 @@ interface FacebookAdMockupProps {
   className?: string;
 }
 
-export const FacebookAdMockup = ({ adContent, className }: FacebookAdMockupProps) => {
+export const FacebookAdMockup = memo(function FacebookAdMockup({ adContent, className }: FacebookAdMockupProps) {
   return (
-    <Card className={cn("w-full max-w-md bg-card", className)}>
-      <CardContent className="p-0">
-        {/* Facebook Post Header */}
+    <OptimizedCard className={cn("w-full max-w-md bg-card", className)}>
+      <OptimizedCardContent className="p-0">
         <div className="flex items-center gap-3 p-4 border-b border-border">
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">YB</span>
@@ -74,7 +74,7 @@ export const FacebookAdMockup = ({ adContent, className }: FacebookAdMockupProps
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </OptimizedCardContent>
+    </OptimizedCard>
   );
-};
+});

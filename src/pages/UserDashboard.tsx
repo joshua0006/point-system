@@ -16,9 +16,17 @@ import { useUserCampaigns } from "@/hooks/useUserCampaigns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FixUpgradeButton } from "@/components/FixUpgradeButton";
+import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
 
 export default function UserDashboard() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  
+  // Prefetch common routes for faster navigation
+  useRoutePrefetch({
+    routes: ['/marketplace', '/services', '/messages', '/settings'],
+    priority: 'low',
+    delay: 2000,
+  });
   const isMobile = useIsMobile();
   
   // Use optimized modal management

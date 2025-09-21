@@ -60,12 +60,10 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
     const promptToUse = customPrompt.trim() || adCopy;
     onGenerateImage(promptToUse);
     
-    // Reset states after a delay to allow for generation
-    setTimeout(() => {
-      setIsRegenerating(false);
-      setShowPromptEditor(false);
-      setCustomPrompt('');
-    }, 2000);
+    // Reset states immediately
+    setIsRegenerating(false);
+    setShowPromptEditor(false);
+    setCustomPrompt('');
   };
 
   const handlePromptEditorToggle = () => {

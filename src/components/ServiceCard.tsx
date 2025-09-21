@@ -1,7 +1,9 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { memo } from 'react';
+import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
 import { Badge } from "@/components/ui/badge";
 import { TierBadge, TierType } from "@/components/TierBadge";
 import { User, Wallet, Star, Clock } from "lucide-react";
+import { useHoverPrefetch } from '@/hooks/useRoutePrefetch';
 
 export interface Service {
   id: string;
@@ -35,16 +37,24 @@ interface ServiceCardProps {
   onClick: (serviceId: string) => void;
 }
 
-export function ServiceCard({ 
+export const ServiceCard = memo(function ServiceCard({ 
   id, title, description, category, points, duration, consultant, bookingUrl, tags, 
   onClick 
 }: ServiceCardProps) {
+  const { prefetchRoute } = useHoverPrefetch();
+
+  const handleMouseEnter = () => {
+    prefetchRoute(`/service/${id}`);
+  };
+
   return (
-    <Card 
-      className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 bg-gradient-to-br from-card to-muted/20 cursor-pointer"
+    <OptimizedCard 
+      className="group border-border/50 bg-gradient-to-br from-card to-muted/20"
       onClick={() => onClick(id)}
+      hoverable
+      onMouseEnter={handleMouseEnter}
     >
-      <CardHeader className="pb-3">
+      <OptimizedCardHeader className="pb-3">
         <div className="flex items-start justify-between mb-3">
           <Badge variant="secondary" className="text-xs">
             {category}
@@ -77,9 +87,9 @@ export function ServiceCard({
             </div>
           </div>
         </div>
-      </CardHeader>
+      </OptimizedCardHeader>
 
-      <CardContent className="py-3">
+      <OptimizedCardContent className="py-3">
         <p className="text-muted-foreground text-sm leading-relaxed mb-3 line-clamp-2">
           {description}
         </p>
@@ -112,7 +122,7 @@ export function ServiceCard({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </OptimizedCardContent>
+    </OptimizedCard>
   );
-}
+});
