@@ -196,34 +196,8 @@ serve(async (req) => {
         upgradeAmount: upgradeDifference * 100
       });
 
-      // Grant immediate credits for the upgrade (they'll be charged via checkout)
-      const { error: creditError } = await supabaseService
-        .rpc('increment_flexi_credits_balance', {
-          user_id: user.id,
-          credits_to_add: upgradeDifference
-        });
-
-      if (creditError) {
-        logStep("Warning: Failed to grant immediate credits", { error: creditError.message });
-      } else {
-        logStep("Credits granted successfully", { creditsAdded: upgradeDifference });
-      }
-
-      // Log transaction for the immediate credit grant
-      const { error: transactionError } = await supabaseService
-        .from('flexi_credits_transactions')
-        .insert({
-          user_id: user.id,
-          amount: upgradeDifference,
-          type: 'purchase',
-          description: `Plan upgrade credits - ${planName} (${upgradeDifference} credits added)`
-        });
-
-      if (transactionError) {
-        logStep("Warning: Failed to log credit transaction", { error: transactionError.message });
-      } else {
-        logStep("Credit transaction logged successfully");
-      }
+      // NOTE: Credits will be added only after successful payment via webhook
+      // Do NOT add credits here to prevent issues if payment fails
 
       return new Response(JSON.stringify({
         success: true,

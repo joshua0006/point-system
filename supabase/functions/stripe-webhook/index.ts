@@ -75,8 +75,50 @@ serve(async (req) => {
           sessionId: session.id
         });
 
-        // The credits were already granted in update-subscription function
-        // Here we just need to send a confirmation email
+        // Check for existing transaction to prevent duplicate credits
+        const { data: existingTransaction } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .select('id')
+          .eq('description', `Plan upgrade credits - Session ${session.id}`)
+          .maybeSingle();
+
+        if (existingTransaction) {
+          logStep("Upgrade credits already granted", { sessionId: session.id });
+          return new Response(JSON.stringify({ received: true, message: "Credits already granted" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+
+        // Now add credits after successful payment
+        const { error: creditError } = await supabaseClient
+          .rpc('increment_flexi_credits_balance', {
+            user_id: userId,
+            credits_to_add: upgradeCredits
+          });
+
+        if (creditError) {
+          logStep("Error adding upgrade credits", creditError);
+          throw creditError;
+        }
+
+        // Log transaction for the upgrade credit grant
+        const { error: transactionError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: userId,
+            amount: upgradeCredits,
+            type: 'purchase',
+            description: `Plan upgrade credits - Session ${session.id}`
+          });
+
+        if (transactionError) {
+          logStep("Warning: Failed to log upgrade transaction", { error: transactionError.message });
+        } else {
+          logStep("Upgrade credits granted and logged successfully", { creditsAdded: upgradeCredits });
+        }
+
+        // Send confirmation email
         try {
           await supabaseClient.functions.invoke('send-subscription-emails', {
             body: { 
