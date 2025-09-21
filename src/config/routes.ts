@@ -9,6 +9,11 @@ const UserDashboard = lazy(() => import('@/pages/UserDashboard'));
 const SellerDashboard = lazy(() => import('@/pages/SellerDashboard'));
 const ConsultantDashboard = lazy(() => import('@/pages/ConsultantDashboard'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'));
+const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'));
+const AdminBilling = lazy(() => import('@/pages/admin/AdminBilling'));
+const AdminServices = lazy(() => import('@/pages/admin/AdminServices'));
+const AdminCampaigns = lazy(() => import('@/pages/admin/AdminCampaigns'));
 const Marketplace = lazy(() => import('@/pages/Marketplace'));
 const Services = lazy(() => import('@/pages/Services'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
@@ -62,6 +67,36 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/admin-dashboard',
     component: AdminDashboard,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/overview',
+    component: AdminOverview,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/users',
+    component: AdminUsers,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/billing',
+    component: AdminBilling,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/services',
+    component: AdminServices,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/campaigns',
+    component: AdminCampaigns,
     protected: true,
     skeleton: DashboardSkeleton,
   },

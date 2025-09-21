@@ -1,42 +1,16 @@
-import { useState } from "react";
-import { SidebarLayout } from "@/components/layout/SidebarLayout";
-import { AdminTabNavigation } from "@/components/admin/AdminTabNavigation";
-import { useCampaignTargets } from "@/hooks/useCampaignTargets";
-import { useAdminDashboard } from "@/hooks/useAdminDashboard";
-import type { CampaignTarget } from "@/config/types";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const { stats, recentActivity, allActivity, activeFilter, filterActivities, loading, error, refreshData } = useAdminDashboard();
-  
-  // Shared campaign targets state
-  const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
-  const [editingTarget, setEditingTarget] = useState<CampaignTarget | null>(null);
-  const [showTargetDialog, setShowTargetDialog] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  return (
-    <SidebarLayout title="Admin Dashboard" description="Monitor platform performance and manage users">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <AdminTabNavigation
-          activeTab={activeTab}
-          onActiveTabChange={setActiveTab}
-          stats={stats}
-          recentActivity={recentActivity}
-          allActivity={allActivity}
-          activeFilter={activeFilter}
-          loading={loading}
-          error={error}
-          onFilterActivities={filterActivities}
-          onRefreshData={refreshData}
-          campaignTargets={campaignTargets}
-          setCampaignTargets={setCampaignTargets}
-          editingTarget={editingTarget}
-          setEditingTarget={setEditingTarget}
-          showTargetDialog={showTargetDialog}
-          setShowTargetDialog={setShowTargetDialog}
-          refreshTargets={refreshTargets}
-        />
-      </div>
-    </SidebarLayout>
-  );
+  useEffect(() => {
+    // Redirect to overview if user is on base admin-dashboard path
+    if (location.pathname === '/admin-dashboard') {
+      navigate('/admin-dashboard/overview', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
+  return null; // This component just handles redirects
 }
