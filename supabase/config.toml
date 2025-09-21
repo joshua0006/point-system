@@ -83,3 +83,6 @@ verify_jwt = true
 
 [functions.confirm-upgrade-session]
 verify_jwt = false
+
+[functions.fix-upgrade-credits]
+verify_jwt = false
