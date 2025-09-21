@@ -7,7 +7,7 @@ import { useSubscriptionOperations, type SubscriptionPlan } from "@/hooks/useSub
 import { UpgradeConfirmationModal } from "@/components/UpgradeConfirmationModal";
 import { SubscriptionHeader } from "@/components/subscription/SubscriptionHeader";
 import { CurrentSubscriptionStatus } from "@/components/subscription/CurrentSubscriptionStatus";
-import { SubscriptionPlansGrid } from "@/components/subscription/SubscriptionPlansGrid";
+import { SubscriptionPlansDropdown } from "@/components/subscription/SubscriptionPlansDropdown";
 import { BillingInformation } from "@/components/subscription/BillingInformation";
 
 interface TopUpModalProps {
@@ -131,7 +131,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               onRefreshStatus={handleRefreshSubscription}
             />
 
-            <SubscriptionPlansGrid
+            <SubscriptionPlansDropdown
               plans={pointsPackages}
               currentCredits={subscription?.credits_per_month}
               isLoading={loading || loadingProration}
