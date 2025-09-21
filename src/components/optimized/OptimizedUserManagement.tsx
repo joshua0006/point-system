@@ -1,13 +1,18 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useCallback } from "react";
 import { useOptimizedAdminData } from "@/hooks/useOptimizedAdminData";
 import { useUserSubscription } from '@/hooks/useUserSubscription';
+import { useAdminRealtime } from "@/hooks/admin/useAdminRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatsCard } from "@/components/ui/stats-card";
 import { StatsSkeleton, TableSkeleton } from "@/components/ui/optimized-skeleton";
+import { TopUpModal } from "@/components/admin/modals/TopUpModal";
+import { DeductModal } from "@/components/admin/modals/DeductModal";
+import { BillingProfileModal } from "@/components/admin/BillingProfileModal";
 import { Users, Plus, Coins, RefreshCw, Minus, Receipt, UserX, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/config/types";
@@ -164,6 +169,19 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
   
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+  const [deductModalOpen, setDeductModalOpen] = useState(false);
+  const [billingProfileModalOpen, setBillingProfileModalOpen] = useState(false);
+  
+  // Set up real-time updates with stable callback
+  const handleDataChange = useCallback(() => {
+    refreshUsers();
+  }, [refreshUsers]);
+  
+  useAdminRealtime({ 
+    onDataChange: handleDataChange,
+    enabled: true 
+  });
 
   // Memoized stats calculations
   const stats = useMemo(() => ({
@@ -176,13 +194,16 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
   // Memoized action handlers
   const actionHandlers = useMemo(() => ({
     handleTopUp: (user: UserProfile) => {
-      onUserAction?.(user, 'topup');
+      setSelectedUser(user);
+      setTopUpModalOpen(true);
     },
     handleDeduct: (user: UserProfile) => {
-      onUserAction?.(user, 'deduct');
+      setSelectedUser(user);
+      setDeductModalOpen(true);
     },
     handleBilling: (user: UserProfile) => {
-      onUserAction?.(user, 'billing');
+      setSelectedUser(user);
+      setBillingProfileModalOpen(true);
     },
     handleRevoke: (user: UserProfile) => {
       onUserAction?.(user, 'revoke');
@@ -289,6 +310,72 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      {selectedUser && (
+        <>
+          <TopUpModal
+            user={selectedUser}
+            open={topUpModalOpen}
+            onOpenChange={setTopUpModalOpen}
+            onSuccess={() => {
+              refreshUsers();
+              setTopUpModalOpen(false);
+            }}
+          />
+          <DeductModal
+            user={selectedUser}
+            open={deductModalOpen}
+            onOpenChange={setDeductModalOpen}
+            onSuccess={() => {
+              refreshUsers();
+              setDeductModalOpen(false);
+            }}
+          />
+          <BillingProfileModal
+            user={selectedUser}
+            open={billingProfileModalOpen}
+            onOpenChange={setBillingProfileModalOpen}
+          />
+          
+          {/* Subscription Modal */}
+          <Dialog open={subscriptionModalOpen} onOpenChange={setSubscriptionModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Subscription Details</DialogTitle>
+                <DialogDescription>
+                  Subscription information for {selectedUser.full_name || selectedUser.email}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Status</label>
+                    {(() => {
+                      const subscription = getSubscription(selectedUser.user_id);
+                      const loading = isSubscriptionLoading(selectedUser.user_id);
+                      
+                      if (loading) {
+                        return <div className="text-lg font-semibold">Loading...</div>;
+                      }
+                      
+                      if (!subscription || !subscription.isActive) {
+                        return <div className="text-lg font-semibold text-muted-foreground">Inactive</div>;
+                      }
+                      
+                      return <div className="text-lg font-semibold text-green-600">Active</div>;
+                    })()}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
+                    <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} flexi credits</div>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 });

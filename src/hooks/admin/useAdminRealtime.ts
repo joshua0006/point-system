@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { REALTIME_CHANNELS, REALTIME_TABLES } from "@/utils/admin/adminConstants";
@@ -10,9 +10,18 @@ interface UseAdminRealtimeProps {
 
 export function useAdminRealtime({ onDataChange, enabled = true }: UseAdminRealtimeProps = {}) {
   const { user } = useAuth();
+  const onDataChangeRef = useRef(onDataChange);
+  
+  // Keep the callback ref updated
+  onDataChangeRef.current = onDataChange;
+  
+  // Stable callback that doesn't change between renders
+  const stableOnDataChange = useCallback(() => {
+    onDataChangeRef.current?.();
+  }, []);
 
   useEffect(() => {
-    if (!user || !enabled || !onDataChange) return;
+    if (!user || !enabled || !onDataChangeRef.current) return;
 
     console.log('🔄 Setting up real-time admin listeners...');
 
@@ -25,7 +34,7 @@ export function useAdminRealtime({ onDataChange, enabled = true }: UseAdminRealt
         table: REALTIME_TABLES.FLEXI_CREDITS_TRANSACTIONS
       }, (payload) => {
         console.log('💳 Flexi credits transaction change:', payload);
-        onDataChange();
+        stableOnDataChange();
       })
       .subscribe();
 
@@ -37,7 +46,7 @@ export function useAdminRealtime({ onDataChange, enabled = true }: UseAdminRealt
         table: REALTIME_TABLES.BOOKINGS
       }, (payload) => {
         console.log('📅 Booking change:', payload);
-        onDataChange();
+        stableOnDataChange();
       })
       .subscribe();
 
@@ -49,7 +58,7 @@ export function useAdminRealtime({ onDataChange, enabled = true }: UseAdminRealt
         table: REALTIME_TABLES.LEAD_GEN_CAMPAIGNS
       }, (payload) => {
         console.log('🎯 Campaign change:', payload);
-        onDataChange();
+        stableOnDataChange();
       })
       .subscribe();
 
@@ -60,7 +69,7 @@ export function useAdminRealtime({ onDataChange, enabled = true }: UseAdminRealt
       supabase.removeChannel(bookingsChannel);  
       supabase.removeChannel(campaignsChannel);
     };
-  }, [user, enabled, onDataChange]);
+  }, [user, enabled, stableOnDataChange]);
 
   return {
     // This hook mainly manages subscriptions, no return values needed

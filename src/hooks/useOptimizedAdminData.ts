@@ -36,7 +36,9 @@ export function useOptimizedAdminData() {
       };
     },
     enabled: profile?.role === 'admin' || profile?.role === 'master_admin',
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes - can be longer for stats
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus for stats
   });
 
   // Users list query with optimized pagination
@@ -55,7 +57,9 @@ export function useOptimizedAdminData() {
       return data.users || [];
     },
     enabled: profile?.role === 'admin' || profile?.role === 'master_admin',
-    staleTime: 1000 * 60 * 1, // 1 minute for user data
+    staleTime: 1000 * 30, // 30 seconds for user data
+    gcTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false, // Real-time updates handle this
   });
 
   // Pending users query
@@ -73,7 +77,9 @@ export function useOptimizedAdminData() {
       return data.users || [];
     },
     enabled: profile?.role === 'admin' || profile?.role === 'master_admin',
-    staleTime: 1000 * 30, // 30 seconds for pending users
+    staleTime: 1000 * 15, // 15 seconds for pending users (more urgent)
+    gcTime: 1000 * 60 * 2, // 2 minutes
+    refetchOnWindowFocus: false,
   });
 
   // User management mutations

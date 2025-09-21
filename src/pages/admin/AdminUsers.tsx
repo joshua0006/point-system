@@ -1,8 +1,13 @@
 import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer";
-import { UserManagement } from "@/components/admin/UserManagement";
+import { OptimizedUserManagement } from "@/components/optimized/OptimizedUserManagement";
 import PendingApprovals from "@/components/admin/PendingApprovals";
 
 export default function AdminUsers() {
+  const handleUserAction = (user: any, action: string) => {
+    // This will be handled by the modals within OptimizedUserManagement
+    console.log('User action:', action, user);
+  };
+
   return (
     <AdminPageContainer 
       title="User Management" 
@@ -10,7 +15,7 @@ export default function AdminUsers() {
     >
       <div className="space-y-6">
         <PendingApprovals />
-        <UserManagement />
+        <OptimizedUserManagement onUserAction={handleUserAction} />
       </div>
     </AdminPageContainer>
   );
