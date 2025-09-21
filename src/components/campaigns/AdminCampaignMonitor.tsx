@@ -4,9 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface UserGroup {
+  userId: string;
+  user: {
+    full_name?: string;
+    email?: string;
+    avatar_url?: string;
+  };
+  campaigns: any[];
+  totalBudget: number;
+  activeCampaigns: number;
+}
 
 export const AdminCampaignMonitor = () => {
   const { toast } = useToast();
@@ -15,6 +29,7 @@ export const AdminCampaignMonitor = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showActiveOnly, setShowActiveOnly] = useState(true);
+  const [viewMode, setViewMode] = useState('campaigns'); // 'campaigns' or 'users'
 
   useEffect(() => {
     fetchAllCampaigns();
@@ -103,6 +118,39 @@ export const AdminCampaignMonitor = () => {
     }
   };
 
+  const groupCampaignsByUser = (): UserGroup[] => {
+    const userGroups: { [key: string]: UserGroup } = {};
+    
+    getFilteredCampaigns().forEach(participation => {
+      const userId = participation.user_id;
+      const profile = participation.profiles;
+      
+      if (!userGroups[userId]) {
+        userGroups[userId] = {
+          user: profile || {},
+          campaigns: [],
+          totalBudget: 0,
+          activeCampaigns: 0,
+          userId: userId
+        };
+      }
+      
+      userGroups[userId].campaigns.push(participation);
+      userGroups[userId].totalBudget += participation.budget_contribution;
+      
+      if (participation.billing_status === 'active') {
+        userGroups[userId].activeCampaigns += 1;
+      }
+    });
+    
+    return Object.values(userGroups).sort((a, b) => b.totalBudget - a.totalBudget);
+  };
+
+  const getUserInitials = (name?: string): string => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -156,10 +204,24 @@ export const AdminCampaignMonitor = () => {
         </Card>
       </div>
 
-      {/* Campaigns Table */}
+      {/* View Controls */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>Campaign Participations</CardTitle>
+          <div className="flex items-center gap-4">
+            <CardTitle>Campaign Monitor</CardTitle>
+            <Tabs value={viewMode} onValueChange={setViewMode} className="w-auto">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="campaigns" className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  By Campaign
+                </TabsTrigger>
+                <TabsTrigger value="users" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  By User
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
               {showActiveOnly ? 'Active' : 'All'} Campaigns
@@ -187,78 +249,184 @@ export const AdminCampaignMonitor = () => {
               No campaigns found
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Campaign</TableHead>
-                  <TableHead>Participant</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Monthly Budget</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {getFilteredCampaigns().map((participation) => {
-                  const campaign = participation.lead_gen_campaigns;
-                  const profile = participation.profiles;
-                  const isColdCalling = campaign.name.includes('Cold Calling');
-                  
-                  return (
-                    <TableRow key={participation.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {isColdCalling ? (
-                            <Phone className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Target className="h-4 w-4 text-blue-600" />
-                          )}
-                          <div>
-                            <div className="font-medium">{campaign.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {campaign.description?.substring(0, 50)}...
+            <Tabs value={viewMode} onValueChange={setViewMode}>
+              <TabsContent value="campaigns" className="mt-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Campaign</TableHead>
+                      <TableHead>Participant</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Monthly Budget</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Joined Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getFilteredCampaigns().map((participation) => {
+                      const campaign = participation.lead_gen_campaigns;
+                      const profile = participation.profiles;
+                      const isColdCalling = campaign.name.includes('Cold Calling');
+                      
+                      return (
+                        <TableRow key={participation.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {isColdCalling ? (
+                                <Phone className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <Target className="h-4 w-4 text-blue-600" />
+                              )}
+                              <div>
+                                <div className="font-medium">{campaign.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {campaign.description?.substring(0, 50)}...
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{profile?.full_name || 'Unknown'}</div>
+                              <div className="text-sm text-muted-foreground">{profile?.email}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {isColdCalling ? 'Cold Calling' : 'Facebook Ads'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {participation.budget_contribution.toLocaleString()} points
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusColor(participation.billing_status)}>
+                              {participation.billing_status?.replace('_', ' ').toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(participation.joined_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openCampaignDetails(participation)}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Details
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="users" className="mt-0">
+                <div className="space-y-6">
+                  {groupCampaignsByUser().map((userGroup) => (
+                    <Card key={userGroup.userId} className="border-l-4 border-l-primary/20">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={userGroup.user?.avatar_url} />
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                {getUserInitials(userGroup.user?.full_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h3 className="font-semibold text-lg">
+                                {userGroup.user?.full_name || 'Unknown User'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {userGroup.user?.email}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6 text-right">
+                            <div>
+                              <div className="text-2xl font-bold text-primary">
+                                {userGroup.totalBudget.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Total Budget (Points)</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl font-bold text-success">
+                                {userGroup.activeCampaigns}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Active Campaigns</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl font-bold text-muted-foreground">
+                                {userGroup.campaigns.length}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Total Campaigns</div>
                             </div>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{profile?.full_name || 'Unknown'}</div>
-                          <div className="text-sm text-muted-foreground">{profile?.email}</div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {userGroup.campaigns.map((participation) => {
+                            const campaign = participation.lead_gen_campaigns;
+                            const isColdCalling = campaign.name.includes('Cold Calling');
+                            
+                            return (
+                              <div 
+                                key={participation.id}
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {isColdCalling ? (
+                                    <Phone className="h-4 w-4 text-green-600" />
+                                  ) : (
+                                    <Target className="h-4 w-4 text-blue-600" />
+                                  )}
+                                  <div>
+                                    <div className="font-medium">{campaign.name}</div>
+                                    <div className="text-sm text-muted-foreground">
+                                      Joined: {new Date(participation.joined_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <Badge variant="outline" className="text-xs">
+                                    {isColdCalling ? 'Cold Calling' : 'Facebook Ads'}
+                                  </Badge>
+                                  <div className="text-right">
+                                    <div className="font-semibold">
+                                      {participation.budget_contribution.toLocaleString()} pts
+                                    </div>
+                                    <Badge 
+                                      variant={getStatusColor(participation.billing_status)}
+                                      className="text-xs"
+                                    >
+                                      {participation.billing_status?.replace('_', ' ').toUpperCase()}
+                                    </Badge>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => openCampaignDetails(participation)}
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    Details
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {isColdCalling ? 'Cold Calling' : 'Facebook Ads'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {participation.budget_contribution.toLocaleString()} points
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusColor(participation.billing_status)}>
-                          {participation.billing_status?.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(participation.joined_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openCampaignDetails(participation)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
         </CardContent>
       </Card>
