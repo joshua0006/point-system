@@ -18,19 +18,12 @@ export function PlanCard({ plan, isCurrentPlan, isLoading, onSelect, actionText 
       className={`relative border-2 transition-all hover:shadow-lg ${
         isCurrentPlan
           ? 'border-success bg-success/5 shadow-lg scale-105' 
-          : plan.popular 
-          ? 'border-primary shadow-lg scale-105' 
           : 'border-border hover:border-primary/50'
       }`}
     >
       {isCurrentPlan && (
         <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-success">
           Current Plan
-        </Badge>
-      )}
-      {plan.popular && !isCurrentPlan && (
-        <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-          Most Popular
         </Badge>
       )}
       
@@ -59,11 +52,9 @@ export function PlanCard({ plan, isCurrentPlan, isLoading, onSelect, actionText 
           className={`w-full ${
             isCurrentPlan
               ? 'bg-success hover:bg-success'
-              : plan.popular 
-              ? 'bg-primary hover:bg-primary/90' 
               : ''
           }`}
-          variant={isCurrentPlan ? "default" : plan.popular ? "default" : "outline"}
+          variant={isCurrentPlan ? "default" : "outline"}
         >
           {isLoading ? (
             <div className="flex items-center gap-2">
