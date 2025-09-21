@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ReactNode } from "react";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { AdminNavigation } from "@/components/admin/AdminNavigation";
@@ -10,7 +11,7 @@ interface AdminPageContainerProps {
   onRetry?: () => void;
 }
 
-export function AdminPageContainer({ 
+export const AdminPageContainer = memo(function AdminPageContainer({ 
   title, 
   description, 
   children, 
@@ -27,4 +28,4 @@ export function AdminPageContainer({
       </div>
     </SidebarLayout>
   );
-}
+});
