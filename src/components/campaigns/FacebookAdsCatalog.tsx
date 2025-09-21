@@ -167,14 +167,6 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
                 <h3 className="font-medium mb-2">{template.name}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
                 
-                {template.template_config && (
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span>Recommended Budget:</span>
-                      <span className="font-medium">{template.template_config.budget}pts</span>
-                    </div>
-                  </div>
-                )}
 
                 <Button 
                   onClick={() => handleCampaignSelect(template)} 
