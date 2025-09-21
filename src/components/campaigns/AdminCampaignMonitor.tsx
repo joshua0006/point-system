@@ -159,6 +159,15 @@ export const AdminCampaignMonitor = () => {
 
   const handlePauseCampaign = async (participationId: string) => {
     try {
+      // Optimistic update - immediately update the local state
+      setCampaigns(prevCampaigns => 
+        prevCampaigns.map(campaign => 
+          campaign.id === participationId 
+            ? { ...campaign, billing_status: 'paused' }
+            : campaign
+        )
+      );
+
       const { data, error } = await supabase.functions.invoke('admin-campaign-launcher', {
         body: {
           action: 'pause_campaign',
@@ -173,10 +182,20 @@ export const AdminCampaignMonitor = () => {
         description: "Campaign has been paused successfully.",
       });
 
-      // Refresh the data
-      fetchAllCampaigns();
+      // Refresh the data to ensure consistency
+      await fetchAllCampaigns();
     } catch (error) {
       console.error('Error pausing campaign:', error);
+      
+      // Revert optimistic update on error
+      setCampaigns(prevCampaigns => 
+        prevCampaigns.map(campaign => 
+          campaign.id === participationId 
+            ? { ...campaign, billing_status: 'active' }
+            : campaign
+        )
+      );
+      
       toast({
         title: "Error",
         description: "Failed to pause campaign.",
@@ -187,6 +206,15 @@ export const AdminCampaignMonitor = () => {
 
   const handleResumeCampaign = async (participationId: string) => {
     try {
+      // Optimistic update - immediately update the local state
+      setCampaigns(prevCampaigns => 
+        prevCampaigns.map(campaign => 
+          campaign.id === participationId 
+            ? { ...campaign, billing_status: 'active' }
+            : campaign
+        )
+      );
+
       const { data, error } = await supabase.functions.invoke('admin-campaign-launcher', {
         body: {
           action: 'resume_campaign',
@@ -201,10 +229,20 @@ export const AdminCampaignMonitor = () => {
         description: "Campaign has been resumed successfully.",
       });
 
-      // Refresh the data
-      fetchAllCampaigns();
+      // Refresh the data to ensure consistency
+      await fetchAllCampaigns();
     } catch (error) {
       console.error('Error resuming campaign:', error);
+      
+      // Revert optimistic update on error
+      setCampaigns(prevCampaigns => 
+        prevCampaigns.map(campaign => 
+          campaign.id === participationId 
+            ? { ...campaign, billing_status: 'paused' }
+            : campaign
+        )
+      );
+      
       toast({
         title: "Error",
         description: "Failed to resume campaign.",
