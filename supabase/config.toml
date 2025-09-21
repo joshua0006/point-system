@@ -80,3 +80,6 @@ verify_jwt = true
 
 [functions.validate-billing-system]
 verify_jwt = true
+
+[functions.confirm-upgrade-session]
+verify_jwt = false

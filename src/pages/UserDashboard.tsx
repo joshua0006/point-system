@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { OptimizedDashboardModals } from "@/components/dashboard/OptimizedDashboardModals";
@@ -13,6 +13,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { DashboardSkeleton } from "@/components/PageSkeleton";
 import { useUserCampaigns } from "@/hooks/useUserCampaigns";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserDashboard() {
   const { user } = useAuth();
@@ -32,9 +34,36 @@ export default function UserDashboard() {
   } = useDashboardData();
   
   const { campaigns, isLoading: campaignsLoading } = useUserCampaigns();
+  const { toast } = useToast();
   
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
+
+  // Confirm Stripe upgrade session on return from checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const upgradeSuccess = params.get("upgrade_success");
+    const sessionId = params.get("session_id");
+    if (upgradeSuccess && sessionId) {
+      supabase.functions.invoke("confirm-upgrade-session", { body: { session_id: sessionId } })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Upgrade confirmation failed", error);
+            toast({ title: "Upgrade processing", description: "We're verifying your payment. Refresh in a moment.", variant: "default" });
+          } else if (data?.success) {
+            toast({ title: "Plan upgraded", description: `+${data.upgradeCredits} credits added for ${data.planName}` });
+            refreshData();
+          }
+        })
+        .finally(() => {
+          // Clean URL
+          const url = new URL(window.location.href);
+          url.searchParams.delete("upgrade_success");
+          url.searchParams.delete("session_id");
+          window.history.replaceState({}, "", url.toString());
+        });
+    }
+  }, [toast, refreshData]);
 
   // Memoize callback functions to prevent unnecessary re-renders
   const handleTopUpSuccess = useMemo(() => (amount?: number, showSuccessModal?: boolean) => {

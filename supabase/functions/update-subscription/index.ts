@@ -157,8 +157,8 @@ serve(async (req) => {
           },
         ],
         mode: 'payment', // One-time payment for the difference
-        success_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_success=true`,
-        cancel_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_cancelled=true`,
+        success_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_success=1&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get('origin') || 'https://your-app.com'}/dashboard?upgrade_cancelled=1`,
         metadata: {
           user_id: user.id,
           upgrade_type: 'subscription_change',
