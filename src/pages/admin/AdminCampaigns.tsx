@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Settings, Edit3, Monitor, ArrowRight } from "lucide-react";
 
-export default function AdminCampaigns() {
+const AdminCampaigns = React.memo(function AdminCampaigns() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const campaignSections = [
     {
@@ -116,4 +115,6 @@ export default function AdminCampaigns() {
       </Card>
     </AdminPageContainer>
   );
-}
+});
+
+export default AdminCampaigns;
