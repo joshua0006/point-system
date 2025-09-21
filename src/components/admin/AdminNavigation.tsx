@@ -20,6 +20,16 @@ const navItems = [
     icon: TrendingUp,
   },
   {
+    path: '/admin-dashboard/campaigns',
+    label: 'Campaign Management',
+    icon: Target,
+    subPaths: [
+      '/admin-dashboard/campaigns/targets',
+      '/admin-dashboard/campaigns/scripts', 
+      '/admin-dashboard/campaigns/monitor'
+    ]
+  },
+  {
     path: '/admin-dashboard/users',
     label: 'User Management',
     icon: Settings,
@@ -33,16 +43,6 @@ const navItems = [
     path: '/admin-dashboard/services',
     label: 'Service Management',  
     icon: Briefcase,
-  },
-  {
-    path: '/admin-dashboard/campaigns',
-    label: 'Campaign Management',
-    icon: Target,
-    subPaths: [
-      '/admin-dashboard/campaigns/targets',
-      '/admin-dashboard/campaigns/scripts', 
-      '/admin-dashboard/campaigns/monitor'
-    ]
   },
 ];
 
