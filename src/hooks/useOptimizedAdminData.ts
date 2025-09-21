@@ -7,7 +7,10 @@ export function useOptimizedAdminData() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
 
-  // Admin stats query
+  // Batch all admin queries in parallel for faster loading
+  const isAdminUser = profile?.role === 'admin' || profile?.role === 'master_admin';
+
+  // Admin stats with optimized batching
   const {
     data: stats,
     isLoading: statsLoading,
@@ -16,71 +19,70 @@ export function useOptimizedAdminData() {
   } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_admin_stats');
-      if (error) throw error;
+      // Batch both queries in parallel
+      const [statsResult, monthlyResult] = await Promise.all([
+        supabase.rpc('get_admin_stats'),
+        supabase
+          .from('flexi_credits_transactions')
+          .select('amount')
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      ]);
 
-      // Get monthly volume
-      const { data: monthlyData } = await supabase
-        .from('flexi_credits_transactions')
-        .select('amount')
-        .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+      if (statsResult.error) throw statsResult.error;
 
-      const monthlyVolume = monthlyData?.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0) || 0;
+      const monthlyVolume = monthlyResult.data?.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0) || 0;
 
       return {
-        totalUsers: (data as any)?.total_users || 0,
-        activeConsultants: (data as any)?.active_consultants || 0,
-        activeServices: (data as any)?.active_services || 0,
-        activeBookings: (data as any)?.active_bookings || 0,
+        totalUsers: (statsResult.data as any)?.total_users || 0,
+        activeConsultants: (statsResult.data as any)?.active_consultants || 0,
+        activeServices: (statsResult.data as any)?.active_services || 0,
+        activeBookings: (statsResult.data as any)?.active_bookings || 0,
         monthlyVolume,
       };
     },
-    enabled: profile?.role === 'admin' || profile?.role === 'master_admin',
-    staleTime: 1000 * 60 * 5, // 5 minutes - can be longer for stats
+    enabled: isAdminUser,
+    staleTime: 1000 * 60 * 2, // 2 minutes for faster updates
     gcTime: 1000 * 60 * 10, // 10 minutes
-    refetchOnWindowFocus: false, // Don't refetch on window focus for stats
+    refetchOnWindowFocus: false,
   });
 
-  // Users list query with optimized pagination
+  // Batch users and pending users queries in parallel
   const {
-    data: users = [],
+    data: usersData,
     isLoading: usersLoading,
     error: usersError,
     refetch: refreshUsers,
   } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: async (): Promise<UserProfile[]> => {
-      const { data, error } = await supabase.functions.invoke('admin-user-management', {
-        body: { action: 'list_users' }
-      });
-      if (error) throw error;
-      return data.users || [];
-    },
-    enabled: profile?.role === 'admin' || profile?.role === 'master_admin',
-    staleTime: 1000 * 30, // 30 seconds for user data
-    gcTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: false, // Real-time updates handle this
-  });
+    queryKey: ['admin-users-batch'],
+    queryFn: async () => {
+      // Batch both user queries in parallel
+      const [usersResult, pendingResult] = await Promise.all([
+        supabase.functions.invoke('admin-user-management', {
+          body: { action: 'list_users' }
+        }),
+        supabase.functions.invoke('admin-user-management', {
+          body: { action: 'list_pending_users' }
+        })
+      ]);
 
-  // Pending users query
-  const {
-    data: pendingUsers = [],
-    isLoading: pendingLoading,
-    refetch: refreshPendingUsers,
-  } = useQuery({
-    queryKey: ['admin-pending-users'],
-    queryFn: async (): Promise<UserProfile[]> => {
-      const { data, error } = await supabase.functions.invoke('admin-user-management', {
-        body: { action: 'list_pending_users' }
-      });
-      if (error) throw error;
-      return data.users || [];
+      if (usersResult.error) throw usersResult.error;
+      if (pendingResult.error) throw pendingResult.error;
+
+      return {
+        users: usersResult.data?.users || [],
+        pendingUsers: pendingResult.data?.users || []
+      };
     },
-    enabled: profile?.role === 'admin' || profile?.role === 'master_admin',
-    staleTime: 1000 * 15, // 15 seconds for pending users (more urgent)
-    gcTime: 1000 * 60 * 2, // 2 minutes
+    enabled: isAdminUser,
+    staleTime: 1000 * 15, // 15 seconds for user data
+    gcTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  // Extract users and pending users from batched query
+  const users = usersData?.users || [];
+  const pendingUsers = usersData?.pendingUsers || [];
+  const pendingLoading = usersLoading;
 
   // User management mutations
   const updateUserMutation = useMutation({
@@ -115,7 +117,7 @@ export function useOptimizedAdminData() {
     // Pending users
     pendingUsers,
     pendingLoading,
-    refreshPendingUsers,
+    refreshPendingUsers: refreshUsers, // Use same refresh function since they're batched
     
     // Mutations
     updateUser: updateUserMutation.mutate,

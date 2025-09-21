@@ -1,12 +1,22 @@
-import React, { useState } from "react";
+import React, { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
 import { Button } from "@/components/ui/button";
 import { Settings, Edit3, Monitor, ArrowRight } from "lucide-react";
+import { useRoutePrefetch } from "@/hooks/useRoutePrefetch";
 
-const AdminCampaigns = React.memo(function AdminCampaigns() {
+const AdminCampaigns = memo(function AdminCampaigns() {
   const navigate = useNavigate();
+
+  // Prefetch routes for instant navigation
+  const campaignRoutes = [
+    '/admin-dashboard/campaigns/targets',
+    '/admin-dashboard/campaigns/scripts',
+    '/admin-dashboard/campaigns/monitor'
+  ];
+  
+  useRoutePrefetch({ routes: campaignRoutes, priority: 'high', delay: 100 });
 
   const campaignSections = [
     {
@@ -15,7 +25,7 @@ const AdminCampaigns = React.memo(function AdminCampaigns() {
       description: 'Manage target audiences and campaign templates',
       icon: Settings,
       path: '/admin-dashboard/campaigns/targets',
-      color: 'bg-blue-500/10 text-blue-600'
+      color: 'bg-primary/10 text-primary'
     },
     {
       id: 'scripts',
@@ -23,7 +33,7 @@ const AdminCampaigns = React.memo(function AdminCampaigns() {
       description: 'Manage calling, texting, and reminder scripts',
       icon: Edit3,
       path: '/admin-dashboard/campaigns/scripts', 
-      color: 'bg-green-500/10 text-green-600'
+      color: 'bg-secondary/10 text-secondary-foreground'
     },
     {
       id: 'monitor',
@@ -31,13 +41,13 @@ const AdminCampaigns = React.memo(function AdminCampaigns() {
       description: 'Monitor all user campaigns and performance',
       icon: Monitor,
       path: '/admin-dashboard/campaigns/monitor',
-      color: 'bg-purple-500/10 text-purple-600'
+      color: 'bg-accent/10 text-accent-foreground'
     }
   ];
 
-  const handleSectionClick = (path: string) => {
+  const handleSectionClick = useCallback((path: string) => {
     navigate(path);
-  };
+  }, [navigate]);
 
   return (
     <AdminPageContainer 
@@ -49,21 +59,21 @@ const AdminCampaigns = React.memo(function AdminCampaigns() {
           const IconComponent = section.icon;
           
           return (
-            <Card 
+            <OptimizedCard 
               key={section.id} 
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+              hoverable
               onClick={() => handleSectionClick(section.path)}
             >
-              <CardHeader className="pb-4">
+              <OptimizedCardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className={`p-3 rounded-lg ${section.color}`}>
                     <IconComponent className="h-6 w-6" />
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-lg">{section.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
+                <h3 className="text-lg font-semibold">{section.title}</h3>
+              </OptimizedCardHeader>
+              <OptimizedCardContent>
                 <p className="text-muted-foreground mb-4">
                   {section.description}
                 </p>
@@ -77,17 +87,17 @@ const AdminCampaigns = React.memo(function AdminCampaigns() {
                 >
                   Open Section
                 </Button>
-              </CardContent>
-            </Card>
+              </OptimizedCardContent>
+            </OptimizedCard>
           );
         })}
       </div>
 
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Campaign Management Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <OptimizedCard className="mt-8">
+        <OptimizedCardHeader>
+          <h2 className="text-xl font-semibold">Campaign Management Overview</h2>
+        </OptimizedCardHeader>
+        <OptimizedCardContent>
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Target Management</h3>
@@ -111,8 +121,8 @@ const AdminCampaigns = React.memo(function AdminCampaigns() {
               </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </OptimizedCardContent>
+      </OptimizedCard>
     </AdminPageContainer>
   );
 });
