@@ -115,9 +115,6 @@ export function SubscriptionPlansDropdown({
                       <div className="text-muted-foreground">
                         {plan.credits} flexi-credits included monthly
                       </div>
-                      <div className="text-sm font-medium text-secondary">
-                        S${(plan.price / plan.credits).toFixed(2)} per credit
-                      </div>
                     </div>
                   </div>
                 </Label>
