@@ -57,13 +57,16 @@ export function useTransactionData() {
         } else if (t.description?.toLowerCase().includes('subscription') || 
                    t.description?.toLowerCase().includes('plan upgrade') ||
                    t.description?.toLowerCase().includes('plan downgrade') ||
-                   t.description?.toLowerCase().includes('monthly subscription')) {
+                   t.description?.toLowerCase().includes('monthly subscription') ||
+                   t.description?.toLowerCase().includes('credits added')) {
           category = 'subscription';
           icon = '📋';
           if (t.description.includes('Monthly subscription renewal')) {
             service = 'Monthly Subscription Renewal';
-          } else if (t.description.includes('Plan upgrade')) {
+          } else if (t.description.includes('Plan upgrade') || t.description.includes('credits added')) {
             service = 'Plan Upgrade Credits';
+          } else if (t.description.includes('Plan downgrade')) {
+            service = 'Plan Downgrade';
           } else {
             service = 'Subscription Transaction';
           }

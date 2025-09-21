@@ -216,7 +216,7 @@ serve(async (req) => {
           user_id: user.id,
           amount: upgradeDifference,
           type: 'purchase',
-          description: `Plan upgrade credits - ${planName} (${upgradeDifference} credits)`
+          description: `Plan upgrade credits - ${planName} (${upgradeDifference} credits added)`
         });
 
       if (transactionError) {
@@ -300,8 +300,8 @@ serve(async (req) => {
         .insert({
           user_id: user.id,
           amount: 0, // No credits added/removed
-          type: 'refund', // Using refund type to indicate plan change
-          description: `Plan downgrade scheduled - ${planName} (effective next billing cycle)`
+          type: 'admin_credit', // Using admin_credit type for plan changes
+          description: `Plan downgrade to ${planName} (effective next billing cycle)`
         });
 
       if (downgradeTransactionError) {
