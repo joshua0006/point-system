@@ -83,38 +83,22 @@ export function AdminActivityFeed({
 
 function ActivityItem({ activity }: { activity: RecentActivity }) {
   const categoryStyles = getActivityCategoryStyles(activity.category);
-  
-  // Highlight important admin actions and subscription changes
-  const isHighPriority = ['admin_credit', 'admin_debit', 'subscription_upgrade', 'subscription_downgrade'].includes(activity.type);
 
   return (
-    <div className={`flex items-start space-x-3 p-3 rounded-lg transition-colors ${
-      isHighPriority ? 'bg-primary/5 border border-primary/20' : 'hover:bg-muted/50'
-    }`}>
-      <div className={`flex items-center justify-center w-8 h-8 rounded-full border mt-0.5 ${
-        isHighPriority ? 'bg-primary/10 border-primary/30' : 'bg-background border'
-      }`}>
+    <div className="flex items-start space-x-3 p-3 rounded-lg transition-colors hover:bg-muted/50">
+      <div className="flex items-center justify-center w-8 h-8 rounded-full border mt-0.5 bg-background border">
         <span className="text-sm">{activity.emoji || '📊'}</span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm leading-relaxed ${
-          isHighPriority ? 'text-foreground font-medium' : 'text-foreground'
-        }`}>
+        <p className="text-sm leading-relaxed text-foreground">
           {activity.description}
         </p>
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-2">
             <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
-            <Badge className={`text-xs ${categoryStyles} ${
-              isHighPriority ? 'ring-1 ring-primary/20' : ''
-            }`}>
+            <Badge className={`text-xs ${categoryStyles}`}>
               {activity.category}
             </Badge>
-            {isHighPriority && (
-              <Badge variant="outline" className="text-xs text-primary border-primary/50">
-                Priority
-              </Badge>
-            )}
           </div>
           {activity.points > 0 && (
             <Badge variant="outline" className={`text-xs font-mono ${
