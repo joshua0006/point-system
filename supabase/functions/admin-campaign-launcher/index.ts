@@ -39,7 +39,7 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .single()
 
-    if (profileError || profile?.role !== 'admin') {
+    if (profileError || !['admin', 'master_admin'].includes(profile?.role)) {
       throw new Error('Admin access required')
     }
 
