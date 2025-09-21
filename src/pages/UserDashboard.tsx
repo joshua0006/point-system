@@ -6,7 +6,7 @@ import { OptimizedDashboardModals } from "@/components/dashboard/OptimizedDashbo
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStatsCards } from "@/components/dashboard/DashboardStatsCards";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { useOptimizedDashboardData } from "@/hooks/useOptimizedDashboardData";
 import { useDashboardModals } from "@/hooks/useDashboardModals";
 import { SuccessModal } from "@/components/SuccessModal";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,7 +32,7 @@ export default function UserDashboard() {
     recentTransactions,
     refreshData,
     isLoading,
-  } = useDashboardData();
+  } = useOptimizedDashboardData();
   
   const { campaigns, isLoading: campaignsLoading } = useUserCampaigns();
   const { toast } = useToast();

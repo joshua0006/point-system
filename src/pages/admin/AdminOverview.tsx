@@ -3,12 +3,12 @@ import { AdminNavigation } from "@/components/admin/AdminNavigation";
 import { AdminStatsGrid } from "@/components/admin/common/AdminStatsGrid";
 import { AdminActivityFeed } from "@/components/admin/common/AdminActivityFeed";
 import { AdminErrorBoundary } from "@/components/admin/common/AdminErrorBoundary";
-import { useAdminStats } from "@/hooks/admin/useAdminStats";
+import { useOptimizedAdminData } from "@/hooks/useOptimizedAdminData";
 import { useAdminActivity } from "@/hooks/admin/useAdminActivity";
 import { useAdminRealtime } from "@/hooks/admin/useAdminRealtime";
 
 export default function AdminOverview() {
-  const { stats, loading: statsLoading, error: statsError, refreshStats } = useAdminStats();
+  const { stats, statsLoading, statsError, refreshStats } = useOptimizedAdminData();
   const { 
     recentActivity, 
     allActivity, 
@@ -42,7 +42,7 @@ export default function AdminOverview() {
           <AdminStatsGrid 
             stats={stats}
             loading={statsLoading}
-            error={statsError}
+            error={statsError?.message || null}
             onRetry={refreshStats}
           />
           
