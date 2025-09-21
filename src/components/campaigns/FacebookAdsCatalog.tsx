@@ -76,12 +76,8 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
   ];
 
   useEffect(() => {
-    // Simulate loading
-    setLoading(true);
-    setTimeout(() => {
-      setCampaignTemplates(mockTemplates as any);
-      setLoading(false);
-    }, 1000);
+    setCampaignTemplates(mockTemplates as any);
+    setLoading(false);
   }, []);
 
   const getAudienceName = (audienceKey: string): string => {
