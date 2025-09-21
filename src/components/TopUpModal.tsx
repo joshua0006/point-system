@@ -76,6 +76,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       if (result.success) {
         // Refresh subscription and profile data
         await refreshSubscription();
+        
+        // Force refresh the page to ensure all data is updated
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
         onClose();
         setShowConfirmationModal(false);
         if (onSuccess) {

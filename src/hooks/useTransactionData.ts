@@ -126,6 +126,17 @@ export function useTransactionData() {
     }
   }, [user, fetchTransactions]);
 
+  // Auto-refresh transactions every 30 seconds to catch new updates
+  useEffect(() => {
+    if (user) {
+      const interval = setInterval(() => {
+        fetchTransactions();
+      }, 30000); // 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchTransactions]);
+
   // Calculate transaction stats
   const spentTransactions = transactions.filter(t => t.subType === 'spent');
   const earnedTransactions = transactions.filter(t => t.subType === 'earned');
