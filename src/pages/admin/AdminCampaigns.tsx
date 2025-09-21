@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { SidebarLayout } from "@/components/layout/SidebarLayout";
+import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
-import { AdminNavigation } from "@/components/admin/AdminNavigation";
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import type { CampaignTarget } from "@/config/types";
 
@@ -12,19 +11,20 @@ export default function AdminCampaigns() {
   const [showTargetDialog, setShowTargetDialog] = useState(false);
 
   return (
-    <SidebarLayout title="Campaign Management" description="Manage lead generation campaigns and settings">
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <AdminNavigation />
-        <AdminInterface 
-          campaignTargets={campaignTargets}
-          setCampaignTargets={setCampaignTargets}
-          editingTarget={editingTarget}
-          setEditingTarget={setEditingTarget}
-          showTargetDialog={showTargetDialog}
-          setShowTargetDialog={setShowTargetDialog}
-          refreshTargets={refreshTargets}
-        />
-      </div>
-    </SidebarLayout>
+    <AdminPageContainer 
+      title="Campaign Management" 
+      description="Manage lead generation campaigns and settings"
+      onRetry={refreshTargets}
+    >
+      <AdminInterface 
+        campaignTargets={campaignTargets}
+        setCampaignTargets={setCampaignTargets}
+        editingTarget={editingTarget}
+        setEditingTarget={setEditingTarget}
+        showTargetDialog={showTargetDialog}
+        setShowTargetDialog={setShowTargetDialog}
+        refreshTargets={refreshTargets}
+      />
+    </AdminPageContainer>
   );
 }
