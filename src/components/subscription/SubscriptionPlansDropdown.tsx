@@ -81,19 +81,25 @@ export function SubscriptionPlansDropdown({
                 <SelectItem 
                   key={plan.credits} 
                   value={plan.credits.toString()}
-                  className="cursor-pointer hover:bg-muted focus:bg-muted"
+                  className="cursor-pointer hover:bg-muted focus:bg-muted py-3"
                   disabled={isCurrentPlan(plan.credits)}
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{plan.title}</span>
+                  <div className="flex items-center justify-between w-full min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="font-medium text-foreground">{plan.title}</div>
                       {isCurrentPlan(plan.credits) && (
-                        <Badge variant="secondary" className="text-xs">Current</Badge>
+                        <Badge variant="secondary" className="text-xs px-2 py-1">Current</Badge>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold">S${plan.price}/mo</div>
-                      <div className="text-xs text-muted-foreground">{plan.credits} credits</div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="font-semibold text-primary">S${plan.price}</div>
+                        <div className="text-xs text-muted-foreground">per month</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{plan.credits}</div>
+                        <div className="text-xs text-muted-foreground">credits</div>
+                      </div>
                     </div>
                   </div>
                 </SelectItem>
@@ -102,19 +108,24 @@ export function SubscriptionPlansDropdown({
           </Select>
 
           {selectedPlan && (
-            <div className="p-4 bg-muted/50 border border-border rounded-lg">
-              <div className="space-y-2">
+            <div className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-lg">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Selected Plan:</span>
-                  <span className="font-semibold">{selectedPlan.title}</span>
+                  <span className="text-sm font-medium text-muted-foreground">Selected Plan:</span>
+                  <span className="font-bold text-lg text-primary">{selectedPlan.title}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Monthly Price:</span>
-                  <span className="font-semibold">S${selectedPlan.price}</span>
+                  <span className="font-bold text-lg">S${selectedPlan.price}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Credits per Month:</span>
-                  <span className="font-semibold">{selectedPlan.credits}</span>
+                  <span className="font-bold text-lg text-secondary">{selectedPlan.credits}</span>
+                </div>
+                <div className="pt-2 border-t border-border/50">
+                  <div className="text-xs text-muted-foreground text-center">
+                    Monthly subscription • Cancel anytime
+                  </div>
                 </div>
               </div>
             </div>
