@@ -307,7 +307,7 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {subscriptionLoading ? (
+                {subscriptionLoading(user.user_id) ? (
                   <div className="text-center py-8 text-muted-foreground">Loading subscription...</div>
                 ) : subscription && subscription.isActive ? (
                   <div className="space-y-4">
