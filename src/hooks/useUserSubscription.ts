@@ -29,9 +29,13 @@ export function useUserSubscription() {
         throw new Error('No session found');
       }
 
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
+      const { data, error } = await supabase.functions.invoke('admin-check-user-subscription', {
         headers: {
-          Authorization: `Bearer ${session.access_token}`
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: {
+          userEmail: userEmail
         }
       });
 
