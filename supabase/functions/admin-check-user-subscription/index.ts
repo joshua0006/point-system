@@ -55,9 +55,24 @@ serve(async (req) => {
       .eq('user_id', adminUser.id)
       .single();
 
-    if (adminProfileError || !adminProfile || !['admin', 'master_admin'].includes(adminProfile.role)) {
-      throw new Error("Insufficient permissions - admin access required");
+    logStep("Admin profile lookup result", { 
+      adminProfileError: adminProfileError?.message, 
+      adminProfile: adminProfile,
+      adminUserId: adminUser.id 
+    });
+
+    if (adminProfileError) {
+      throw new Error(`Admin profile lookup failed: ${adminProfileError.message}`);
     }
+    
+    if (!adminProfile) {
+      throw new Error("Admin profile not found");
+    }
+    
+    if (!['admin', 'master_admin'].includes(adminProfile.role)) {
+      throw new Error(`Insufficient permissions - admin access required. Current role: ${adminProfile.role}`);
+    }
+    
     logStep("Admin permissions verified", { role: adminProfile.role });
 
     // Get the target user email from request body
