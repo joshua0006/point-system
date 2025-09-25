@@ -107,10 +107,10 @@ serve(async (req) => {
     logStep("ERROR in instant-charge", { message: errorMessage });
     
     // Handle specific Stripe errors
-    if (error.type === "StripeCardError") {
+    if (error && typeof error === 'object' && 'type' in error && error.type === "StripeCardError") {
       return new Response(JSON.stringify({ 
         error: "Your card was declined. Please try a different payment method.",
-        decline_code: error.decline_code 
+        decline_code: (error as any).decline_code 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,

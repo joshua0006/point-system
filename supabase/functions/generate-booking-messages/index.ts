@@ -94,7 +94,7 @@ Return as JSON array with "message" field for each suggestion.`;
     return new Response(JSON.stringify({ 
       messages: fallbackMessages,
       fallback: true,
-      error: error.message 
+      error: error instanceof Error ? error.message : String(error) 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

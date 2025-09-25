@@ -77,7 +77,7 @@ serve(async (req) => {
     }
 
     // Format response
-    const formattedMethods = paymentMethods.data.map(pm => ({
+    const formattedMethods = paymentMethods.data.map((pm: any) => ({
       id: pm.id,
       brand: pm.card?.brand,
       last4: pm.card?.last4,

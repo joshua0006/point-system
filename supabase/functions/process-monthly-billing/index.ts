@@ -182,9 +182,10 @@ serve(async (req) => {
         processedCount++;
 
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logStep("Error processing participant", { 
           participantId: participant.id, 
-          error: error.message 
+          error: errorMessage 
         });
         failedCount++;
       }

@@ -52,8 +52,9 @@ serve(async (req) => {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       logStep("Webhook signature verified", { eventType: event.type });
     } catch (err) {
-      logStep("Webhook signature verification failed", { error: err.message });
-      throw new Error(`Webhook signature verification failed: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      logStep("Webhook signature verification failed", { error: errorMessage });
+      throw new Error(`Webhook signature verification failed: ${errorMessage}`);
     }
     
     logStep("Event received", { type: event.type, id: event.id });
@@ -325,7 +326,8 @@ serve(async (req) => {
             }
           }
         } catch (emailError) {
-          logStep("Failed to send subscription change confirmation email", { error: emailError.message });
+          const errorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+          logStep("Failed to send subscription change confirmation email", { error: errorMessage });
         }
         
         logStep("Skipping proration invoice - no credits added for subscription updates", { invoiceId: invoice.id });

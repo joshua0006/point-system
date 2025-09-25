@@ -393,11 +393,12 @@ ${systemPrompt}`;
     );
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Unexpected error in ad-copy-generator function:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        details: error.message 
+        details: errorMessage 
       }),
       {
         status: 500,
