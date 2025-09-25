@@ -13,6 +13,7 @@ import { StatsSkeleton, TableSkeleton } from "@/components/ui/optimized-skeleton
 import { TopUpModal } from "@/components/admin/modals/TopUpModal";
 import { DeductModal } from "@/components/admin/modals/DeductModal";
 import { BillingProfileModal } from "@/components/admin/BillingProfileModal";
+import { UserDetailsModal } from "@/components/admin/modals/UserDetailsModal";
 import { Users, Plus, Coins, RefreshCw, Minus, Receipt, UserX, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/config/types";
@@ -28,6 +29,7 @@ const MemoizedUserRow = memo(function UserRow({
   onBilling, 
   onRevoke, 
   onDelete,
+  onUserDetails,
   getSubscriptionBadge,
   isSubscriptionLoading,
   getSubscription,
@@ -42,6 +44,7 @@ const MemoizedUserRow = memo(function UserRow({
   onBilling: (user: UserProfile) => void;
   onRevoke: (user: UserProfile) => void;
   onDelete: (user: UserProfile) => void;
+  onUserDetails: (user: UserProfile) => void;
   getSubscriptionBadge: any;
   isSubscriptionLoading: any;
   getSubscription: any;
@@ -53,7 +56,7 @@ const MemoizedUserRow = memo(function UserRow({
   return (
     <TableRow key={user.id}>
       <TableCell>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors" onClick={() => onUserDetails(user)}>
           <Avatar className="w-8 h-8">
             <AvatarImage src={user.avatar_url || undefined} />
             <AvatarFallback>
@@ -172,6 +175,7 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [deductModalOpen, setDeductModalOpen] = useState(false);
   const [billingProfileModalOpen, setBillingProfileModalOpen] = useState(false);
+  const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
   
   // Set up real-time updates with stable callback
   const handleDataChange = useCallback(() => {
@@ -210,6 +214,10 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
     },
     handleDelete: (user: UserProfile) => {
       onUserAction?.(user, 'delete');
+    },
+    handleUserDetails: (user: UserProfile) => {
+      setSelectedUser(user);
+      setUserDetailsModalOpen(true);
     },
   }), [onUserAction]);
 
@@ -297,6 +305,7 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
                   onBilling={actionHandlers.handleBilling}
                   onRevoke={actionHandlers.handleRevoke}
                   onDelete={actionHandlers.handleDelete}
+                  onUserDetails={actionHandlers.handleUserDetails}
                   getSubscriptionBadge={getSubscriptionBadge}
                   isSubscriptionLoading={isSubscriptionLoading}
                   getSubscription={getSubscription}
@@ -336,6 +345,11 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
             user={selectedUser}
             open={billingProfileModalOpen}
             onOpenChange={setBillingProfileModalOpen}
+          />
+          <UserDetailsModal
+            user={selectedUser}
+            open={userDetailsModalOpen}
+            onOpenChange={setUserDetailsModalOpen}
           />
           
           {/* Subscription Modal */}
