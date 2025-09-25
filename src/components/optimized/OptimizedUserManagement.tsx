@@ -131,7 +131,7 @@ const MemoizedUserRow = memo(function UserRow({
             onClick={() => onDeduct(user)}
             size="sm"
             variant="outline"
-            disabled={(user.flexi_credits_balance || 0) <= -1000}
+            disabled={(user.flexi_credits_balance || 0) <= -500}
           >
             <Minus className="w-4 h-4 mr-1" />
             Deduct
