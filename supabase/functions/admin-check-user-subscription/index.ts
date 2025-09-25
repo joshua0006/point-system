@@ -82,6 +82,32 @@ serve(async (req) => {
     }
     logStep("Target user email provided", { userEmail });
 
+    // Test if the target user exists in our database
+    const { data: targetUserProfile, error: targetUserError } = await supabaseClient
+      .from('profiles')
+      .select('user_id, email, full_name')
+      .eq('email', userEmail)
+      .single();
+
+    if (targetUserError || !targetUserProfile) {
+      logStep("Target user not found in profiles", { userEmail, error: targetUserError?.message });
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        plan_name: null,
+        credits_per_month: 0,
+        error: "User not found in system"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    logStep("Target user found", { targetUser: targetUserProfile });
+
+    // userEmail is now already processed above, so we can use it directly
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
