@@ -308,7 +308,7 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
               </CardHeader>
               <CardContent>
                 {subscriptionLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading subscription...</div>
+                  <div className="text-center py-8 text-muted-foreground">No subscription</div>
                 ) : subscription ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
