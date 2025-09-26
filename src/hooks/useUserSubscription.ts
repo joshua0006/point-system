@@ -15,7 +15,10 @@ export function useUserSubscription() {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
 
   const fetchUserSubscription = useCallback(async (userId: string, userEmail: string): Promise<SubscriptionData> => {
+    console.log('🔍 Fetching subscription for:', { userId, userEmail });
+    
     if (subscriptionData[userId]) {
+      console.log('📋 Using cached subscription data for:', userEmail);
       return subscriptionData[userId];
     }
 
@@ -29,6 +32,7 @@ export function useUserSubscription() {
         throw new Error('No session found');
       }
 
+      console.log('🚀 Calling admin-check-user-subscription for:', userEmail);
       const { data, error } = await supabase.functions.invoke('admin-check-user-subscription', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,

@@ -83,11 +83,19 @@ serve(async (req) => {
     logStep("Target user email provided", { userEmail });
 
     // Test if the target user exists in our database
+    logStep("Looking up target user in profiles table", { searchEmail: userEmail });
     const { data: targetUserProfile, error: targetUserError } = await supabaseClient
       .from('profiles')
       .select('user_id, email, full_name')
       .eq('email', userEmail)
       .single();
+
+    logStep("Profile lookup completed", { 
+      found: !!targetUserProfile, 
+      error: targetUserError?.message,
+      userEmail: userEmail,
+      foundUser: targetUserProfile
+    });
 
     if (targetUserError || !targetUserProfile) {
       logStep("Target user not found in profiles", { userEmail, error: targetUserError?.message });
@@ -97,7 +105,8 @@ serve(async (req) => {
         subscription_end: null,
         plan_name: null,
         credits_per_month: 0,
-        error: "User not found in system"
+        error: "User not found in system",
+        debugInfo: { searchedEmail: userEmail, dbError: targetUserError?.message }
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
