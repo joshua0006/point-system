@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { useOptimizedAdminData } from "@/hooks/useOptimizedAdminData";
 import { useUserSubscription } from '@/hooks/useUserSubscription';
 import { useAdminRealtime } from "@/hooks/admin/useAdminRealtime";
@@ -199,6 +199,16 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
     adminUsers: users.filter(u => u.role === 'admin').length,
     consultantUsers: users.filter(u => u.role === 'consultant').length,
   }), [users]);
+
+  // Prefetch subscription info for listed users so the table shows correct plan names
+  useEffect(() => {
+    if (!users || users.length === 0) return;
+    const subset = users.slice(0, 50); // avoid excessive parallel calls
+    subset.forEach((u) => {
+      // Fire-and-forget; hook caches per userId
+      fetchUserSubscription(u.user_id, u.email);
+    });
+  }, [users, fetchUserSubscription]);
 
   // Memoized action handlers
   const actionHandlers = useMemo(() => ({
