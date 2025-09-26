@@ -41,6 +41,23 @@ serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     logStep("Authenticating admin user");
+
+    // Ensure subsequent Supabase queries run under the caller's session for RLS
+    try {
+      // @ts-ignore - setAuth exists in supabase-js v2 for server-side contexts
+      supabaseClient.auth.setAuth(token);
+      logStep("Supabase client authenticated for RLS-enabled queries");
+    } catch (_) {
+      // Fallback: recreate client with global Authorization header
+      // Some environments prefer header injection
+      // deno-lint-ignore no-explicit-any
+      const _tmp = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
+      // @ts-ignore swap reference
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      supabaseClient.rest = _tmp.rest;
+      logStep("Supabase client configured via global Authorization header");
+    }
     
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);

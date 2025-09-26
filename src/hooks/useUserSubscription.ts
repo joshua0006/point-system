@@ -17,8 +17,12 @@ export function useUserSubscription() {
   const fetchUserSubscription = useCallback(async (userId: string, userEmail: string): Promise<SubscriptionData> => {
     console.log('🔍 Fetching subscription for:', { userId, userEmail });
     
-    if (subscriptionData[userId]) {
-      console.log('📋 Using cached subscription data for:', userEmail);
+    // Use cache only if it's active; otherwise attempt a fresh fetch
+    if (loading[userId]) {
+      return subscriptionData[userId] || { isActive: false, planName: 'Loading', subscriptionTier: 'none', creditsPerMonth: 0 };
+    }
+    if (subscriptionData[userId]?.isActive) {
+      console.log('📋 Using cached ACTIVE subscription data for:', userEmail);
       return subscriptionData[userId];
     }
 
