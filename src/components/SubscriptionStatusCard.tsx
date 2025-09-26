@@ -241,7 +241,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
         </div>
 
         <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
-          {statusInfo.description}
+          {subscription?.subscribed ? subscription.plan_name || 'Premium Plan' : statusInfo.description}
         </div>
 
         {showActions && (
