@@ -53,7 +53,7 @@ serve(async (req) => {
       .from('profiles')
       .select('role')
       .eq('user_id', adminUser.id)
-      .single();
+      .maybeSingle();
 
     logStep("Admin profile lookup result", { 
       adminProfileError: adminProfileError?.message, 
@@ -88,7 +88,7 @@ serve(async (req) => {
       .from('profiles')
       .select('user_id, email, full_name')
       .eq('email', userEmail)
-      .single();
+      .maybeSingle();
 
     logStep("Profile lookup completed", { 
       found: !!targetUserProfile, 
