@@ -100,11 +100,16 @@ const MemoizedUserRow = memo(function UserRow({
           {(() => {
             const subscription = getSubscription(user.user_id);
             const loading = isSubscriptionLoading(user.user_id);
-            const badge = getSubscriptionBadge(
-              subscription || { isActive: false, planName: 'No Plan', subscriptionTier: 'none', creditsPerMonth: 0 },
-              loading
-            );
-            return <Badge variant={badge.variant}>{badge.text}</Badge>;
+            
+            if (loading) {
+              return <Badge variant="outline">Loading...</Badge>;
+            }
+            
+            if (!subscription || !subscription.isActive) {
+              return <Badge variant="secondary">No Active Plan</Badge>;
+            }
+            
+            return <Badge variant="default">{subscription.planName || 'Premium Plan'}</Badge>;
           })()}
           <Button
             onClick={async () => {
@@ -381,8 +386,44 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
                     })()}
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-muted-foreground">Plan</label>
+                    {(() => {
+                      const subscription = getSubscription(selectedUser.user_id);
+                      const loading = isSubscriptionLoading(selectedUser.user_id);
+                      
+                      if (loading) {
+                        return <div className="text-lg font-semibold">Loading...</div>;
+                      }
+                      
+                      if (!subscription || !subscription.isActive) {
+                        return <div className="text-lg font-semibold text-muted-foreground">No Plan</div>;
+                      }
+                      
+                      return <div className="text-lg font-semibold">{subscription.planName || 'Premium Plan'}</div>;
+                    })()}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <label className="text-sm font-medium text-muted-foreground">Current Balance</label>
                     <div className="text-lg font-semibold text-accent">{(selectedUser.flexi_credits_balance || 0).toLocaleString()} flexi credits</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Credits Per Month</label>
+                    {(() => {
+                      const subscription = getSubscription(selectedUser.user_id);
+                      const loading = isSubscriptionLoading(selectedUser.user_id);
+                      
+                      if (loading) {
+                        return <div className="text-lg font-semibold">Loading...</div>;
+                      }
+                      
+                      if (!subscription || !subscription.isActive) {
+                        return <div className="text-lg font-semibold text-muted-foreground">0</div>;
+                      }
+                      
+                      return <div className="text-lg font-semibold">{subscription.creditsPerMonth || 0}</div>;
+                    })()}
                   </div>
                 </div>
               </div>
