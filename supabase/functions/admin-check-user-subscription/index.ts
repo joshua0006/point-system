@@ -92,10 +92,40 @@ serve(async (req) => {
     
     logStep("Admin permissions verified", { role: adminProfile.role });
 
-    // Get the target user email from request body
-    const { userEmail } = await req.json();
+    // Resolve target user email from JSON body, query string or headers (robust to empty bodies)
+    let userEmail: string | null = null;
+    try {
+      const ct = req.headers.get("content-type") || "";
+      const cl = req.headers.get("content-length") || "unknown";
+      logStep("Inspecting request payload", { contentType: ct, contentLength: cl, method: req.method });
+      if (ct.includes("application/json")) {
+        const body = await req.json().catch(() => ({} as Record<string, unknown>));
+        // deno-lint-ignore no-explicit-any
+        userEmail = (body as any)?.userEmail ?? (body as any)?.email ?? null;
+      }
+    } catch (_) {
+      // ignore parse errors and continue to query/header fallbacks
+    }
     if (!userEmail) {
-      throw new Error("Target user email is required");
+      const url = new URL(req.url);
+      userEmail = url.searchParams.get("userEmail") || url.searchParams.get("email");
+    }
+    if (!userEmail) {
+      userEmail = req.headers.get("x-user-email");
+    }
+    if (!userEmail) {
+      logStep("Missing target user email in request");
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        plan_name: null,
+        credits_per_month: 0,
+        error: "Target user email is required"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, // return unsubscribed shape to avoid UI hard failures
+      });
     }
     logStep("Target user email provided", { userEmail });
 
