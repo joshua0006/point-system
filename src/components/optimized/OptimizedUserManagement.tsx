@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatsCard } from "@/components/ui/stats-card";
 import { StatsSkeleton, TableSkeleton } from "@/components/ui/optimized-skeleton";
 import { TopUpModal } from "@/components/admin/modals/TopUpModal";
@@ -298,40 +299,44 @@ export const OptimizedUserManagement = memo(function OptimizedUserManagement({
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Flexi Credits Balance</TableHead>
-                <TableHead>Subscription</TableHead>
-                <TableHead>Member Since</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <MemoizedUserRow
-                  key={user.id}
-                  user={user}
-                  onTopUp={actionHandlers.handleTopUp}
-                  onDeduct={actionHandlers.handleDeduct}
-                  onBilling={actionHandlers.handleBilling}
-                  onRevoke={actionHandlers.handleRevoke}
-                  onDelete={actionHandlers.handleDelete}
-                  onUserDetails={actionHandlers.handleUserDetails}
-                  getSubscriptionBadge={getSubscriptionBadge}
-                  isSubscriptionLoading={isSubscriptionLoading}
-                  getSubscription={getSubscription}
-                  fetchUserSubscription={fetchUserSubscription}
-                  setSelectedUser={setSelectedUser}
-                  setSubscriptionModalOpen={setSubscriptionModalOpen}
-                  userRole="master_admin" // This should come from auth context
-                />
-              ))}
-            </TableBody>
-          </Table>
+          <ScrollArea className="w-full">
+            <div className="min-w-[1200px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Flexi Credits Balance</TableHead>
+                    <TableHead>Subscription</TableHead>
+                    <TableHead>Member Since</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <MemoizedUserRow
+                      key={user.id}
+                      user={user}
+                      onTopUp={actionHandlers.handleTopUp}
+                      onDeduct={actionHandlers.handleDeduct}
+                      onBilling={actionHandlers.handleBilling}
+                      onRevoke={actionHandlers.handleRevoke}
+                      onDelete={actionHandlers.handleDelete}
+                      onUserDetails={actionHandlers.handleUserDetails}
+                      getSubscriptionBadge={getSubscriptionBadge}
+                      isSubscriptionLoading={isSubscriptionLoading}
+                      getSubscription={getSubscription}
+                      fetchUserSubscription={fetchUserSubscription}
+                      setSelectedUser={setSelectedUser}
+                      setSubscriptionModalOpen={setSubscriptionModalOpen}
+                      userRole="master_admin" // This should come from auth context
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
 
