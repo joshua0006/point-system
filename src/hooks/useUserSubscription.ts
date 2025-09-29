@@ -68,7 +68,7 @@ export function useUserSubscription() {
       console.error('Error fetching subscription for user:', userEmail, error);
       const fallback: SubscriptionData = {
         isActive: false,
-        planName: 'No Active Plan',
+        planName: 'No Plan',
         subscriptionTier: 'none',
         creditsPerMonth: 0,
       };
@@ -86,7 +86,7 @@ export function useUserSubscription() {
     }
     
     if (!subscription.isActive) {
-      return { variant: 'secondary' as const, text: 'No Active Plan' };
+      return { variant: 'secondary' as const, text: 'No Plan' };
     }
     
     return { variant: 'default' as const, text: subscription.planName };
