@@ -102,20 +102,6 @@ export const UserTableRow = memo(function UserTableRow({
         </div>
       </TableCell>
       
-      <TableCell>
-        <div className="flex items-center justify-between gap-4">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-
-            <div className="text-muted-foreground">Plan:</div>
-            <div className="font-semibold">
-              {loading && !subscription
-                ? 'Loading...'
-                : (subscription?.planName ? `${subscription.planName}` : 'No Plan')}
-            </div>
-
-          </div>
-        </div>
-      </TableCell>
       
       <TableCell>
         <div className="text-sm text-muted-foreground">

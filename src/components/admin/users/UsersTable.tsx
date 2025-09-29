@@ -57,7 +57,6 @@ export const UsersTable = memo(function UsersTable({
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Flexi Credits Balance</TableHead>
-                  <TableHead>Subscription</TableHead>
                   <TableHead>Member Since</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
