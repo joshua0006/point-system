@@ -221,9 +221,8 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground">Plan:</span>
             <div className="font-semibold">
-              {subscription?.subscribed ? subscription.plan_name || 'Premium' : 'No Plan'}
+              {subscription?.subscribed ? subscription.plan_name || 'Premium Plan' : 'No Plan'}
             </div>
           </div>
           {subscription?.subscribed && (
