@@ -8,16 +8,14 @@ import type { UserProfile } from "@/config/types";
 
 interface UserManagementModalsProps {
   selectedUser: UserProfile | null;
-  topUpModalOpen: boolean;
-  setTopUpModalOpen: (open: boolean) => void;
-  deductModalOpen: boolean;
-  setDeductModalOpen: (open: boolean) => void;
-  billingProfileModalOpen: boolean;
-  setBillingProfileModalOpen: (open: boolean) => void;
-  userDetailsModalOpen: boolean;
-  setUserDetailsModalOpen: (open: boolean) => void;
-  subscriptionModalOpen: boolean;
-  setSubscriptionModalOpen: (open: boolean) => void;
+  modalsState: {
+    topUp: boolean;
+    deduct: boolean;
+    billing: boolean;
+    details: boolean;
+    subscription: boolean;
+  };
+  closeModal: (modalType: keyof UserManagementModalsProps['modalsState']) => void;
   onRefreshUsers: () => void;
   getSubscription: (userId: string) => any;
   isSubscriptionLoading: (userId: string) => boolean;
@@ -25,59 +23,51 @@ interface UserManagementModalsProps {
 
 export const UserManagementModals = memo(function UserManagementModals({
   selectedUser,
-  topUpModalOpen,
-  setTopUpModalOpen,
-  deductModalOpen,
-  setDeductModalOpen,
-  billingProfileModalOpen,
-  setBillingProfileModalOpen,
-  userDetailsModalOpen,
-  setUserDetailsModalOpen,
-  subscriptionModalOpen,
-  setSubscriptionModalOpen,
+  modalsState,
+  closeModal,
   onRefreshUsers,
   getSubscription,
   isSubscriptionLoading
 }: UserManagementModalsProps) {
   if (!selectedUser) return null;
 
-  const handleSuccess = (modalSetter: (open: boolean) => void) => () => {
+  const handleSuccess = (modalType: keyof typeof modalsState) => () => {
     onRefreshUsers();
-    modalSetter(false);
+    closeModal(modalType);
   };
 
   return (
     <>
       <TopUpModal
         user={selectedUser}
-        open={topUpModalOpen}
-        onOpenChange={setTopUpModalOpen}
-        onSuccess={handleSuccess(setTopUpModalOpen)}
+        open={modalsState.topUp}
+        onOpenChange={(open) => !open && closeModal('topUp')}
+        onSuccess={handleSuccess('topUp')}
       />
       
       <DeductModal
         user={selectedUser}
-        open={deductModalOpen}
-        onOpenChange={setDeductModalOpen}
-        onSuccess={handleSuccess(setDeductModalOpen)}
+        open={modalsState.deduct}
+        onOpenChange={(open) => !open && closeModal('deduct')}
+        onSuccess={handleSuccess('deduct')}
       />
       
       <BillingProfileModal
         user={selectedUser}
-        open={billingProfileModalOpen}
-        onOpenChange={setBillingProfileModalOpen}
+        open={modalsState.billing}
+        onOpenChange={(open) => !open && closeModal('billing')}
       />
       
       <UserDetailsModal
         user={selectedUser}
-        open={userDetailsModalOpen}
-        onOpenChange={setUserDetailsModalOpen}
+        open={modalsState.details}
+        onOpenChange={(open) => !open && closeModal('details')}
       />
       
       <UserSubscriptionModal
         user={selectedUser}
-        open={subscriptionModalOpen}
-        onOpenChange={setSubscriptionModalOpen}
+        open={modalsState.subscription}
+        onOpenChange={(open) => !open && closeModal('subscription')}
         getSubscription={getSubscription}
         isSubscriptionLoading={isSubscriptionLoading}
       />
