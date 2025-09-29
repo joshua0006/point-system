@@ -105,10 +105,6 @@ export const UserTableRow = memo(function UserTableRow({
       <TableCell>
         <div className="flex items-center justify-between gap-4">
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-            <div className="text-muted-foreground">Current Balance:</div>
-            <div className="font-semibold text-primary">
-              {(user.flexi_credits_balance || 0).toLocaleString()} credits
-            </div>
 
             <div className="text-muted-foreground">Plan:</div>
             <div className="font-semibold">
