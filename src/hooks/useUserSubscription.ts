@@ -40,10 +40,11 @@ export function useUserSubscription() {
       const { data, error } = await supabase.functions.invoke('admin-check-user-subscription', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-user-email': userEmail
         },
         body: {
-          userEmail: userEmail
+          userEmail
         }
       });
 
