@@ -459,7 +459,7 @@ const FacebookAdsCampaigns = () => {
 
           <FacebookAdsCatalog
             onComplete={handleFacebookAdsComplete}
-            onBack={() => {}} // Not needed for dedicated page
+            onBack={() => window.history.back()}
             userBalance={userBalance}
             campaignTargets={campaignTargets}
           />
