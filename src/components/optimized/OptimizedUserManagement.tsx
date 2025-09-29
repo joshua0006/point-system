@@ -98,12 +98,12 @@ const MemoizedUserRow = memo(function UserRow({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          {(() => {
+          {useMemo(() => {
             const subscription = getSubscription(user.user_id);
             const loading = isSubscriptionLoading(user.user_id);
             
             if (loading) {
-              return <Badge variant="outline">Loading...</Badge>;
+              return <Badge variant="outline" className="min-w-[100px] text-center">●●●</Badge>;
             }
             
             if (!subscription || !subscription.isActive) {
@@ -111,7 +111,7 @@ const MemoizedUserRow = memo(function UserRow({
             }
             
             return <Badge variant="default">{subscription.planName || 'Premium Plan'}</Badge>;
-          })()}
+          }, [getSubscription(user.user_id), isSubscriptionLoading(user.user_id)])}
           <Button
             onClick={async () => {
               setSelectedUser(user);
