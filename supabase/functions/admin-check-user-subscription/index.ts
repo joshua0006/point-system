@@ -21,112 +21,73 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Check environment variables
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
-
-    // Validate environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!stripeKey) {
+      throw new Error("STRIPE_SECRET_KEY is not set");
+    }
+    if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error("Missing required Supabase environment variables");
     }
 
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    logStep("Environment variables verified");
+
+    // Create Supabase client with service role for admin operations
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header provided");
+    }
 
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating admin user");
-
-    // Ensure subsequent Supabase queries run under the caller's session for RLS
-    try {
-      // @ts-ignore - setAuth exists in supabase-js v2 for server-side contexts
-      supabaseClient.auth.setAuth(token);
-      logStep("Supabase client authenticated for RLS-enabled queries");
-    } catch (_) {
-      // Fallback: recreate client with global Authorization header
-      // Some environments prefer header injection
-      // deno-lint-ignore no-explicit-any
-      const _tmp = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
-      // @ts-ignore swap reference
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      supabaseClient.rest = _tmp.rest;
-      logStep("Supabase client configured via global Authorization header");
-    }
     
+    // Verify the admin user
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const adminUser = userData.user;
-    if (!adminUser?.email) throw new Error("Admin user not authenticated");
-    logStep("Admin authenticated", { adminId: adminUser.id, adminEmail: adminUser.email });
+    if (userError || !userData.user) {
+      throw new Error("Invalid authentication token");
+    }
 
-    // Check if the authenticated user is an admin
+    const adminUser = userData.user;
+    logStep("Admin user authenticated", { adminId: adminUser.id });
+
+    // Check admin permissions
     const { data: adminProfile, error: adminProfileError } = await supabaseClient
       .from('profiles')
       .select('role')
       .eq('user_id', adminUser.id)
-      .maybeSingle();
+      .single();
 
-    logStep("Admin profile lookup result", { 
-      adminProfileError: adminProfileError?.message, 
-      adminProfile: adminProfile,
-      adminUserId: adminUser.id 
-    });
-
-    if (adminProfileError) {
-      throw new Error(`Admin profile lookup failed: ${adminProfileError.message}`);
-    }
-    
-    if (!adminProfile) {
+    if (adminProfileError || !adminProfile) {
       throw new Error("Admin profile not found");
     }
     
     if (!['admin', 'master_admin'].includes(adminProfile.role)) {
-      throw new Error(`Insufficient permissions - admin access required. Current role: ${adminProfile.role}`);
+      throw new Error(`Insufficient permissions. Required: admin, Current: ${adminProfile.role}`);
     }
     
     logStep("Admin permissions verified", { role: adminProfile.role });
 
-    // Resolve target user email from JSON body, query string or headers (robust to empty bodies)
-    let userEmail: string | null = null;
-    try {
-      const ct = req.headers.get("content-type") || "";
-      const cl = req.headers.get("content-length") || "unknown";
-      logStep("Inspecting request payload", { contentType: ct, contentLength: cl, method: req.method });
-      if (ct.includes("application/json")) {
-        const body = await req.json().catch(() => ({} as Record<string, unknown>));
-        // deno-lint-ignore no-explicit-any
-        userEmail = (body as any)?.userEmail ?? (body as any)?.email ?? null;
-      }
-    } catch (_) {
-      // ignore parse errors and continue to query/header fallbacks
-    }
+    // Get target user email from header
+    const userEmail = req.headers.get("x-user-email");
     if (!userEmail) {
-      const url = new URL(req.url);
-      userEmail = url.searchParams.get("userEmail") || url.searchParams.get("email");
-    }
-    if (!userEmail) {
-      userEmail = req.headers.get("x-user-email");
-    }
-    if (!userEmail) {
-      logStep("Missing target user email in request");
+      logStep("Missing target user email in x-user-email header");
       return new Response(JSON.stringify({ 
         subscribed: false,
         subscription_tier: null,
         subscription_end: null,
         plan_name: null,
         credits_per_month: 0,
-        error: "Target user email is required"
+        error: "Target user email is required in x-user-email header"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200, // return unsubscribed shape to avoid UI hard failures
+        status: 400,
       });
     }
+    
     logStep("Target user email provided", { userEmail });
 
     // Test if the target user exists in our database
