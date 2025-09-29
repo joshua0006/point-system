@@ -126,17 +126,6 @@ export const UserTableRow = memo(function UserTableRow({
                   : '—')}
             </div>
           </div>
-          <div className="shrink-0">
-            <Button
-              onClick={() => onViewSubscription(user)}
-              size="sm"
-              variant="outline"
-              className="h-7 px-2"
-              aria-label="View subscription details"
-            >
-              View Sub
-            </Button>
-          </div>
         </div>
       </TableCell>
       
