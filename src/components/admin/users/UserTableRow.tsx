@@ -117,14 +117,6 @@ export const UserTableRow = memo(function UserTableRow({
                 : (subscription?.planName ? `${subscription.planName}` : 'No Plan')}
             </div>
 
-            <div className="text-muted-foreground">Next Billing:</div>
-            <div className="font-semibold">
-              {loading && !subscription
-                ? 'Loading...'
-                : (subscription?.isActive && subscription?.endDate
-                  ? new Date(subscription.endDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
-                  : '—')}
-            </div>
           </div>
         </div>
       </TableCell>
