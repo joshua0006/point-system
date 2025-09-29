@@ -114,7 +114,7 @@ export const UserTableRow = memo(function UserTableRow({
             <div className="font-semibold">
               {loading && !subscription
                 ? 'Loading...'
-                : (subscription?.isActive ? (subscription?.planName || 'Premium Plan') : 'No Plan')}
+                : (subscription?.planName ? `${subscription.planName}` : 'No Plan')}
             </div>
 
             <div className="text-muted-foreground">Monthly Credits:</div>

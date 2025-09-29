@@ -28,7 +28,7 @@ export function useUserSubscription() {
     // Return cached value if it's fresh (even if not active)
     const cached = subscriptionData[userId];
     const fetchedAt = lastFetched[userId];
-    if (cached && fetchedAt && Date.now() - fetchedAt < STALE_TIME_MS) {
+    if (cached && fetchedAt && Date.now() - fetchedAt < STALE_TIME_MS && cached.isActive) {
       console.log('📋 Using cached subscription data for:', userEmail);
       return cached;
     }
