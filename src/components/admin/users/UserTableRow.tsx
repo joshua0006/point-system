@@ -103,17 +103,47 @@ export const UserTableRow = memo(function UserTableRow({
       </TableCell>
       
       <TableCell>
-        <div className="flex items-center gap-3 flex-wrap">
-          {renderSubscriptionBadge()}
-          <Button
-            onClick={() => onViewSubscription(user)}
-            size="sm"
-            variant="outline"
-            className="h-7 px-2"
-            aria-label="View subscription details"
-          >
-            View Sub
-          </Button>
+        <div className="flex items-center justify-between gap-4">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+            <div className="text-muted-foreground">Current Balance:</div>
+            <div className="font-semibold text-primary">
+              {(user.flexi_credits_balance || 0).toLocaleString()} credits
+            </div>
+
+            <div className="text-muted-foreground">Plan:</div>
+            <div className="font-semibold">
+              {loading && !subscription
+                ? 'Loading...'
+                : (subscription?.isActive ? (subscription?.planName || 'Premium Plan') : 'No Plan')}
+            </div>
+
+            <div className="text-muted-foreground">Monthly Credits:</div>
+            <div className="font-semibold">
+              {loading && !subscription
+                ? 'Loading...'
+                : (subscription?.isActive ? (subscription?.creditsPerMonth ?? 0) : 0)}
+            </div>
+
+            <div className="text-muted-foreground">Next Billing:</div>
+            <div className="font-semibold">
+              {loading && !subscription
+                ? 'Loading...'
+                : (subscription?.isActive && subscription?.endDate
+                  ? new Date(subscription.endDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+                  : '—')}
+            </div>
+          </div>
+          <div className="shrink-0">
+            <Button
+              onClick={() => onViewSubscription(user)}
+              size="sm"
+              variant="outline"
+              className="h-7 px-2"
+              aria-label="View subscription details"
+            >
+              View Sub
+            </Button>
+          </div>
         </div>
       </TableCell>
       
