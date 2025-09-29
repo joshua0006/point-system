@@ -44,7 +44,7 @@ export const UserTableRow = memo(function UserTableRow({
     }
 
     if (!subscription || !subscription.isActive) {
-      return <Badge variant="secondary" className={badgeClass}>No Active Plan</Badge>;
+      return <Badge variant="secondary" className={badgeClass}>No Plan</Badge>;
     }
 
     return <Badge variant="default" className={badgeClass}>{subscription.planName || 'Premium Plan'}</Badge>;
