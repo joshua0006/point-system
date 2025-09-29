@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.admin-campaign-launcher]
 verify_jwt = true
 
+[functions.admin-check-user-subscription]
+verify_jwt = true
+
 [functions.admin-user-management]
 verify_jwt = true
 

@@ -4,13 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-// Helper logging function for enhanced debugging
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[ADMIN-CHECK-USER-SUBSCRIPTION] ${step}${detailsStr}`);
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-user-email",
 };
 
 serve(async (req) => {
@@ -19,62 +13,12 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Function started");
-
-    // Check environment variables
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    
-    if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is not set");
-    }
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error("Missing required Supabase environment variables");
-    }
-
-    logStep("Environment variables verified");
-
-    // Create Supabase client with service role for admin operations
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header provided");
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    
-    // Verify the admin user
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !userData.user) {
-      throw new Error("Invalid authentication token");
-    }
-
-    const adminUser = userData.user;
-    logStep("Admin user authenticated", { adminId: adminUser.id });
-
-    // Check admin permissions
-    const { data: adminProfile, error: adminProfileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('user_id', adminUser.id)
-      .single();
-
-    if (adminProfileError || !adminProfile) {
-      throw new Error("Admin profile not found");
-    }
-    
-    if (!['admin', 'master_admin'].includes(adminProfile.role)) {
-      throw new Error(`Insufficient permissions. Required: admin, Current: ${adminProfile.role}`);
-    }
-    
-    logStep("Admin permissions verified", { role: adminProfile.role });
+    console.log("🚀 Admin check user subscription function started");
 
     // Get target user email from header
     const userEmail = req.headers.get("x-user-email");
     if (!userEmail) {
-      logStep("Missing target user email in x-user-email header");
+      console.log("❌ Missing target user email in x-user-email header");
       return new Response(JSON.stringify({ 
         subscribed: false,
         subscription_tier: null,
@@ -88,48 +32,23 @@ serve(async (req) => {
       });
     }
     
-    logStep("Target user email provided", { userEmail });
+    console.log("📧 Target user email:", userEmail);
 
-    // Test if the target user exists in our database
-    logStep("Looking up target user in profiles table", { searchEmail: userEmail });
-    const { data: targetUserProfile, error: targetUserError } = await supabaseClient
-      .from('profiles')
-      .select('user_id, email, full_name')
-      .eq('email', userEmail)
-      .maybeSingle();
-
-    logStep("Profile lookup completed", { 
-      found: !!targetUserProfile, 
-      error: targetUserError?.message,
-      userEmail: userEmail,
-      foundUser: targetUserProfile
-    });
-
-    if (targetUserError || !targetUserProfile) {
-      logStep("Target user not found in profiles", { userEmail, error: targetUserError?.message });
-      return new Response(JSON.stringify({ 
-        subscribed: false,
-        subscription_tier: null,
-        subscription_end: null,
-        plan_name: null,
-        credits_per_month: 0,
-        error: "User not found in system",
-        debugInfo: { searchedEmail: userEmail, dbError: targetUserError?.message }
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+    // Check environment variables
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("STRIPE_SECRET_KEY is not set");
     }
 
-    logStep("Target user found", { targetUser: targetUserProfile });
-
-    // userEmail is now already processed above, so we can use it directly
+    console.log("🔑 Environment variables verified");
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+    
+    // Find customer by email
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found for target user, returning unsubscribed state");
+      console.log("👤 No customer found for target user, returning unsubscribed state");
       return new Response(JSON.stringify({ 
         subscribed: false,
         subscription_tier: null,
@@ -143,8 +62,9 @@ serve(async (req) => {
     }
 
     const customerId = customers.data[0].id;
-    logStep("Found Stripe customer for target user", { customerId });
+    console.log("✅ Found Stripe customer:", customerId);
 
+    // Get active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
@@ -159,16 +79,15 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      const actualEnd = new Date(subscription.current_period_end * 1000).toISOString();
-
+      
       // Always display next billing as the 1st of the upcoming month
       const nowUtc = new Date();
       const displayNextFirstUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth() + 1, 1, 0, 0, 0));
       subscriptionEnd = displayNextFirstUtc.toISOString();
 
-      logStep("Active subscription found for target user", { subscriptionId: subscription.id, actualEnd, displayNextFirstUtc: subscriptionEnd });
+      console.log("💳 Active subscription found:", subscription.id);
       
-      // Get the price details to determine credits and plan name
+      // Get the price details
       const priceId = subscription.items.data[0].price.id;
       const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
@@ -176,24 +95,27 @@ serve(async (req) => {
       
       // Get credits and plan details from subscription metadata
       creditsPerMonth = parseInt(subscription.metadata?.credits || "0");
-      planName = subscription.metadata?.plan_name || "Custom Plan";
+      planName = subscription.metadata?.plan_name || null;
       
-      // Determine subscription tier based on credits or amount
+      // Determine subscription tier and plan name
       if (creditsPerMonth >= 1000) {
         subscriptionTier = "ultra";
+        planName = planName || "Ultra Plan";
       } else if (creditsPerMonth >= 750) {
         subscriptionTier = "pro";
+        planName = planName || "Pro Plan";
       } else if (creditsPerMonth >= 500) {
         subscriptionTier = "plus";
+        planName = planName || "Plus Plan";
       } else if (creditsPerMonth >= 250) {
         subscriptionTier = "starter";
-      } else {
+        planName = planName || "Starter Plan";
+      } else if (creditsPerMonth > 0) {
         subscriptionTier = "custom";
-      }
-      
-      // Fallback to price-based calculation if no metadata
-      if (!creditsPerMonth) {
-        creditsPerMonth = amountInDollars; // 1:1 ratio fallback
+        planName = planName || "Custom Plan";
+      } else {
+        // Fallback to price-based calculation if no metadata
+        creditsPerMonth = amountInDollars;
         if (amountInDollars >= 1000) {
           subscriptionTier = "ultra";
           planName = "Ultra Plan";
@@ -212,31 +134,41 @@ serve(async (req) => {
         }
       }
       
-      logStep("Determined subscription details for target user", { 
-        priceId, 
-        amount: amountInDollars, 
-        subscriptionTier, 
+      console.log("📊 Subscription details:", { 
+        tier: subscriptionTier, 
         planName,
-        creditsPerMonth 
+        creditsPerMonth,
+        amount: amountInDollars
       });
     } else {
-      logStep("No active subscription found for target user");
+      console.log("❌ No active subscription found for target user");
     }
 
-    return new Response(JSON.stringify({
+    const response = {
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
       plan_name: planName,
       credits_per_month: creditsPerMonth
-    }), {
+    };
+
+    console.log("✅ Returning response:", response);
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in admin-check-user-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error("❌ ERROR in admin-check-user-subscription:", errorMessage);
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      subscribed: false,
+      subscription_tier: null,
+      subscription_end: null,
+      plan_name: null,
+      credits_per_month: 0
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
