@@ -20,6 +20,7 @@ import {
   X
 } from "lucide-react";
 import { format } from "date-fns";
+import { UserServiceAssignments } from "../users/UserServiceAssignments";
 import type { UserProfile } from "@/config/types";
 
 interface UserDetailsModalProps {
@@ -133,10 +134,11 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="subscription">Subscription</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -349,6 +351,10 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="services" className="space-y-4">
+            <UserServiceAssignments user={user} />
           </TabsContent>
         </Tabs>
       </DialogContent>

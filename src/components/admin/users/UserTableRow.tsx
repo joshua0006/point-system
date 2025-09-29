@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Plus, Minus, Receipt, UserX, Trash2 } from "lucide-react";
+import { Plus, Minus, Receipt, UserX, Trash2, Settings } from "lucide-react";
 import type { UserProfile } from "@/config/types";
 
 interface UserTableRowProps {
@@ -15,6 +15,7 @@ interface UserTableRowProps {
   onDelete: (user: UserProfile) => void;
   onUserDetails: (user: UserProfile) => void;
   onViewSubscription: (user: UserProfile) => void;
+  onServiceAssignment: (user: UserProfile) => void;
   getSubscription: (userId: string) => any;
   isSubscriptionLoading: (userId: string) => boolean;
   userRole: string;
@@ -29,6 +30,7 @@ export const UserTableRow = memo(function UserTableRow({
   onDelete,
   onUserDetails,
   onViewSubscription,
+  onServiceAssignment,
   getSubscription,
   isSubscriptionLoading,
   userRole
@@ -136,6 +138,11 @@ export const UserTableRow = memo(function UserTableRow({
           <Button onClick={() => onBilling(user)} size="sm" variant="outline">
             <Receipt className="w-4 h-4 mr-1" />
             Billing
+          </Button>
+
+          <Button onClick={() => onServiceAssignment(user)} size="sm" variant="outline">
+            <Settings className="w-4 h-4 mr-1" />
+            Services
           </Button>
           
           {canDelete && (

@@ -4,6 +4,7 @@ import { DeductModal } from "@/components/admin/modals/DeductModal";
 import { BillingProfileModal } from "@/components/admin/BillingProfileModal";
 import { UserDetailsModal } from "@/components/admin/modals/UserDetailsModal";
 import { UserSubscriptionModal } from "./UserSubscriptionModal";
+import { ServiceAssignmentModal } from "@/components/admin/modals/ServiceAssignmentModal";
 import type { UserProfile } from "@/config/types";
 
 interface UserManagementModalsProps {
@@ -14,6 +15,7 @@ interface UserManagementModalsProps {
     billing: boolean;
     details: boolean;
     subscription: boolean;
+    serviceAssignment: boolean;
   };
   closeModal: (modalType: keyof UserManagementModalsProps['modalsState']) => void;
   onRefreshUsers: () => void;
@@ -70,6 +72,13 @@ export const UserManagementModals = memo(function UserManagementModals({
         onOpenChange={(open) => !open && closeModal('subscription')}
         getSubscription={getSubscription}
         isSubscriptionLoading={isSubscriptionLoading}
+      />
+
+      <ServiceAssignmentModal
+        user={selectedUser}
+        open={modalsState.serviceAssignment}
+        onOpenChange={(open) => !open && closeModal('serviceAssignment')}
+        onSuccess={handleSuccess('serviceAssignment')}
       />
     </>
   );

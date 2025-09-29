@@ -89,6 +89,10 @@ export const UserManagementContainer = memo(function UserManagementContainer({
     await fetchUserSubscription(user.user_id, user.email);
   }, [openModal, setSelectedUser, fetchUserSubscription]);
 
+  const handleServiceAssignment = useCallback((user: UserProfile) => {
+    openModal('serviceAssignment', user);
+  }, [openModal]);
+
   if (usersLoading) {
     return (
       <div className="space-y-6">
@@ -119,6 +123,7 @@ export const UserManagementContainer = memo(function UserManagementContainer({
         onDelete={handleDelete}
         onUserDetails={handleUserDetails}
         onViewSubscription={handleViewSubscription}
+        onServiceAssignment={handleServiceAssignment}
         getSubscription={getSubscription}
         isSubscriptionLoading={isSubscriptionLoading}
         userRole={profile?.role || 'user'}

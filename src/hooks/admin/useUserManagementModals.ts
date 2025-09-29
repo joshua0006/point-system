@@ -9,6 +9,7 @@ export function useUserManagementModals() {
     billing: false,
     details: false,
     subscription: false,
+    serviceAssignment: false,
   });
 
   const openModal = useCallback((modalType: keyof typeof modalsState, user: UserProfile) => {
@@ -34,6 +35,7 @@ export function useUserManagementModals() {
       billing: false,
       details: false,
       subscription: false,
+      serviceAssignment: false,
     });
   }, []);
 

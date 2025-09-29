@@ -17,6 +17,7 @@ interface UsersTableProps {
   onDelete: (user: UserProfile) => void;
   onUserDetails: (user: UserProfile) => void;
   onViewSubscription: (user: UserProfile) => void;
+  onServiceAssignment: (user: UserProfile) => void;
   getSubscription: (userId: string) => any;
   isSubscriptionLoading: (userId: string) => boolean;
   userRole: string;
@@ -32,6 +33,7 @@ export const UsersTable = memo(function UsersTable({
   onDelete,
   onUserDetails,
   onViewSubscription,
+  onServiceAssignment,
   getSubscription,
   isSubscriptionLoading,
   userRole
@@ -73,6 +75,7 @@ export const UsersTable = memo(function UsersTable({
                     onDelete={onDelete}
                     onUserDetails={onUserDetails}
                     onViewSubscription={onViewSubscription}
+                    onServiceAssignment={onServiceAssignment}
                     getSubscription={getSubscription}
                     isSubscriptionLoading={isSubscriptionLoading}
                     userRole={userRole}
