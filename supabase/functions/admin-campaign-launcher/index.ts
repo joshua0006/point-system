@@ -43,7 +43,7 @@ serve(async (req) => {
       throw new Error('Admin access required')
     }
 
-    const { action, userId, templateId, budget, participantId, prorationEnabled } = await req.json()
+    const { action, userId, templateId, budget, participantId, prorationEnabled, assignmentId } = await req.json()
 
     switch (action) {
       case 'launch_campaign': {
@@ -218,6 +218,156 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ success: true, message: 'Campaign resumed successfully' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      case 'launch_facebook_ads_campaign': {
+        console.log('Launching Facebook Ads campaign for assignment:', assignmentId)
+        
+        if (!assignmentId) {
+          throw new Error('Assignment ID is required')
+        }
+
+        // Get the service assignment details
+        const { data: assignment, error: assignmentError } = await supabaseClient
+          .from('admin_service_assignments')
+          .select(`
+            *,
+            profiles!inner (
+              user_id,
+              flexi_credits_balance,
+              full_name,
+              email
+            )
+          `)
+          .eq('id', assignmentId)
+          .eq('status', 'active')
+          .single()
+
+        if (assignmentError || !assignment) {
+          console.error('Assignment fetch error:', assignmentError)
+          throw new Error('Service assignment not found')
+        }
+
+        // Check if campaign template exists
+        const { data: template, error: templateError } = await supabaseClient
+          .from('campaign_templates')
+          .select('*')
+          .eq('id', assignment.campaign_template_id)
+          .single()
+
+        if (templateError || !template) {
+          console.error('Template fetch error:', templateError)
+          throw new Error('Campaign template not found')
+        }
+
+        // Check user balance
+        const userBalance = assignment.profiles.flexi_credits_balance
+        if (userBalance < assignment.monthly_cost) {
+          throw new Error('Insufficient balance')
+        }
+
+        // Create lead gen campaign
+        const campaignName = `Facebook Ads - ${template.name} (${assignment.profiles.full_name || assignment.profiles.email})`
+        const startDate = new Date()
+        const endDate = new Date(startDate.getTime() + (assignment.campaign_duration_months * 30 * 24 * 60 * 60 * 1000))
+
+        const { data: newCampaign, error: campaignError } = await supabaseClient
+          .from('lead_gen_campaigns')
+          .insert({
+            name: campaignName,
+            description: `Admin-assigned Facebook Ads campaign for ${assignment.target_audience}`,
+            total_budget: assignment.monthly_cost * assignment.campaign_duration_months,
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            created_by: assignment.assigned_by,
+            status: 'active'
+          })
+          .select()
+          .single()
+
+        if (campaignError) {
+          console.error('Campaign creation error:', campaignError)
+          throw new Error('Failed to create campaign')
+        }
+
+        // Create campaign participant
+        const nextBillingDate = new Date(Date.UTC(
+          startDate.getUTCFullYear(),
+          startDate.getUTCMonth() + 1,
+          1, 0, 0, 0
+        ))
+
+        const { data: newParticipant, error: participantError } = await supabaseClient
+          .from('campaign_participants')
+          .insert({
+            campaign_id: newCampaign.id,
+            user_id: assignment.user_id,
+            consultant_name: assignment.profiles.full_name || assignment.profiles.email,
+            budget_contribution: assignment.monthly_cost,
+            billing_status: 'active',
+            next_billing_date: nextBillingDate.toISOString().split('T')[0],
+            monthly_budget: assignment.monthly_cost
+          })
+          .select()
+          .single()
+
+        if (participantError) {
+          console.error('Participant creation error:', participantError)
+          throw new Error('Failed to create participant')
+        }
+
+        // Update service assignment with campaign details
+        const { error: updateError } = await supabaseClient
+          .from('admin_service_assignments')
+          .update({
+            campaign_id: newCampaign.id,
+            campaign_status: 'active',
+            campaign_launched_at: new Date().toISOString()
+          })
+          .eq('id', assignmentId)
+
+        if (updateError) {
+          console.error('Assignment update error:', updateError)
+          throw new Error('Failed to update assignment')
+        }
+
+        // Deduct initial cost from user balance
+        const { error: balanceError } = await supabaseClient
+          .from('profiles')
+          .update({
+            flexi_credits_balance: userBalance - assignment.monthly_cost
+          })
+          .eq('user_id', assignment.user_id)
+
+        if (balanceError) {
+          console.error('Balance update error:', balanceError)
+          throw new Error('Failed to update balance')
+        }
+
+        // Record transaction
+        const { error: transactionError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: assignment.user_id,
+            type: 'spent',
+            amount: -assignment.monthly_cost,
+            description: `Facebook Ads campaign launch - ${template.name}`
+          })
+
+        if (transactionError) {
+          console.error('Transaction creation error:', transactionError)
+        }
+
+        console.log('Facebook Ads campaign launched successfully')
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: 'Facebook Ads campaign launched successfully',
+            campaignId: newCampaign.id,
+            participantId: newParticipant.id 
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }

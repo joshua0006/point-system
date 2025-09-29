@@ -115,6 +115,134 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_service_assignments: {
+        Row: {
+          assigned_by: string
+          assignment_date: string
+          campaign_duration_months: number | null
+          campaign_id: string | null
+          campaign_launched_at: string | null
+          campaign_status: string | null
+          campaign_template_id: string | null
+          campaign_type: string | null
+          created_at: string
+          id: string
+          monthly_cost: number
+          next_billing_date: string
+          notes: string | null
+          service_level: string
+          service_type: string
+          status: string
+          target_audience: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by: string
+          assignment_date?: string
+          campaign_duration_months?: number | null
+          campaign_id?: string | null
+          campaign_launched_at?: string | null
+          campaign_status?: string | null
+          campaign_template_id?: string | null
+          campaign_type?: string | null
+          created_at?: string
+          id?: string
+          monthly_cost: number
+          next_billing_date: string
+          notes?: string | null
+          service_level: string
+          service_type: string
+          status?: string
+          target_audience?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string
+          assignment_date?: string
+          campaign_duration_months?: number | null
+          campaign_id?: string | null
+          campaign_launched_at?: string | null
+          campaign_status?: string | null
+          campaign_template_id?: string | null
+          campaign_type?: string | null
+          created_at?: string
+          id?: string
+          monthly_cost?: number
+          next_billing_date?: string
+          notes?: string | null
+          service_level?: string
+          service_type?: string
+          status?: string
+          target_audience?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_service_assignments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "lead_gen_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_service_assignments_campaign_template_id_fkey"
+            columns: ["campaign_template_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_service_billing_transactions: {
+        Row: {
+          amount: number
+          assignment_id: string
+          billing_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          service_level: string
+          service_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          assignment_id: string
+          billing_date: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_level: string
+          service_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          assignment_id?: string
+          billing_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_level?: string
+          service_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_service_billing_transactions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "admin_service_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_users: {
         Row: {
           created_at: string

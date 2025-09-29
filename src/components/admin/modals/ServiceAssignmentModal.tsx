@@ -10,6 +10,7 @@ import { format, addMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useServiceAssignments } from "@/hooks/useServiceAssignments";
+import { useCampaignTemplates } from "@/hooks/useCampaignTemplates";
 import type { UserProfile } from "@/config/types";
 
 interface ServiceAssignmentModalProps {
@@ -32,6 +33,13 @@ const COLD_CALLING_LEVELS = [
   { value: "80_hours", label: "80 Hours", cost: 2800 }
 ];
 
+const FACEBOOK_ADS_BUDGETS = [
+  { value: "500", label: "Starter - $500", cost: 500 },
+  { value: "1000", label: "Growth - $1,000", cost: 1000 },
+  { value: "2000", label: "Scale - $2,000", cost: 2000 },
+  { value: "5000", label: "Enterprise - $5,000", cost: 5000 }
+];
+
 export function ServiceAssignmentModal({ 
   user, 
   open, 
@@ -40,11 +48,14 @@ export function ServiceAssignmentModal({
 }: ServiceAssignmentModalProps) {
   const [serviceType, setServiceType] = useState<string>("");
   const [serviceLevel, setServiceLevel] = useState<string>("");
+  const [campaignTemplateId, setCampaignTemplateId] = useState<string>("");
+  const [campaignDuration, setCampaignDuration] = useState<string>("1");
   const [nextBillingDate, setNextBillingDate] = useState<Date>();
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { assignService } = useServiceAssignments();
+  const { data: campaignTemplates = [], isLoading: templatesLoading } = useCampaignTemplates();
 
   const handleSubmit = async () => {
     if (!user || !serviceType || !serviceLevel || !nextBillingDate) {
@@ -52,9 +63,22 @@ export function ServiceAssignmentModal({
       return;
     }
 
+    if (serviceType === "facebook_ads" && !campaignTemplateId) {
+      toast.error("Please select a campaign template for Facebook Ads");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const levels = serviceType === "va_support" ? VA_SUPPORT_LEVELS : COLD_CALLING_LEVELS;
+      let levels;
+      if (serviceType === "va_support") {
+        levels = VA_SUPPORT_LEVELS;
+      } else if (serviceType === "cold_calling") {
+        levels = COLD_CALLING_LEVELS;
+      } else {
+        levels = FACEBOOK_ADS_BUDGETS;
+      }
+
       const selectedLevel = levels.find(level => level.value === serviceLevel);
       
       if (!selectedLevel) {
@@ -62,13 +86,18 @@ export function ServiceAssignmentModal({
         return;
       }
 
+      const selectedTemplate = campaignTemplates.find(t => t.id === campaignTemplateId);
+
       await assignService({
         userId: user.user_id,
         serviceType,
         serviceLevel,
         monthlyCost: selectedLevel.cost,
         nextBillingDate,
-        notes
+        notes,
+        campaignTemplateId: serviceType === "facebook_ads" ? campaignTemplateId : undefined,
+        targetAudience: selectedTemplate?.target_audience,
+        campaignDuration: parseInt(campaignDuration)
       });
 
       toast.success(`${selectedLevel.label} assigned successfully`);
@@ -78,6 +107,8 @@ export function ServiceAssignmentModal({
       // Reset form
       setServiceType("");
       setServiceLevel("");
+      setCampaignTemplateId("");
+      setCampaignDuration("1");
       setNextBillingDate(undefined);
       setNotes("");
     } catch (error) {
@@ -89,7 +120,9 @@ export function ServiceAssignmentModal({
   };
 
   const getServiceLevels = () => {
-    return serviceType === "va_support" ? VA_SUPPORT_LEVELS : COLD_CALLING_LEVELS;
+    if (serviceType === "va_support") return VA_SUPPORT_LEVELS;
+    if (serviceType === "cold_calling") return COLD_CALLING_LEVELS;
+    return FACEBOOK_ADS_BUDGETS;
   };
 
   const selectedServiceLevel = serviceType ? getServiceLevels().find(level => level.value === serviceLevel) : null;
@@ -117,6 +150,7 @@ export function ServiceAssignmentModal({
               <SelectContent>
                 <SelectItem value="va_support">VA Support</SelectItem>
                 <SelectItem value="cold_calling">Cold Calling</SelectItem>
+                <SelectItem value="facebook_ads">Facebook Ads Campaign</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -131,12 +165,47 @@ export function ServiceAssignmentModal({
                 <SelectContent>
                   {getServiceLevels().map((level) => (
                     <SelectItem key={level.value} value={level.value}>
-                      {level.label} - {level.cost} credits/month
+                      {level.label} - {serviceType === "facebook_ads" ? `$${level.cost}` : `${level.cost} credits`}/month
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          )}
+
+          {serviceType === "facebook_ads" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="campaign-template">Campaign Template *</Label>
+                <Select value={campaignTemplateId} onValueChange={setCampaignTemplateId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select campaign template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campaignTemplates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name} - {template.target_audience}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="campaign-duration">Campaign Duration</Label>
+                <Select value={campaignDuration} onValueChange={setCampaignDuration}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Month</SelectItem>
+                    <SelectItem value="3">3 Months</SelectItem>
+                    <SelectItem value="6">6 Months</SelectItem>
+                    <SelectItem value="12">12 Months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
           )}
 
           <div className="space-y-2">
@@ -170,7 +239,10 @@ export function ServiceAssignmentModal({
             <div className="p-3 bg-muted rounded-lg">
               <div className="text-sm text-muted-foreground">Monthly Cost</div>
               <div className="text-lg font-semibold text-primary">
-                {selectedServiceLevel.cost.toLocaleString()} flexi credits
+                {serviceType === "facebook_ads" 
+                  ? `$${selectedServiceLevel.cost.toLocaleString()}` 
+                  : `${selectedServiceLevel.cost.toLocaleString()} flexi credits`
+                }
               </div>
             </div>
           )}
@@ -197,7 +269,8 @@ export function ServiceAssignmentModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || !serviceType || !serviceLevel || !nextBillingDate}
+            disabled={isSubmitting || !serviceType || !serviceLevel || !nextBillingDate || 
+              (serviceType === "facebook_ads" && !campaignTemplateId)}
           >
             {isSubmitting ? "Assigning..." : "Assign Service"}
           </Button>

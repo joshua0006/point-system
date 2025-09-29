@@ -16,6 +16,13 @@ interface ServiceAssignment {
   assigned_by: string;
   created_at: string;
   updated_at: string;
+  campaign_template_id?: string;
+  target_audience?: string;
+  campaign_type?: string;
+  campaign_duration_months?: number;
+  campaign_status?: string;
+  campaign_launched_at?: string;
+  campaign_id?: string;
 }
 
 interface AssignServiceParams {
@@ -25,6 +32,9 @@ interface AssignServiceParams {
   monthlyCost: number;
   nextBillingDate: Date;
   notes?: string;
+  campaignTemplateId?: string;
+  targetAudience?: string;
+  campaignDuration?: number;
 }
 
 export function useServiceAssignments() {
@@ -58,18 +68,29 @@ export function useServiceAssignments() {
         throw new Error('Unauthorized: Admin access required');
       }
 
+      const insertData: any = {
+        user_id: params.userId,
+        service_type: params.serviceType,
+        service_level: params.serviceLevel,
+        monthly_cost: params.monthlyCost,
+        next_billing_date: params.nextBillingDate.toISOString().split('T')[0],
+        notes: params.notes,
+        assigned_by: profile?.user_id,
+        status: 'active'
+      };
+
+      // Add Facebook Ads specific fields
+      if (params.serviceType === 'facebook_ads') {
+        insertData.campaign_template_id = params.campaignTemplateId;
+        insertData.target_audience = params.targetAudience;
+        insertData.campaign_type = 'facebook_ads';
+        insertData.campaign_duration_months = params.campaignDuration || 1;
+        insertData.campaign_status = 'pending';
+      }
+
       const { data, error } = await supabase
         .from('admin_service_assignments' as any)
-        .insert({
-          user_id: params.userId,
-          service_type: params.serviceType,
-          service_level: params.serviceLevel,
-          monthly_cost: params.monthlyCost,
-          next_billing_date: params.nextBillingDate.toISOString().split('T')[0],
-          notes: params.notes,
-          assigned_by: profile?.user_id,
-          status: 'active'
-        })
+        .insert(insertData)
         .select()
         .single();
 
