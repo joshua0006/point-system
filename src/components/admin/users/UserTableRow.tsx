@@ -38,14 +38,15 @@ export const UserTableRow = memo(function UserTableRow({
 
   const renderSubscriptionBadge = () => {
     const badgeClass = "min-w-[120px] justify-center";
-    if (loading) {
+    // Only show loading when we truly have no data yet
+    if (loading && !subscription) {
       return <Badge variant="outline" className={`animate-pulse ${badgeClass}`}>Loading...</Badge>;
     }
-    
+
     if (!subscription || !subscription.isActive) {
       return <Badge variant="secondary" className={badgeClass}>No Active Plan</Badge>;
     }
-    
+
     return <Badge variant="default" className={badgeClass}>{subscription.planName || 'Premium Plan'}</Badge>;
   };
 
