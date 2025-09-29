@@ -37,15 +37,16 @@ export const UserTableRow = memo(function UserTableRow({
   const loading = isSubscriptionLoading(user.user_id);
 
   const renderSubscriptionBadge = () => {
+    const badgeClass = "min-w-[120px] justify-center";
     if (loading) {
-      return <Badge variant="outline">●●●</Badge>;
+      return <Badge variant="outline" className={`animate-pulse ${badgeClass}`}>Loading...</Badge>;
     }
     
     if (!subscription || !subscription.isActive) {
-      return <Badge variant="secondary">No Active Plan</Badge>;
+      return <Badge variant="secondary" className={badgeClass}>No Active Plan</Badge>;
     }
     
-    return <Badge variant="default">{subscription.planName || 'Premium Plan'}</Badge>;
+    return <Badge variant="default" className={badgeClass}>{subscription.planName || 'Premium Plan'}</Badge>;
   };
 
   const canDelete = (userRole === 'master_admin' && user.role !== 'master_admin') || 
@@ -101,12 +102,14 @@ export const UserTableRow = memo(function UserTableRow({
       </TableCell>
       
       <TableCell>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
           {renderSubscriptionBadge()}
           <Button
             onClick={() => onViewSubscription(user)}
             size="sm"
             variant="outline"
+            className="h-7 px-2"
+            aria-label="View subscription details"
           >
             View Sub
           </Button>
