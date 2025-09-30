@@ -56,7 +56,7 @@ serve(async (req) => {
 
     logStep("Admin access verified", { userId: user.id });
 
-    const { action, userId, points, status, reason } = await req.json();
+    const { action, userId, points, status, reason, amount, dayOfMonth } = await req.json();
 
     if (action === 'list_users') {
       // Fetch all users with their profiles
@@ -339,6 +339,48 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: true, 
         message: `User ${userProfile.full_name || userProfile.email} deleted successfully` 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    if (action === 'setup_recurring_deduction') {
+      if (!userId || !amount || amount <= 0 || !dayOfMonth || !reason) {
+        throw new Error("Valid userId, amount, dayOfMonth, and reason required");
+      }
+
+      // Validate day of month
+      if (dayOfMonth < 1 || dayOfMonth > 28) {
+        throw new Error("Day of month must be between 1 and 28");
+      }
+
+      // Calculate next billing date
+      const now = new Date();
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth);
+      const nextBillingDate = nextMonth.toISOString().split('T')[0];
+
+      // Create recurring deduction record
+      const { error: insertError } = await supabaseClient
+        .from('admin_recurring_deductions')
+        .insert({
+          user_id: userId,
+          amount: amount,
+          reason: reason.trim(),
+          day_of_month: dayOfMonth,
+          created_by: user.id,
+          next_billing_date: nextBillingDate,
+          status: 'active'
+        });
+
+      if (insertError) throw new Error(`Error setting up recurring deduction: ${insertError.message}`);
+
+      logStep("Recurring deduction setup", { userId, amount, dayOfMonth });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `Recurring deduction of ${amount} flexi credits set up successfully`,
+        nextBillingDate
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

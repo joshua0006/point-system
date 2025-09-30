@@ -115,6 +115,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_recurring_deductions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          day_of_month: number
+          id: string
+          next_billing_date: string
+          reason: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          day_of_month: number
+          id?: string
+          next_billing_date: string
+          reason: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          day_of_month?: number
+          id?: string
+          next_billing_date?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_service_assignments: {
         Row: {
           assigned_by: string

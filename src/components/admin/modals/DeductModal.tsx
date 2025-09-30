@@ -3,11 +3,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, AlertTriangle } from "lucide-react";
+import { Minus, AlertTriangle, Calendar } from "lucide-react";
 import { logger } from "@/utils/logger";
 import type { UserProfile } from "@/config/types";
+import { getNextBillingDateISO } from "@/utils/dateUtils";
 
 interface DeductModalProps {
   user: UserProfile;
@@ -20,6 +24,8 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
   const [flexiCredits, setFlexiCredits] = useState("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [dayOfMonth, setDayOfMonth] = useState("1");
   const { toast } = useToast();
 
   const handleDeduct = async () => {
@@ -54,24 +60,47 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-user-management', {
-        body: {
-          action: 'deduct_points',
-          userId: user.user_id,
-          points: creditsAmount,
-          reason: reason.trim()
-        }
-      });
+      if (isRecurring) {
+        // Setup recurring deduction
+        const { data, error } = await supabase.functions.invoke('admin-user-management', {
+          body: {
+            action: 'setup_recurring_deduction',
+            userId: user.user_id,
+            amount: creditsAmount,
+            reason: reason.trim(),
+            dayOfMonth: parseInt(dayOfMonth)
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: `Deducted ${creditsAmount} flexi credits from ${user.full_name || user.email}'s account.`,
-      });
+        toast({
+          title: "Success",
+          description: `Set up recurring deduction of ${creditsAmount} flexi credits on day ${dayOfMonth} of each month for ${user.full_name || user.email}.`,
+        });
+      } else {
+        // One-time deduction
+        const { data, error } = await supabase.functions.invoke('admin-user-management', {
+          body: {
+            action: 'deduct_points',
+            userId: user.user_id,
+            points: creditsAmount,
+            reason: reason.trim()
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: `Deducted ${creditsAmount} flexi credits from ${user.full_name || user.email}'s account.`,
+        });
+      }
 
       setFlexiCredits("");
       setReason("");
+      setIsRecurring(false);
+      setDayOfMonth("1");
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -124,13 +153,52 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
               rows={3}
             />
           </div>
+          
+          <div className="flex items-center justify-between space-x-2 p-3 border rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <Label htmlFor="recurring" className="cursor-pointer">
+                Make this a recurring deduction
+              </Label>
+            </div>
+            <Switch
+              id="recurring"
+              checked={isRecurring}
+              onCheckedChange={setIsRecurring}
+            />
+          </div>
+
+          {isRecurring && (
+            <div className="space-y-2 p-3 border rounded-lg bg-muted/50">
+              <Label htmlFor="day-of-month">Deduct on day of month *</Label>
+              <Select value={dayOfMonth} onValueChange={setDayOfMonth}>
+                <SelectTrigger id="day-of-month">
+                  <SelectValue placeholder="Select day" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                    <SelectItem key={day} value={day.toString()}>
+                      {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of each month
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                First deduction will occur on the {dayOfMonth}{dayOfMonth === "1" ? 'st' : dayOfMonth === "2" ? 'nd' : dayOfMonth === "3" ? 'rd' : 'th'} of next month
+              </p>
+            </div>
+          )}
+
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
             <div className="flex items-center gap-2 text-yellow-800 text-sm">
               <AlertTriangle className="w-4 h-4" />
               <span className="font-medium">Warning</span>
             </div>
             <p className="text-yellow-700 text-sm mt-1">
-              This action cannot be undone. Flexi credits will be permanently removed from the user's account.
+              {isRecurring 
+                ? "This will set up automatic monthly deductions. You can cancel this anytime from the user's profile."
+                : "This action cannot be undone. Flexi credits will be permanently removed from the user's account."
+              }
             </p>
           </div>
           <Button 
@@ -139,7 +207,12 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
             variant="destructive"
             className="w-full"
           >
-            {loading ? "Deducting..." : `Deduct ${flexiCredits || 0} Flexi Credits`}
+            {loading 
+              ? "Processing..." 
+              : isRecurring 
+                ? `Setup Recurring Deduction` 
+                : `Deduct ${flexiCredits || 0} Flexi Credits`
+            }
           </Button>
         </div>
       </DialogContent>
