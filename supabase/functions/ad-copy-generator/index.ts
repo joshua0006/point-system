@@ -348,15 +348,14 @@ ${systemPrompt}`;
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4.1-mini-2025-04-14',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message || 'Start the ad copy generation process' }
-        ],
-        temperature: 0.8,
-        max_tokens: 1500,
-      }),
+        body: JSON.stringify({
+          model: 'gpt-4.1-mini-2025-04-14',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message || 'Start the ad copy generation process' }
+          ],
+          max_completion_tokens: 1500,
+        }),
     });
 
     if (!openAIResponse.ok) {
