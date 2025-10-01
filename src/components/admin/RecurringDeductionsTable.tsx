@@ -45,22 +45,12 @@ export function RecurringDeductionsTable() {
       setLoading(true);
       const { data, error } = await supabase
         .from('admin_recurring_deductions')
-        .select(`
-          *,
-          profiles!admin_recurring_deductions_user_id_fkey (
-            email,
-            full_name
-          )
-        `)
+        .select('*')
         .order('next_billing_date', { ascending: true });
 
       if (error) throw error;
 
-      const formattedData = data?.map((item: any) => ({
-        ...item,
-        user_email: item.profiles?.email,
-        user_name: item.profiles?.full_name
-      })) || [];
+      const formattedData = data || [];
 
       setDeductions(formattedData);
     } catch (error) {
@@ -198,8 +188,7 @@ export function RecurringDeductionsTable() {
                     <TableRow key={deduction.id}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{deduction.user_name || 'Unknown'}</span>
-                          <span className="text-sm text-muted-foreground">{deduction.user_email}</span>
+                          <span className="font-medium font-mono text-sm">{deduction.user_id}</span>
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
