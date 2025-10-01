@@ -19,6 +19,7 @@ interface NotificationRequest {
   nextBillingDate: string;
   adminEmail: string;
   adminName: string;
+  immediateDeduction?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -37,6 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
       nextBillingDate,
       adminEmail,
       adminName,
+      immediateDeduction = false
     }: NotificationRequest = await req.json();
 
     console.log('Sending recurring deduction notifications to:', { userEmail, adminEmail });
@@ -47,11 +49,8 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric'
     });
 
-    const today = new Date();
-    const billingDate = new Date(nextBillingDate);
-    const isToday = today.toDateString() === billingDate.toDateString();
-    const immediateChargeText = isToday 
-      ? '<p style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;"><strong>⚡ Important:</strong> The first deduction will be processed <strong>immediately today</strong>.</p>'
+    const immediateChargeText = immediateDeduction 
+      ? `<p style="background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;"><strong>✅ Processed:</strong> The first deduction of <strong>${amount} Flexi Credits</strong> has been <strong>successfully processed immediately</strong>.</p>`
       : '';
 
     // Email to user
@@ -75,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           ${immediateChargeText}
           
-          <p>This amount will be automatically deducted from your Flexi Credits balance on the ${dayOfMonth}${getDaySuffix(dayOfMonth)} of each month.</p>
+          <p>${immediateDeduction ? 'Going forward, this' : 'This'} amount will be automatically deducted from your Flexi Credits balance on the ${dayOfMonth}${getDaySuffix(dayOfMonth)} of each month.</p>
           <p>If you have any questions or concerns about this deduction, please contact our support team.</p>
           
           <p style="margin-top: 30px;">Best regards,<br>The Flexi Credits Team</p>
@@ -109,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>Reason:</strong> ${reason}</p>
             <p><strong>Billing Day:</strong> Day ${dayOfMonth} of each month</p>
             <p><strong>Next Deduction:</strong> ${formattedDate}</p>
-            ${isToday ? '<p style="color: #856404;"><strong>⚡ First deduction will be processed immediately today</strong></p>' : ''}
+            ${immediateDeduction ? `<p style="color: #155724; background-color: #d4edda; padding: 10px; border-radius: 4px;"><strong>✅ First deduction of ${amount} Flexi Credits was processed immediately</strong></p>` : ''}
           </div>
           
           <p>The user has been notified via email about this recurring deduction.</p>

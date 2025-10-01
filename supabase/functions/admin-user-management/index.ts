@@ -468,7 +468,8 @@ serve(async (req) => {
                 dayOfMonth,
                 nextBillingDate,
                 adminEmail: adminProfile.email,
-                adminName: adminProfile.full_name || 'Admin'
+                adminName: adminProfile.full_name || 'Admin',
+                immediateDeduction: deductToday === true
               })
             }
           );
