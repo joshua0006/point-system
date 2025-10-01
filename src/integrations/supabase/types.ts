@@ -1316,6 +1316,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          parent_category_id: string | null
           slug: string
           sort_order: number
           updated_at: string
@@ -1326,6 +1327,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          parent_category_id?: string | null
           slug: string
           sort_order?: number
           updated_at?: string
@@ -1336,11 +1338,20 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          parent_category_id?: string | null
           slug?: string
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "package_categories_parent_category_id_fkey"
+            columns: ["parent_category_id"]
+            isOneToOne: false
+            referencedRelation: "package_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       package_features: {
         Row: {
@@ -2007,6 +2018,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string | null
+          id: string
+          invitation_token: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invitation_token?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invitation_token?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: string
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           category: Database["public"]["Enums"]["wishlist_category"]
@@ -2111,6 +2161,10 @@ export type Database = {
       get_admin_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_category_id: {
+        Args: { category_slug: string }
+        Returns: string
       }
       get_user_role: {
         Args: { check_user_id: string }
