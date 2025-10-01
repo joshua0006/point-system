@@ -2,6 +2,7 @@ import React from "react";
 import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer";
 import { OptimizedUserManagement } from "@/components/optimized/OptimizedUserManagement";
 import PendingApprovals from "@/components/admin/PendingApprovals";
+import { RecurringDeductionsTable } from "@/components/admin/RecurringDeductionsTable";
 
 const AdminUsers: React.FC = () => {
   const handleUserAction = (user: any, action: string) => {
@@ -16,6 +17,7 @@ const AdminUsers: React.FC = () => {
     >
       <div className="space-y-6">
         <PendingApprovals />
+        <RecurringDeductionsTable />
         <OptimizedUserManagement onUserAction={handleUserAction} />
       </div>
     </AdminPageContainer>
