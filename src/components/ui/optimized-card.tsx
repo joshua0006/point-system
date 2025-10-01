@@ -1,4 +1,4 @@
-import { memo, ReactNode, HTMLAttributes } from 'react';
+import { memo, forwardRef, ReactNode, HTMLAttributes } from 'react';
 import { Card, CardContent, CardHeader } from './card';
 import { cn } from '@/lib/utils';
 
@@ -9,15 +9,16 @@ interface OptimizedCardProps extends HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
 }
 
-export const OptimizedCard = memo(function OptimizedCard({
+export const OptimizedCard = memo(forwardRef<HTMLDivElement, OptimizedCardProps>(function OptimizedCard({
   children,
   className,
   onClick,
   hoverable = false,
   ...props
-}: OptimizedCardProps) {
+}, ref) {
   return (
     <Card 
+      ref={ref}
       className={cn(
         'transition-all duration-200',
         hoverable && 'hover:shadow-lg hover:-translate-y-1 cursor-pointer',
@@ -29,7 +30,7 @@ export const OptimizedCard = memo(function OptimizedCard({
       {children}
     </Card>
   );
-});
+}));
 
 export const OptimizedCardHeader = memo(CardHeader);
 export const OptimizedCardContent = memo(CardContent);
