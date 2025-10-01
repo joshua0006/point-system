@@ -9,13 +9,13 @@ interface OptimizedCardProps extends HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
 }
 
-const OptimizedCardComponent = forwardRef<HTMLDivElement, OptimizedCardProps>(function OptimizedCard({
+const OptimizedCardComponent = forwardRef<HTMLDivElement, OptimizedCardProps>(({
   children,
   className,
   onClick,
   hoverable = false,
   ...props
-}, ref) {
+}, ref) => {
   return (
     <Card 
       ref={ref}
