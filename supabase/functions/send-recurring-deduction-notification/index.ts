@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to user
     const userEmailResponse = await resend.emails.send({
-      from: "Flexi Credits <onboarding@resend.dev>",
+      from: "Flexi Credits <noreply@mail.themoneybees.co>",
       to: [userEmail],
       subject: "Recurring Deduction Set Up - Flexi Credits",
       html: `
@@ -78,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Email to admin
     const adminEmailResponse = await resend.emails.send({
-      from: "Flexi Credits Admin <onboarding@resend.dev>",
+      from: "Flexi Credits Admin <admin@mail.themoneybees.co>",
       to: [adminEmail],
       subject: "Recurring Deduction Created - Admin Notification",
       html: `
