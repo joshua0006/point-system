@@ -426,6 +426,63 @@ serve(async (req) => {
 
       logStep("Recurring deduction setup", { userId, amount, dayOfMonth, deductToday });
 
+      // Fetch user details for email notification
+      const { data: userProfile, error: userProfileError } = await supabaseClient
+        .from('profiles')
+        .select('email, full_name')
+        .eq('user_id', userId)
+        .single();
+
+      if (userProfileError) {
+        console.error("Error fetching user profile for email notification:", userProfileError);
+      }
+
+      // Fetch admin details for email notification
+      const { data: adminProfile, error: adminProfileError } = await supabaseClient
+        .from('profiles')
+        .select('email, full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (adminProfileError) {
+        console.error("Error fetching admin profile for email notification:", adminProfileError);
+      }
+
+      // Send email notifications
+      if (userProfile && adminProfile) {
+        try {
+          const notificationResponse = await fetch(
+            `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-recurring-deduction-notification`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+              },
+              body: JSON.stringify({
+                userId,
+                userEmail: userProfile.email,
+                userName: userProfile.full_name || 'User',
+                amount,
+                reason: reason.trim(),
+                dayOfMonth,
+                nextBillingDate,
+                adminEmail: adminProfile.email,
+                adminName: adminProfile.full_name || 'Admin'
+              })
+            }
+          );
+
+          if (!notificationResponse.ok) {
+            console.error('Failed to send email notifications:', await notificationResponse.text());
+          } else {
+            logStep("Email notifications sent successfully");
+          }
+        } catch (emailError) {
+          console.error('Error sending email notifications:', emailError);
+        }
+      }
+
       return new Response(JSON.stringify({ 
         success: true, 
         message: `Recurring deduction of ${amount} flexi credits set up successfully${deductToday ? ' with immediate deduction' : ''}`,

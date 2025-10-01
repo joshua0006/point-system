@@ -66,6 +66,9 @@ verify_jwt = false
 [functions.send-campaign-launch-emails]
 verify_jwt = true
 
+[functions.send-recurring-deduction-notification]
+verify_jwt = false
+
 [functions.send-subscription-emails]
 verify_jwt = true
 
