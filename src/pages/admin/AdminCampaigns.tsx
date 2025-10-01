@@ -449,23 +449,6 @@ const AdminCampaigns = memo(function AdminCampaigns() {
               />
             </div>
 
-            <div>
-              <Label>Icon</Label>
-              <div className="flex gap-2 mt-2">
-                {ICON_OPTIONS.map((icon) => (
-                  <Button
-                    key={icon.value}
-                    variant={targetForm.icon === icon.value ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTargetForm(prev => ({ ...prev, icon: icon.value }))}
-                  >
-                    <icon.component className="h-4 w-4 mr-1" />
-                    {icon.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label htmlFor="budget-min">Min Budget</Label>
