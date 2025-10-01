@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { Megaphone, Bot, Gift, BarChart3, Target, Phone, Headphones, Sparkles, PenTool } from 'lucide-react';
 
 const Index = () => {
+  console.log('Index page rendering');
+  
   return (
     <SidebarLayout title="Dashboard" description="Welcome to your AgentHub dashboard">
       <div className="p-6 space-y-6">
