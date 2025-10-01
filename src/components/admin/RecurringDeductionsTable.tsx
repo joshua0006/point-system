@@ -43,14 +43,40 @@ export function RecurringDeductionsTable() {
   const fetchDeductions = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch deductions
+      const { data: deductionsData, error: deductionsError } = await supabase
         .from('admin_recurring_deductions')
         .select('*')
         .order('next_billing_date', { ascending: true });
 
-      if (error) throw error;
+      if (deductionsError) throw deductionsError;
 
-      const formattedData = data || [];
+      // Fetch user profiles for all user_ids
+      const userIds = [...new Set(deductionsData?.map(d => d.user_id) || [])];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name')
+        .in('user_id', userIds);
+
+      if (profilesError) {
+        console.warn('Failed to fetch user profiles:', profilesError);
+      }
+
+      // Create a map of user_id to profile data
+      const profilesMap = new Map(
+        profilesData?.map(p => [p.user_id, p]) || []
+      );
+
+      // Merge the data
+      const formattedData = deductionsData?.map((deduction) => {
+        const profile = profilesMap.get(deduction.user_id);
+        return {
+          ...deduction,
+          user_email: profile?.email || 'Unknown',
+          user_name: profile?.full_name || 'Unknown User'
+        };
+      }) || [];
 
       setDeductions(formattedData);
     } catch (error) {
@@ -188,7 +214,8 @@ export function RecurringDeductionsTable() {
                     <TableRow key={deduction.id}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium font-mono text-sm">{deduction.user_id}</span>
+                          <span className="font-medium">{deduction.user_name}</span>
+                          <span className="text-sm text-muted-foreground">{deduction.user_email}</span>
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
