@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FixUpgradeButton } from "@/components/FixUpgradeButton";
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { UserRecurringDeductions } from "@/components/dashboard/UserRecurringDeductions";
 
 export default function UserDashboard() {
   const { user, profile } = useAuth();
@@ -114,6 +115,11 @@ export default function UserDashboard() {
           campaignsLoading={campaignsLoading}
           openModal={openModal}
         />
+
+        {/* Recurring Deductions */}
+        <div className={isMobile ? "mt-6" : "mt-8"}>
+          <UserRecurringDeductions />
+        </div>
       </div>
 
       {/* Optimized Modals */}
