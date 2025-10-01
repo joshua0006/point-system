@@ -25,6 +25,7 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
+  const [deductToday, setDeductToday] = useState(false);
   const [dayOfMonth, setDayOfMonth] = useState("1");
   const { toast } = useToast();
 
@@ -68,15 +69,17 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
             userId: user.user_id,
             amount: creditsAmount,
             reason: reason.trim(),
-            dayOfMonth: parseInt(dayOfMonth)
+            dayOfMonth: parseInt(dayOfMonth),
+            deductToday: deductToday
           }
         });
 
         if (error) throw error;
 
+        const todayMessage = deductToday ? ` Immediate deduction of ${creditsAmount} flexi credits processed today.` : '';
         toast({
           title: "Success",
-          description: `Set up recurring deduction of ${creditsAmount} flexi credits on day ${dayOfMonth} of each month for ${user.full_name || user.email}.`,
+          description: `Set up recurring deduction of ${creditsAmount} flexi credits on day ${dayOfMonth} of each month for ${user.full_name || user.email}.${todayMessage}`,
         });
       } else {
         // One-time deduction
@@ -100,6 +103,7 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
       setFlexiCredits("");
       setReason("");
       setIsRecurring(false);
+      setDeductToday(false);
       setDayOfMonth("1");
       onOpenChange(false);
       onSuccess();
@@ -169,34 +173,55 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
           </div>
 
           {isRecurring && (
-            <div className="space-y-2 p-3 border rounded-lg bg-muted/50">
-              <Label htmlFor="day-of-month">Deduct on day of month *</Label>
-              <Select value={dayOfMonth} onValueChange={setDayOfMonth}>
-                <SelectTrigger id="day-of-month">
-                  <SelectValue placeholder="Select day" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                    <SelectItem key={day} value={day.toString()}>
-                      {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of each month
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                First deduction will occur on the {dayOfMonth}{dayOfMonth === "1" ? 'st' : dayOfMonth === "2" ? 'nd' : dayOfMonth === "3" ? 'rd' : 'th'} of next month
-              </p>
-            </div>
+            <>
+              <div className="space-y-2 p-3 border rounded-lg bg-muted/50">
+                <Label htmlFor="day-of-month">Deduct on day of month *</Label>
+                <Select value={dayOfMonth} onValueChange={setDayOfMonth}>
+                  <SelectTrigger id="day-of-month">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                      <SelectItem key={day} value={day.toString()}>
+                        {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of each month
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {deductToday 
+                    ? `Deduction will occur today and then on the ${dayOfMonth}${dayOfMonth === "1" ? 'st' : dayOfMonth === "2" ? 'nd' : dayOfMonth === "3" ? 'rd' : 'th'} of each month`
+                    : `First deduction will occur on the ${dayOfMonth}${dayOfMonth === "1" ? 'st' : dayOfMonth === "2" ? 'nd' : dayOfMonth === "3" ? 'rd' : 'th'} of next month`
+                  }
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between space-x-2 p-3 border rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Minus className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="deduct-today" className="cursor-pointer">
+                    Also deduct today immediately
+                  </Label>
+                </div>
+                <Switch
+                  id="deduct-today"
+                  checked={deductToday}
+                  onCheckedChange={setDeductToday}
+                />
+              </div>
+            </>
           )}
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-yellow-800 text-sm">
+          <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-500 text-sm">
               <AlertTriangle className="w-4 h-4" />
               <span className="font-medium">Warning</span>
             </div>
-            <p className="text-yellow-700 text-sm mt-1">
+            <p className="text-yellow-700 dark:text-yellow-400 text-sm mt-1">
               {isRecurring 
-                ? "This will set up automatic monthly deductions. You can cancel this anytime from the user's profile."
+                ? deductToday
+                  ? "This will deduct flexi credits today and set up automatic monthly deductions. You can cancel the recurring deduction anytime."
+                  : "This will set up automatic monthly deductions. You can cancel this anytime from the user's profile."
                 : "This action cannot be undone. Flexi credits will be permanently removed from the user's account."
               }
             </p>

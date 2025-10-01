@@ -56,7 +56,7 @@ serve(async (req) => {
 
     logStep("Admin access verified", { userId: user.id });
 
-    const { action, userId, points, status, reason, amount, dayOfMonth } = await req.json();
+    const { action, userId, points, status, reason, amount, dayOfMonth, deductToday } = await req.json();
 
     if (action === 'list_users') {
       // Fetch all users with their profiles
@@ -355,6 +355,48 @@ serve(async (req) => {
         throw new Error("Day of month must be between 1 and 28");
       }
 
+      // If deductToday is true, perform immediate deduction
+      if (deductToday === true) {
+        // Fetch user profile
+        const { data: userProfile, error: profileError } = await supabaseClient
+          .from('profiles')
+          .select('flexi_credits_balance, email, full_name')
+          .eq('user_id', userId)
+          .single();
+
+        if (profileError) throw new Error(`Error fetching user profile: ${profileError.message}`);
+
+        const currentBalance = userProfile.flexi_credits_balance || 0;
+        const newBalance = parseFloat((currentBalance - amount).toFixed(1));
+
+        // Check balance limit
+        if (newBalance < -500) {
+          throw new Error(`Deduction would result in balance of ${newBalance}, which is below the minimum allowed balance of -500`);
+        }
+
+        // Deduct the points
+        const { error: deductError } = await supabaseClient.rpc('increment_flexi_credits_balance', {
+          user_id: userId,
+          credits_to_add: -amount
+        });
+
+        if (deductError) throw new Error(`Error deducting points: ${deductError.message}`);
+
+        // Log the transaction
+        const { error: transactionError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: userId,
+            type: 'admin_deduction',
+            amount: -amount,
+            description: `Admin deduction (immediate): ${reason.trim()}`
+          });
+
+        if (transactionError) throw new Error(`Error logging transaction: ${transactionError.message}`);
+
+        logStep("Immediate deduction performed", { userId, amount, newBalance });
+      }
+
       // Calculate next billing date
       const now = new Date();
       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth);
@@ -375,12 +417,13 @@ serve(async (req) => {
 
       if (insertError) throw new Error(`Error setting up recurring deduction: ${insertError.message}`);
 
-      logStep("Recurring deduction setup", { userId, amount, dayOfMonth });
+      logStep("Recurring deduction setup", { userId, amount, dayOfMonth, deductToday });
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: `Recurring deduction of ${amount} flexi credits set up successfully`,
-        nextBillingDate
+        message: `Recurring deduction of ${amount} flexi credits set up successfully${deductToday ? ' with immediate deduction' : ''}`,
+        nextBillingDate,
+        immediateDeduction: deductToday
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
