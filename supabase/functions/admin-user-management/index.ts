@@ -437,6 +437,47 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'update_recurring_deduction') {
+      const { deductionId, amount, reason, dayOfMonth, nextBillingDate, status } = await req.json();
+      
+      if (!deductionId || !amount || amount <= 0 || !dayOfMonth || !reason || !nextBillingDate || !status) {
+        throw new Error("Valid deductionId, amount, dayOfMonth, reason, nextBillingDate, and status required");
+      }
+
+      // Validate day of month
+      if (dayOfMonth < 1 || dayOfMonth > 28) {
+        throw new Error("Day of month must be between 1 and 28");
+      }
+
+      // Parse and format the billing date
+      const billingDate = new Date(nextBillingDate).toISOString().split('T')[0];
+
+      // Update the recurring deduction
+      const { error: updateError } = await supabaseClient
+        .from('admin_recurring_deductions')
+        .update({
+          amount: amount,
+          reason: reason.trim(),
+          day_of_month: dayOfMonth,
+          next_billing_date: billingDate,
+          status: status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', deductionId);
+
+      if (updateError) throw new Error(`Error updating recurring deduction: ${updateError.message}`);
+
+      logStep("Recurring deduction updated", { deductionId, amount, dayOfMonth, status });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `Recurring deduction updated successfully`
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     throw new Error("Invalid action");
 
   } catch (error) {

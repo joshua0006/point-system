@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Calendar, Trash2 } from "lucide-react";
+import { AlertCircle, Calendar, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { EditRecurringDeductionModal } from "./modals/EditRecurringDeductionModal";
 
 interface RecurringDeduction {
   id: string;
@@ -37,6 +38,7 @@ export function RecurringDeductionsTable() {
   const [deductions, setDeductions] = useState<RecurringDeduction[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editDeduction, setEditDeduction] = useState<RecurringDeduction | null>(null);
   const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
@@ -245,14 +247,24 @@ export function RecurringDeductionsTable() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteId(deduction.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditDeduction(deduction)}
+                            className="hover:bg-accent"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteId(deduction.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -295,6 +307,13 @@ export function RecurringDeductionsTable() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EditRecurringDeductionModal
+        deduction={editDeduction}
+        open={!!editDeduction}
+        onOpenChange={(open) => !open && setEditDeduction(null)}
+        onSuccess={fetchDeductions}
+      />
     </>
   );
 }
