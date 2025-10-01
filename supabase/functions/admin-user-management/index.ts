@@ -56,7 +56,7 @@ serve(async (req) => {
 
     logStep("Admin access verified", { userId: user.id });
 
-    const { action, userId, points, status, reason, amount, dayOfMonth, deductToday } = await req.json();
+    const { action, userId, points, status, reason, amount, dayOfMonth, deductToday, startDate } = await req.json();
 
     if (action === 'list_users') {
       // Fetch all users with their profiles
@@ -397,10 +397,17 @@ serve(async (req) => {
         logStep("Immediate deduction performed", { userId, amount, newBalance });
       }
 
-      // Calculate next billing date
-      const now = new Date();
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth);
-      const nextBillingDate = nextMonth.toISOString().split('T')[0];
+      // Calculate next billing date from the provided start date or default to next month
+      let nextBillingDate: string;
+      if (startDate) {
+        const selectedDate = new Date(startDate);
+        selectedDate.setDate(dayOfMonth);
+        nextBillingDate = selectedDate.toISOString().split('T')[0];
+      } else {
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth);
+        nextBillingDate = nextMonth.toISOString().split('T')[0];
+      }
 
       // Create recurring deduction record
       const { error: insertError } = await supabaseClient

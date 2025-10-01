@@ -6,12 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Minus, AlertTriangle, Calendar } from "lucide-react";
 import { logger } from "@/utils/logger";
 import type { UserProfile } from "@/config/types";
 import { getNextBillingDateISO } from "@/utils/dateUtils";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface DeductModalProps {
   user: UserProfile;
@@ -27,6 +31,12 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
   const [isRecurring, setIsRecurring] = useState(false);
   const [deductToday, setDeductToday] = useState(false);
   const [dayOfMonth, setDayOfMonth] = useState("1");
+  const [startDate, setStartDate] = useState<Date>(() => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(1);
+    return nextMonth;
+  });
   const { toast } = useToast();
 
   const handleDeduct = async () => {
@@ -62,6 +72,10 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
     setLoading(true);
     try {
       if (isRecurring) {
+        // Calculate the billing date from the selected start month and day
+        const billingDate = new Date(startDate);
+        billingDate.setDate(parseInt(dayOfMonth));
+        
         // Setup recurring deduction
         const { data, error } = await supabase.functions.invoke('admin-user-management', {
           body: {
@@ -70,7 +84,8 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
             amount: creditsAmount,
             reason: reason.trim(),
             dayOfMonth: parseInt(dayOfMonth),
-            deductToday: deductToday
+            deductToday: deductToday,
+            startDate: billingDate.toISOString()
           }
         });
 
@@ -79,7 +94,7 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
         const todayMessage = deductToday ? ` Immediate deduction of ${creditsAmount} flexi credits processed today.` : '';
         toast({
           title: "Success",
-          description: `Set up recurring deduction of ${creditsAmount} flexi credits on day ${dayOfMonth} of each month for ${user.full_name || user.email}.${todayMessage}`,
+          description: `Set up recurring deduction of ${creditsAmount} flexi credits starting ${format(billingDate, "MMMM d, yyyy")} for ${user.full_name || user.email}.${todayMessage}`,
         });
       } else {
         // One-time deduction
@@ -105,6 +120,10 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
       setIsRecurring(false);
       setDeductToday(false);
       setDayOfMonth("1");
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      nextMonth.setDate(1);
+      setStartDate(nextMonth);
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -175,7 +194,45 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
           {isRecurring && (
             <>
               <div className="space-y-2 p-3 border rounded-lg bg-muted/50">
-                <Label htmlFor="day-of-month">Deduct on day of month *</Label>
+                <Label>Start Month *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "MMMM yyyy") : <span>Pick a month</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => date && setStartDate(date)}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const sixMonthsAhead = new Date();
+                        sixMonthsAhead.setMonth(sixMonthsAhead.getMonth() + 6);
+                        sixMonthsAhead.setHours(23, 59, 59, 999);
+                        return date < today || date > sixMonthsAhead;
+                      }}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Select the month for the first deduction (up to 6 months ahead)
+                </p>
+              </div>
+
+              <div className="space-y-2 p-3 border rounded-lg bg-muted/50">
+                <Label htmlFor="day-of-month">Day of Month *</Label>
                 <Select value={dayOfMonth} onValueChange={setDayOfMonth}>
                   <SelectTrigger id="day-of-month">
                     <SelectValue placeholder="Select day" />
@@ -183,15 +240,15 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
                   <SelectContent>
                     {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
                       <SelectItem key={day} value={day.toString()}>
-                        {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of each month
+                        {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   {deductToday 
-                    ? `Deduction will occur today and then on the ${dayOfMonth}${dayOfMonth === "1" ? 'st' : dayOfMonth === "2" ? 'nd' : dayOfMonth === "3" ? 'rd' : 'th'} of each month`
-                    : `First deduction will occur on the ${dayOfMonth}${dayOfMonth === "1" ? 'st' : dayOfMonth === "2" ? 'nd' : dayOfMonth === "3" ? 'rd' : 'th'} of next month`
+                    ? `Deduction will occur today and then on ${format(new Date(startDate.getFullYear(), startDate.getMonth(), parseInt(dayOfMonth)), "MMMM d, yyyy")} and monthly thereafter`
+                    : `First deduction: ${format(new Date(startDate.getFullYear(), startDate.getMonth(), parseInt(dayOfMonth)), "MMMM d, yyyy")}, then monthly`
                   }
                 </p>
               </div>
