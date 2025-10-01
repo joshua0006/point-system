@@ -7,7 +7,7 @@ import { RecentTransactionsModal } from "./RecentTransactionsModal";
 import { RecentBookingsModal } from "./RecentBookingsModal";
 import { TopUpModal } from "@/components/TopUpModal";
 import { UpcomingChargesModal } from "./UpcomingChargesModal";
-import { Transaction, BookedService, UpcomingSession, UserStats } from "@/hooks/useDashboardData";
+import { Transaction, BookedService, UpcomingSession, UserStats } from "@/hooks/useDashboard";
 
 interface DashboardModalsProps {
   // Modal states

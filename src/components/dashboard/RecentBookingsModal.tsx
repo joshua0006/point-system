@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { BookedService } from "@/hooks/useDashboardData";
+import { BookedService } from "@/hooks/useDashboard";
 import { Users, Calendar, Clock } from "lucide-react";
 
 interface RecentBookingsModalProps {

@@ -6,7 +6,7 @@ import {
   TrendingUp,
   CheckCircle
 } from "lucide-react";
-import { UserStats } from "@/hooks/useDashboardData";
+import { UserStats } from "@/hooks/useDashboard";
 import { memo, useMemo } from "react";
 
 interface DashboardStatsProps {

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wallet, ArrowUp, ArrowDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { UserStats } from "@/hooks/useDashboardData";
+import { UserStats } from "@/hooks/useDashboard";
 import { memo } from "react";
 
 interface BalanceDetailsModalProps {

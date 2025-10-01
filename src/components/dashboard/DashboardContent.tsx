@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TrendingUp, Target, Plus } from "lucide-react";
-import { Transaction } from "@/hooks/useDashboardData";
+import { Transaction } from "@/hooks/useDashboard";
 import { ModalType } from "@/hooks/useDashboardModals";
 
 interface DashboardContentProps {

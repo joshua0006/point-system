@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpDown, TrendingUp } from "lucide-react";
-import { Transaction } from "@/hooks/useDashboardData";
+import { Transaction } from "@/hooks/useDashboard";
 
 interface RecentTransactionsProps {
   transactions: Transaction[];

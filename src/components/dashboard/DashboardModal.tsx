@@ -10,7 +10,7 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { TrendingUp, TrendingDown, Plus, DollarSign, Star, Clock, Calendar, MapPin, ArrowUp, ArrowDown, Wallet } from "lucide-react";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useReviews, useRatingStats } from "@/hooks/useReviews";
-import { UserStats } from "@/hooks/useDashboardData";
+import { UserStats } from "@/hooks/useDashboard";
 import { useState } from "react";
 
 // Utility function to convert technical transaction names to simple English
@@ -96,7 +96,11 @@ export function BalanceDetailsModal({
     pointsSpent: 0,
     pointsEarned: 0,
     servicesBooked: 0,
-    completedSessions: 0
+    completedSessions: 0,
+    totalPointsSpent: 0,
+    totalPointsEarned: 0,
+    completionRate: 0,
+    currentBalance: 0,
   };
 
   const stats = userStats || defaultStats;

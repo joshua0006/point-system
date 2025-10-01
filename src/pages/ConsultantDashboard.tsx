@@ -774,7 +774,11 @@ export default function ConsultantDashboard() {
             pointsSpent: 0,
             pointsEarned: 0,
             servicesBooked: 0,
-            completedSessions: 0
+            completedSessions: 0,
+            totalPointsSpent: 0,
+            totalPointsEarned: 0,
+            completionRate: 0,
+            currentBalance: 0,
           }}
         />
 

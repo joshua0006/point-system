@@ -4,7 +4,7 @@ import { SpentDetailsModal } from "./SpentDetailsModal";
 import { RecentTransactionsModal } from "./RecentTransactionsModal";
 import { TopUpModal } from "@/components/TopUpModal";
 import { UpcomingChargesModal } from "./UpcomingChargesModal";
-import { Transaction, UserStats } from "@/hooks/useDashboardData";
+import { Transaction, UserStats } from "@/hooks/useDashboard";
 import { ModalType } from "@/hooks/useDashboardModals";
 
 interface OptimizedDashboardModalsProps {

@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
 import { WalletDrawer } from "@/components/wallet/WalletDrawer";
 import { TrendingUp, Wallet } from "lucide-react";
-import { UserStats } from "@/hooks/useDashboardData";
+import { UserStats } from "@/hooks/useDashboard";
 import { ModalType } from "@/hooks/useDashboardModals";
 
 interface DashboardStatsCardsProps {
