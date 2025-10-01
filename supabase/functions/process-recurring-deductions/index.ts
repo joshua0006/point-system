@@ -114,6 +114,47 @@ serve(async (req) => {
           });
         }
 
+        // Fetch user details for email notification
+        const { data: userProfile } = await supabaseClient
+          .from('profiles')
+          .select('email, full_name')
+          .eq('user_id', deduction.user_id)
+          .single();
+
+        // Fetch admin details for email notification
+        const { data: adminProfile } = await supabaseClient
+          .from('profiles')
+          .select('email, full_name')
+          .eq('user_id', deduction.created_by)
+          .single();
+
+        // Send email notifications
+        if (userProfile && adminProfile) {
+          try {
+            console.log(`📧 Sending notification emails for user ${deduction.user_id}`);
+            
+            await supabaseClient.functions.invoke('send-recurring-deduction-notification', {
+              body: {
+                userId: deduction.user_id,
+                userEmail: userProfile.email,
+                userName: userProfile.full_name || userProfile.email,
+                amount: parseFloat(deduction.amount),
+                reason: deduction.reason,
+                dayOfMonth: deduction.day_of_month,
+                nextBillingDate: nextBillingDate,
+                adminEmail: adminProfile.email,
+                adminName: adminProfile.full_name || adminProfile.email,
+                immediateDeduction: false
+              }
+            });
+
+            console.log(`✅ Email notifications sent for user ${deduction.user_id}`);
+          } catch (emailError) {
+            console.error(`⚠️ Warning: Failed to send email notifications:`, emailError);
+            // Don't fail the entire process if email fails
+          }
+        }
+
         results.processed++;
         console.log(`✅ Successfully processed deduction for user ${deduction.user_id}`);
 
