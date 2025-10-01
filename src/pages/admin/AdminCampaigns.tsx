@@ -3,6 +3,7 @@ import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Edit3, Monitor, Plus, Trash2, Save, Shield, Users, User } from "lucide-react";
 import { AdminCampaignMonitor } from "@/components/campaigns/AdminCampaignMonitor";
+import { AdminCampaignLauncher } from "@/components/admin/AdminCampaignLauncher";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -255,7 +256,7 @@ const AdminCampaigns = memo(function AdminCampaigns() {
       onRetry={refreshTargets}
     >
       <Tabs defaultValue="monitor" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="monitor" className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
             Campaign Monitor
@@ -267,6 +268,10 @@ const AdminCampaigns = memo(function AdminCampaigns() {
           <TabsTrigger value="scripts" className="flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
             Campaign Scripts
+          </TabsTrigger>
+          <TabsTrigger value="launcher" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Launch Campaign
           </TabsTrigger>
         </TabsList>
 
@@ -407,6 +412,11 @@ const AdminCampaigns = memo(function AdminCampaigns() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Launch Campaign Tab */}
+        <TabsContent value="launcher">
+          <AdminCampaignLauncher />
         </TabsContent>
       </Tabs>
 
