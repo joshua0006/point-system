@@ -47,6 +47,13 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric'
     });
 
+    const today = new Date();
+    const billingDate = new Date(nextBillingDate);
+    const isToday = today.toDateString() === billingDate.toDateString();
+    const immediateChargeText = isToday 
+      ? '<p style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;"><strong>⚡ Important:</strong> The first deduction will be processed <strong>immediately today</strong>.</p>'
+      : '';
+
     // Email to user
     const userEmailResponse = await resend.emails.send({
       from: "Flexi Credits <noreply@mail.themoneybees.co>",
@@ -65,6 +72,8 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>Billing Day:</strong> Day ${dayOfMonth} of each month</p>
             <p><strong>Next Deduction:</strong> ${formattedDate}</p>
           </div>
+          
+          ${immediateChargeText}
           
           <p>This amount will be automatically deducted from your Flexi Credits balance on the ${dayOfMonth}${getDaySuffix(dayOfMonth)} of each month.</p>
           <p>If you have any questions or concerns about this deduction, please contact our support team.</p>
@@ -100,6 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>Reason:</strong> ${reason}</p>
             <p><strong>Billing Day:</strong> Day ${dayOfMonth} of each month</p>
             <p><strong>Next Deduction:</strong> ${formattedDate}</p>
+            ${isToday ? '<p style="color: #856404;"><strong>⚡ First deduction will be processed immediately today</strong></p>' : ''}
           </div>
           
           <p>The user has been notified via email about this recurring deduction.</p>
