@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import * as React from 'react';
 
 interface PerformanceMetrics {
   pageLoadTime: number;
@@ -8,9 +8,11 @@ interface PerformanceMetrics {
 }
 
 export function usePerformanceMonitor() {
-  useEffect(() => {
-    // Monitor Core Web Vitals
-    if ('performance' in window) {
+  React.useEffect(() => {
+    try {
+      if (typeof window === 'undefined' || typeof PerformanceObserver === 'undefined') return;
+      if (!('performance' in window)) return;
+
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
           if (entry.entryType === 'navigation') {
@@ -34,6 +36,8 @@ export function usePerformanceMonitor() {
       observer.observe({ entryTypes: ['navigation', 'paint', 'largest-contentful-paint'] });
       
       return () => observer.disconnect();
+    } catch (err) {
+      console.warn('PerformanceMonitor disabled:', err);
     }
   }, []);
 }
