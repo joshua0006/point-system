@@ -7,7 +7,6 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { RouteRenderer } from "@/components/RouteRenderer";
-// import { PerformanceMonitor } from "@/components/ui/performance-monitor";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useCacheWarming } from "@/hooks/useCacheWarming";
 
