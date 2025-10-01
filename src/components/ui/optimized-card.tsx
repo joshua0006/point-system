@@ -9,7 +9,7 @@ interface OptimizedCardProps extends HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
 }
 
-export const OptimizedCard = memo(forwardRef<HTMLDivElement, OptimizedCardProps>(function OptimizedCard({
+const OptimizedCardComponent = forwardRef<HTMLDivElement, OptimizedCardProps>(function OptimizedCard({
   children,
   className,
   onClick,
@@ -30,7 +30,10 @@ export const OptimizedCard = memo(forwardRef<HTMLDivElement, OptimizedCardProps>
       {children}
     </Card>
   );
-}));
+});
 
+OptimizedCardComponent.displayName = 'OptimizedCard';
+
+export const OptimizedCard = memo(OptimizedCardComponent);
 export const OptimizedCardHeader = memo(CardHeader);
 export const OptimizedCardContent = memo(CardContent);
