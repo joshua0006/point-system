@@ -66,6 +66,8 @@ serve(async (req) => {
     }
 
     if (action === 'approve') {
+      console.log(`[APPROVE] Starting approval process for request ${requestId}`);
+      
       // Update request status
       const { error: updateError } = await supabase
         .from("reimbursement_requests")
@@ -76,23 +78,29 @@ serve(async (req) => {
         })
         .eq("id", requestId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("[APPROVE] Error updating request status:", updateError);
+        throw new Error(`Failed to update request status: ${updateError.message}`);
+      }
+      console.log(`[APPROVE] Request status updated to approved`);
 
       // Reduce user's flexi credits balance
+      console.log(`[APPROVE] Reducing flexi credits by ${request.amount} for user ${request.user_id}`);
       const { error: creditsError } = await supabase.rpc('increment_flexi_credits_balance', {
         user_id: request.user_id,
         credits_to_add: -request.amount
       });
 
       if (creditsError) {
-        console.error("Error reducing flexi credits:", creditsError);
+        console.error("[APPROVE] Error reducing flexi credits:", creditsError);
         // Rollback the approval
         await supabase
           .from("reimbursement_requests")
           .update({ status: 'pending', approved_by: null, approved_at: null })
           .eq("id", requestId);
-        throw new Error("Failed to reduce flexi credits balance");
+        throw new Error(`Failed to reduce flexi credits: ${creditsError.message}`);
       }
+      console.log(`[APPROVE] Flexi credits reduced successfully`);
 
       // Create transaction record
       const { error: transactionError } = await supabase
@@ -105,9 +113,12 @@ serve(async (req) => {
         });
 
       if (transactionError) {
-        console.error("Error creating transaction:", transactionError);
+        console.error("[APPROVE] Error creating transaction:", transactionError);
+      } else {
+        console.log(`[APPROVE] Transaction record created`);
       }
 
+      console.log(`[APPROVE] Approval process completed successfully`);
       return new Response(
         JSON.stringify({ 
           success: true, 
