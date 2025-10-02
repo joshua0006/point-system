@@ -101,15 +101,6 @@ export function AppSidebar() {
       ]
     }
 
-    const aiToolsGroup: NavGroup = {
-      title: "AI Tools",
-      icon: Bot,
-      roles: ["user", "consultant", "admin"],
-      items: [
-        { title: "AI Assistant", url: "/ai-assistant", icon: Sparkles, roles: ["consultant", "admin"] },
-        { title: "Ad Copy Generator", url: "/ad-copy-generator", icon: PenTool, roles: ["user", "admin"] },
-      ]
-    }
 
     const giftingGroup: NavGroup = {
       title: "Gifting",
@@ -121,10 +112,10 @@ export function AppSidebar() {
     }
 
     if (userRole === "consultant") {
-      return [aiToolsGroup]
+      return []
     }
 
-    return [campaignGroup, aiToolsGroup, giftingGroup]
+    return [campaignGroup, giftingGroup]
   }
 
   // Single navigation items (not in groups)
