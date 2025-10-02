@@ -28,14 +28,14 @@ serve(async (req) => {
         'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp',
+        model: 'google/gemini-2.5-pro',
         messages: [
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Extract the total amount from this receipt. Return ONLY the numeric value without currency symbols. If you cannot find a clear total amount, return null. Examples: "45.99" or "null"'
+                text: 'Analyze this receipt image and extract the TOTAL AMOUNT or GRAND TOTAL. Look for words like "Total", "Amount Due", "Grand Total", "Balance Due", or similar. Return ONLY the numeric value as a decimal number without any currency symbols, commas, or text. For example, if the total is $1,234.56, return: 1234.56. If you cannot clearly identify the total amount, return: null'
               },
               {
                 type: 'image_url',
@@ -46,8 +46,8 @@ serve(async (req) => {
             ]
           }
         ],
-        max_tokens: 50,
-        temperature: 0.1,
+        max_tokens: 100,
+        temperature: 0,
       }),
     });
 
