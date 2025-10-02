@@ -19,21 +19,24 @@ const merchants: Merchant[] = [
     name: 'Smilie.io',
     description: 'Personalized gifts and memorable experiences that bring smiles to your loved ones',
     website: 'https://smilie.io/',
-    category: 'Personalized Gifts'
+    category: 'Personalized Gifts',
+    expandedContent: `Perfect for corporate gifting with low minimum order quantities across various occasions. Whether it's celebrating a milestone, saying thank you, or marking a special event, thoughtful gifts strengthen client relationships. Even transport fare can be included in gift options, making it versatile for any appreciation moment.`
   },
   {
     id: '2', 
     name: 'Sogurt',
     description: 'Premium frozen yogurt treats with fresh toppings and natural flavors',
     website: 'https://www.sogurt.com.sg/',
-    category: 'Food & Treats'
+    category: 'Food & Treats',
+    expandedContent: `A thoughtful way to cheer up clients during recovery or tough times. Healthy treats show you care about their wellbeing. Small gestures like these create memorable touchpoints that go beyond business — they build lasting relationships that clients remember.`
   },
   {
     id: '3',
     name: 'TableTopics.sg',
     description: 'Conversation starter games and thoughtful gifts for meaningful connections',
     website: 'https://www.tabletopics.sg/',
-    category: 'Games & Activities'
+    category: 'Games & Activities',
+    expandedContent: `Personalized gifts that last forever and stay visible in your client's daily life. Unlike consumables, these are items clients use and see every day — constant reminders of your relationship. The best gifts aren't expensive; they're meaningful and enduring.`
   },
   {
     id: '4',
