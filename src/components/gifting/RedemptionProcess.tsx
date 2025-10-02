@@ -30,27 +30,27 @@ const steps: Step[] = [
   {
     icon: <CreditCard className="h-6 w-6" />,
     title: "Make Your Purchase",
-    description: "Shop directly on the merchant's website and pay using your preferred payment method. Complete your purchase as you normally would."
+    description: ""
   },
   {
     icon: <Receipt className="h-6 w-6" />,
     title: "Save Your Receipt",
-    description: "Take a screenshot or save the digital receipt. Ensure it shows: merchant name, purchase amount, date, and items bought."
+    description: ""
   },
   {
     icon: <Upload className="h-6 w-6" />,
     title: "Submit for Reimbursement",
-    description: "Return to this page and click 'Submit Receipt' below. Upload your receipt and fill in the details. Ensure your gifting credits balance covers the amount."
+    description: ""
   },
   {
     icon: <Clock className="h-6 w-6" />,
     title: "Wait for Approval",
-    description: "Our team will review your submission within 3-5 business days. You'll receive an email notification once approved or if additional information is needed."
+    description: ""
   },
   {
     icon: <CheckCircle2 className="h-6 w-6" />,
     title: "Receive Your Refund",
-    description: "Approved amounts will be transferred to your registered bank account within 1-2 business days. You'll receive a confirmation email with transaction details."
+    description: ""
   }
 ];
 
@@ -86,25 +86,18 @@ export function RedemptionProcess({ giftingBalance }: RedemptionProcessProps) {
         <CollapsibleContent>
           <CardContent className="space-y-6">
             {/* Steps */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
               {steps.map((step, index) => (
                 <div 
                   key={index}
-                  className="flex gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="flex flex-col items-center gap-3 p-6 rounded-xl border bg-card/50 hover:bg-accent/30 transition-all hover:scale-105 min-w-[140px]"
                 >
-                  <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
-                      {step.icon}
-                    </div>
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
+                    {step.icon}
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-primary">Step {index + 1}</span>
-                    </div>
-                    <h4 className="font-semibold text-sm">{step.title}</h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {step.description}
-                    </p>
+                  <div className="text-center space-y-1">
+                    <span className="text-xs font-bold text-primary">STEP {index + 1}</span>
+                    <h4 className="font-semibold text-sm leading-tight">{step.title}</h4>
                   </div>
                 </div>
               ))}
