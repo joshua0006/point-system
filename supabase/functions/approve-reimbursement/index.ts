@@ -108,7 +108,7 @@ serve(async (req) => {
         .from("flexi_credits_transactions")
         .insert({
           user_id: request.user_id,
-          type: 'debit',
+          type: 'admin_deduction',
           amount: request.amount,
           description: `Reimbursement approved for ${request.merchant}`,
         });
@@ -120,19 +120,25 @@ serve(async (req) => {
       }
 
       // Send approval email
-      console.log(`[APPROVE] Sending approval email`);
+      console.log(`[APPROVE] Sending approval email for user ${request.user_id}`);
       try {
         const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+        console.log(`[APPROVE] Resend initialized`);
         
         // Get user profile for email
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("email, full_name")
           .eq("user_id", request.user_id)
           .single();
         
-        if (profile?.email) {
-          await resend.emails.send({
+        console.log(`[APPROVE] Profile query result:`, { profile, profileError });
+        
+        if (profileError) {
+          console.error("[APPROVE] Error fetching profile:", profileError);
+        } else if (profile?.email) {
+          console.log(`[APPROVE] Sending email to ${profile.email}`);
+          const emailResult = await resend.emails.send({
             from: "Reimbursements <onboarding@resend.dev>",
             to: [profile.email],
             subject: "Reimbursement Request Approved ✅",
@@ -151,10 +157,13 @@ serve(async (req) => {
               <p>Thank you!</p>
             `,
           });
-          console.log(`[APPROVE] Approval email sent to ${profile.email}`);
+          console.log(`[APPROVE] Email sent successfully:`, emailResult);
+        } else {
+          console.log(`[APPROVE] No email found for user ${request.user_id}`);
         }
       } catch (emailError: any) {
         console.error("[APPROVE] Error sending approval email:", emailError);
+        console.error("[APPROVE] Email error stack:", emailError.stack);
         // Don't fail the approval if email fails
       }
 
