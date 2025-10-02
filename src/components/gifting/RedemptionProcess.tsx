@@ -13,6 +13,7 @@ import {
   Info
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ReceiptUploadModal } from './ReceiptUploadModal';
 
 interface Step {
   icon: React.ReactNode;
@@ -53,8 +54,13 @@ const steps: Step[] = [
   }
 ];
 
-export function RedemptionProcess() {
+interface RedemptionProcessProps {
+  giftingBalance: number;
+}
+
+export function RedemptionProcess({ giftingBalance }: RedemptionProcessProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   return (
     <Card className="border-primary/20">
@@ -117,7 +123,11 @@ export function RedemptionProcess() {
 
             {/* Submit Button */}
             <div className="flex justify-center pt-2">
-              <Button size="lg" className="w-full md:w-auto">
+              <Button 
+                size="lg" 
+                className="w-full md:w-auto"
+                onClick={() => setShowUploadModal(true)}
+              >
                 <Upload className="h-4 w-4 mr-2" />
                 Submit Receipt for Reimbursement
               </Button>
@@ -125,6 +135,12 @@ export function RedemptionProcess() {
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <ReceiptUploadModal
+        open={showUploadModal}
+        onOpenChange={setShowUploadModal}
+        giftingBalance={giftingBalance}
+      />
     </Card>
   );
 }

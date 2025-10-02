@@ -67,7 +67,7 @@ const Gifting = () => {
             </div>
           </Card>
 
-          <RedemptionProcess />
+          <RedemptionProcess giftingBalance={profile?.gifting_credits_balance || 0} />
 
           <GiftingMerchants />
         </div>
