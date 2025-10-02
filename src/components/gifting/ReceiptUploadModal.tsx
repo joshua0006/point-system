@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, X, Loader2, FileText } from 'lucide-react';
+import { Upload, X, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ReceiptUploadModalProps {
   open: boolean;
@@ -14,46 +13,15 @@ interface ReceiptUploadModalProps {
   giftingBalance: number;
 }
 
-interface ReceiptWithAmount {
-  file: File;
-  extractedAmount: number | null;
-  isProcessing: boolean;
-}
-
 export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: ReceiptUploadModalProps) {
   const { toast } = useToast();
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
   const [description, setDescription] = useState('');
-  const [receipts, setReceipts] = useState<ReceiptWithAmount[]>([]);
+  const [receipts, setReceipts] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isProcessingAI, setIsProcessingAI] = useState(false);
 
-  const extractAmountFromReceipt = async (file: File): Promise<number | null> => {
-    try {
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const { data, error } = await supabase.functions.invoke('extract-receipt-amount', {
-        body: { image: base64 },
-      });
-
-      if (error) throw error;
-      return data?.amount || null;
-    } catch (error) {
-      console.error('Error extracting amount:', error);
-      return null;
-    }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
     if (files.length === 0) return;
@@ -68,33 +36,7 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
         continue;
       }
 
-      const newReceipt: ReceiptWithAmount = {
-        file,
-        extractedAmount: null,
-        isProcessing: true,
-      };
-
-      setReceipts(prev => [...prev, newReceipt]);
-
-      // Extract amount using AI
-      setIsProcessingAI(true);
-      const extractedAmount = await extractAmountFromReceipt(file);
-      
-      setReceipts(prev => 
-        prev.map(r => 
-          r.file === file 
-            ? { ...r, extractedAmount, isProcessing: false }
-            : r
-        )
-      );
-
-      // Update total amount
-      setReceipts(prev => {
-        const total = prev.reduce((sum, r) => sum + (r.extractedAmount || 0), 0);
-        setAmount(total > 0 ? total.toFixed(2) : '');
-        setIsProcessingAI(prev.some(r => r.isProcessing));
-        return prev;
-      });
+      setReceipts(prev => [...prev, file]);
     }
 
     // Clear the input
@@ -102,12 +44,7 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
   };
 
   const removeReceipt = (fileToRemove: File) => {
-    setReceipts(prev => {
-      const updated = prev.filter(r => r.file !== fileToRemove);
-      const total = updated.reduce((sum, r) => sum + (r.extractedAmount || 0), 0);
-      setAmount(total > 0 ? total.toFixed(2) : '');
-      return updated;
-    });
+    setReceipts(prev => prev.filter(f => f !== fileToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,32 +129,15 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
             
             {receipts.length > 0 && (
               <div className="space-y-2 mb-3">
-                {receipts.map((receipt, index) => (
+                {receipts.map((file, index) => (
                   <div key={index} className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
                     <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{receipt.file.name}</p>
-                      {receipt.isProcessing ? (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Extracting amount...
-                        </p>
-                      ) : receipt.extractedAmount !== null ? (
-                        <p className="text-xs text-green-600">
-                          Amount detected: ${receipt.extractedAmount.toFixed(2)}
-                        </p>
-                      ) : (
-                        <p className="text-xs text-amber-600">
-                          Could not detect amount
-                        </p>
-                      )}
-                    </div>
+                    <span className="text-sm flex-1 truncate">{file.name}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeReceipt(receipt.file)}
-                      disabled={receipt.isProcessing}
+                      onClick={() => removeReceipt(file)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -243,12 +163,6 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
                 <p className="text-xs text-muted-foreground mt-1">
                   PNG, JPG, or PDF (max 20MB each)
                 </p>
-                {isProcessingAI && (
-                  <p className="text-xs text-primary mt-2 flex items-center justify-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    AI is reading your receipts...
-                  </p>
-                )}
               </label>
             </div>
           </div>
@@ -287,11 +201,6 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
             </div>
             <p className="text-xs text-muted-foreground">
               Available balance: ${giftingBalance.toFixed(2)}
-              {receipts.length > 0 && receipts.some(r => r.extractedAmount !== null) && (
-                <span className="text-primary ml-1">
-                  • Auto-calculated from {receipts.filter(r => r.extractedAmount !== null).length} receipt(s)
-                </span>
-              )}
             </p>
           </div>
 
@@ -319,10 +228,10 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || isProcessingAI}
+              disabled={isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? "Submitting..." : isProcessingAI ? "Processing..." : "Submit Receipts"}
+              {isSubmitting ? "Submitting..." : "Submit Receipts"}
             </Button>
           </div>
         </form>
