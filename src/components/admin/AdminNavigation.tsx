@@ -5,7 +5,8 @@ import {
   Settings, 
   DollarSign, 
   Briefcase, 
-  Target 
+  Target,
+  Receipt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,11 @@ const navItems = [
     path: '/admin-dashboard/services',
     label: 'Service Management',  
     icon: Briefcase,
+  },
+  {
+    path: '/admin-dashboard/reimbursements',
+    label: 'Reimbursements',
+    icon: Receipt,
   },
 ];
 

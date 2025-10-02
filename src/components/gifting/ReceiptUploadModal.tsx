@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, X, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ReceiptUploadModalProps {
   open: boolean;
@@ -15,6 +17,7 @@ interface ReceiptUploadModalProps {
 
 export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: ReceiptUploadModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
   const [description, setDescription] = useState('');
@@ -39,7 +42,6 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
       setReceipts(prev => [...prev, file]);
     }
 
-    // Clear the input
     e.target.value = '';
   };
 
@@ -82,7 +84,16 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
     if (reimbursementAmount > giftingBalance) {
       toast({
         title: "Insufficient balance",
-        description: `Your gifting credits balance (${giftingBalance}) is less than the requested amount`,
+        description: `Your flexi credits balance (${giftingBalance}) is less than the requested amount`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to submit a reimbursement request",
         variant: "destructive",
       });
       return;
@@ -91,12 +102,42 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement receipt upload and reimbursement request
-      // This would upload the file to storage and create a reimbursement request
+      // Upload receipts to storage
+      const receiptUrls: string[] = [];
+      for (const file of receipts) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('receipts')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('receipts')
+          .getPublicUrl(fileName);
+
+        receiptUrls.push(publicUrl);
+      }
+
+      // Create reimbursement request
+      const { error: insertError } = await supabase
+        .from('reimbursement_requests')
+        .insert({
+          user_id: user.id,
+          merchant: merchant.trim(),
+          amount: reimbursementAmount,
+          description: description.trim() || null,
+          receipt_urls: receiptUrls,
+          status: 'pending'
+        });
+
+      if (insertError) throw insertError;
       
       toast({
-        title: "Receipt submitted",
-        description: "Your reimbursement request has been submitted for review. You'll receive an email within 3-5 business days.",
+        title: "Request submitted",
+        description: "Your reimbursement request has been submitted for admin approval.",
       });
       
       onOpenChange(false);
@@ -105,9 +146,10 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
       setDescription('');
       setReceipts([]);
     } catch (error: any) {
+      console.error('Reimbursement submission error:', error);
       toast({
         title: "Submission failed",
-        description: error.message || "Failed to submit receipt",
+        description: error.message || "Failed to submit reimbursement request",
         variant: "destructive",
       });
     } finally {
@@ -174,14 +216,14 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
               id="merchant"
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
-              placeholder=""
+              placeholder="e.g., Amazon, Starbucks"
               required
             />
           </div>
 
           {/* Amount */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Total Reimbursement Amount *</Label>
+            <Label htmlFor="amount">Reimbursement Amount *</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
@@ -200,7 +242,7 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Available balance: ${giftingBalance.toFixed(2)}
+              Your flexi credits will be reduced by this amount upon approval
             </p>
           </div>
 
@@ -231,7 +273,7 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
               disabled={isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? "Submitting..." : "Submit Receipts"}
+              {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </form>

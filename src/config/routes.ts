@@ -17,6 +17,7 @@ const AdminCampaigns = lazy(() => import('@/pages/admin/AdminCampaigns'));
 const AdminCampaignTargets = lazy(() => import('@/pages/admin/AdminCampaignTargets'));
 const AdminCampaignScripts = lazy(() => import('@/pages/admin/AdminCampaignScripts'));
 const AdminCampaignMonitorPage = lazy(() => import('@/pages/admin/AdminCampaignMonitor'));
+const AdminReimbursements = lazy(() => import('@/pages/admin/AdminReimbursements'));
 const Marketplace = lazy(() => import('@/pages/Marketplace'));
 const Services = lazy(() => import('@/pages/Services'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
@@ -118,6 +119,12 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/admin-dashboard/campaigns/monitor',
     component: AdminCampaignMonitorPage,
+    protected: true,
+    skeleton: DashboardSkeleton,
+  },
+  {
+    path: '/admin-dashboard/reimbursements',
+    component: AdminReimbursements,
     protected: true,
     skeleton: DashboardSkeleton,
   },

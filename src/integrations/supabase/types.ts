@@ -1035,36 +1035,6 @@ export type Database = {
           },
         ]
       }
-      gifting_credits_transactions: {
-        Row: {
-          amount: number
-          created_at: string
-          description: string | null
-          id: string
-          reference_transaction_id: string | null
-          transaction_type: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          description?: string | null
-          id?: string
-          reference_transaction_id?: string | null
-          transaction_type: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          description?: string | null
-          id?: string
-          reference_transaction_id?: string | null
-          transaction_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       lead_gen_campaigns: {
         Row: {
           created_at: string
@@ -1522,7 +1492,6 @@ export type Database = {
           email: string
           flexi_credits_balance: number
           full_name: string | null
-          gifting_credits_balance: number
           id: string
           onboarding_completed: boolean | null
           partner_name: string | null
@@ -1541,7 +1510,6 @@ export type Database = {
           email: string
           flexi_credits_balance?: number
           full_name?: string | null
-          gifting_credits_balance?: number
           id?: string
           onboarding_completed?: boolean | null
           partner_name?: string | null
@@ -1560,7 +1528,6 @@ export type Database = {
           email?: string
           flexi_credits_balance?: number
           full_name?: string | null
-          gifting_credits_balance?: number
           id?: string
           onboarding_completed?: boolean | null
           partner_name?: string | null
@@ -1640,6 +1607,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reimbursement_requests: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          merchant: string
+          receipt_urls: string[]
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          merchant: string
+          receipt_urls?: string[]
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          merchant?: string
+          receipt_urls?: string[]
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       reviews: {
         Row: {
