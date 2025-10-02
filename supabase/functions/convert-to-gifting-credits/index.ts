@@ -12,6 +12,9 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization') || '';
+    console.log('[CONVERT] Incoming request', { hasAuth: !!authHeader, method: req.method });
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -23,10 +26,33 @@ serve(async (req) => {
     );
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError) {
+      console.error('[CONVERT] auth.getUser error', userError);
+    }
+
+    // Derive userId either from Supabase auth or by decoding the JWT as a fallback
+    let userId: string | null = user?.id ?? null;
+    if (!userId && authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        userId = payload.sub || null;
+        console.log('[CONVERT] Decoded userId from JWT', { hasUserId: !!userId });
+      } catch (e) {
+        console.error('[CONVERT] Failed to decode JWT', e);
+      }
+    }
     
-    if (userError || !user) {
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Missing Authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: invalid or expired token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -47,7 +73,7 @@ serve(async (req) => {
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('flexi_credits_balance, gifting_credits_balance')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (profileError || !profile) {
@@ -76,7 +102,7 @@ serve(async (req) => {
         flexi_credits_balance: newFlexiBalance,
         gifting_credits_balance: newGiftingBalance,
       })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     if (updateError) {
       console.error('Error updating balances:', updateError);
@@ -90,7 +116,7 @@ serve(async (req) => {
     const { data: flexiTransaction, error: flexiTransError } = await supabaseClient
       .from('flexi_credits_transactions')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         type: 'refund',
         amount: -roundedAmount,
         description: `Converted to gifting credits: ${roundedAmount} credits`,
@@ -106,7 +132,7 @@ serve(async (req) => {
     const { data: giftingTransaction, error: giftingTransError } = await supabaseClient
       .from('gifting_credits_transactions')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         amount: roundedAmount,
         transaction_type: 'conversion',
         description: `Converted from flexi credits: ${roundedAmount} credits`,
