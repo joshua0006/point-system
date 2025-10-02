@@ -53,12 +53,6 @@ const steps: Step[] = [
   }
 ];
 
-const tips = [
-  "Keep receipts organized by creating a dedicated folder",
-  "Ensure receipts are clear and readable before uploading",
-  "Contact support if you have questions about eligible purchases"
-];
-
 export function RedemptionProcess() {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -108,21 +102,6 @@ export function RedemptionProcess() {
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Tips Section */}
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <Info className="h-4 w-4 text-primary" />
-                Helpful Tips
-              </h4>
-              <ul className="space-y-1.5 ml-6">
-                {tips.map((tip, index) => (
-                  <li key={index} className="text-xs text-muted-foreground list-disc">
-                    {tip}
-                  </li>
-                ))}
-              </ul>
             </div>
 
             {/* Important Policies */}
