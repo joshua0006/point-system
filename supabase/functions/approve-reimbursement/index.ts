@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -116,6 +117,45 @@ serve(async (req) => {
         console.error("[APPROVE] Error creating transaction:", transactionError);
       } else {
         console.log(`[APPROVE] Transaction record created`);
+      }
+
+      // Send approval email
+      console.log(`[APPROVE] Sending approval email`);
+      try {
+        const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+        
+        // Get user profile for email
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("user_id", request.user_id)
+          .single();
+        
+        if (profile?.email) {
+          await resend.emails.send({
+            from: "Reimbursements <onboarding@resend.dev>",
+            to: [profile.email],
+            subject: "Reimbursement Request Approved ✅",
+            html: `
+              <h1>Your Reimbursement Request Has Been Approved!</h1>
+              <p>Hi ${profile.full_name || 'there'},</p>
+              <p>Great news! Your reimbursement request has been approved and processed.</p>
+              <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>✅ Approved Request Details:</strong></p>
+                <p><strong>Merchant:</strong> ${request.merchant}</p>
+                <p><strong>Amount:</strong> $${request.amount.toFixed(2)}</p>
+                <p><strong>Request ID:</strong> ${request.id}</p>
+              </div>
+              <p>The amount of <strong>$${request.amount.toFixed(2)}</strong> has been deducted from your flexi credits balance.</p>
+              <p>If you have any questions, please don't hesitate to reach out.</p>
+              <p>Thank you!</p>
+            `,
+          });
+          console.log(`[APPROVE] Approval email sent to ${profile.email}`);
+        }
+      } catch (emailError: any) {
+        console.error("[APPROVE] Error sending approval email:", emailError);
+        // Don't fail the approval if email fails
       }
 
       console.log(`[APPROVE] Approval process completed successfully`);
