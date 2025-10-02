@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to user
     const userEmailResponse = await resend.emails.send({
-      from: "Reimbursements <onboarding@resend.dev>",
+      from: "Reimbursements <no-reply@mail.themoneybees.co>",
       to: [userEmail],
       subject: userSubject,
       html: userHtml,
@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
     let adminEmailResponse: unknown = null;
     if (sendAdmin) {
       adminEmailResponse = await resend.emails.send({
-        from: "Reimbursements <onboarding@resend.dev>",
+        from: "Reimbursements <no-reply@mail.themoneybees.co>",
         to: ["tanjunsing@gmail.com"],
         subject: "New Reimbursement Request Pending Review",
         html: `
