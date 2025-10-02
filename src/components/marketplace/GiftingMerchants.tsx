@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Merchant {
   id: string;
@@ -9,6 +10,7 @@ interface Merchant {
   description: string;
   website: string;
   category: string;
+  expandedContent?: string;
 }
 
 const merchants: Merchant[] = [
@@ -38,13 +40,20 @@ const merchants: Merchant[] = [
     name: 'Grab Gifts',
     description: 'Reimburse your transport fare with convenient ride vouchers and gift cards',
     website: 'https://gifts.grab.com/sg/',
-    category: 'Transport & Rides'
+    category: 'Transport & Rides',
+    expandedContent: `Your time is worth $50–100 an hour. If you save even one hour of commuting, that's not just money saved — it's energy protected and progress accelerated. Use flexi credits to claim Grab rides and maximize your time for more appointments and impact. Flexi credits are earned through positive behaviours like good attendance, helping teammates, and coaching juniors — it's our way of rewarding the right actions and building shared ownership.`
   }
 ];
 
 const GiftingMerchants = () => {
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
+
   const visitMerchant = (website: string) => {
     window.open(website, '_blank', 'noopener,noreferrer');
+  };
+
+  const toggleExpanded = (merchantId: string) => {
+    setExpandedCards(prev => ({ ...prev, [merchantId]: !prev[merchantId] }));
   };
 
   return (
@@ -73,7 +82,33 @@ const GiftingMerchants = () => {
               </CardDescription>
             </CardHeader>
             
-            <CardContent>
+            <CardContent className="space-y-3">
+              {merchant.expandedContent && (
+                <Collapsible 
+                  open={expandedCards[merchant.id]} 
+                  onOpenChange={() => toggleExpanded(merchant.id)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-between text-sm"
+                    >
+                      <span>Why use this?</span>
+                      {expandedCards[merchant.id] ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-2">
+                    <div className="rounded-md bg-muted/50 p-4 text-sm text-muted-foreground leading-relaxed">
+                      {merchant.expandedContent}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+              
               <Button
                 onClick={() => visitMerchant(merchant.website)}
                 className="w-full"
