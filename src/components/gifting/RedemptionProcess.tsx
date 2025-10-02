@@ -25,7 +25,7 @@ const steps: Step[] = [
   {
     icon: <ShoppingBag className="h-6 w-6" />,
     title: "Browse Partner Merchants",
-    description: "Explore our trusted gifting partners below and choose the merchant that best fits your gifting needs. Click 'Visit Store' to browse their products."
+    description: ""
   },
   {
     icon: <CreditCard className="h-6 w-6" />,
@@ -110,16 +110,6 @@ export function RedemptionProcess({ giftingBalance }: RedemptionProcessProps) {
               ))}
             </div>
 
-            {/* Important Policies */}
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
-              <h4 className="font-semibold text-sm text-primary">Important Information</h4>
-              <ul className="space-y-1.5 ml-4 text-xs text-muted-foreground">
-                <li>• Reimbursements are subject to available gifting credits balance</li>
-                <li>• Only purchases from listed partner merchants are eligible</li>
-                <li>• Receipts must be submitted within 30 days of purchase</li>
-                <li>• Bank account details must be registered in your profile settings</li>
-              </ul>
-            </div>
 
             {/* Submit Button */}
             <div className="flex justify-center pt-2">
