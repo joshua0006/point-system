@@ -332,8 +332,31 @@ export function useAdminActivity() {
     
     let activityType: RecentActivity['type'] = 'wallet_topup';
     let description = '';
-    let category: RecentActivity['category'] = 'credit';
+    let category: RecentActivity['category'] = transaction.amount < 0 ? 'debit' : 'credit';
     let emoji = '💰';
+
+    // Handle recurring deductions explicitly
+    const descLower = (transaction.description || '').toLowerCase();
+    if (descLower.includes('recurring deduction')) {
+      activityType = 'admin_debit';
+      category = 'debit';
+      emoji = '🔻';
+      const reason = transaction.description?.replace(/recurring deduction\s*[-:]?\s*/i, '').trim();
+      description = reason && reason.toLowerCase() !== 'nil' && reason.toLowerCase() !== 'no reason'
+        ? `🔁 Recurring deduction: deducted ${amount} flexi credits from ${userName} - ${reason}`
+        : `🔁 Recurring deduction: deducted ${amount} flexi credits from ${userName}`;
+
+      return {
+        id: `flexi-${transaction.id}`,
+        type: activityType,
+        description,
+        points: amount,
+        timestamp: formatTimestamp(transaction.created_at),
+        rawTimestamp: transaction.created_at,
+        category,
+        emoji,
+      };
+    }
 
     // Enhanced processing for admin actions and subscription changes
     switch (transaction.type) {
