@@ -32,6 +32,13 @@ const merchants: Merchant[] = [
     description: 'Conversation starter games and thoughtful gifts for meaningful connections',
     website: 'https://www.tabletopics.sg/',
     category: 'Games & Activities'
+  },
+  {
+    id: '4',
+    name: 'Grab Gifts',
+    description: 'Reimburse your transport fare with convenient ride vouchers and gift cards',
+    website: 'https://gifts.grab.com/sg/',
+    category: 'Transport & Rides'
   }
 ];
 
