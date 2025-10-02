@@ -43,10 +43,10 @@ const Auth = () => {
       }
     }
 
-    // If user is already logged in and not loading, redirect to marketplace
+    // If user is already logged in and not loading, redirect to home
     if (!loading && user) {
-      console.log('User already logged in, redirecting to marketplace...');
-      navigate('/marketplace', { replace: true });
+      console.log('User already logged in, redirecting to home...');
+      navigate('/', { replace: true });
     }
   }, [user, loading, navigate, searchParams, toast]);
 
@@ -94,7 +94,7 @@ const Auth = () => {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/marketplace`,
+          emailRedirectTo: `${window.location.origin}/`,
         },
       });
 
@@ -125,7 +125,7 @@ const Auth = () => {
           title: "Welcome!",
           description: "Your account has been created successfully.",
         });
-        window.location.href = '/marketplace';
+        window.location.href = '/';
       }
       
     } catch (error: any) {
@@ -180,7 +180,7 @@ const Auth = () => {
         throw error;
       }
 
-      console.log('Sign in successful, redirecting to marketplace...');
+      console.log('Sign in successful, redirecting to home...');
       
       toast({
         title: "Login Successful!",
@@ -188,7 +188,7 @@ const Auth = () => {
       });
       
       // Force page reload to ensure clean state
-      window.location.href = '/marketplace';
+      window.location.href = '/';
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
@@ -218,7 +218,7 @@ const Auth = () => {
         type: 'signup',
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/marketplace`,
+          emailRedirectTo: `${window.location.origin}/`,
         }
       });
       
