@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.fix-upgrade-credits]
 verify_jwt = false
+
+[functions.convert-to-gifting-credits]
+verify_jwt = true
