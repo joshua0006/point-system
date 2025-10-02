@@ -60,34 +60,6 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* AI Tools Card */}
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">AI Tools</CardTitle>
-                  <p className="text-sm text-muted-foreground">Powered by artificial intelligence</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <Link to="/ai-assistant">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  AI Assistant
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <Link to="/ad-copy-generator">
-                  <PenTool className="w-4 h-4 mr-2" />
-                  Ad Copy Generator
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
 
           {/* Gifting Card */}
           <Card className="hover:shadow-lg transition-shadow">
