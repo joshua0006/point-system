@@ -93,5 +93,20 @@ verify_jwt = false
 [functions.fix-upgrade-credits]
 verify_jwt = false
 
-[functions.convert-to-gifting-credits]
+[functions.approve-reimbursement]
+verify_jwt = true
+
+[functions.send-reimbursement-notification]
+verify_jwt = true
+
+[functions.send-password-reset]
+verify_jwt = false
+
+[functions.send-admin-notifications]
+verify_jwt = false
+
+[functions.process-admin-service-billing]
+verify_jwt = false
+
+[functions.process-recurring-deductions]
 verify_jwt = false

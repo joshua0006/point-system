@@ -17,7 +17,7 @@ interface ReceiptUploadModalProps {
 
 export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: ReceiptUploadModalProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
   const [description, setDescription] = useState('');
@@ -122,7 +122,7 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
       }
 
       // Create reimbursement request
-      const { error: insertError } = await supabase
+      const { data: requestData, error: insertError } = await supabase
         .from('reimbursement_requests')
         .insert({
           user_id: user.id,
@@ -131,13 +131,31 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
           description: description.trim() || null,
           receipt_urls: receiptUrls,
           status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
+
+      // Send email notifications
+      try {
+        await supabase.functions.invoke('send-reimbursement-notification', {
+          body: {
+            userEmail: user.email,
+            userName: profile?.full_name || user.email?.split('@')[0] || 'User',
+            merchant: merchant.trim(),
+            amount: reimbursementAmount,
+            requestId: requestData.id
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError);
+        // Don't fail the whole request if email fails
+      }
       
       toast({
         title: "Request submitted",
-        description: "Your reimbursement request has been submitted for admin approval.",
+        description: "Your reimbursement request has been submitted. Email notifications sent.",
       });
       
       onOpenChange(false);
