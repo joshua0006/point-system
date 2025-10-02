@@ -14,7 +14,7 @@ import { FacebookAdsCatalog } from "@/components/campaigns/FacebookAdsCatalog";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { SuperAdminInterface } from "@/components/campaigns/SuperAdminInterface";
@@ -22,6 +22,7 @@ import { SuperAdminInterface } from "@/components/campaigns/SuperAdminInterface"
 const FacebookAdsCampaigns = () => {
   const { user, signOut, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -430,12 +431,10 @@ const FacebookAdsCampaigns = () => {
         <div className={isMobile ? "pt-4" : "pt-8"}>
           <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
             <div className="flex items-center gap-4 mb-4">
-              <Link to="/campaigns">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Campaigns
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Campaigns
+              </Button>
             </div>
             
             <div className="flex items-center gap-3 mb-4">
