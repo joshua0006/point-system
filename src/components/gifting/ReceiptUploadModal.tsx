@@ -156,7 +156,7 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
               id="merchant"
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
-              placeholder="e.g., Amazon, Target, etc."
+              placeholder=""
               required
             />
           </div>
