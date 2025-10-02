@@ -120,7 +120,8 @@ export const getTransactionContext = (transaction: any) => {
   const isSubscriptionRelated = transaction.description?.toLowerCase().includes('subscription') ||
                                transaction.description?.toLowerCase().includes('plan upgrade') ||
                                transaction.description?.toLowerCase().includes('downgrade');
-  const isAdminAction = transaction.description?.toLowerCase().includes('admin');
+  const isAdminAction = transaction.description?.toLowerCase().includes('admin') ||
+                       transaction.description?.toLowerCase().includes('recurring deduction');
   const isStripePayment = transaction.description?.toLowerCase().includes('stripe') ||
                          transaction.description?.toLowerCase().includes('payment intent');
 
