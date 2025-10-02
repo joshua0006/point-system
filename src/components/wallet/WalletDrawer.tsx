@@ -102,7 +102,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                   <Card className={`border-l-4 ${isNegativeBalance ? 'border-l-destructive bg-destructive/5' : 'border-l-primary bg-primary/5'}`}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-muted-foreground mb-1">
                             Current Balance
                           </p>
@@ -127,6 +127,29 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                           <Plus className="w-4 h-4" />
                           Add Credits
                         </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Gifting Credits Balance */}
+                  <Card className="border-l-4 border-l-green-500 bg-green-50/50">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2">
+                            <Wallet className="w-4 h-4 text-green-600" />
+                            Gifting Credits Balance
+                          </p>
+                          <div className="text-3xl font-bold text-green-700">
+                            {(profile?.gifting_credits_balance || 0).toLocaleString()}
+                            <span className="text-lg font-normal text-muted-foreground ml-1">
+                              credits
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Available for client gifts
+                          </p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

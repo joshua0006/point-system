@@ -12,6 +12,7 @@ export interface Profile {
   avatar_url: string | null;
   role: UserRole;
   flexi_credits_balance: number;
+  gifting_credits_balance: number;
   created_at: string;
   updated_at: string;
   bio: string | null;

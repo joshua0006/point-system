@@ -1035,6 +1035,36 @@ export type Database = {
           },
         ]
       }
+      gifting_credits_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference_transaction_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_transaction_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_transaction_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_gen_campaigns: {
         Row: {
           created_at: string
@@ -1492,6 +1522,7 @@ export type Database = {
           email: string
           flexi_credits_balance: number
           full_name: string | null
+          gifting_credits_balance: number
           id: string
           onboarding_completed: boolean | null
           partner_name: string | null
@@ -1510,6 +1541,7 @@ export type Database = {
           email: string
           flexi_credits_balance?: number
           full_name?: string | null
+          gifting_credits_balance?: number
           id?: string
           onboarding_completed?: boolean | null
           partner_name?: string | null
@@ -1528,6 +1560,7 @@ export type Database = {
           email?: string
           flexi_credits_balance?: number
           full_name?: string | null
+          gifting_credits_balance?: number
           id?: string
           onboarding_completed?: boolean | null
           partner_name?: string | null
