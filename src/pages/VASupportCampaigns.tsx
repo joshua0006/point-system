@@ -7,7 +7,7 @@ import { ArrowLeft, Users } from "lucide-react";
 import { VASupportPlans } from "@/components/campaigns/VASupportPlans";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
@@ -16,6 +16,7 @@ import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunc
 const VASupportCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
@@ -169,12 +170,10 @@ const VASupportCampaigns = () => {
         <div className={isMobile ? "pt-4" : "pt-8"}>
           <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
             <div className="flex items-center gap-4 mb-4">
-              <Link to="/campaigns">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Campaigns
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Campaigns
+              </Button>
             </div>
             
             <div className="flex items-center gap-3 mb-4">

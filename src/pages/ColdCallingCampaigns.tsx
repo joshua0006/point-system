@@ -169,12 +169,10 @@ const ColdCallingCampaigns = () => {
         <div className={isMobile ? "pt-4" : "pt-8"}>
           <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
             <div className="flex items-center gap-4 mb-4">
-              <Link to="/campaigns">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Campaigns
-                </Button>
-              </Link>
+              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Campaigns
+              </Button>
             </div>
             
             <div className="flex items-center gap-3 mb-4">
