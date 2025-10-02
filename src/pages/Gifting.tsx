@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowRightLeft, Gift } from 'lucide-react';
 import { ConvertCreditsModal } from '@/components/gifting/ConvertCreditsModal';
 import { ConversionSuccessModal } from '@/components/gifting/ConversionSuccessModal';
+import { RedemptionProcess } from '@/components/gifting/RedemptionProcess';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Gifting = () => {
@@ -65,6 +66,8 @@ const Gifting = () => {
               </Button>
             </div>
           </Card>
+
+          <RedemptionProcess />
 
           <GiftingMerchants />
         </div>
