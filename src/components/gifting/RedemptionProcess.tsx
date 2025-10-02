@@ -10,7 +10,8 @@ import {
   CreditCard,
   ChevronDown,
   ChevronUp,
-  Info
+  Info,
+  ArrowRight
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ReceiptUploadModal } from './ReceiptUploadModal';
@@ -86,21 +87,52 @@ export function RedemptionProcess({ giftingBalance }: RedemptionProcessProps) {
         <CollapsibleContent>
           <CardContent className="space-y-6">
             {/* Steps */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-              {steps.map((step, index) => (
-                <div 
-                  key={index}
-                  className="flex flex-col items-center gap-3 p-6 rounded-xl border bg-card/50 hover:bg-accent/30 transition-all hover:scale-105 min-w-[140px]"
-                >
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
-                    {step.icon}
+            <div className="relative">
+              {/* Mobile: Vertical Layout */}
+              <div className="flex flex-col gap-4 md:hidden">
+                {steps.map((step, index) => (
+                  <div key={index} className="relative">
+                    <div className="flex items-center gap-4 p-4 rounded-xl border bg-gradient-to-r from-card to-card/50 hover:shadow-md transition-all">
+                      <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-lg shadow-lg">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-base">{step.title}</h4>
+                      </div>
+                      <div className="flex-shrink-0 text-primary/40">
+                        {step.icon}
+                      </div>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div className="flex justify-center py-2">
+                        <ArrowRight className="h-5 w-5 text-primary/30 rotate-90" />
+                      </div>
+                    )}
                   </div>
-                  <div className="text-center space-y-1">
-                    <span className="text-xs font-bold text-primary">STEP {index + 1}</span>
-                    <h4 className="font-semibold text-sm leading-tight">{step.title}</h4>
+                ))}
+              </div>
+
+              {/* Desktop: Horizontal Layout */}
+              <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {steps.map((step, index) => (
+                  <div key={index} className="relative">
+                    <div className="flex flex-col items-center gap-3 p-4 rounded-xl border bg-gradient-to-b from-card to-card/50 hover:shadow-lg transition-all hover:-translate-y-1 group">
+                      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground font-bold text-xl shadow-lg group-hover:scale-110 transition-transform">
+                        {index + 1}
+                      </div>
+                      <div className="text-center space-y-2 flex-1">
+                        <div className="text-primary/60 flex justify-center">
+                          {step.icon}
+                        </div>
+                        <h4 className="font-semibold text-sm leading-tight px-1">{step.title}</h4>
+                      </div>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <ArrowRight className="hidden lg:block absolute -right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/30 z-10" />
+                    )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
 
