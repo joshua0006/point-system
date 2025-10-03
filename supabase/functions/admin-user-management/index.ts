@@ -326,15 +326,25 @@ serve(async (req) => {
         throw new Error("Cannot delete master admin users");
       }
 
-      // Delete the user profile (this will cascade delete related records)
+      // Delete the user profile first (this will cascade delete related records)
       const { error: deleteError } = await supabaseClient
         .from('profiles')
         .delete()
         .eq('user_id', userId);
 
-      if (deleteError) throw new Error(`Error deleting user: ${deleteError.message}`);
+      if (deleteError) throw new Error(`Error deleting user profile: ${deleteError.message}`);
 
-      logStep("User deleted", { userId, userEmail: userProfile.email, reason, deletedBy: user.id });
+      // Delete from auth.users using admin API to prevent orphaned auth accounts
+      const { error: authDeleteError } = await supabaseClient.auth.admin.deleteUser(
+        userId
+      );
+
+      if (authDeleteError) {
+        console.error('Error deleting auth user:', authDeleteError);
+        // Profile is already deleted, log error but don't fail the operation
+      }
+
+      logStep("User deleted completely", { userId, userEmail: userProfile.email, reason, deletedBy: user.id });
 
       return new Response(JSON.stringify({ 
         success: true, 
