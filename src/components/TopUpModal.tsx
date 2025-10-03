@@ -60,7 +60,6 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       // Direct subscription for new users
       const result = await processSubscriptionChange(plan.credits, subscription?.subscribed || false);
       if (result.success) {
-        // Refresh subscription and profile data
         await refreshSubscription();
         onClose();
         if (onSuccess) {
@@ -74,12 +73,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     if (pendingUpgrade) {
       const result = await processSubscriptionChange(pendingUpgrade.credits, subscription?.subscribed || false);
       if (result.success) {
-        // Refresh subscription and profile data
         await refreshSubscription();
-        
-        // Force refresh the page to ensure all data is updated
         window.location.reload();
-        
         onClose();
         setShowConfirmationModal(false);
         if (onSuccess) {

@@ -102,9 +102,23 @@ export default function UserDashboard() {
 
         {/* Stats Cards */}
         <DashboardStatsCards 
-          isMobile={isMobile}
-          userStats={userStats}
+          isMobile={isMobile} 
+          userStats={userStats} 
           openModal={openModal}
+          onLockedCreditsClick={() => {
+            // Open wallet drawer to awarded tab - set data attribute for future tab switching
+            const walletTrigger = document.querySelector('[data-wallet-trigger]');
+            if (walletTrigger instanceof HTMLElement) {
+              walletTrigger.click();
+              // After drawer opens, switch to awarded tab
+              setTimeout(() => {
+                const awardedTab = document.querySelector('[data-tab="awarded"]');
+                if (awardedTab instanceof HTMLElement) {
+                  awardedTab.click();
+                }
+              }, 100);
+            }
+          }}
         />
 
         {/* Dashboard Content */}

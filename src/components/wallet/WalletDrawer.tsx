@@ -21,7 +21,8 @@ import {
   TrendingDown,
   Plus,
   ArrowUpRight,
-  Clock
+  Clock,
+  Lock
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
@@ -30,6 +31,7 @@ import { TopUpModal } from "@/components/TopUpModal";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { TransactionsTable } from "./TransactionsTable";
 import { UpcomingChargesTable } from "./UpcomingChargesTable";
+import { AwardedCreditsCard } from "./AwardedCreditsCard";
 
 interface WalletDrawerProps {
   children: React.ReactNode;
@@ -64,7 +66,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
   return (
     <>
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>
+        <DrawerTrigger asChild data-wallet-trigger>
           {children}
         </DrawerTrigger>
         <DrawerContent className="h-[90vh]">
@@ -77,7 +79,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
           
           <div className="flex-1 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-4 mx-6 mt-4">
+              <TabsList className="grid w-full grid-cols-5 mx-6 mt-4">
                 <TabsTrigger value="overview" className="flex items-center gap-1">
                   <Wallet className="w-4 h-4" />
                   <span className="hidden sm:inline">Overview</span>
@@ -93,6 +95,10 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                 <TabsTrigger value="subscription" className="flex items-center gap-1">
                   <Settings className="w-4 h-4" />
                   <span className="hidden sm:inline">Plan</span>
+                </TabsTrigger>
+                <TabsTrigger value="awarded" data-tab="awarded" className="flex items-center gap-1">
+                  <Lock className="w-4 h-4" />
+                  <span className="hidden sm:inline">Awarded</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -260,6 +266,10 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                     </p>
                   </div>
                   <SubscriptionStatusCard showActions={true} />
+                </TabsContent>
+
+                <TabsContent value="awarded">
+                  <AwardedCreditsCard />
                 </TabsContent>
               </div>
             </Tabs>

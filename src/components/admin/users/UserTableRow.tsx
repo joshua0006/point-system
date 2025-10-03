@@ -16,6 +16,7 @@ interface UserTableRowProps {
   onUserDetails: (user: UserProfile) => void;
   onViewSubscription: (user: UserProfile) => void;
   onServiceAssignment: (user: UserProfile) => void;
+  onAwardCredits: (user: UserProfile) => void;
   getSubscription: (userId: string) => any;
   isSubscriptionLoading: (userId: string) => boolean;
   userRole: string;
@@ -31,6 +32,7 @@ export const UserTableRow = memo(function UserTableRow({
   onUserDetails,
   onViewSubscription,
   onServiceAssignment,
+  onAwardCredits,
   getSubscription,
   isSubscriptionLoading,
   userRole

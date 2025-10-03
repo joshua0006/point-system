@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useAdminUsers } from "@/hooks/admin/useAdminUsers";
 import { useUserSubscription } from '@/hooks/useUserSubscription';
 import { useAdminRealtime } from "@/hooks/admin/useAdminRealtime";
@@ -9,6 +9,7 @@ import { StatsSkeleton, TableSkeleton } from "@/components/ui/optimized-skeleton
 import { UserStatsCards } from "./UserStatsCards";
 import { UsersTable } from "./UsersTable";
 import { UserManagementModals } from "./UserManagementModals";
+import { AdminAwardCreditsModal } from "../modals/AdminAwardCreditsModal";
 import { useAuth } from "@/contexts/AuthContext";
 import type { UserProfile } from "@/config/types";
 
@@ -30,6 +31,9 @@ export const UserManagementContainer = memo(function UserManagementContainer({
     closeModal, 
     setSelectedUser 
   } = useUserManagementModals();
+
+  const [awardModalOpen, setAwardModalOpen] = useState(false);
+  const [selectedUserForAward, setSelectedUserForAward] = useState<UserProfile | null>(null);
   
   // Set up real-time updates
   const handleDataChange = useCallback(() => {
@@ -93,6 +97,11 @@ export const UserManagementContainer = memo(function UserManagementContainer({
     openModal('serviceAssignment', user);
   }, [openModal]);
 
+  const handleAwardCredits = useCallback((user: UserProfile) => {
+    setSelectedUserForAward(user);
+    setAwardModalOpen(true);
+  }, []);
+
   if (usersLoading) {
     return (
       <div className="space-y-6">
@@ -124,6 +133,7 @@ export const UserManagementContainer = memo(function UserManagementContainer({
         onUserDetails={handleUserDetails}
         onViewSubscription={handleViewSubscription}
         onServiceAssignment={handleServiceAssignment}
+        onAwardCredits={handleAwardCredits}
         getSubscription={getSubscription}
         isSubscriptionLoading={isSubscriptionLoading}
         userRole={profile?.role || 'user'}
@@ -137,6 +147,18 @@ export const UserManagementContainer = memo(function UserManagementContainer({
         getSubscription={getSubscription}
         isSubscriptionLoading={isSubscriptionLoading}
       />
+
+      {selectedUserForAward && (
+        <AdminAwardCreditsModal
+          open={awardModalOpen}
+          onOpenChange={setAwardModalOpen}
+          userId={selectedUserForAward.user_id}
+          userName={selectedUserForAward.full_name || 'User'}
+          userEmail={selectedUserForAward.email}
+          currentBalance={selectedUserForAward.flexi_credits_balance}
+          lockedBalance={0}
+        />
+      )}
     </div>
   );
 });
