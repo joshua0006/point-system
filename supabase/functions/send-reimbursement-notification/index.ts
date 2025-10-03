@@ -23,6 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  try {
     const { userEmail, userName, merchant, amount, requestId, status = 'submitted' }: ReimbursementNotificationRequest = await req.json();
 
     console.log("[REIMBURSEMENT-EMAIL] Sending notifications", { userEmail, userName, merchant, amount, requestId, status });
