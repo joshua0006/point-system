@@ -12,12 +12,7 @@ export function ModeToggle() {
   if (!profile) return null;
 
   if (!canAccessSellerMode) {
-    return (
-      <div className="flex items-center gap-3 px-3 py-2 bg-muted/50 rounded-lg">
-        <User className="w-4 h-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Buyer mode</span>
-      </div>
-    );
+    return null;
   }
 
   return (
