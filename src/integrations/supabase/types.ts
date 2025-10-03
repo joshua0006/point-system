@@ -363,6 +363,121 @@ export type Database = {
         }
         Relationships: []
       }
+      awarded_credits_unlocks: {
+        Row: {
+          amount_unlocked: number
+          awarded_credit_id: string
+          created_at: string
+          id: string
+          topup_amount_used: number
+          topup_transaction_id: string
+          unlock_date: string
+          user_id: string
+        }
+        Insert: {
+          amount_unlocked: number
+          awarded_credit_id: string
+          created_at?: string
+          id?: string
+          topup_amount_used: number
+          topup_transaction_id: string
+          unlock_date?: string
+          user_id: string
+        }
+        Update: {
+          amount_unlocked?: number
+          awarded_credit_id?: string
+          created_at?: string
+          id?: string
+          topup_amount_used?: number
+          topup_transaction_id?: string
+          unlock_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "awarded_credits_unlocks_awarded_credit_id_fkey"
+            columns: ["awarded_credit_id"]
+            isOneToOne: false
+            referencedRelation: "awarded_flexi_credits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "awarded_credits_unlocks_topup_transaction_id_fkey"
+            columns: ["topup_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "flexi_credits_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "awarded_credits_unlocks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      awarded_flexi_credits: {
+        Row: {
+          amount: number
+          awarded_by: string
+          awarded_date: string
+          created_at: string
+          expires_at: string
+          id: string
+          locked_amount: number
+          reason: string | null
+          status: string
+          unlocked_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          awarded_by: string
+          awarded_date?: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          locked_amount?: number
+          reason?: string | null
+          status?: string
+          unlocked_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          awarded_by?: string
+          awarded_date?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          locked_amount?: number
+          reason?: string | null
+          status?: string
+          unlocked_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "awarded_flexi_credits_awarded_by_fkey"
+            columns: ["awarded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "awarded_flexi_credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           buyer_completed: boolean | null

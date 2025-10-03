@@ -779,6 +779,8 @@ export default function ConsultantDashboard() {
             totalPointsEarned: 0,
             completionRate: 0,
             currentBalance: 0,
+            locked_awarded_balance: 0,
+            expiring_awarded_credits: [],
           }}
         />
 

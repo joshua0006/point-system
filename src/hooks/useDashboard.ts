@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useCallback } from 'react';
+import { useAwardedCredits } from './useAwardedCredits';
 
 // Unified transaction interface
 export interface Transaction {
@@ -54,6 +55,13 @@ export interface UserStats {
   totalPoints: number;
   pointsSpent: number;
   pointsEarned: number;
+  locked_awarded_balance: number;
+  expiring_awarded_credits: Array<{
+    id: string;
+    amount: number;
+    expires_at: string;
+    days_until_expiry: number;
+  }>;
 }
 
 /**
@@ -63,6 +71,9 @@ export interface UserStats {
 export function useDashboard() {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Fetch awarded credits data
+  const { data: awardedCreditsData, isLoading: awardedCreditsLoading } = useAwardedCredits();
 
   // Fetch transactions with aggressive caching
   const {
@@ -293,6 +304,8 @@ export function useDashboard() {
     totalPoints: profile?.flexi_credits_balance || 0,
     pointsSpent: transactionData?.totalSpent || 0,
     pointsEarned: transactionData?.totalEarned || 0,
+    locked_awarded_balance: awardedCreditsData?.lockedBalance || 0,
+    expiring_awarded_credits: awardedCreditsData?.expiringCredits || [],
   };
 
   const refreshData = useCallback(async () => {
@@ -317,7 +330,13 @@ export function useDashboard() {
     upcomingBookings: bookingData?.upcoming || [],
     
     // State
-    isLoading: transactionsLoading || bookingsLoading,
+    isLoading: transactionsLoading || bookingsLoading || awardedCreditsLoading,
+    
+    // Awarded Credits
+    awardedCredits: awardedCreditsData?.awards || [],
+    lockedAwardedBalance: awardedCreditsData?.lockedBalance || 0,
+    expiringCredits: awardedCreditsData?.expiringCredits || [],
+    hasExpiringCredits: awardedCreditsData?.hasExpiringCredits || false,
     
     // Actions
     refreshData,
