@@ -147,7 +147,7 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
-                    <Menu className="w-4 h-4" />
+                    {isMobile ? <User className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
