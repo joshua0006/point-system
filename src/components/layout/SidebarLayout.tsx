@@ -119,9 +119,12 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
                 <ModeToggle />
               )}
               
-              {/* Wallet Balance - Not clickable */}
+              {/* Wallet Balance - Clickable */}
               {!isMobile && (
-                <div className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2">
+                <div 
+                  onClick={() => setShowTopUpModal(true)}
+                  className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/10 transition-colors"
+                >
                   <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
                   <span className="font-semibold text-foreground text-sm sm:text-base">
                     {profile?.flexi_credits_balance?.toLocaleString() || 0}
