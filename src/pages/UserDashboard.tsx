@@ -108,14 +108,11 @@ export default function UserDashboard() {
           }
         })
         .finally(() => {
-          // Clean URL
-          const url = new URL(window.location.href);
-          url.searchParams.delete("upgrade_success");
-          url.searchParams.delete("session_id");
-          window.history.replaceState({}, "", url.toString());
+          // Clean URL and redirect to subscription tab
+          navigate('/dashboard?tab=subscription', { replace: true });
         });
     }
-  }, [toast, refreshData]);
+  }, [toast, refreshData, navigate]);
 
   // Memoize callback functions to prevent unnecessary re-renders
   const handleTopUpSuccess = useMemo(() => (amount?: number, showSuccessModal?: boolean) => {
