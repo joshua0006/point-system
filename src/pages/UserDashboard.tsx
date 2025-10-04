@@ -26,11 +26,12 @@ import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, History, Clock, Settings, Lock } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export default function UserDashboard() {
   const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tabParam = searchParams.get('tab');
   
   // Prefetch common routes for faster navigation
@@ -83,6 +84,12 @@ export default function UserDashboard() {
   const totalEarned30Days = recentTxns
     .filter(t => t.type === "earned")
     .reduce((sum, t) => sum + t.points, 0);
+  
+  // Handle tab change with URL update
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    navigate(`/dashboard?tab=${tab}`, { replace: true });
+  };
 
   // Confirm Stripe upgrade session on return from checkout
   useEffect(() => {
@@ -139,11 +146,11 @@ export default function UserDashboard() {
         <DashboardStatsCards 
           isMobile={isMobile} 
           userStats={userStats} 
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
         />
 
         {/* Tabbed Dashboard Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className={isMobile ? "grid w-full grid-cols-5 gap-1" : "grid w-full grid-cols-5"}>
             <TabsTrigger value="overview" className="flex items-center gap-1">
               <Wallet className="w-4 h-4" />
