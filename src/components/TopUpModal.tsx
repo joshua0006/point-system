@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,9 @@ import { SubscriptionHeader } from "@/components/subscription/SubscriptionHeader
 import { CurrentSubscriptionStatus } from "@/components/subscription/CurrentSubscriptionStatus";
 import { SubscriptionPlansDropdown } from "@/components/subscription/SubscriptionPlansDropdown";
 import { BillingInformation } from "@/components/subscription/BillingInformation";
+import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnlockModal";
+import { useAwardedCredits } from "@/hooks/useAwardedCredits";
+import { useAwardedCreditsEligibility } from "@/hooks/useAwardedCreditsEligibility";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -21,6 +24,8 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [prorationDetails, setProrationDetails] = useState<any>(null);
   const [pendingUpgrade, setPendingUpgrade] = useState<SubscriptionPlan | null>(null);
   const [refreshingSubscription, setRefreshingSubscription] = useState(false);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [lastTopUpAmount, setLastTopUpAmount] = useState<number>(0);
   
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -32,6 +37,19 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     processSubscriptionChange, 
     openCustomerPortal 
   } = useSubscriptionOperations();
+  
+  const { data: awardedCreditsData } = useAwardedCredits();
+  const lockedBalance = awardedCreditsData?.lockedBalance || 0;
+  const { data: eligibilityData } = useAwardedCreditsEligibility(
+    lastTopUpAmount > 0 ? { topupAmount: lastTopUpAmount } : undefined
+  );
+
+  // Check unlock eligibility after top-up
+  useEffect(() => {
+    if (lastTopUpAmount > 0 && eligibilityData?.canUnlock && lockedBalance > 0) {
+      setShowUnlockModal(true);
+    }
+  }, [lastTopUpAmount, eligibilityData, lockedBalance]);
 
   const pointsPackages: SubscriptionPlan[] = [
     { credits: 100, price: 100, title: "Pro 1", popular: false },
@@ -61,6 +79,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       const result = await processSubscriptionChange(plan.credits, subscription?.subscribed || false);
       if (result.success) {
         await refreshSubscription();
+        setLastTopUpAmount(plan.price);
         onClose();
         if (onSuccess) {
           onSuccess(plan.price, true);
@@ -74,6 +93,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       const result = await processSubscriptionChange(pendingUpgrade.credits, subscription?.subscribed || false);
       if (result.success) {
         await refreshSubscription();
+        setLastTopUpAmount(pendingUpgrade.price);
         window.location.reload();
         onClose();
         setShowConfirmationModal(false);
@@ -168,6 +188,19 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
         prorationDetails={prorationDetails}
         loading={loading}
       />
+
+      {eligibilityData && (
+        <AwardedCreditsUnlockModal
+          open={showUnlockModal}
+          onOpenChange={setShowUnlockModal}
+          topupTransactionId=""
+          topupAmount={lastTopUpAmount}
+          lockedBalance={lockedBalance}
+          maxUnlock={eligibilityData.maxUnlock || 0}
+          expiringCredits={eligibilityData.expiringCredits || []}
+          currentBalance={profile?.flexi_credits_balance || 0}
+        />
+      )}
     </>
   );
 };
