@@ -2,12 +2,11 @@ import { ReactNode, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
-import { WalletDrawer } from "@/components/wallet/WalletDrawer"
 import { TopUpModal } from "@/components/TopUpModal"
 import { ModeToggle } from "@/components/ModeToggle"
 import { useMode } from "@/contexts/ModeContext"
 import { Button } from "@/components/ui/button"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useAwardedCredits } from "@/hooks/useAwardedCredits"
 import { 
   User, 
@@ -38,6 +37,7 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
   const isMobile = useIsMobile()
   const { data: awardedCreditsData } = useAwardedCredits()
   const [showTopUpModal, setShowTopUpModal] = useState(false)
+  const navigate = useNavigate()
   
   const userRole = profile?.role || "user"
 
@@ -119,9 +119,9 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
                 <ModeToggle />
               )}
               
-              {/* Wallet Balance */}
-              <WalletDrawer>
-                <div className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors">
+              {/* Wallet Balance - Not clickable */}
+              {!isMobile && (
+                <div className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2">
                   <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
                   <span className="font-semibold text-foreground text-sm sm:text-base">
                     {profile?.flexi_credits_balance?.toLocaleString() || 0}
@@ -130,11 +130,11 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
                     flexi-credits
                   </span>
                 </div>
-              </WalletDrawer>
+              )}
               
-              {/* Locked Awarded FXC - Click to Top Up & Unlock */}
+              {/* Locked Awarded FXC - Click to view in dashboard */}
               <div 
-                onClick={() => setShowTopUpModal(true)}
+                onClick={() => navigate('/dashboard?tab=awarded')}
                 className="flex items-center space-x-1 sm:space-x-2 bg-orange-500/10 border border-orange-200 dark:border-orange-800 rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-orange-500/20 transition-colors"
               >
                 <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
