@@ -145,7 +145,8 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
             userName: profile?.full_name || user.email?.split('@')[0] || 'User',
             merchant: merchant.trim(),
             amount: reimbursementAmount,
-            requestId: requestData.id
+            requestId: requestData.id,
+            status: 'submitted'
           }
         });
       } catch (emailError) {

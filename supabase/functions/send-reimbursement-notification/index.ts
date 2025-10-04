@@ -30,7 +30,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     let userSubject = "";
     let userHtml = "";
-    let sendAdmin = false;
 
     if (status === 'approved') {
       userSubject = "Reimbursement Request Approved";
@@ -47,7 +46,6 @@ const handler = async (req: Request): Promise<Response> => {
         <p>If you have any questions, reply to this email.</p>
         <p>Thank you!</p>
       `;
-      sendAdmin = false;
     } else if (status === 'rejected') {
       userSubject = "Reimbursement Request Rejected";
       userHtml = `
@@ -62,7 +60,6 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <p>If you have questions, reply to this email.</p>
       `;
-      sendAdmin = false;
     } else {
       // submitted
       userSubject = "Reimbursement Request Submitted";
@@ -78,7 +75,6 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         <p>You'll receive another email once it's been approved or if we need additional information.</p>
       `;
-      sendAdmin = true;
     }
 
     // Send email to user
@@ -92,7 +88,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("[REIMBURSEMENT-EMAIL] User email sent", userEmailResponse);
 
     let adminEmailResponse: unknown = null;
-    if (sendAdmin) {
+    
+    // Send admin notification for new submissions and approvals
+    if (status === 'submitted') {
       adminEmailResponse = await resend.emails.send({
         from: "Reimbursements <no-reply@mail.themoneybees.co>",
         to: ["tanjunsing@gmail.com"],
@@ -110,7 +108,25 @@ const handler = async (req: Request): Promise<Response> => {
           <p><a href="${Deno.env.get('SITE_URL')}/admin-dashboard/reimbursements" style="background: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Review Request</a></p>
         `,
       });
-      console.log("[REIMBURSEMENT-EMAIL] Admin email sent", adminEmailResponse);
+      console.log("[REIMBURSEMENT-EMAIL] Admin email sent (new request)", adminEmailResponse);
+    } else if (status === 'approved') {
+      adminEmailResponse = await resend.emails.send({
+        from: "Reimbursements <no-reply@mail.themoneybees.co>",
+        to: ["tanjunsing@gmail.com"],
+        subject: "Reimbursement Request Approved",
+        html: `
+          <h1>Reimbursement Request Approved</h1>
+          <p>The following reimbursement request has been approved and processed.</p>
+          <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Request Details:</strong></p>
+            <p><strong>User:</strong> ${userName} (${userEmail})</p>
+            <p><strong>Merchant:</strong> ${merchant}</p>
+            <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+            <p><strong>Request ID:</strong> ${requestId}</p>
+          </div>
+        `,
+      });
+      console.log("[REIMBURSEMENT-EMAIL] Admin email sent (approval)", adminEmailResponse);
     }
 
     return new Response(

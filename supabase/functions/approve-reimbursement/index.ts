@@ -163,6 +163,7 @@ serve(async (req) => {
       );
     } else {
       // Reject
+      console.log(`[REJECT] Starting rejection process for request ${requestId}`);
       if (!rejectionReason || !rejectionReason.trim()) {
         throw new Error("Rejection reason is required");
       }
@@ -178,7 +179,44 @@ serve(async (req) => {
         .eq("id", requestId);
 
       if (updateError) throw updateError;
+      console.log(`[REJECT] Request status updated to rejected`);
 
+      // Send rejection email via dedicated function
+      try {
+        // Fetch profile for email
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('user_id', request.user_id)
+          .single();
+
+        if (profileError) {
+          console.error('[REJECT] Error fetching profile for email:', profileError);
+        } else if (profile?.email) {
+          const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke('send-reimbursement-notification', {
+            body: {
+              userEmail: profile.email,
+              userName: profile.full_name || '',
+              merchant: request.merchant,
+              amount: request.amount,
+              requestId: request.id,
+              status: 'rejected'
+            }
+          });
+          if (emailInvokeError) {
+            console.error('[REJECT] Error invoking email function:', emailInvokeError);
+          } else {
+            console.log('[REJECT] Rejection email sent via function:', emailResult);
+          }
+        } else {
+          console.log(`[REJECT] No email found for user ${request.user_id}`);
+        }
+      } catch (emailError: any) {
+        console.error('[REJECT] Error sending rejection email via function:', emailError);
+        // Don't fail the rejection if email fails
+      }
+
+      console.log(`[REJECT] Rejection process completed successfully`);
       return new Response(
         JSON.stringify({ 
           success: true, 
