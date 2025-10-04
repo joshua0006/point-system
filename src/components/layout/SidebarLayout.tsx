@@ -7,12 +7,14 @@ import { ModeToggle } from "@/components/ModeToggle"
 import { useMode } from "@/contexts/ModeContext"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
+import { useAwardedCredits } from "@/hooks/useAwardedCredits"
 import { 
   User, 
   Settings, 
   LogOut, 
   Wallet,
-  Menu
+  Menu,
+  Lock
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -33,6 +35,7 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
   const { profile, signOut } = useAuth()
   const { isSellerMode } = useMode()
   const isMobile = useIsMobile()
+  const { data: awardedCreditsData } = useAwardedCredits()
   
   const userRole = profile?.role || "user"
 
@@ -123,6 +126,19 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
                   </span>
                   <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">
                     flexi-credits
+                  </span>
+                </div>
+              </WalletDrawer>
+              
+              {/* Locked Awarded FXC */}
+              <WalletDrawer>
+                <div className="flex items-center space-x-1 sm:space-x-2 bg-orange-500/10 border border-orange-200 dark:border-orange-800 rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-orange-500/20 transition-colors">
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
+                  <span className="font-semibold text-orange-600 dark:text-orange-400 text-sm sm:text-base">
+                    {awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'}
+                  </span>
+                  <span className="text-orange-600/70 dark:text-orange-400/70 text-xs sm:text-sm hidden sm:inline">
+                    AFC
                   </span>
                 </div>
               </WalletDrawer>
