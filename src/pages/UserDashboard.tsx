@@ -27,6 +27,7 @@ import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, History, Clock, Settings, Lock } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { TopUpModal } from "@/components/TopUpModal";
 
 export default function UserDashboard() {
   const { user, profile } = useAuth();
@@ -63,6 +64,7 @@ export default function UserDashboard() {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
   const [activeTab, setActiveTab] = useState(tabParam || "overview");
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   
   // Update active tab when URL param changes
   useEffect(() => {
@@ -144,6 +146,7 @@ export default function UserDashboard() {
           isMobile={isMobile} 
           userStats={userStats} 
           onTabChange={handleTabChange}
+          onLockedCreditsClick={() => setTopUpModalOpen(true)}
         />
 
         {/* Tabbed Dashboard Content */}
@@ -255,6 +258,12 @@ export default function UserDashboard() {
         onClose={() => setSuccessModalOpen(false)}
         type={successModalData.type}
         amount={successModalData.amount}
+      />
+      
+      <TopUpModal
+        isOpen={topUpModalOpen}
+        onClose={() => setTopUpModalOpen(false)}
+        onSuccess={handleTopUpSuccess}
       />
     </SidebarLayout>
   );

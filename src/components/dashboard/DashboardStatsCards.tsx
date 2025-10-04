@@ -8,12 +8,14 @@ interface DashboardStatsCardsProps {
   isMobile: boolean;
   userStats: UserStats;
   onTabChange: (tab: string) => void;
+  onLockedCreditsClick?: () => void;
 }
 
 export const DashboardStatsCards = memo(({ 
   isMobile, 
   userStats, 
-  onTabChange
+  onTabChange,
+  onLockedCreditsClick
 }: DashboardStatsCardsProps) => {
   const earliestExpiring = userStats.expiring_awarded_credits?.[0];
   const daysUntilExpiry = earliestExpiring?.days_until_expiry || 0;
@@ -40,7 +42,7 @@ export const DashboardStatsCards = memo(({
 
       <OptimizedCard
         className="cursor-pointer hover:shadow-lg transition-shadow border-orange-200 dark:border-orange-800"
-        onClick={() => onTabChange('awarded')}
+        onClick={() => onLockedCreditsClick ? onLockedCreditsClick() : onTabChange('awarded')}
       >
         <OptimizedCardHeader className="pb-3">
           <div className="flex items-center justify-between">
