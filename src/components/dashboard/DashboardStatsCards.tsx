@@ -44,36 +44,38 @@ export const DashboardStatsCards = memo(({
         </OptimizedCard>
       </WalletDrawer>
 
-      {userStats.locked_awarded_balance > 0 && (
-        <OptimizedCard
-          className="cursor-pointer hover:shadow-lg transition-shadow border-orange-200 dark:border-orange-800"
-          onClick={onLockedCreditsClick}
-        >
-          <OptimizedCardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                Locked Awarded FXC
-                {hasExpiringCredits && (
-                  <Badge variant="outline" className="text-xs border-orange-500 text-orange-600 dark:text-orange-400">
-                    Expiring Soon
-                  </Badge>
-                )}
-              </div>
-              <Lock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+      <OptimizedCard
+        className="cursor-pointer hover:shadow-lg transition-shadow border-orange-200 dark:border-orange-800"
+        onClick={onLockedCreditsClick}
+      >
+        <OptimizedCardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              Locked Awarded FXC
+              {hasExpiringCredits && userStats.locked_awarded_balance > 0 && (
+                <Badge variant="outline" className="text-xs border-orange-500 text-orange-600 dark:text-orange-400">
+                  Expiring Soon
+                </Badge>
+              )}
             </div>
-          </OptimizedCardHeader>
-          <OptimizedCardContent>
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-              {userStats.locked_awarded_balance.toFixed(1)}
-            </div>
-            {earliestExpiring && (
-              <p className="text-xs text-muted-foreground">
-                Expires on {new Date(earliestExpiring.expires_at).toLocaleDateString()}
-              </p>
-            )}
-          </OptimizedCardContent>
-        </OptimizedCard>
-      )}
+            <Lock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+          </div>
+        </OptimizedCardHeader>
+        <OptimizedCardContent>
+          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+            {userStats.locked_awarded_balance.toFixed(1)}
+          </div>
+          {earliestExpiring ? (
+            <p className="text-xs text-muted-foreground">
+              Expires on {new Date(earliestExpiring.expires_at).toLocaleDateString()}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              No active awards
+            </p>
+          )}
+        </OptimizedCardContent>
+      </OptimizedCard>
 
       <OptimizedCard 
         className="cursor-pointer hover:shadow-lg transition-shadow"
