@@ -25,33 +25,18 @@ interface Step {
 const steps: Step[] = [
   {
     icon: <ShoppingBag className="h-6 w-6" />,
-    title: "Browse Partner Merchants",
-    description: ""
-  },
-  {
-    icon: <CreditCard className="h-6 w-6" />,
-    title: "Make Your Purchase",
-    description: ""
-  },
-  {
-    icon: <Receipt className="h-6 w-6" />,
-    title: "Save Your Receipt",
-    description: ""
+    title: "Browse & Purchase",
+    description: "Choose from our partner merchants and make your purchase"
   },
   {
     icon: <Upload className="h-6 w-6" />,
-    title: "Submit for Reimbursement",
-    description: ""
-  },
-  {
-    icon: <Clock className="h-6 w-6" />,
-    title: "Wait for Approval",
-    description: ""
+    title: "Submit Receipt",
+    description: "Upload your receipt for reimbursement review"
   },
   {
     icon: <CheckCircle2 className="h-6 w-6" />,
-    title: "Receive Your Refund",
-    description: ""
+    title: "Get Reimbursed",
+    description: "Receive flexi-credits once approved by our team"
   }
 ];
 
@@ -113,7 +98,7 @@ export function RedemptionProcess({ giftingBalance }: RedemptionProcessProps) {
               </div>
 
               {/* Desktop: Horizontal Layout */}
-              <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="hidden md:grid md:grid-cols-3 gap-4">
                 {steps.map((step, index) => (
                   <div key={index} className="relative">
                     <div className="flex flex-col items-center gap-3 p-4 rounded-xl border bg-gradient-to-b from-card to-card/50 hover:shadow-lg transition-all hover:-translate-y-1 group">
