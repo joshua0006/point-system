@@ -120,20 +120,18 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
               )}
               
               {/* Wallet Balance - Clickable */}
-              {!isMobile && (
-                <div 
-                  onClick={() => setShowTopUpModal(true)}
-                  className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/10 transition-colors"
-                >
-                  <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-                  <span className="font-semibold text-foreground text-sm sm:text-base">
-                    {profile?.flexi_credits_balance?.toLocaleString() || 0}
-                  </span>
-                  <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">
-                    flexi-credits
-                  </span>
-                </div>
-              )}
+              <div 
+                onClick={() => setShowTopUpModal(true)}
+                className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/10 transition-colors"
+              >
+                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
+                <span className="font-semibold text-foreground text-sm sm:text-base">
+                  {profile?.flexi_credits_balance?.toLocaleString() || 0}
+                </span>
+                <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">
+                  flexi-credits
+                </span>
+              </div>
               
               {/* Locked Awarded FXC - Click to view in dashboard */}
               <div 
