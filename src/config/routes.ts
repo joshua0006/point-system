@@ -34,6 +34,7 @@ const SellerProfile = lazy(() => import('@/pages/SellerProfile'));
 const AIAssistant = lazy(() => import('@/pages/AIAssistant'));
 const AdCopyGenerator = lazy(() => import('@/pages/AdCopyGenerator'));
 const Settings = lazy(() => import('@/pages/Settings'));
+const UserFlows = lazy(() => import('@/pages/UserFlows'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 export const routeConfig: RouteConfig[] = [
@@ -233,6 +234,12 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/settings/:tab?',
     component: Settings,
+    protected: true,
+    skeleton: PageSkeleton,
+  },
+  {
+    path: '/user-flows',
+    component: UserFlows,
     protected: true,
     skeleton: PageSkeleton,
   },
