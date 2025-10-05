@@ -95,7 +95,9 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
           {/* Top Header */}
           <header className="h-16 flex items-center justify-between border-b bg-card/50 backdrop-blur-sm px-4 sticky top-0 z-40">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-8 w-8" />
+              <SidebarTrigger className="h-8 w-8">
+                {isMobile && <Menu className="h-5 w-5" />}
+              </SidebarTrigger>
               {title && (
                 <div>
                   <h1 className="font-semibold text-lg text-foreground">{title}</h1>
