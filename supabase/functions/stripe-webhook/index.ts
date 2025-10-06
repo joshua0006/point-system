@@ -63,6 +63,103 @@ serve(async (req) => {
       const session = event.data.object;
       logStep("Processing checkout session", { sessionId: session.id, mode: session.mode });
 
+      // Handle unlock credits payment
+      if (session.mode === 'payment' && session.metadata?.type === 'unlock_credits') {
+        const userId = session.metadata.user_id;
+        const lockedBalance = parseFloat(session.metadata.locked_balance);
+        const paymentAmount = parseFloat(session.metadata.payment_amount);
+        
+        logStep("Processing unlock credits payment", {
+          userId,
+          lockedBalance,
+          paymentAmount,
+          sessionId: session.id
+        });
+
+        // Check for existing transaction to prevent duplicate processing
+        const { data: existingTransaction } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .select('id')
+          .eq('description', `Unlock credits top-up - Session ${session.id}`)
+          .maybeSingle();
+
+        if (existingTransaction) {
+          logStep("Unlock credits already processed", { sessionId: session.id });
+          return new Response(JSON.stringify({ received: true, message: "Credits already unlocked" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+
+        // First, add the payment amount as credits ($10 = 1000 FXC)
+        const creditsFromPayment = paymentAmount * 100;
+        
+        const { error: creditError } = await supabaseClient
+          .rpc('increment_flexi_credits_balance', {
+            user_id: userId,
+            credits_to_add: creditsFromPayment
+          });
+
+        if (creditError) {
+          logStep("Error adding payment credits", creditError);
+          throw creditError;
+        }
+
+        // Log the top-up transaction
+        const { data: topupTransaction, error: transactionError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .insert({
+            user_id: userId,
+            amount: creditsFromPayment,
+            type: 'purchase',
+            description: `Unlock credits top-up - Session ${session.id}`
+          })
+          .select('id')
+          .single();
+
+        if (transactionError) {
+          logStep("Error creating top-up transaction", transactionError);
+          throw transactionError;
+        }
+
+        logStep("Payment credits added, now unlocking awarded credits", { 
+          creditsAdded: creditsFromPayment,
+          transactionId: topupTransaction.id 
+        });
+
+        // Now unlock the awarded credits using the Supabase client
+        const { data: unlockResult, error: unlockError } = await supabaseClient.functions.invoke('unlock-awarded-credits', {
+          body: {
+            topupTransactionId: topupTransaction.id,
+            amountToUnlock: lockedBalance,
+            userId: userId
+          }
+        });
+
+        if (unlockError) {
+          logStep("Error unlocking awarded credits", unlockError);
+          throw unlockError;
+        }
+
+        if (unlockResult?.error) {
+          logStep("Error from unlock function", { error: unlockResult.error });
+          throw new Error(`Failed to unlock credits: ${unlockResult.error}`);
+        }
+
+        logStep("Awarded credits unlocked successfully", unlockResult);
+
+        logStep("Unlock credits payment fully processed", { 
+          userId, 
+          creditsFromPayment, 
+          lockedBalance 
+        });
+
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       // Handle subscription upgrade payment
       if (session.mode === 'payment' && session.metadata?.upgrade_type === 'subscription_change') {
         const userId = session.metadata.user_id;

@@ -16,18 +16,25 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get JWT token from header
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Authenticate user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-
     // Parse request body
-    const { topupTransactionId, amountToUnlock } = await req.json();
+    const { topupTransactionId, amountToUnlock, userId: providedUserId } = await req.json();
+
+    let userId: string;
+
+    // If userId is provided (called from webhook with service role), use it
+    if (providedUserId) {
+      userId = providedUserId;
+    } else {
+      // Otherwise, authenticate using JWT token
+      const authHeader = req.headers.get('Authorization')!;
+      const token = authHeader.replace('Bearer ', '');
+      
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !user) {
+        throw new Error('Unauthorized');
+      }
+      userId = user.id;
+    }
 
     if (!topupTransactionId || !amountToUnlock) {
       throw new Error('Missing required fields: topupTransactionId, amountToUnlock');
@@ -42,12 +49,12 @@ serve(async (req) => {
       .from('flexi_credits_transactions')
       .select('*')
       .eq('id', topupTransactionId)
-      .eq('user_id', user.id)
-      .eq('type', 'credit')
+      .eq('user_id', userId)
+      .in('type', ['credit', 'purchase'])
       .single();
 
     if (txError || !transaction) {
-      throw new Error('Top-up transaction not found or does not belong to you');
+      throw new Error('Top-up transaction not found or does not belong to user');
     }
 
     // Calculate max unlock amount (topup amount / 2)
@@ -61,7 +68,7 @@ serve(async (req) => {
     const { data: awardedCredits, error: creditsError } = await supabase
       .from('awarded_flexi_credits')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('status', 'active')
       .gt('locked_amount', 0)
       .lt('expires_at', new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString()) // Not expired
@@ -125,7 +132,7 @@ serve(async (req) => {
       const { error: insertError } = await supabase
         .from('awarded_credits_unlocks')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           awarded_credit_id: award.id,
           topup_transaction_id: topupTransactionId,
           amount_unlocked: unlockFromThis,
@@ -146,7 +153,7 @@ serve(async (req) => {
 
     // Add unlocked amount to user's main flexi credits balance
     const { error: balanceError } = await supabase.rpc('increment_flexi_credits_balance', {
-      user_id: user.id,
+      user_id: userId,
       credits_to_add: amountToUnlock
     });
 
@@ -158,7 +165,7 @@ serve(async (req) => {
     await supabase
       .from('flexi_credits_transactions')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         type: 'credit',
         amount: amountToUnlock,
         description: `Unlocked ${amountToUnlock} awarded flexi credits`
@@ -168,7 +175,7 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('flexi_credits_balance')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     return new Response(

@@ -110,3 +110,18 @@ verify_jwt = false
 
 [functions.process-recurring-deductions]
 verify_jwt = false
+
+[functions.create-unlock-checkout]
+verify_jwt = true
+
+[functions.unlock-awarded-credits]
+verify_jwt = true
+
+[functions.check-awarded-credits-eligibility]
+verify_jwt = true
+
+[functions.award-flexi-credits]
+verify_jwt = true
+
+[functions.expire-awarded-credits]
+verify_jwt = false
