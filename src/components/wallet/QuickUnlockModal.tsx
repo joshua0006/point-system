@@ -23,67 +23,33 @@ export const QuickUnlockModal = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
   
-  const requiredPayment = Math.ceil(lockedBalance * 2);
+  const requiredPayment = 10; // Fixed $10 payment
 
   const handleQuickUnlock = async () => {
     try {
       setIsProcessing(true);
 
-      // Get user's default payment method
-      const { data: paymentMethods, error: pmError } = await supabase.functions.invoke('list-payment-methods');
-      
-      if (pmError) throw pmError;
-      if (!paymentMethods?.data?.length) {
-        toast.error("No payment method found", {
-          description: "Please add a payment method first"
-        });
-        return;
+      // Create Stripe checkout session for unlocking credits
+      const { data, error } = await supabase.functions.invoke('create-unlock-checkout', {
+        body: {
+          amount: requiredPayment,
+          lockedBalance
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
       }
-
-      const defaultPM = paymentMethods.data.find((pm: any) => pm.is_default) || paymentMethods.data[0];
-
-      // Process instant charge
-      const { data: chargeData, error: chargeError } = await supabase.functions.invoke('instant-charge', {
-        body: {
-          payment_method_id: defaultPM.stripe_payment_method_id,
-          amount: requiredPayment
-        }
-      });
-
-      if (chargeError) throw chargeError;
-      if (chargeData.error) throw new Error(chargeData.error);
-
-      // Get the transaction ID from the charge
-      const topupTransactionId = chargeData.transaction_id;
-
-      // Now unlock the credits
-      const { data: unlockData, error: unlockError } = await supabase.functions.invoke('unlock-awarded-credits', {
-        body: {
-          topupTransactionId,
-          amountToUnlock: lockedBalance
-        }
-      });
-
-      if (unlockError) throw unlockError;
-      if (unlockData.error) throw new Error(unlockData.error);
-
-      // Refresh queries
-      queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['flexi-credits-transactions'] });
-
-      toast.success("Credits unlocked successfully!", {
-        description: `${lockedBalance} FXC added to your balance`
-      });
-
-      onOpenChange(false);
       
     } catch (error: any) {
       console.error('Quick unlock error:', error);
-      toast.error("Failed to unlock credits", {
+      toast.error("Failed to create checkout session", {
         description: error.message
       });
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -105,7 +71,7 @@ export const QuickUnlockModal = ({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              To unlock your awarded credits, you need to make a payment equal to 2X the locked amount.
+              To unlock your awarded credits, you need to make a $10 payment via Stripe.
             </AlertDescription>
           </Alert>
 
@@ -119,7 +85,7 @@ export const QuickUnlockModal = ({
             
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Required Payment:</span>
-              <span className="font-semibold">{requiredPayment} FXC</span>
+              <span className="font-semibold">${requiredPayment}</span>
             </div>
 
             <div className="border-t pt-3 mt-3">
@@ -130,7 +96,7 @@ export const QuickUnlockModal = ({
               <div className="flex justify-between items-center mt-2">
                 <span className="text-sm font-medium">New Balance After Unlock:</span>
                 <span className="font-bold text-primary">
-                  {currentBalance + lockedBalance + requiredPayment} FXC
+                  {currentBalance + lockedBalance + requiredPayment * 100} FXC
                 </span>
               </div>
             </div>
@@ -139,7 +105,7 @@ export const QuickUnlockModal = ({
           <Alert className="bg-primary/5 border-primary/20">
             <CreditCard className="h-4 w-4 text-primary" />
             <AlertDescription className="text-sm">
-              Your default payment method will be charged ${(requiredPayment / 100).toFixed(2)}
+              You will be redirected to Stripe to complete the ${requiredPayment} payment
             </AlertDescription>
           </Alert>
         </div>
@@ -156,7 +122,7 @@ export const QuickUnlockModal = ({
             onClick={handleQuickUnlock}
             disabled={isProcessing || lockedBalance === 0}
           >
-            {isProcessing ? "Processing..." : `Pay & Unlock ${lockedBalance.toFixed(1)} FXC`}
+            {isProcessing ? "Redirecting to Stripe..." : `Pay $${requiredPayment} & Unlock ${lockedBalance.toFixed(1)} FXC`}
           </Button>
         </DialogFooter>
       </DialogContent>
