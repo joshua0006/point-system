@@ -1,8 +1,9 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
 import { TrendingUp, Wallet, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { UserStats } from "@/hooks/useDashboard";
+import { QuickUnlockModal } from "@/components/wallet/QuickUnlockModal";
 
 interface DashboardStatsCardsProps {
   isMobile: boolean;
@@ -17,6 +18,7 @@ export const DashboardStatsCards = memo(({
   onTabChange,
   onLockedCreditsClick
 }: DashboardStatsCardsProps) => {
+  const [showQuickUnlock, setShowQuickUnlock] = useState(false);
   const earliestExpiring = userStats.expiring_awarded_credits?.[0];
   const daysUntilExpiry = earliestExpiring?.days_until_expiry || 0;
   const hasExpiringCredits = daysUntilExpiry > 0 && daysUntilExpiry <= 30;
@@ -42,7 +44,7 @@ export const DashboardStatsCards = memo(({
 
       <OptimizedCard
         className="cursor-pointer hover:shadow-lg transition-shadow border-orange-200 dark:border-orange-800"
-        onClick={() => onLockedCreditsClick ? onLockedCreditsClick() : onTabChange('awarded')}
+        onClick={() => setShowQuickUnlock(true)}
       >
         <OptimizedCardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -88,6 +90,13 @@ export const DashboardStatsCards = memo(({
           <p className="text-xs text-muted-foreground">flexi-credits spent</p>
         </OptimizedCardContent>
       </OptimizedCard>
+
+      <QuickUnlockModal
+        open={showQuickUnlock}
+        onOpenChange={setShowQuickUnlock}
+        lockedBalance={userStats.locked_awarded_balance}
+        currentBalance={userStats.totalPoints}
+      />
     </div>
   );
 });
