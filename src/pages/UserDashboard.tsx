@@ -176,39 +176,6 @@ export default function UserDashboard() {
           
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Last 30 Days</p>
-                      <p className="text-2xl font-bold text-destructive">
-                        -{totalSpent30Days.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Credits spent</p>
-                    </div>
-                    <TrendingDown className="w-8 h-8 text-destructive" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Last 30 Days</p>
-                      <p className="text-2xl font-bold text-success">
-                        +{totalEarned30Days.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Credits earned</p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-success" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Dashboard Content */}
             <DashboardContent 
               isMobile={isMobile}
