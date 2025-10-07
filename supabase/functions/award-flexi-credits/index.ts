@@ -131,6 +131,10 @@ serve(async (req) => {
       day: 'numeric'
     });
 
+    // Get dashboard URL
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://rrnaquethuzvbsxcssss.supabase.co';
+    const dashboardUrl = `${siteUrl}/dashboard`;
+
     // Send email notification to user
     try {
       await resend.emails.send({
@@ -159,6 +163,12 @@ serve(async (req) => {
             <li>During checkout, you can unlock up to 50% of your locked credits</li>
             <li>The unlocked credits will be immediately added to your balance</li>
           </ol>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${dashboardUrl}" style="display: inline-block; background-color: #8b5cf6; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              Go to Dashboard
+            </a>
+          </div>
           
           <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
             Remember, these credits will expire on ${expiryDate} if not unlocked.
