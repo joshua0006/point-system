@@ -41,11 +41,15 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { userId, amount, reason } = await req.json();
+    const { userId, amount, reason, expiryDays } = await req.json();
 
     // Validate inputs
     if (!userId || !amount || !reason) {
       throw new Error('Missing required fields: userId, amount, reason');
+    }
+    
+    if (!expiryDays || expiryDays <= 0) {
+      throw new Error('Expiry days must be greater than 0');
     }
 
     if (amount <= 0 || amount > 10000) {
@@ -63,9 +67,9 @@ serve(async (req) => {
       throw new Error('User not found');
     }
 
-    // Calculate expiration (1 year from now)
+    // Calculate expiration based on provided days
     const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setDate(expiresAt.getDate() + expiryDays);
 
     // Insert awarded credit record
     const { data: awardedCredit, error: insertError } = await supabase
