@@ -21,10 +21,21 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { amount, lockedBalance } = await req.json();
+    const { paymentAmount, creditsToUnlock, lockedBalance } = await req.json();
 
-    if (!amount || !lockedBalance) {
-      throw new Error('Amount and lockedBalance are required');
+    if (!paymentAmount || !creditsToUnlock || !lockedBalance) {
+      throw new Error('paymentAmount, creditsToUnlock, and lockedBalance are required');
+    }
+
+    // Validate the unlock ratio (must be 2:1)
+    const expectedCredits = Math.floor(paymentAmount / 2 * 10) / 10;
+    if (Math.abs(creditsToUnlock - expectedCredits) > 0.1) {
+      throw new Error(`Invalid unlock ratio. Payment of $${paymentAmount} should unlock ${expectedCredits} FXC`);
+    }
+
+    // Validate credits don't exceed locked balance
+    if (creditsToUnlock > lockedBalance) {
+      throw new Error(`Cannot unlock ${creditsToUnlock} FXC - only ${lockedBalance} FXC locked`);
     }
 
     // Get user from authorization header
@@ -90,9 +101,9 @@ serve(async (req) => {
             currency: 'usd',
             product_data: {
               name: 'Unlock Awarded Credits',
-              description: `Unlock ${lockedBalance} FXC by paying $${amount}`,
+              description: `Unlock ${creditsToUnlock} FXC by paying $${paymentAmount} (${lockedBalance} FXC locked)`,
             },
-            unit_amount: amount * 100, // Convert to cents
+            unit_amount: Math.round(paymentAmount * 100), // Convert to cents
           },
           quantity: 1,
         },
@@ -104,7 +115,8 @@ serve(async (req) => {
         type: 'unlock_credits',
         user_id: user.id,
         locked_balance: lockedBalance.toString(),
-        payment_amount: amount.toString(),
+        payment_amount: paymentAmount.toString(),
+        credits_to_unlock: creditsToUnlock.toString(),
       },
     });
 

@@ -68,11 +68,13 @@ serve(async (req) => {
         const userId = session.metadata.user_id;
         const lockedBalance = parseFloat(session.metadata.locked_balance);
         const paymentAmount = parseFloat(session.metadata.payment_amount);
+        const creditsToUnlock = parseFloat(session.metadata.credits_to_unlock);
         
         logStep("Processing unlock credits payment", {
           userId,
           lockedBalance,
           paymentAmount,
+          creditsToUnlock,
           sessionId: session.id
         });
 
@@ -131,7 +133,7 @@ serve(async (req) => {
         const { data: unlockResult, error: unlockError } = await supabaseClient.functions.invoke('unlock-awarded-credits', {
           body: {
             topupTransactionId: topupTransaction.id,
-            amountToUnlock: lockedBalance,
+            amountToUnlock: creditsToUnlock,
             userId: userId
           }
         });
@@ -151,7 +153,7 @@ serve(async (req) => {
         logStep("Unlock credits payment fully processed", { 
           userId, 
           creditsFromPayment, 
-          lockedBalance 
+          creditsToUnlock 
         });
 
         return new Response(JSON.stringify({ received: true }), {
