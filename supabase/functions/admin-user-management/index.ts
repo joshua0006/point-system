@@ -48,10 +48,15 @@ serve(async (req) => {
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .limit(1)
+      .maybeSingle();
 
-    if (profileError || !['admin', 'master_admin'].includes(profile?.role)) {
-      throw new Error("Insufficient permissions - admin access required");
+    if (profileError || !profile || !['admin', 'master_admin'].includes(profile?.role)) {
+      logStep("Access denied", { userId: user.id, role: profile?.role, error: profileError?.message });
+      return new Response(
+        JSON.stringify({ error: "Forbidden: Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     logStep("Admin access verified", { userId: user.id });
