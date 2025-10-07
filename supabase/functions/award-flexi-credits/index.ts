@@ -133,7 +133,7 @@ serve(async (req) => {
 
     // Get dashboard URL
     const siteUrl = Deno.env.get('SITE_URL') || 'https://rrnaquethuzvbsxcssss.supabase.co';
-    const dashboardUrl = `${siteUrl}/dashboard`;
+    const dashboardUrl = `${siteUrl.replace(/\/$/, '')}/dashboard`;
 
     // Send email notification to user
     try {
