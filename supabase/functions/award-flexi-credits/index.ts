@@ -118,7 +118,7 @@ serve(async (req) => {
     // Send email notification to user
     try {
       await resend.emails.send({
-        from: 'Flexi Credits <onboarding@resend.dev>',
+        from: 'Flexi Credits <credits@mail.themoneybees.co>',
         to: [targetUser.email],
         subject: `🎁 You've Been Awarded ${amount} Locked Flexi Credits!`,
         html: `
@@ -157,7 +157,7 @@ serve(async (req) => {
     if (adminProfile?.email) {
       try {
         await resend.emails.send({
-          from: 'Flexi Credits Admin <onboarding@resend.dev>',
+          from: 'Flexi Credits Admin <admin@mail.themoneybees.co>',
           to: [adminProfile.email],
           subject: `✅ Awarded ${amount} Flexi Credits to ${targetUser.full_name || targetUser.email}`,
           html: `
