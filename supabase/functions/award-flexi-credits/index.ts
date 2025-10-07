@@ -134,8 +134,12 @@ serve(async (req) => {
           </div>
           
           <h3>How to Unlock Your Credits:</h3>
+          <p style="background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <strong>📌 Important:</strong> To unlock these credits, you need to top up <strong>2X the awarded amount</strong>.<br>
+            For example: $${amount} in awarded credits requires a minimum $${amount * 2} top-up to unlock 50%.
+          </p>
           <ol>
-            <li>Top up your account with any amount (minimum $10)</li>
+            <li>Top up your account with at least 2X the awarded amount (minimum $${amount * 2})</li>
             <li>During checkout, you can unlock up to 50% of your locked credits</li>
             <li>The unlocked credits will be immediately added to your balance</li>
           </ol>
