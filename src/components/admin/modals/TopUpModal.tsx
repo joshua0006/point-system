@@ -25,7 +25,7 @@ export function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalPr
   // Award Credits state
   const [awardAmount, setAwardAmount] = useState("");
   const [awardReason, setAwardReason] = useState("");
-  const [expiryDays, setExpiryDays] = useState("90");
+  const [expiryDays, setExpiryDays] = useState("365");
   const [awardLoading, setAwardLoading] = useState(false);
   
   const { toast } = useToast();
@@ -247,7 +247,7 @@ export function TopUpModal({ user, open, onOpenChange, onSuccess }: TopUpModalPr
                 min="1"
               />
               <p className="text-xs text-muted-foreground">
-                Default: 90 days. Credits will expire after this period if not unlocked.
+                Default: 365 days. Credits will expire after this period if not unlocked.
               </p>
             </div>
             <div className="space-y-2">
