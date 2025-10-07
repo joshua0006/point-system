@@ -92,6 +92,22 @@ serve(async (req) => {
       throw new Error(`Failed to award credits: ${insertError.message}`);
     }
 
+    // Create transaction record for visibility in transaction history
+    const { error: transactionError } = await supabase
+      .from('flexi_credits_transactions')
+      .insert({
+        user_id: userId,
+        type: 'admin_credit',
+        amount: amount,
+        description: `🎁 Awarded Locked Credits - ${reason}`,
+        created_by: user.id
+      });
+
+    if (transactionError) {
+      console.error('Transaction log error:', transactionError);
+      // Don't throw - transaction record is informational only
+    }
+
     // Log admin activity
     await supabase
       .from('admin_activity_log')

@@ -102,7 +102,13 @@ export function useDashboard() {
         let service = t.description || 'Transaction';
         let transactionType: Transaction['type'] = 'purchase';
 
-        if (t.type === 'admin_credit') {
+        // Check for awarded credits by description prefix
+        if (t.type === 'admin_credit' && t.description?.includes('🎁 Awarded Locked Credits')) {
+          category = 'admin';
+          icon = '🎁';
+          transactionType = 'admin_credit';
+          service = t.description.replace('🎁 Awarded Locked Credits - ', 'Awarded Locked Credits: ');
+        } else if (t.type === 'admin_credit') {
           category = 'admin';
           icon = '👨‍💼';
           transactionType = 'admin_credit';
