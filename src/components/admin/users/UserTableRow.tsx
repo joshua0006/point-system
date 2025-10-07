@@ -106,6 +106,11 @@ export const UserTableRow = memo(function UserTableRow({
         </div>
       </TableCell>
       
+      <TableCell>
+        <div className="font-medium text-primary">
+          {(user.awarded_credits_locked || 0).toLocaleString()} AFC
+        </div>
+      </TableCell>
       
       <TableCell>
         <div className="text-sm text-muted-foreground">

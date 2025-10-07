@@ -72,9 +72,30 @@ serve(async (req) => {
 
       if (error) throw new Error(`Error fetching users: ${error.message}`);
 
-      logStep("Users fetched", { count: profiles?.length });
+      // Fetch awarded credits for all users
+      const { data: awardedCredits } = await supabaseClient
+        .from('awarded_flexi_credits')
+        .select('user_id, locked_amount')
+        .eq('status', 'active');
+
+      // Sum up locked amounts per user
+      const awardedCreditsMap = new Map<string, number>();
+      if (awardedCredits) {
+        awardedCredits.forEach((credit: any) => {
+          const current = awardedCreditsMap.get(credit.user_id) || 0;
+          awardedCreditsMap.set(credit.user_id, current + Number(credit.locked_amount));
+        });
+      }
+
+      // Add awarded credits to profiles
+      const enrichedProfiles = profiles?.map(profile => ({
+        ...profile,
+        awarded_credits_locked: awardedCreditsMap.get(profile.user_id) || 0
+      }));
+
+      logStep("Users fetched", { count: enrichedProfiles?.length });
       
-      return new Response(JSON.stringify({ users: profiles }), {
+      return new Response(JSON.stringify({ users: enrichedProfiles }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });

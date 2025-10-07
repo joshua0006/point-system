@@ -13,6 +13,7 @@ export interface Profile {
   role: UserRole;
   flexi_credits_balance: number;
   gifting_credits_balance: number;
+  awarded_credits_locked?: number;
   created_at: string;
   updated_at: string;
   bio: string | null;
