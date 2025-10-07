@@ -38,7 +38,7 @@ export const QuickUnlockModal = ({
     
     const isValid = payment >= minPayment && payment <= maxPayment && creditsToUnlock <= lockedBalance;
     const remainingLocked = Math.max(0, lockedBalance - creditsToUnlock);
-    const newBalance = currentBalance + creditsToUnlock + (payment * 100);
+    const newBalance = currentBalance + creditsToUnlock + payment; // $1 = 1 FXC
     
     let error = '';
     if (payment < minPayment) error = 'Minimum payment is $0.20';
@@ -149,9 +149,9 @@ export const QuickUnlockModal = ({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Payment Credits Bonus:</span>
+              <span className="text-sm text-muted-foreground">Payment Credits:</span>
               <span className="font-medium">
-                +{(parseFloat(paymentAmount || "0") * 100).toFixed(1)} FXC
+                +{(parseFloat(paymentAmount || "0")).toFixed(1)} FXC
               </span>
             </div>
             <div className="flex justify-between items-center">

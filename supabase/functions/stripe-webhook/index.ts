@@ -93,8 +93,8 @@ serve(async (req) => {
           });
         }
 
-        // First, add the payment amount as credits ($10 = 1000 FXC)
-        const creditsFromPayment = paymentAmount * 100;
+        // First, add the payment amount as credits ($1 = 1 FXC)
+        const creditsFromPayment = paymentAmount;
         
         const { error: creditError } = await supabaseClient
           .rpc('increment_flexi_credits_balance', {
