@@ -98,10 +98,10 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'sgd',
             product_data: {
               name: 'Unlock Awarded Credits',
-              description: `Unlock ${creditsToUnlock} FXC by paying $${paymentAmount} (${lockedBalance} FXC locked)`,
+              description: `Unlock ${creditsToUnlock} FXC by paying SGD $${paymentAmount} (${lockedBalance} FXC locked)`,
             },
             unit_amount: Math.round(paymentAmount * 100), // Convert to cents
           },
