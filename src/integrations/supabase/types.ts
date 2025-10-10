@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          description: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          description: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          description?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_variants: {
         Row: {
           ad_content: Json
@@ -1507,11 +1540,12 @@ export type Database = {
           description: string
           id: string
           is_active: boolean
+          is_custom: boolean
           is_popular: boolean
           name: string
           original_price: number | null
           period: string
-          price: number
+          price: number | null
           sort_order: number
           updated_at: string
         }
@@ -1521,11 +1555,12 @@ export type Database = {
           description: string
           id?: string
           is_active?: boolean
+          is_custom?: boolean
           is_popular?: boolean
           name: string
           original_price?: number | null
           period?: string
-          price: number
+          price?: number | null
           sort_order?: number
           updated_at?: string
         }
@@ -1535,11 +1570,12 @@ export type Database = {
           description?: string
           id?: string
           is_active?: boolean
+          is_custom?: boolean
           is_popular?: boolean
           name?: string
           original_price?: number | null
           period?: string
-          price?: number
+          price?: number | null
           sort_order?: number
           updated_at?: string
         }
@@ -1665,7 +1701,9 @@ export type Database = {
           description: string | null
           id: string
           package_details: Json
+          proposal_content: Json | null
           sent_at: string | null
+          share_token: string | null
           status: string
           title: string
           total_amount: number
@@ -1685,7 +1723,9 @@ export type Database = {
           description?: string | null
           id?: string
           package_details: Json
+          proposal_content?: Json | null
           sent_at?: string | null
+          share_token?: string | null
           status?: string
           title: string
           total_amount: number
@@ -1705,7 +1745,9 @@ export type Database = {
           description?: string | null
           id?: string
           package_details?: Json
+          proposal_content?: Json | null
           sent_at?: string | null
+          share_token?: string | null
           status?: string
           title?: string
           total_amount?: number
@@ -2031,6 +2073,7 @@ export type Database = {
           created_by: string | null
           email: string
           full_name: string | null
+          has_completed_tutorial: boolean | null
           id: string
           is_active: boolean
           phone: string | null
@@ -2046,6 +2089,7 @@ export type Database = {
           created_by?: string | null
           email: string
           full_name?: string | null
+          has_completed_tutorial?: boolean | null
           id?: string
           is_active?: boolean
           phone?: string | null
@@ -2061,6 +2105,7 @@ export type Database = {
           created_by?: string | null
           email?: string
           full_name?: string | null
+          has_completed_tutorial?: boolean | null
           id?: string
           is_active?: boolean
           phone?: string | null
@@ -2310,6 +2355,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_create_proposal: {
+        Args: { creator_id: string }
+        Returns: boolean
+      }
       current_user_profile_role: {
         Args: Record<PropertyKey, never>
         Returns: string
