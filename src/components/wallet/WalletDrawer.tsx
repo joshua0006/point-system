@@ -72,7 +72,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
         <DrawerContent className="h-[90vh]">
           <DrawerHeader className="border-b">
             <DrawerTitle className="flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
+              <Wallet className="w-5 h-5" aria-hidden="true" />
               Wallet & Billing
             </DrawerTitle>
           </DrawerHeader>
@@ -80,24 +80,24 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
           <div className="flex-1 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-5 mx-6 mt-4">
-                <TabsTrigger value="overview" className="flex items-center gap-1">
-                  <Wallet className="w-4 h-4" />
+                <TabsTrigger value="overview" className="flex items-center gap-1" aria-label="Overview tab">
+                  <Wallet className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Overview</span>
                 </TabsTrigger>
-                <TabsTrigger value="transactions" className="flex items-center gap-1">
-                  <History className="w-4 h-4" />
+                <TabsTrigger value="transactions" className="flex items-center gap-1" aria-label="Transaction History tab">
+                  <History className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">History</span>
                 </TabsTrigger>
-                <TabsTrigger value="upcoming" className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
+                <TabsTrigger value="upcoming" className="flex items-center gap-1" aria-label="Upcoming Charges tab">
+                  <Clock className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Upcoming</span>
                 </TabsTrigger>
-                <TabsTrigger value="subscription" className="flex items-center gap-1">
-                  <Settings className="w-4 h-4" />
+                <TabsTrigger value="subscription" className="flex items-center gap-1" aria-label="Subscription Plan tab">
+                  <Settings className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Plan</span>
                 </TabsTrigger>
-                <TabsTrigger value="awarded" data-tab="awarded" className="flex items-center gap-1">
-                  <Lock className="w-4 h-4" />
+                <TabsTrigger value="awarded" data-tab="awarded" className="flex items-center gap-1" aria-label="Awarded Credits tab">
+                  <Lock className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Awarded</span>
                 </TabsTrigger>
               </TabsList>
@@ -125,12 +125,12 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                             </p>
                           )}
                         </div>
-                        <Button 
+                        <Button
                           onClick={() => setTopUpModalOpen(true)}
                           size="lg"
                           className="flex items-center gap-2"
                         >
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-4 h-4" aria-hidden="true" />
                           Add Credits
                         </Button>
                       </div>
@@ -152,11 +152,11 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                             </p>
                             <p className="text-xs text-muted-foreground">Credits spent</p>
                           </div>
-                          <TrendingDown className="w-8 h-8 text-destructive" />
+                          <TrendingDown className="w-8 h-8 text-destructive" aria-hidden="true" />
                         </div>
                       </CardContent>
                     </Card>
-                    
+
                     <Card>
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
@@ -167,7 +167,7 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                             </p>
                             <p className="text-xs text-muted-foreground">Credits earned</p>
                           </div>
-                          <TrendingUp className="w-8 h-8 text-success" />
+                          <TrendingUp className="w-8 h-8 text-success" aria-hidden="true" />
                         </div>
                       </CardContent>
                     </Card>
@@ -177,14 +177,14 @@ export function WalletDrawer({ children }: WalletDrawerProps) {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle>Recent Activity</CardTitle>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => setActiveTab("transactions")}
                         className="flex items-center gap-1"
                       >
                         View All
-                        <ArrowUpRight className="w-4 h-4" />
+                        <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
                       </Button>
                     </CardHeader>
                     <CardContent>

@@ -106,6 +106,11 @@ export default function ConsultantDashboard() {
   const { data: consultantReviewStats } = useConsultantRatingStats(user?.id || '');
   const { data: buyerReviewStats } = useBuyerRatingStats(user?.id || '');
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     if (user) {
       fetchConsultantData();
@@ -585,7 +590,7 @@ export default function ConsultantDashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Rating:</span>
                   <div className="flex items-center space-x-1">
-                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                    <Star className="w-3 h-3 text-accent fill-current" />
                     <span className="text-sm font-semibold">{getPerformanceData(performanceMode).rating || 'N/A'}</span>
                   </div>
                 </div>
@@ -637,7 +642,7 @@ export default function ConsultantDashboard() {
               <div className="space-y-2">
                 <div className="text-2xl font-bold text-foreground">{getReviewsData(reviewsMode).count}</div>
                 <div className="flex items-center space-x-1">
-                  <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                  <Star className="w-3 h-3 text-accent fill-current" />
                   <span className="text-sm font-semibold">{getReviewsData(reviewsMode).rating || 'N/A'}</span>
                   <span className="text-xs text-muted-foreground">average</span>
                 </div>

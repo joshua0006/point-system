@@ -40,7 +40,7 @@ export function FixUpgradeButton({ userId }: { userId: string }) {
   };
 
   return (
-    <Button onClick={handleFix} disabled={fixing} variant="outline" className="bg-yellow-50 border-yellow-200 hover:bg-yellow-100">
+    <Button onClick={handleFix} disabled={fixing} variant="outline" className="bg-accent/10 border-accent/20 hover:bg-accent/10">
       {fixing ? "Fixing..." : "Fix Missing Pro 10 Credits (+400)"}
     </Button>
   );

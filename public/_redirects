@@ -1,0 +1,7 @@
+# Netlify Redirects Configuration for React SPA
+# This ensures all routes are handled by React Router (BrowserRouter)
+# Without this, direct URL access or page refreshes will return 404 errors
+
+# Redirect all requests to index.html with 200 status (not 301/302 redirect)
+# React Router will then handle the client-side routing
+/*    /index.html   200

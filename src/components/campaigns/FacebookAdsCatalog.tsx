@@ -160,17 +160,17 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
 
       {/* Templates Grid */}
       <Card>
-        <CardContent className="p-6 space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
             {campaignTemplates.map((template: any) => (
-              <div key={template.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <h3 className="font-medium mb-2">{template.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
-                
+              <div key={template.id} className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <h3 className="font-medium mb-2 text-sm sm:text-base">{template.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">{template.description}</p>
 
-                <Button 
-                  onClick={() => handleCampaignSelect(template)} 
-                  size="sm" 
+
+                <Button
+                  onClick={() => handleCampaignSelect(template)}
+                  size="sm"
                   className="w-full"
                 >
                   Select Template
@@ -184,8 +184,8 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
       {/* Navigation */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={onBack}>
+          <div className="flex justify-start">
+            <Button variant="outline" onClick={onBack} className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Methods
             </Button>
@@ -195,7 +195,7 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
 
       {/* Launch Modal */}
       <Dialog open={showLaunchModal} onOpenChange={setShowLaunchModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-full max-w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Launch Facebook Ad Campaign</DialogTitle>
             <DialogDescription>
@@ -204,14 +204,14 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
           </DialogHeader>
 
           {selectedTemplate && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Campaign Info */}
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 <div>
                   <Label className="text-sm font-medium">Campaign Template</Label>
                   <p className="text-sm text-muted-foreground">{(selectedTemplate as any).name}</p>
                 </div>
-                
+
                 <div>
                   <Label className="text-sm font-medium">Target Audience</Label>
                   <p className="text-sm text-muted-foreground">
@@ -221,7 +221,7 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
               </div>
 
               {/* Budget Settings */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
                   <Label htmlFor="budget" className="text-sm font-medium">Monthly Budget (Points)</Label>
                   <Input
@@ -269,9 +269,9 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
 
               {/* Balance Warning */}
               {campaignData.budget && (userBalance - campaignData.budget) < -1000 && (
-                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                <div className="bg-red-50 dark:bg-red-900/20 p-3 sm:p-4 rounded-lg border border-red-200 dark:border-red-800">
                   <p className="text-red-700 dark:text-red-400 text-sm">
-                    <strong>Balance limit exceeded:</strong> This would bring your balance to {userBalance - campaignData.budget} points. 
+                    <strong>Balance limit exceeded:</strong> This would bring your balance to {userBalance - campaignData.budget} points.
                     The minimum allowed balance is -1000 points.
                   </p>
                 </div>
@@ -280,13 +280,14 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
             </div>
           )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLaunchModal(false)}>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowLaunchModal(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleLaunch}
               disabled={!canLaunch()}
+              className="w-full sm:w-auto"
             >
               <Zap className="h-4 w-4 mr-2" />
               Launch Campaign

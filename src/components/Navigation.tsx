@@ -116,7 +116,7 @@ export function Navigation() {
                   <Wallet className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg sm:text-xl text-foreground">
-                  {isMobile ? "Hub" : "ConsultHub"}
+                  {isMobile ? "Hub" : "AgentHub"}
                 </span>
               </Link>
               

@@ -39,20 +39,19 @@ export function MobileResponsive({
 }
 
 // Utility component for mobile-first responsive containers
-export function ResponsiveContainer({ 
-  children, 
-  className = "" 
-}: { 
+export function ResponsiveContainer({
+  children,
+  className = ""
+}: {
   children: React.ReactNode
-  className?: string 
+  className?: string
 }) {
   const isMobile = useIsMobile()
-  
+
   return (
     <div className={cn(
-      isMobile 
-        ? "container mx-auto px-2 py-4" 
-        : "container mx-auto px-4 py-8",
+      "max-w-7xl mx-auto",
+      isMobile ? "px-3 py-4" : "px-4 py-8 sm:px-6 md:px-8",
       className
     )}>
       {children}

@@ -128,7 +128,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/marketplace?subscription=success`,
+      success_url: `${req.headers.get("origin")}/thank-you?plan_name=${encodeURIComponent(planName)}&credits=${credits}`,
       cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
       metadata: {
         user_id: user.id,

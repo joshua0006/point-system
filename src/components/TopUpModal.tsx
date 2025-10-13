@@ -29,7 +29,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  const { profile, subscription, refreshSubscription } = useAuth();
+  const { profile, subscription, refreshSubscription, refreshProfile } = useAuth();
   const { 
     loading, 
     loadingProration, 
@@ -78,7 +78,11 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
       // Direct subscription for new users
       const result = await processSubscriptionChange(plan.credits, subscription?.subscribed || false);
       if (result.success) {
-        await refreshSubscription();
+        // Refresh subscription and profile to get updated balance
+        await Promise.all([
+          refreshSubscription(),
+          refreshProfile()
+        ]);
         setLastTopUpAmount(plan.price);
         onClose();
         if (onSuccess) {
@@ -92,9 +96,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     if (pendingUpgrade) {
       const result = await processSubscriptionChange(pendingUpgrade.credits, subscription?.subscribed || false);
       if (result.success) {
-        await refreshSubscription();
+        // Refresh subscription and profile to get updated balance
+        await Promise.all([
+          refreshSubscription(),
+          refreshProfile()
+        ]);
         setLastTopUpAmount(pendingUpgrade.price);
-        window.location.reload();
         onClose();
         setShowConfirmationModal(false);
         if (onSuccess) {
@@ -134,7 +141,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className={isMobile ? "max-w-[95vw] max-h-[90vh] p-2 overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50" : "sm:max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50 shadow-2xl"}>
+        <DialogContent className={isMobile ? "max-w-[95vw] max-h-[90vh] p-2 overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50" : "sm:max-w-[1400px] max-h-[95vh] overflow-y-auto bg-gradient-to-br from-background via-background/95 to-muted/20 border-2 border-border/50 shadow-2xl"}>
           <SubscriptionHeader balance={profile?.flexi_credits_balance || 0} />
           
           <div className="space-y-6">

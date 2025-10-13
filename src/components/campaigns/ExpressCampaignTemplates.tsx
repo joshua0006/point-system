@@ -77,7 +77,7 @@ export const ExpressCampaignTemplates = ({ onSelectTemplate, userBalance }: Expr
     <Card className="w-full">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-yellow-500" />
+          <Zap className="h-5 w-5 text-accent" />
           <CardTitle className="text-lg">Quick Start Templates</CardTitle>
           <Badge variant="secondary" className="ml-auto">
             <Clock className="h-3 w-3 mr-1" />

@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Lock, Unlock, AlertTriangle } from "lucide-react";
 import { useUnlockAwardedCredits } from "@/hooks/useUnlockAwardedCredits";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AwardedCreditsUnlockModalProps {
   open: boolean;
@@ -33,6 +34,7 @@ export function AwardedCreditsUnlockModal({
 }: AwardedCreditsUnlockModalProps) {
   const [amountToUnlock, setAmountToUnlock] = useState(maxUnlock);
   const { mutate: unlockCredits, isPending } = useUnlockAwardedCredits();
+  const isMobile = useIsMobile();
 
   const handleUnlock = () => {
     unlockCredits(
@@ -50,7 +52,7 @@ export function AwardedCreditsUnlockModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={isMobile ? "max-w-[95vw] max-h-[90vh] p-3 overflow-y-auto" : "sm:max-w-md max-h-[90vh] overflow-y-auto"}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Unlock className="h-5 w-5 text-primary" />
@@ -147,16 +149,16 @@ export function AwardedCreditsUnlockModal({
             </Button>
             <Button
               onClick={handleUnlock}
-              className="flex-1"
+              className={isMobile ? "flex-1 text-xs" : "flex-1"}
               disabled={isPending || amountToUnlock === 0}
             >
               {isPending ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                  Unlocking...
+                  {isMobile ? "..." : "Unlocking..."}
                 </div>
               ) : (
-                `Unlock ${amountToUnlock} FXC`
+                isMobile ? `Unlock ${amountToUnlock} FXC` : `Unlock ${amountToUnlock} FXC`
               )}
             </Button>
           </div>

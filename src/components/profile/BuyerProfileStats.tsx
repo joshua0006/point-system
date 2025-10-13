@@ -45,7 +45,7 @@ export function BuyerProfileStats({ profileStats }: BuyerProfileStatsProps) {
         title="Average Rating"
         value={rating > 0 ? rating.toFixed(1) : 'N/A'}
         description={rating > 0 ? "based on reviews" : "no reviews yet"}
-        icon={<Star className="w-4 h-4 text-yellow-500" />}
+        icon={<Star className="w-4 h-4 text-accent" />}
       >
         {rating > 0 && (
           <div className="flex items-center mt-1">
@@ -54,7 +54,7 @@ export function BuyerProfileStats({ profileStats }: BuyerProfileStatsProps) {
                 key={star}
                 className={`w-3 h-3 ${
                   star <= Math.round(rating)
-                    ? 'text-yellow-500 fill-current'
+                    ? 'text-accent fill-current'
                     : 'text-gray-300'
                 }`}
               />

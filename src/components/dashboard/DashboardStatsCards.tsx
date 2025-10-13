@@ -24,43 +24,65 @@ export const DashboardStatsCards = memo(({
   const hasExpiringCredits = daysUntilExpiry > 0 && daysUntilExpiry <= 30;
 
   return (
-    <div className={isMobile ? "grid grid-cols-1 gap-4 mb-6" : "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"}>
-      <OptimizedCard className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
+    <section
+      className={isMobile ? "space-y-4 mb-6" : "grid grid-cols-3 gap-6 mb-8"}
+      aria-label="Account statistics"
+    >
+      <OptimizedCard
+        className="border-l-4 border-l-primary"
+        role="region"
+        aria-label={`Flexi-Credits Balance: ${Math.abs(userStats.totalPoints).toLocaleString()} ${userStats.totalPoints < 0 ? 'flexi-credits owed' : 'available flexi-credits'}`}
+      >
         <OptimizedCardHeader className="pb-3">
-          <div className="flex items-center justify-between text-sm font-medium">
+          <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
             Flexi-Credits Balance
-            <Wallet className="w-4 h-4" />
+            <Wallet className="w-4 h-4 text-primary" aria-hidden="true" />
           </div>
         </OptimizedCardHeader>
         <OptimizedCardContent>
-          <div className={`text-2xl font-bold ${userStats.totalPoints < 0 ? 'text-red-200' : ''}`}>
+          <div
+            className="text-2xl font-bold text-foreground"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {userStats.totalPoints < 0 ? 'Owes ' : ''}{Math.abs(userStats.totalPoints).toLocaleString()}{userStats.totalPoints < 0 ? ' pts' : ''}
           </div>
-          <p className="text-xs opacity-90">
+          <p className="text-xs text-muted-foreground">
             {userStats.totalPoints < 0 ? 'flexi-credits owed' : 'available flexi-credits'}
           </p>
         </OptimizedCardContent>
       </OptimizedCard>
 
-      <OptimizedCard
-        className="cursor-pointer hover:shadow-lg transition-shadow border-orange-200 dark:border-orange-800"
+      {isMobile ? (
+        <div className="grid grid-cols-2 gap-4">
+          <OptimizedCard
+        className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-accent"
         onClick={() => setShowQuickUnlock(true)}
+        role="button"
+        tabIndex={0}
+        aria-label={`Locked Awarded Credits: ${userStats.locked_awarded_balance.toFixed(1)} flexi-credits${earliestExpiring ? `, expires on ${new Date(earliestExpiring.expires_at).toLocaleDateString()}` : ''}. Click to unlock credits.`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setShowQuickUnlock(true);
+          }
+        }}
       >
         <OptimizedCardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-medium">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               Locked Awarded FXC
               {hasExpiringCredits && userStats.locked_awarded_balance > 0 && (
-                <Badge variant="outline" className="text-xs border-orange-500 text-orange-600 dark:text-orange-400">
+                <Badge variant="secondary" className="text-xs">
                   Expiring Soon
                 </Badge>
               )}
             </div>
-            <Lock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <Lock className="w-4 h-4 text-accent" aria-hidden="true" />
           </div>
         </OptimizedCardHeader>
         <OptimizedCardContent>
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+          <div className="text-2xl font-bold text-foreground" aria-live="polite">
             {userStats.locked_awarded_balance.toFixed(1)}
           </div>
           {earliestExpiring ? (
@@ -75,14 +97,23 @@ export const DashboardStatsCards = memo(({
         </OptimizedCardContent>
       </OptimizedCard>
 
-      <OptimizedCard 
-        className="cursor-pointer hover:shadow-lg transition-shadow"
+      <OptimizedCard
+        className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-muted-foreground/30"
         onClick={() => onTabChange('transactions')}
+        role="button"
+        tabIndex={0}
+        aria-label={`Total Spent: ${userStats.pointsSpent.toLocaleString()} flexi-credits. Click to view transaction history.`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onTabChange('transactions');
+          }
+        }}
       >
         <OptimizedCardHeader className="pb-3">
-          <div className="flex items-center justify-between text-sm font-medium">
+          <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
             Total Spent
-            <TrendingUp className="w-4 h-4 text-destructive" />
+            <TrendingUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
           </div>
         </OptimizedCardHeader>
         <OptimizedCardContent>
@@ -90,6 +121,77 @@ export const DashboardStatsCards = memo(({
           <p className="text-xs text-muted-foreground">flexi-credits spent</p>
         </OptimizedCardContent>
       </OptimizedCard>
+        </div>
+      ) : (
+        <>
+          <OptimizedCard
+            className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-accent"
+            onClick={() => setShowQuickUnlock(true)}
+            role="button"
+            tabIndex={0}
+            aria-label={`Locked Awarded Credits: ${userStats.locked_awarded_balance.toFixed(1)} flexi-credits${earliestExpiring ? `, expires on ${new Date(earliestExpiring.expires_at).toLocaleDateString()}` : ''}. Click to unlock credits.`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowQuickUnlock(true);
+              }
+            }}
+          >
+            <OptimizedCardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  Locked Awarded FXC
+                  {hasExpiringCredits && userStats.locked_awarded_balance > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      Expiring Soon
+                    </Badge>
+                  )}
+                </div>
+                <Lock className="w-4 h-4 text-accent" aria-hidden="true" />
+              </div>
+            </OptimizedCardHeader>
+            <OptimizedCardContent>
+              <div className="text-2xl font-bold text-foreground" aria-live="polite">
+                {userStats.locked_awarded_balance.toFixed(1)}
+              </div>
+              {earliestExpiring ? (
+                <p className="text-xs text-muted-foreground">
+                  Expires on {new Date(earliestExpiring.expires_at).toLocaleDateString()}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No active awards
+                </p>
+              )}
+            </OptimizedCardContent>
+          </OptimizedCard>
+
+          <OptimizedCard
+            className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-muted-foreground/30"
+            onClick={() => onTabChange('transactions')}
+            role="button"
+            tabIndex={0}
+            aria-label={`Total Spent: ${userStats.pointsSpent.toLocaleString()} flexi-credits. Click to view transaction history.`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onTabChange('transactions');
+              }
+            }}
+          >
+            <OptimizedCardHeader className="pb-3">
+              <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                Total Spent
+                <TrendingUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              </div>
+            </OptimizedCardHeader>
+            <OptimizedCardContent>
+              <div className="text-2xl font-bold text-foreground">{userStats.pointsSpent.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">flexi-credits spent</p>
+            </OptimizedCardContent>
+          </OptimizedCard>
+        </>
+      )}
 
       <QuickUnlockModal
         open={showQuickUnlock}
@@ -97,6 +199,6 @@ export const DashboardStatsCards = memo(({
         lockedBalance={userStats.locked_awarded_balance}
         currentBalance={userStats.totalPoints}
       />
-    </div>
+    </section>
   );
 });

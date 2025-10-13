@@ -70,27 +70,69 @@ export const VASupportPlans: React.FC<VASupportPlansProps> = ({ onBack, larkMemo
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {plans.map((p) => (
-          <Card key={p.key} className={`relative border-2 ${p.highlight ? 'border-primary' : 'border-border'}`}>
-            <CardContent className="p-6 flex flex-col h-full">
+          <Card
+            key={p.key}
+            className={`relative border-2 transition-all duration-300 hover:scale-105 ${
+              p.highlight
+                ? 'border-primary shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 scale-105'
+                : 'border-border hover:border-primary/50 hover:shadow-xl'
+            }`}
+          >
+            <CardContent className="p-8 flex flex-col h-full text-center">
               {p.highlight && (
-                <Badge className="absolute -top-3 left-4" variant="default">Popular</Badge>
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary shadow-md" variant="default">
+                  Most Popular
+                </Badge>
               )}
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-primary/10 p-3 rounded-lg"><MessageSquare className="h-5 w-5 text-primary" /></div>
-                <h3 className="text-xl font-semibold">{p.name}</h3>
+
+              {/* Icon */}
+              <div className="flex justify-center mb-4">
+                <div className={`p-4 rounded-xl ${
+                  p.highlight
+                    ? 'bg-primary shadow-lg'
+                    : 'bg-primary/10'
+                }`}>
+                  <MessageSquare className={`h-6 w-6 ${
+                    p.highlight ? 'text-white' : 'text-primary'
+                  }`} />
+                </div>
               </div>
-              <div className="mb-4">
-                <span className="text-3xl font-bold">S${p.price}</span>
+
+              {/* Plan Name */}
+              <h3 className="text-2xl font-bold mb-4">{p.name}</h3>
+
+              {/* Price */}
+              <div className="mb-6">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-sm text-muted-foreground">S$</span>
+                  <span className="text-5xl font-bold text-foreground">{p.price}</span>
+                </div>
                 <span className="text-sm text-muted-foreground">/month</span>
               </div>
-              <ul className="space-y-2 mb-6">
+
+              {/* Features */}
+              <ul className="space-y-3 mb-8 flex-grow">
                 {p.features.map((f, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5" /> {f}
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-left">{f}</span>
                   </li>
                 ))}
               </ul>
-              <Button onClick={() => handleSubscribe(p.key)} className="mt-auto w-full">Subscribe</Button>
+
+              {/* CTA Button */}
+              <Button
+                onClick={() => handleSubscribe(p.key)}
+                className={`w-full py-6 text-base font-semibold ${
+                  p.highlight
+                    ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
+                    : 'hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                }`}
+                variant={p.highlight ? "default" : "outline"}
+                size="lg"
+              >
+                Subscribe Now
+              </Button>
             </CardContent>
           </Card>
         ))}

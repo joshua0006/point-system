@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
@@ -15,12 +13,12 @@ interface SubscriptionPlansDropdownProps {
   hasSubscription: boolean;
 }
 
-export function SubscriptionPlansDropdown({ 
-  plans, 
-  currentCredits, 
-  isLoading, 
-  onPlanSelect, 
-  hasSubscription 
+export function SubscriptionPlansDropdown({
+  plans,
+  currentCredits,
+  isLoading,
+  onPlanSelect,
+  hasSubscription
 }: SubscriptionPlansDropdownProps) {
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
 
@@ -32,18 +30,21 @@ export function SubscriptionPlansDropdown({
     if (!hasSubscription) {
       return `Subscribe to ${plan.title}`;
     }
-    
+
     if (currentCredits) {
-      return plan.credits > currentCredits 
-        ? `Upgrade to ${plan.title}` 
+      return plan.credits > currentCredits
+        ? `Upgrade to ${plan.title}`
         : `Downgrade to ${plan.title}`;
     }
-    
+
     return `Change to ${plan.title}`;
   };
 
-  const handlePlanChange = (value: string) => {
-    setSelectedPlanId(value);
+  const handlePlanClick = (planCredits: number) => {
+    const isCurrent = isCurrentPlan(planCredits);
+    if (!isCurrent) {
+      setSelectedPlanId(planCredits.toString());
+    }
   };
 
   const handleConfirmSelection = () => {
@@ -55,78 +56,85 @@ export function SubscriptionPlansDropdown({
   };
 
   const selectedPlan = plans.find(plan => plan.credits.toString() === selectedPlanId);
-  const currentPlan = plans.find(plan => isCurrentPlan(plan.credits));
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Select Subscription Plan</CardTitle>
+        <p className="text-sm text-muted-foreground mt-2">
+          Choose a plan that fits your needs • Cancel anytime
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {currentPlan && (
-          <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/20 rounded-lg">
-            <Check className="h-5 w-5 text-success flex-shrink-0" />
-            <div>
-              <div className="font-semibold text-success">Current Plan: {currentPlan.title}</div>
-              <div className="text-sm text-muted-foreground">
-                {currentPlan.credits} credits/month • S${currentPlan.price}/month
-              </div>
-            </div>
-          </div>
-        )}
-
-        <RadioGroup value={selectedPlanId} onValueChange={handlePlanChange} className="space-y-3">
+        {/* Plans Grid - Responsive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {plans.map((plan) => {
             const isCurrent = isCurrentPlan(plan.credits);
+            const isSelected = selectedPlanId === plan.credits.toString();
+
             return (
-              <div key={plan.credits} className="relative">
-                <Label
-                  htmlFor={`plan-${plan.credits}`}
-                  className={`
-                    flex items-center space-x-4 p-4 rounded-lg border-2 cursor-pointer transition-all
-                    ${isCurrent 
-                      ? 'border-success bg-success/5 cursor-not-allowed opacity-75' 
-                      : selectedPlanId === plan.credits.toString()
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border hover:border-primary/50 hover:bg-muted/30'
-                    }
-                  `}
-                >
-                  <RadioGroupItem
-                    value={plan.credits.toString()}
-                    id={`plan-${plan.credits}`}
-                    disabled={isCurrent}
-                    className="flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-lg">{plan.title}</span>
-                        {isCurrent && (
-                          <Badge variant="secondary" className="text-xs">Current</Badge>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">S${plan.price}</div>
-                        <div className="text-sm text-muted-foreground">per month</div>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <div className="text-muted-foreground">
-                        {plan.credits} flexi-credits included monthly
-                      </div>
-                    </div>
+              <div
+                key={plan.credits}
+                onClick={() => handlePlanClick(plan.credits)}
+                className={`
+                  relative p-4 rounded-lg border-2 cursor-pointer transition-all
+                  ${isCurrent
+                    ? 'border-success bg-success/5 cursor-not-allowed'
+                    : isSelected
+                    ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
+                    : 'border-border hover:border-primary/30 hover:bg-muted/20'
+                  }
+                `}
+              >
+                {/* Popular Badge */}
+                {plan.popular && (
+                  <Badge
+                    variant="default"
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-xs px-2"
+                  >
+                    Popular
+                  </Badge>
+                )}
+
+                {/* Plan Content */}
+                <div className="space-y-3 text-center">
+                  {/* Plan Name */}
+                  <div className="font-semibold text-base">
+                    {plan.title}
                   </div>
-                </Label>
+
+                  {/* Current Badge */}
+                  {isCurrent && (
+                    <Badge variant="default" className="bg-success text-xs w-full justify-center">
+                      <Check className="h-3 w-3 mr-1" />
+                      Current
+                    </Badge>
+                  )}
+
+                  {/* Credits */}
+                  <div className="py-2">
+                    <div className="text-2xl font-bold text-primary">
+                      {plan.credits}
+                    </div>
+                    <div className="text-xs text-muted-foreground">credits/mo</div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="pt-2 border-t">
+                    <div className="text-xl font-bold">S${plan.price}</div>
+                    <div className="text-xs text-muted-foreground">/month</div>
+                  </div>
+                </div>
               </div>
             );
           })}
-        </RadioGroup>
+        </div>
 
+        {/* Action Button */}
         <Button
           onClick={handleConfirmSelection}
           disabled={!selectedPlan || isLoading || isCurrentPlan(selectedPlan?.credits || 0)}
-          className="w-full h-12 text-lg"
+          className="w-full h-12 text-base font-semibold"
           size="lg"
         >
           {isLoading ? (
@@ -142,12 +150,13 @@ export function SubscriptionPlansDropdown({
           ) : selectedPlan ? (
             getActionText(selectedPlan)
           ) : (
-            "Select a plan above"
+            "Select a plan to continue"
           )}
         </Button>
 
-        <div className="text-center text-sm text-muted-foreground">
-          Cancel anytime • Keep all unused credits forever
+        {/* Footer Info */}
+        <div className="text-center text-sm text-muted-foreground pt-2 border-t">
+          All unused credits are kept forever
         </div>
       </CardContent>
     </Card>

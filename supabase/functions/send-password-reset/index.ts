@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body>
           <div class="header">
-            <div class="logo">ConsultHub</div>
+            <div class="logo">AgentHub</div>
           </div>
           
           <div class="container">
@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p>Hello,</p>
             
-            <p>We received a request to reset your password for your ConsultHub account. If you made this request, click the button below to reset your password:</p>
+            <p>We received a request to reset your password for your AgentHub account. If you made this request, click the button below to reset your password:</p>
             
             <div style="text-align: center;">
               <a href="${resetUrl}" class="button">Reset Your Password</a>
@@ -68,13 +68,13 @@ const handler = async (req: Request): Promise<Response> => {
               </ul>
             </div>
             
-            <p>If you're having trouble with the button above, you can also reset your password by visiting the ConsultHub login page and clicking "Forgot Password" again.</p>
-            
-            <p>Best regards,<br><strong>The ConsultHub Team</strong></p>
+            <p>If you're having trouble with the button above, you can also reset your password by visiting the AgentHub login page and clicking "Forgot Password" again.</p>
+
+            <p>Best regards,<br><strong>The AgentHub Team</strong></p>
           </div>
           
           <div class="footer">
-            <p>This is an automated message from ConsultHub. Please do not reply to this email.</p>
+            <p>This is an automated message from AgentHub. Please do not reply to this email.</p>
             <p>If you need help, contact our support team.</p>
           </div>
         </body>
@@ -82,9 +82,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "ConsultHub <noreply@mail.themoneybees.co>",
+      from: "AgentHub <noreply@mail.themoneybees.co>",
       to: [email],
-      subject: "Reset Your ConsultHub Password",
+      subject: "Reset Your AgentHub Password",
       html: emailHtml,
     });
 

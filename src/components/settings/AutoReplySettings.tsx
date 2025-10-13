@@ -99,18 +99,20 @@ export function AutoReplySettings() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Auto-Reply Settings</CardTitle>
-        <CardDescription>
+    <Card className="shadow-sm">
+      <CardHeader className="space-y-1 pb-4">
+        <CardTitle className="text-lg sm:text-xl">Auto-Reply Settings</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
           Set up automated responses to send when clients start conversations with you
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label htmlFor="auto-reply-toggle">Enable Auto-Reply</Label>
-            <p className="text-sm text-muted-foreground">
+      <CardContent className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between gap-4 py-2 sm:py-0">
+          <div className="space-y-0.5 flex-1 min-w-0">
+            <Label htmlFor="auto-reply-toggle" className="text-sm font-medium">
+              Enable Auto-Reply
+            </Label>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Automatically send a message when clients start new conversations
             </p>
           </div>
@@ -118,12 +120,15 @@ export function AutoReplySettings() {
             id="auto-reply-toggle"
             checked={autoReplyEnabled}
             onCheckedChange={handleToggle}
+            className="shrink-0"
           />
         </div>
 
         {autoReplyEnabled && (
           <div className="space-y-2">
-            <Label htmlFor="auto-reply-message">Auto-Reply Message</Label>
+            <Label htmlFor="auto-reply-message" className="text-sm font-medium">
+              Auto-Reply Message
+            </Label>
             <Textarea
               id="auto-reply-message"
               placeholder="Hi! Thanks for reaching out. I'll get back to you as soon as possible. In the meantime, feel free to share more details about what you need help with."
@@ -131,17 +136,18 @@ export function AutoReplySettings() {
               onChange={(e) => setAutoReplyMessage(e.target.value)}
               rows={4}
               maxLength={500}
+              className="resize-none min-h-[100px]"
             />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {autoReplyMessage.length}/500 characters
             </p>
           </div>
         )}
 
-        <Button 
+        <Button
           onClick={handleSave}
           disabled={updateAutoReply.isPending}
-          className="w-full"
+          className="w-full h-11"
         >
           {updateAutoReply.isPending ? 'Saving...' : 'Save Settings'}
         </Button>

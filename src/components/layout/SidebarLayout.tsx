@@ -63,7 +63,7 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
                   <Wallet className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg sm:text-xl text-foreground">
-                  ConsultHub
+                  AgentHub
                 </span>
               </Link>
               
@@ -92,62 +92,66 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
         <AppSidebar />
 
         <div className="flex-1 flex flex-col">
-          {/* Top Header */}
-          <header className="h-16 flex items-center justify-between border-b bg-card/50 backdrop-blur-sm px-4 sticky top-0 z-40">
+          {/* Top Header - WCAG 2.1 SC 1.3.1, 2.4.1 */}
+          <header className="h-16 flex items-center justify-between border-b bg-card/50 backdrop-blur-sm px-2 sm:px-4 sticky top-0 z-40" role="banner">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-8 w-8">
                 {isMobile && <Menu className="h-5 w-5" />}
               </SidebarTrigger>
               {title && (
-                <div>
-                  <h1 className="font-semibold text-lg text-foreground">{title}</h1>
-                  {description && (
-                    <p className="text-sm text-muted-foreground">{description}</p>
+                <div className="min-w-0">
+                  <h1 className="font-semibold text-lg text-foreground truncate max-w-[120px] sm:max-w-none">{title}</h1>
+                  {description && !isMobile && (
+                    <p className="text-sm text-muted-foreground truncate">{description}</p>
                   )}
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {/* Demo mode indicator */}
               {profile?.email?.includes('demo') && !isMobile && (
                 <div className="bg-accent/10 text-accent-foreground px-2 py-1 rounded text-xs font-medium">
                   Demo Mode
                 </div>
               )}
-              
+
               {/* Mode toggle for non-consultant users on desktop */}
               {userRole !== "consultant" && !isMobile && (
                 <ModeToggle />
               )}
-              
-              {/* Wallet Balance - Clickable */}
-              <div 
+
+              {/* Wallet Balance - Clickable - WCAG 2.1 SC 2.1.1, 2.5.5 */}
+              <button
                 onClick={() => setShowTopUpModal(true)}
-                className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/10 transition-colors"
+                className="group flex items-center gap-1 bg-card border rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-accent transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 min-h-[44px]"
+                aria-label={`Wallet balance: ${profile?.flexi_credits_balance?.toLocaleString() || 0} flexi-credits. Click to top up`}
+                type="button"
               >
-                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-                <span className="font-semibold text-foreground text-sm sm:text-base">
+                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-semibold text-foreground text-sm sm:text-base group-hover:text-white transition-colors">
                   {profile?.flexi_credits_balance?.toLocaleString() || 0}
                 </span>
-                <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">
+                <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
                   flexi-credits
                 </span>
-              </div>
+              </button>
               
-              {/* Locked Awarded FXC - Click to view in dashboard */}
-              <div 
+              {/* Locked Awarded FXC - Click to view in dashboard - WCAG 2.1 SC 2.1.1, 2.5.5 */}
+              <button
                 onClick={() => navigate('/dashboard?tab=awarded')}
-                className="flex items-center space-x-1 sm:space-x-2 bg-orange-500/10 border border-orange-200 dark:border-orange-800 rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-orange-500/20 transition-colors"
+                className="group flex items-center gap-1 bg-orange-500/10 border border-orange-200 dark:border-orange-800 rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-orange-500/90 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 min-h-[44px]"
+                aria-label={`Locked awarded credits: ${awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'} AFC. Click to view details in dashboard`}
+                type="button"
               >
-                <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
-                <span className="font-semibold text-orange-600 dark:text-orange-400 text-sm sm:text-base">
+                <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-semibold text-orange-600 dark:text-orange-400 text-sm sm:text-base group-hover:text-white transition-colors">
                   {awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'}
                 </span>
-                <span className="text-orange-600/70 dark:text-orange-400/70 text-xs sm:text-sm hidden sm:inline">
+                <span className="text-orange-600/70 dark:text-orange-400/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
                   AFC
                 </span>
-              </div>
+              </button>
               
               {/* User Menu - Hidden on mobile */}
               {!isMobile && (
@@ -181,8 +185,8 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
             </div>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto">
+          {/* Main Content - WCAG 2.1 SC 1.3.1, 2.4.1 */}
+          <main className="flex-1 overflow-auto" role="main">
             {children}
           </main>
         </div>

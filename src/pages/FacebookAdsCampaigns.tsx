@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { logger } from "@/utils/logger";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Navigation } from "@/components/Navigation";
-import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical, ArrowLeft } from "lucide-react";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
@@ -18,6 +19,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { SuperAdminInterface } from "@/components/campaigns/SuperAdminInterface";
+import { WalletBalanceCard } from "@/components/wallet/WalletBalanceCard";
 
 const FacebookAdsCampaigns = () => {
   const { user, signOut, profile, refreshProfile } = useAuth();
@@ -36,6 +38,11 @@ const FacebookAdsCampaigns = () => {
   const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
   const isMobile = useIsMobile();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     checkAdminStatus();
@@ -424,33 +431,40 @@ const FacebookAdsCampaigns = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
+    <SidebarLayout title="Facebook Ad Campaigns" description="Launch targeted Facebook advertising campaigns to reach your ideal audience">
       <ResponsiveContainer>
-        <div className={isMobile ? "pt-4" : "pt-8"}>
-          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-            <div className="flex items-center gap-4 mb-4">
-              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Campaigns
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                <Target className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h1 className={isMobile ? "text-xl font-bold text-foreground mb-1" : "text-2xl sm:text-3xl font-bold text-foreground mb-1"}>
-                  Facebook Ad Campaigns
-                </h1>
-                <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-                  Launch targeted Facebook advertising campaigns to reach your ideal audience
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className={isMobile ? "pt-2" : "pt-4"}>
+          {/* Hero Section - Accessibility Enhanced */}
+          <header
+            className={`${isMobile ? "mb-8" : "mb-12"} text-center`}
+            role="banner"
+            aria-labelledby="facebook-ads-heading"
+          >
+            <Badge
+              variant="secondary"
+              className="inline-flex items-center gap-2 mb-4 px-4 py-2"
+            >
+              <Target className="h-4 w-4" aria-hidden="true" />
+              <span>Facebook Advertising</span>
+            </Badge>
+            <h1
+              id="facebook-ads-heading"
+              className={`${isMobile ? "text-2xl" : "text-3xl"} font-bold mb-3 text-primary`}
+            >
+              Launch Facebook Ad Campaigns
+            </h1>
+            <p className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground max-w-2xl mx-auto`}>
+              Reach your ideal audience with targeted Facebook advertising campaigns
+            </p>
+          </header>
+
+          {/* Wallet Balance Card */}
+          <WalletBalanceCard
+            balance={profile?.flexi_credits_balance || 0}
+            isMobile={isMobile}
+            onTopUpClick={() => setTopUpModalOpen(true)}
+            className={isMobile ? "mb-10" : "mb-16"}
+          />
 
           {isAdmin && (
             <SuperAdminInterface />
@@ -465,66 +479,100 @@ const FacebookAdsCampaigns = () => {
         </div>
       </ResponsiveContainer>
 
-      {/* Checkout Modal */}
+      {/* Checkout Modal - Simple & Minimal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent
+          className="max-w-md"
+          aria-describedby="campaign-confirmation-description"
+        >
           <DialogHeader>
-            <DialogTitle>Confirm Facebook Ads Campaign Launch</DialogTitle>
-            <DialogDescription>
-              Review your campaign details before launching.
+            <DialogTitle>Confirm Campaign Launch</DialogTitle>
+            <DialogDescription id="campaign-confirmation-description">
+              Review the details before confirming.
             </DialogDescription>
           </DialogHeader>
-          
-          <Card className="mb-4">
-            <CardContent>
-              <h3 className="text-lg font-semibold mb-2">Campaign Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <strong>Method:</strong> {pendingCampaign?.method}
-                </div>
-                <div>
-                  <strong>Budget:</strong> ${pendingCampaign?.budget}
-                </div>
-                <div>
-                  <strong>Consultant:</strong> {profile?.full_name || 'Unknown'}
-                </div>
-                <div>
-                  <strong>Target Audience:</strong> {pendingCampaign?.targetAudience?.name}
-                </div>
-                <div>
-                  <strong>Prorate First Month:</strong> {pendingCampaign?.prorateFirstMonth ? 'Yes' : 'No'}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="mb-4">
-            <CardContent>
-              <h3 className="text-lg font-semibold mb-2">Payment Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <strong>Current Balance:</strong> {profile?.flexi_credits_balance} points
-                </div>
-                <div>
-                  <strong>Amount to Deduct:</strong> {pendingCampaign?.prorateFirstMonth ? 
-                    Math.max(1, Math.round((pendingCampaign?.budget * new Date().getDate()) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
-                    : pendingCampaign?.budget} points
-                </div>
-                <div>
-                  <strong>Balance After Deduction:</strong> {profile?.flexi_credits_balance - (pendingCampaign?.prorateFirstMonth ? 
-                    Math.max(1, Math.round((pendingCampaign?.budget * new Date().getDate()) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
-                    : pendingCampaign?.budget)} points
-                </div>
+          <div className="space-y-4 py-4">
+            {/* Campaign Details */}
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Target Audience</span>
+                <strong>{pendingCampaign?.targetAudience?.name}</strong>
               </div>
-            </CardContent>
-          </Card>
-          
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="flex-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Monthly Budget</span>
+                <strong>{pendingCampaign?.budget} points</strong>
+              </div>
+            </div>
+
+            {/* Payment Calculation */}
+            <div className="space-y-3 pt-4 border-t">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Current Balance</span>
+                <span className="tabular-nums">{profile?.flexi_credits_balance?.toLocaleString()} points</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Deduct Now</span>
+                <span className="tabular-nums text-destructive">
+                  -{(pendingCampaign?.prorateFirstMonth ?
+                    Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
+                    : pendingCampaign?.budget)?.toLocaleString()} points
+                </span>
+              </div>
+              <div
+                className="flex justify-between pt-3 border-t"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <span className="font-medium">New Balance</span>
+                <strong className={`tabular-nums ${
+                  (profile?.flexi_credits_balance || 0) - (pendingCampaign?.prorateFirstMonth ?
+                    Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
+                    : pendingCampaign?.budget || 0) < 0
+                    ? 'text-destructive'
+                    : ''
+                }`}>
+                  {((profile?.flexi_credits_balance || 0) - (pendingCampaign?.prorateFirstMonth ?
+                    Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
+                    : pendingCampaign?.budget || 0))?.toLocaleString()} points
+                </strong>
+              </div>
+            </div>
+
+            {/* Proration Notice */}
+            {pendingCampaign?.prorateFirstMonth && (
+              <p className="text-sm text-muted-foreground">
+                First payment prorated for remaining days this month
+              </p>
+            )}
+
+            {/* Negative Balance Warning */}
+            {(profile?.flexi_credits_balance || 0) - (pendingCampaign?.prorateFirstMonth ?
+              Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
+              : pendingCampaign?.budget || 0) < 0 && (
+              <p className="text-sm text-destructive" role="alert">
+                Your balance will be negative (minimum allowed: -1000)
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 flex-col-reverse sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setShowCheckoutModal(false)}
+              className="w-full sm:w-auto"
+              aria-label="Cancel campaign launch"
+            >
               Cancel
             </Button>
-            <Button onClick={confirmCheckout} className="flex-1">
-              <DollarSign className="h-4 w-4 mr-2" />
+            <Button
+              onClick={confirmCheckout}
+              className="w-full sm:w-auto"
+              aria-label={`Confirm and launch campaign. This will deduct ${pendingCampaign?.prorateFirstMonth ?
+                Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
+                : pendingCampaign?.budget} points from your account`}
+            >
               Confirm & Launch
             </Button>
           </DialogFooter>
@@ -546,7 +594,7 @@ const FacebookAdsCampaigns = () => {
         onClose={() => setTopUpModalOpen(false)}
         onSuccess={refreshProfile}
       />
-    </div>
+    </SidebarLayout>
   );
 };
 

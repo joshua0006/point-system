@@ -1,23 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CreditCard, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopUpModal } from '@/components/TopUpModal';
 import { useToast } from '@/hooks/use-toast';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { CampaignMethodSelector } from '@/components/campaigns/CampaignMethodSelector';
-import { useState } from 'react';
+import { WalletBalanceCard } from '@/components/wallet/WalletBalanceCard';
 
 const CampaignLaunch = React.memo(() => {
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
-  const { user, profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleTopUpSuccess = (points: number) => {
     refreshProfile();
@@ -30,57 +32,48 @@ const CampaignLaunch = React.memo(() => {
   return (
     <SidebarLayout title="Launch New Campaign" description="Select a campaign type to get started">
       <ResponsiveContainer>
-        <div className={isMobile ? "pt-4" : "pt-8"}>
-          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-            <div className="flex items-center gap-2 mb-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/campaigns/my-campaigns')}
-                className="flex items-center gap-1"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to My Campaigns
-              </Button>
-            </div>
-          </div>
+        <div className={isMobile ? "pt-2" : "pt-4"}>
+          {/* Hero Section - Accessibility Enhanced */}
+          <header
+            className={`${isMobile ? "mb-8" : "mb-12"} text-center`}
+            role="banner"
+            aria-labelledby="campaign-launch-heading"
+          >
+            <Badge
+              variant="secondary"
+              className="inline-flex items-center gap-2 mb-3 px-4 py-2"
+            >
+              <Zap className="h-4 w-4" aria-hidden="true" />
+              <span>Campaign Launch Center</span>
+            </Badge>
+            <h1
+              id="campaign-launch-heading"
+              className={`${isMobile ? "text-2xl" : "text-3xl"} font-bold mb-3 text-primary`}
+            >
+              Launch Your Next Campaign
+            </h1>
+            <p className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground max-w-2xl mx-auto`}>
+              Choose from our proven campaign strategies to generate quality leads and grow your business
+            </p>
+          </header>
 
           {/* Wallet Balance Card */}
-          <div className="mb-8">
-            <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Wallet Balance</span>
-                  <Button 
-                    onClick={() => setTopUpModalOpen(true)}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Top Up Wallet
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-primary">
-                  {profile?.flexi_credits_balance || 0} points
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Available for campaign launches and services
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          <WalletBalanceCard
+            balance={profile?.flexi_credits_balance || 0}
+            isMobile={isMobile}
+            onTopUpClick={() => setTopUpModalOpen(true)}
+            className={isMobile ? "mb-10" : "mb-16"}
+          />
 
           {/* Campaign Method Selection */}
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <CampaignMethodSelector />
           </div>
         </div>
       </ResponsiveContainer>
 
       {/* Top Up Modal */}
-      <TopUpModal 
+      <TopUpModal
         isOpen={topUpModalOpen}
         onClose={() => setTopUpModalOpen(false)}
         onSuccess={handleTopUpSuccess}

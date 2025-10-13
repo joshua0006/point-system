@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface RecurringDeduction {
   id: string;
@@ -17,6 +18,7 @@ interface RecurringDeduction {
 }
 
 export function UserRecurringDeductions() {
+  const isMobile = useIsMobile();
   const [deductions, setDeductions] = useState<RecurringDeduction[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,55 +95,112 @@ export function UserRecurringDeductions() {
         <CardDescription>Your scheduled monthly deductions</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Reason</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Day of Month</TableHead>
-                <TableHead>Next Billing</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deductions.map((deduction) => {
-                const isOverdue = new Date(deduction.next_billing_date) < new Date();
-                
-                return (
-                  <TableRow key={deduction.id}>
-                    <TableCell className="max-w-xs truncate" title={deduction.reason}>
-                      {deduction.reason}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      -{deduction.amount} FC
-                    </TableCell>
-                    <TableCell>
-                      Day {deduction.day_of_month}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {format(new Date(deduction.next_billing_date), 'MMM dd, yyyy')}
+        {isMobile ? (
+          // Mobile: Card layout
+          <div className="space-y-3">
+            {deductions.map((deduction) => {
+              const isOverdue = new Date(deduction.next_billing_date) < new Date();
+
+              return (
+                <Card key={deduction.id} className="border-l-4 border-l-primary">
+                  <CardContent className="pt-4 pb-3 space-y-3">
+                    {/* Reason & Status */}
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-semibold text-sm leading-tight flex-1">
+                        {deduction.reason}
+                      </h4>
+                      <Badge
+                        variant={deduction.status === 'active' ? 'default' : 'secondary'}
+                      >
+                        {deduction.status}
+                      </Badge>
+                    </div>
+
+                    {/* Amount & Day */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Amount</p>
+                        <p className="font-bold text-lg text-destructive">
+                          -{deduction.amount} FC
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Billing Day</p>
+                        <p className="font-medium text-sm">
+                          Day {deduction.day_of_month}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Next Billing */}
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Next Billing Date</p>
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-sm">
+                          {format(new Date(deduction.next_billing_date), 'MMM dd, yyyy')}
+                        </p>
                         {isOverdue && (
                           <Badge variant="destructive" className="text-xs">
                             Overdue
                           </Badge>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={deduction.status === 'active' ? 'default' : 'secondary'}
-                      >
-                        {deduction.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          // Desktop: Table layout
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Day of Month</TableHead>
+                  <TableHead>Next Billing</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deductions.map((deduction) => {
+                  const isOverdue = new Date(deduction.next_billing_date) < new Date();
+
+                  return (
+                    <TableRow key={deduction.id}>
+                      <TableCell className="max-w-xs truncate" title={deduction.reason}>
+                        {deduction.reason}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        -{deduction.amount} FC
+                      </TableCell>
+                      <TableCell>Day {deduction.day_of_month}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {format(new Date(deduction.next_billing_date), 'MMM dd, yyyy')}
+                          {isOverdue && (
+                            <Badge variant="destructive" className="text-xs">
+                              Overdue
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={deduction.status === 'active' ? 'default' : 'secondary'}
+                        >
+                          {deduction.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

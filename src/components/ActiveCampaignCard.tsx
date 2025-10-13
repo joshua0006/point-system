@@ -101,12 +101,12 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
   };
 
   return (
-    <Card className={`transition-all duration-300 ${isPaused ? 'opacity-75 border-yellow-200' : 'border-green-200 bg-green-50/30'}`}>
+    <Card className={`transition-all duration-300 ${isPaused ? 'opacity-75 border-accent/20' : 'border-green-200 bg-green-50/30'}`}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isPaused ? 'bg-yellow-100' : 'bg-blue-100'}`}>
-              <Target className={`h-5 w-5 ${isPaused ? 'text-yellow-600' : 'text-blue-600'}`} />
+            <div className={`p-2 rounded-lg ${isPaused ? 'bg-accent/10' : 'bg-blue-100'}`}>
+              <Target className={`h-5 w-5 ${isPaused ? 'text-accent' : 'text-blue-600'}`} />
             </div>
             <div>
               <CardTitle className="text-lg">{campaign.consultant_name}'s Campaign</CardTitle>
@@ -206,7 +206,7 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <AlertTriangle className="h-5 w-5 text-accent" />
                     Pause Campaign
                   </DialogTitle>
                   <DialogDescription>
@@ -234,7 +234,7 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
         </div>
 
         {isPaused && (
-          <div className="mt-3 p-2 bg-yellow-100 border border-yellow-200 rounded-lg flex items-center gap-2 text-sm text-yellow-800">
+          <div className="mt-3 p-2 bg-accent/10 border border-accent/20 rounded-lg flex items-center gap-2 text-sm text-accent-foreground">
             <AlertTriangle className="h-4 w-4" />
             Campaign is paused. No new leads will be generated.
           </div>

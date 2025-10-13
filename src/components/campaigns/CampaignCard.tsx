@@ -38,8 +38,8 @@ export const CampaignCard = ({
 
   const tierColors = {
     bronze: "bg-amber-100 text-amber-800 border-amber-200",
-    silver: "bg-slate-100 text-slate-800 border-slate-200", 
-    gold: "bg-yellow-100 text-yellow-800 border-yellow-200"
+    silver: "bg-slate-100 text-slate-800 border-slate-200",
+    gold: "bg-accent/10 text-accent border-accent/20"
   };
 
   return (

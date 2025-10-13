@@ -4,7 +4,7 @@ import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Plus, Target, BarChart3 } from 'lucide-react';
+import { CreditCard, Plus, Target, BarChart3, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopUpModal } from '@/components/TopUpModal';
@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCampaignTargets } from '@/hooks/useCampaignTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { WalletBalanceCard } from '@/components/wallet/WalletBalanceCard';
 
 // Lazy load heavy components for optimal performance
 const ActiveCampaigns = lazy(() => import('@/components/campaigns/ActiveCampaigns').then(m => ({ default: m.ActiveCampaigns })));
@@ -22,7 +23,7 @@ const LoadingSkeleton = () => (
   <div className="space-y-4">
     {[1, 2, 3].map(i => (
       <Card key={i}>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           <div className="h-4 bg-gray-200 rounded w-1/3 mb-2 animate-pulse"></div>
           <div className="h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
         </CardContent>
@@ -43,6 +44,11 @@ const MyCampaigns = React.memo(() => {
   const [adminMode, setAdminMode] = useState(false);
   const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     checkAdminStatus();
@@ -189,33 +195,47 @@ const MyCampaigns = React.memo(() => {
   return (
     <SidebarLayout title="My Campaigns" description="Manage your active lead generation campaigns">
       <ResponsiveContainer>
-        <div className={isMobile ? "pt-4" : "pt-8"}>
-          {/* Wallet Balance Card and Launch Button */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Card className="w-full max-w-md">
-              <CardContent className="p-6 text-center bg-gradient-to-r from-primary/5 to-primary/10">
-                <h2 className="text-lg font-semibold mb-2">Campaign Wallet</h2>
-                <div className="text-3xl font-bold text-primary mb-4">
-                  {profile?.flexi_credits_balance || 0} points
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => setTopUpModalOpen(true)}
-                    className="flex-1"
-                    variant="outline"
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Top Up
-                  </Button>
-                  <Button asChild className="flex-1">
-                    <Link to="/campaigns/launch">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Launch
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+        <div className={isMobile ? "pt-2" : "pt-4"}>
+          {/* Hero Section - Accessibility Enhanced */}
+          <header
+            className={`${isMobile ? "mb-8" : "mb-12"} text-center`}
+            role="banner"
+            aria-labelledby="my-campaigns-heading"
+          >
+            <Badge
+              variant="secondary"
+              className="inline-flex items-center gap-2 mb-3 px-4 py-2"
+            >
+              <Target className="h-4 w-4" aria-hidden="true" />
+              <span>My Campaigns</span>
+            </Badge>
+            <h1
+              id="my-campaigns-heading"
+              className={`${isMobile ? "text-2xl" : "text-3xl"} font-bold mb-3 text-primary`}
+            >
+              My Active Campaigns
+            </h1>
+            <p className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground max-w-2xl mx-auto`}>
+              Manage and monitor your active lead generation campaigns
+            </p>
+          </header>
+
+          {/* Wallet Balance Card */}
+          <WalletBalanceCard
+            balance={profile?.flexi_credits_balance || 0}
+            isMobile={isMobile}
+            onTopUpClick={() => setTopUpModalOpen(true)}
+            className="mb-8"
+          />
+
+          {/* Launch Button */}
+          <div className="flex justify-center mb-8 px-4 sm:px-0">
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link to="/campaigns/launch">
+                <Plus className="mr-2 h-4 w-4" />
+                Launch New Campaign
+              </Link>
+            </Button>
           </div>
 
           {/* Main Content */}
@@ -225,10 +245,10 @@ const MyCampaigns = React.memo(() => {
               <div className="text-center py-12">
                 <div className="max-w-md mx-auto">
                   <div className="mb-6">
-                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Target className="w-10 h-10 text-primary" />
+                    <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <Target className="w-10 h-10 text-white" />
                     </div>
-                    <h2 className="text-xl font-semibold mb-2">No Campaigns Yet</h2>
+                    <h2 className="text-lg font-semibold mb-2">No Campaigns Yet</h2>
                     <p className="text-muted-foreground mb-6">
                       Launch your first lead generation campaign to start attracting customers
                     </p>
@@ -244,15 +264,7 @@ const MyCampaigns = React.memo(() => {
             ) : (
               // Show campaigns
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold">Active Campaigns</h2>
-                  <Button asChild variant="outline">
-                    <Link to="/campaigns/launch">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Launch New Campaign
-                    </Link>
-                  </Button>
-                </div>
+               
 
                 <Suspense fallback={<LoadingSkeleton />}>
                   <ActiveCampaigns 
@@ -266,20 +278,23 @@ const MyCampaigns = React.memo(() => {
             {/* Admin Tools */}
             {isAdmin && (
               <div className="mt-12">
-                <div className="flex items-center gap-2 mb-6">
-                  <BarChart3 className="h-5 w-5" />
-                  <h2 className="text-xl font-semibold">Admin Tools</h2>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-primary rounded-lg shadow-lg">
+                    <BarChart3 className="h-5 w-5 text-white" />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-semibold">Admin Tools</h2>
                 </div>
-                
+
                 <div className="grid gap-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">Campaign Management</h3>
-                      <p className="text-sm text-muted-foreground">Manage campaign targets and templates</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm sm:text-base">Campaign Management</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Manage campaign targets and templates</p>
                     </div>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => setAdminMode(!adminMode)}
+                      className="w-full sm:w-auto"
                     >
                       {adminMode ? 'Hide' : 'Show'} Admin Panel
                     </Button>

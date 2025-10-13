@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { MarketplaceHero } from '@/components/marketplace/MarketplaceHero';
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters';
@@ -19,7 +19,12 @@ const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedTier, setSelectedTier] = useState<string>('All');
   const isMobile = useIsMobile();
-  
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: services = [], isLoading: servicesLoading, error: servicesError } = useServices();

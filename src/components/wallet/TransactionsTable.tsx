@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -18,21 +18,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Search, 
-  Download, 
+import {
+  Search,
+  Download,
   Filter,
   ArrowUpDown,
   TrendingUp,
-  TrendingDown 
+  TrendingDown
 } from "lucide-react";
 import { TransactionHistoryItem } from "@/hooks/useTransactionHistory";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TransactionsTableProps {
   transactions: TransactionHistoryItem[];
 }
 
 export function TransactionsTable({ transactions }: TransactionsTableProps) {
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -128,15 +130,16 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Transaction History</span>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <span className={isMobile ? "text-base" : ""}>Transaction History</span>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={exportToCSV}
               className="flex items-center gap-2"
+              aria-label="Export transactions to CSV"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              {!isMobile && <span>Export CSV</span>}
             </Button>
           </CardTitle>
         </CardHeader>
@@ -153,7 +156,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
             </div>
             
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className={isMobile ? "w-full" : "w-[150px]"}>
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -162,77 +165,136 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                 <SelectItem value="spent">Spent</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-              className="flex items-center gap-2"
+              className={`flex items-center gap-2 ${isMobile ? "w-full" : ""}`}
             >
               <ArrowUpDown className="w-4 h-4" />
               {sortOrder === "desc" ? "Newest" : "Oldest"}
             </Button>
           </div>
           
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Consultant</TableHead>
-                  <TableHead className="text-right">Points</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedTransactions.length > 0 ? (
-                  filteredAndSortedTransactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell className="font-medium">
-                        {new Date(transaction.date).toLocaleDateString()}
+          {/* Desktop Table View */}
+          {!isMobile ? (
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Consultant</TableHead>
+                    <TableHead className="text-right">Points</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedTransactions.length > 0 ? (
+                    filteredAndSortedTransactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="font-medium">
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={transaction.type === "earned" ? "default" : "secondary"}
+                            className={transaction.type === "earned" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}
+                          >
+                            {transaction.type === "earned" ? "Earned" : "Spent"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{transaction.service}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {transaction.consultant || "N/A"}
+                        </TableCell>
+                        <TableCell className={`text-right font-semibold ${
+                          transaction.type === "earned" ? "text-success" : "text-destructive"
+                        }`}>
+                          {transaction.type === "earned" ? "+" : "-"}
+                          {Math.abs(transaction.points).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={transaction.status === "completed" ? "default" : "secondary"}
+                          >
+                            {transaction.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        {searchTerm || typeFilter !== "all"
+                          ? "No transactions match your filters"
+                          : "No transactions found"
+                        }
                       </TableCell>
-                      <TableCell>
-                        <Badge 
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            /* Mobile Card View */
+            <div className="space-y-3">
+              {filteredAndSortedTransactions.length > 0 ? (
+                filteredAndSortedTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border"
+                  >
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge
                           variant={transaction.type === "earned" ? "default" : "secondary"}
                           className={transaction.type === "earned" ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"}
                         >
                           {transaction.type === "earned" ? "Earned" : "Spent"}
                         </Badge>
-                      </TableCell>
-                      <TableCell>{transaction.service}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {transaction.consultant || "N/A"}
-                      </TableCell>
-                      <TableCell className={`text-right font-semibold ${
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm">{transaction.service}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {transaction.consultant && (
+                          <>
+                            <span>{transaction.consultant}</span>
+                            <span>•</span>
+                          </>
+                        )}
+                        <Badge
+                          variant={transaction.status === "completed" ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="text-right ml-4">
+                      <p className={`font-bold text-lg ${
                         transaction.type === "earned" ? "text-success" : "text-destructive"
                       }`}>
                         {transaction.type === "earned" ? "+" : "-"}
                         {Math.abs(transaction.points).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={transaction.status === "completed" ? "default" : "secondary"}
-                        >
-                          {transaction.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      {searchTerm || typeFilter !== "all" 
-                        ? "No transactions match your filters"
-                        : "No transactions found"
-                      }
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchTerm || typeFilter !== "all"
+                    ? "No transactions match your filters"
+                    : "No transactions found"
+                  }
+                </div>
+              )}
+            </div>
+          )}
           
           {filteredAndSortedTransactions.length > 0 && (
             <div className="flex justify-between items-center mt-4 text-sm text-muted-foreground">

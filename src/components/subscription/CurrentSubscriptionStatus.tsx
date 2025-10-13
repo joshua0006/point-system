@@ -34,35 +34,35 @@ export function CurrentSubscriptionStatus({
   };
 
   return (
-    <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 border-2 border-primary/20">
+    <div className="bg-primary rounded-lg p-6 border-2 border-primary-foreground/20">
       <div className="text-center mb-4">
-        <h3 className="font-bold text-xl text-primary mb-2">📅 Current Subscription</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="font-bold text-xl text-primary-foreground mb-2">📅 Current Subscription</h3>
+        <p className="text-sm text-primary-foreground/80">
           {hasSubscription ? "Your subscription renews monthly" : "No active subscription"}
         </p>
       </div>
-      
+
       <div className="text-center">
-        <div className="text-lg font-semibold mb-2">
-          Current Plan: <span className="text-primary">
+        <div className="text-lg font-semibold mb-2 text-primary-foreground">
+          Current Plan: <span className="font-bold">
             {hasSubscription ? planName || "Active Subscription" : "No Plan"}
           </span>
         </div>
-        
+
         {hasSubscription && (
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-primary-foreground/80 mb-4">
             {creditsPerMonth} credits/month • Next billing: {formatDate(subscriptionEnd || null)}
           </p>
         )}
-        
+
         {/* Plan Change Instructions */}
         {hasSubscription && (
-          <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-accent-foreground mb-2">💡 How to Change Your Plan</h4>
-            <p className="text-sm text-muted-foreground mb-3">
+          <div className="bg-primary-foreground/10 border border-primary-foreground/20 rounded-lg p-4 mb-4">
+            <h4 className="font-medium text-primary-foreground mb-2">💡 How to Change Your Plan</h4>
+            <p className="text-sm text-primary-foreground/80 mb-3">
               To upgrade or downgrade your plan, select a new plan below. You'll be redirected to Stripe's secure checkout page to complete the change.
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-primary-foreground/80">
               For billing details and payment methods, use "Manage Subscription & Billing" below.
             </p>
           </div>

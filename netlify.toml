@@ -1,0 +1,38 @@
+# Netlify Configuration for Point Perk Plaza
+# React SPA with Vite build tool
+
+[build]
+  # Build command from package.json
+  command = "npm run build"
+
+  # Directory with build output (Vite default)
+  publish = "dist"
+
+  # Environment variables
+  [build.environment]
+    NODE_VERSION = "18"
+
+# SPA Redirect Rule
+# Ensures all routes are handled by React Router
+# This is the same as _redirects but provides additional configuration options
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Optional: Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

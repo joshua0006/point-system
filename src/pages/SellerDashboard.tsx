@@ -279,7 +279,7 @@ export default function SellerDashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Rating:</span>
                   <div className="flex items-center space-x-1">
-                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                    <Star className="w-3 h-3 text-accent fill-current" />
                     <span className="text-sm font-semibold">4.8</span>
                   </div>
                 </div>

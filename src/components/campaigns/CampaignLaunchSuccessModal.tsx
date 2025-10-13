@@ -1,9 +1,6 @@
-import { CheckCircle, Download, Mail, Camera, Target, Phone, MessageSquare } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 
 interface CampaignDetails {
@@ -17,6 +14,8 @@ interface CampaignDetails {
   };
   campaignType?: string;
   budget: number;
+  amountDeducted?: number;
+  newBalance?: number;
   consultantName: string;
   hours?: number;
 }
@@ -27,203 +26,66 @@ interface CampaignLaunchSuccessModalProps {
   campaignDetails: CampaignDetails;
 }
 
-export const CampaignLaunchSuccessModal = ({ 
-  isOpen, 
-  onClose, 
-  campaignDetails 
+export const CampaignLaunchSuccessModal = ({
+  isOpen,
+  onClose,
+  campaignDetails
 }: CampaignLaunchSuccessModalProps) => {
   const navigate = useNavigate();
-  
-  // Return early if campaignDetails is null
+
   if (!campaignDetails) {
     return null;
   }
-  
-  const isFacebookAds = campaignDetails.method === 'facebook-ads';
-  const isColdCalling = campaignDetails.method === 'cold-calling';
-  const isVA = campaignDetails.method === 'va-support';
-  const IconComponent = isFacebookAds ? Target : isColdCalling ? Phone : MessageSquare;
-  const iconColor = isFacebookAds ? 'text-blue-600' : isColdCalling ? 'text-green-600' : 'text-purple-600';
-  const bgColor = isFacebookAds ? 'bg-blue-500/10' : isColdCalling ? 'bg-green-500/10' : 'bg-purple-500/10';
-
-  const handleSendEmail = () => {
-    const subject = encodeURIComponent(`Campaign Activation Request - ${campaignDetails.name}`);
-    const body = encodeURIComponent(`
-Hi Admin,
-
-I have successfully submitted a new campaign and need it activated:
-
-Campaign Details:
-- Campaign ID: ${campaignDetails.id}
-- Name: ${campaignDetails.name}
-- Type: ${isFacebookAds ? 'Facebook Ads' : isColdCalling ? 'Cold Calling' : 'VA Support'}
-- Target Audience: ${campaignDetails.targetAudience?.name || 'N/A'}
-- Campaign Type: ${campaignDetails.campaignType || 'N/A'}
-- Monthly Budget: ${campaignDetails.budget} points
-- Consultant: ${campaignDetails.consultantName}
-${campaignDetails.hours ? `- Hours per month: ${campaignDetails.hours}` : ''}
-
-Please review and activate this campaign.
-
-Thank you!
-    `);
-    
-    window.open(`mailto:admin@yourcompany.com?subject=${subject}&body=${body}`);
-  };
-
-  const handleDownloadDetails = () => {
-    const campaignText = `
-Campaign Submission Details
-==========================
-
-Campaign ID: ${campaignDetails.id}
-Name: ${campaignDetails.name}
-Description: ${campaignDetails.description}
-
-Campaign Type: ${isFacebookAds ? 'Facebook Ads' : isColdCalling ? 'Cold Calling' : 'VA Support'}
-Target Audience: ${campaignDetails.targetAudience?.name || 'N/A'}
-Campaign Type: ${campaignDetails.campaignType || 'N/A'}
-Monthly Budget: ${campaignDetails.budget} points
-Consultant: ${campaignDetails.consultantName}
-${campaignDetails.hours ? `Hours per month: ${campaignDetails.hours}` : ''}
-
-Submission Date: ${new Date().toLocaleString()}
-Status: Pending Activation
-
-Next Steps:
-1. Take a screenshot of this information
-2. Send to admin@yourcompany.com
-3. Wait for campaign activation
-    `;
-
-    const blob = new Blob([campaignText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `campaign-${campaignDetails.id}-details.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="text-center pb-6">
-          <div className="mx-auto mb-4 relative">
-            <div className={`${bgColor} p-4 rounded-full inline-block`}>
-              <IconComponent className={`h-12 w-12 ${iconColor}`} />
-            </div>
-            <CheckCircle className="h-8 w-8 text-green-500 absolute -bottom-1 -right-1 bg-background rounded-full" />
+      <DialogContent className="max-w-md">
+        <DialogHeader className="text-center">
+          <div className="mx-auto mb-4">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
           </div>
-          <DialogTitle className="text-2xl font-bold text-foreground">
-            Campaign Activated Successfully! 🎉
-          </DialogTitle>
-          <p className="text-muted-foreground mt-2">
-            Your campaign is now active and running
-          </p>
+          <DialogTitle className="text-xl">Campaign Launched Successfully</DialogTitle>
+          <DialogDescription>
+            Your campaign is now active
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Important Notice */}
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Camera className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-green-800 dark:text-green-200">
-                    Please send screenshot to admin for confirmation
-                  </h4>
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    Take a screenshot of this confirmation page and send it to admin@yourcompany.com
-                  </p>
-                </div>
+        <div className="space-y-4 py-4">
+          <div className="space-y-3">
+            {campaignDetails.targetAudience && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Target Audience</span>
+                <strong>{campaignDetails.targetAudience.name}</strong>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Campaign Details */}
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="font-semibold text-lg mb-4">Campaign Confirmation</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Campaign ID:</span>
-                  <span className="font-mono text-sm font-semibold">{campaignDetails.id}</span>
-                </div>
-                
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Campaign Name:</span>
-                  <span className="font-semibold text-right max-w-xs">{campaignDetails.name}</span>
-                </div>
-
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Type:</span>
-                  <Badge variant="outline" className={bgColor}>
-                     {isFacebookAds ? 'Facebook Ads' : isColdCalling ? 'Cold Calling' : 'VA Support'}
-                  </Badge>
-                </div>
-
-                {campaignDetails.targetAudience && (
-                  <div className="flex justify-between items-start">
-                    <span className="text-muted-foreground">Target Audience:</span>
-                    <span className="font-semibold">{campaignDetails.targetAudience.name}</span>
-                  </div>
-                )}
-
-                {campaignDetails.campaignType && (
-                  <div className="flex justify-between items-start">
-                    <span className="text-muted-foreground">Campaign Type:</span>
-                    <span className="font-semibold text-right max-w-xs">{campaignDetails.campaignType}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Monthly Budget:</span>
-                  <Badge variant="secondary">{campaignDetails.budget} points</Badge>
-                </div>
-
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Consultant:</span>
-                  <span className="font-semibold">{campaignDetails.consultantName}</span>
-                </div>
-
-                {campaignDetails.hours && (
-                  <div className="flex justify-between items-start">
-                    <span className="text-muted-foreground">Hours per Month:</span>
-                    <span className="font-semibold">{campaignDetails.hours} hours</span>
-                  </div>
-                )}
-
-                <Separator />
-
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Status:</span>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                    Active
-                  </Badge>
-                </div>
-
-                <div className="flex justify-between items-start">
-                  <span className="text-muted-foreground">Activated:</span>
-                  <span className="font-semibold">{new Date().toLocaleString()}</span>
-                </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Monthly Budget</span>
+              <strong>{campaignDetails.budget} points</strong>
+            </div>
+            {campaignDetails.amountDeducted && (
+              <div className="flex justify-between text-sm pt-3 border-t">
+                <span className="text-muted-foreground">Points Deducted</span>
+                <span className="tabular-nums">{campaignDetails.amountDeducted?.toLocaleString()} points</span>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Button */}
-          <Button 
-            onClick={() => {
-              onClose();
-              navigate('/campaigns/my-campaigns');
-            }} 
-            className="w-full"
-          >
-            Continue to My Campaigns
-          </Button>
+            )}
+            {campaignDetails.newBalance !== undefined && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">New Balance</span>
+                <span className="tabular-nums font-medium">{campaignDetails.newBalance?.toLocaleString()} points</span>
+              </div>
+            )}
+          </div>
         </div>
+
+        <Button
+          onClick={() => {
+            onClose();
+            navigate('/campaigns/my-campaigns');
+          }}
+          className="w-full"
+        >
+          View My Campaigns
+        </Button>
       </DialogContent>
     </Dialog>
   );

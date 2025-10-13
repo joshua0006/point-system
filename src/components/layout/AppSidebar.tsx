@@ -1,15 +1,14 @@
-import { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMode } from "@/contexts/ModeContext"
-import { 
+import {
   Home,
   Calendar,
   TrendingUp,
   Users,
   UserCheck,
   BarChart3,
-  Search,
+  Store,
   Megaphone,
   Gift,
   Settings,
@@ -20,12 +19,12 @@ import {
   Wallet,
   Target,
   Phone,
-  Headphones,
   Sparkles,
   PenTool,
-  ChevronDown,
-  ChevronRight
+  MessageSquare,
+  Rocket
 } from "lucide-react"
+import { iconA11y } from "@/lib/iconConstants"
 
 import {
   Sidebar,
@@ -42,7 +41,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 interface NavItem {
   title: string
@@ -67,24 +65,7 @@ export function AppSidebar() {
   const currentPath = location.pathname
   const userRole = profile?.role === "master_admin" ? "admin" : (profile?.role || "user")
 
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    campaigns: true,
-    aiTools: false,
-    gifting: false,
-  })
-
   const isCollapsed = state === "collapsed"
-
-  const isActive = (path: string) => currentPath === path || currentPath.startsWith(path)
-
-  const toggleGroup = (groupKey: string) => {
-    setOpenGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }))
-  }
-
-  // Check if any item in a group is active
-  const isGroupActive = (items: NavItem[]) => {
-    return items.some(item => isActive(item.url))
-  }
 
   // Navigation groups based on user role
   const getNavGroups = (): NavGroup[] => {
@@ -94,10 +75,10 @@ export function AppSidebar() {
       roles: ["user", "admin"],
       items: [
         { title: "My Campaigns", url: "/campaigns/my-campaigns", icon: BarChart3, roles: ["user", "admin"] },
-        { title: "Launch Campaign", url: "/campaigns/launch", icon: Target, roles: ["user", "admin"] },
+        { title: "Launch Campaign", url: "/campaigns/launch", icon: Rocket, roles: ["user", "admin"] },
         { title: "Facebook Ads", url: "/campaigns/facebook-ads", icon: Target, roles: ["user", "admin"] },
         { title: "Cold Calling", url: "/campaigns/cold-calling", icon: Phone, roles: ["user", "admin"] },
-        { title: "VA Support", url: "/campaigns/va-support", icon: Headphones, roles: ["user", "admin"] },
+        { title: "VA Support", url: "/campaigns/va-support", icon: MessageSquare, roles: ["user", "admin"] },
       ]
     }
 
@@ -127,7 +108,7 @@ export function AppSidebar() {
     if (userRole === "consultant") {
       return [
         ...baseItems,
-        { title: "Services", url: "/services", icon: Search, roles: ["consultant"] },
+        { title: "Services", url: "/services", icon: Store, roles: ["consultant"] },
         { title: "Dashboard", url: "/consultant-dashboard", icon: BarChart3, roles: ["consultant"] },
         { title: "Settings", url: "/settings", icon: Settings, roles: ["consultant"] },
       ]
@@ -166,18 +147,12 @@ export function AppSidebar() {
   const navGroups = getNavGroups().filter(group => group.roles.includes(userRole))
   const singleNavItems = getSingleNavItems().filter(item => item.roles.includes(userRole))
 
-  const getNavClass = (path: string) => {
-    return isActive(path) 
-      ? "bg-primary text-primary-foreground font-medium hover:bg-primary hover:text-primary-foreground" 
-      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-  }
-
   return (
     <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
       <SidebarHeader className="border-b px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Wallet className="w-4 h-4 text-primary-foreground" />
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
+            <Wallet className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
           </div>
           {!isCollapsed && (
             <div>
@@ -196,89 +171,81 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {singleNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="h-10">
-                    <NavLink 
-                      to={item.url} 
-                      className={({ isActive: navIsActive }) => 
-                        `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`
-                      }
+              {singleNavItems.map((item) => {
+                const isItemActive = currentPath === item.url || (item.url !== "/" && currentPath.startsWith(item.url))
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <NavLink
+                      to={item.url}
+                      end={item.url === "/"}
+                      aria-label={item.title}
+                      aria-current={isItemActive ? "page" : undefined}
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
-                      {!isCollapsed && (
-                        <span className="flex-1">{item.title}</span>
-                      )}
-                      {item.badge && !isCollapsed && (
-                        <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
-                          {item.badge}
-                        </span>
+                      {({ isActive }) => (
+                        <SidebarMenuButton
+                          isActive={isActive}
+                          className="h-10 w-full data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90"
+                        >
+                          <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                          {!isCollapsed && (
+                            <span className="flex-1">{item.title}</span>
+                          )}
+                          {item.badge && !isCollapsed && (
+                            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
+                        </SidebarMenuButton>
                       )}
                     </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {/* Grouped Navigation Items */}
-        {navGroups.map((group) => {
-          const groupKey = group.title.toLowerCase().replace(/\s+/g, '')
-          const isOpen = openGroups[groupKey]
-          const hasActiveItem = isGroupActive(group.items)
-          
-          return (
-            <SidebarGroup key={group.title}>
-              <Collapsible open={isOpen || isCollapsed} onOpenChange={() => !isCollapsed && toggleGroup(groupKey)}>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton className={`h-10 w-full justify-start ${hasActiveItem ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'} ${isCollapsed ? 'justify-center' : ''}`}>
-                    <group.icon className="h-4 w-4 flex-shrink-0" />
-                    {!isCollapsed && (
-                      <>
-                        <span className="flex-1 text-left">{group.title}</span>
-                        {isOpen ? (
-                          <ChevronDown className="h-4 w-4 flex-shrink-0" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 flex-shrink-0" />
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.title}>
+            <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
+              {group.title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isItemActive = currentPath === item.url || currentPath.startsWith(item.url)
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <NavLink
+                        to={item.url}
+                        aria-label={item.title}
+                        aria-current={isItemActive ? "page" : undefined}
+                      >
+                        {({ isActive }) => (
+                          <SidebarMenuButton
+                            isActive={isActive}
+                            className="h-10 w-full data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90"
+                          >
+                            <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                            {!isCollapsed && (
+                              <span className="flex-1">{item.title}</span>
+                            )}
+                            {item.badge && !isCollapsed && (
+                              <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                                {item.badge}
+                              </span>
+                            )}
+                          </SidebarMenuButton>
                         )}
-                      </>
-                    )}
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-                
-                {!isCollapsed && (
-                  <CollapsibleContent>
-                    <SidebarGroupContent>
-                      <SidebarMenu className="ml-4">
-                        {group.items.map((item) => (
-                          <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild className="h-9">
-                              <NavLink 
-                                to={item.url} 
-                                className={({ isActive: navIsActive }) => 
-                                  `flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${getNavClass(item.url)}`
-                                }
-                              >
-                                <item.icon className="h-3 w-3 flex-shrink-0" />
-                                <span className="flex-1">{item.title}</span>
-                                {item.badge && (
-                                  <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </CollapsibleContent>
-                )}
-              </Collapsible>
-            </SidebarGroup>
-          )
-        })}
+                      </NavLink>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t p-2">

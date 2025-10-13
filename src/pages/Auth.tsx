@@ -309,11 +309,11 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            ConsultHub
+          <CardTitle className="text-2xl font-bold text-primary">
+            AgentHub
           </CardTitle>
           <CardDescription>
-            Create an account or sign in to start using consulting services
+            Create an account to manage campaigns and send client gifts
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -68,7 +68,7 @@ export function ReviewModal({
                   <Star
                     className={`w-6 h-6 ${
                       star <= (hoveredRating || rating)
-                        ? 'fill-yellow-400 text-yellow-400'
+                        ? 'fill-accent text-accent'
                         : 'text-gray-300'
                     }`}
                   />

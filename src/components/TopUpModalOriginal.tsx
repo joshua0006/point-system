@@ -372,7 +372,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
               PCI Compliant
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Zap className="h-4 w-4 text-yellow-600" />
+              <Zap className="h-4 w-4 text-accent" />
               Instant Processing
             </div>
           </div>

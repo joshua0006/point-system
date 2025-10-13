@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigation } from "@/components/Navigation";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Phone } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CreditCard, Wallet, Phone, Zap } from "lucide-react";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
+import { WalletBalanceCard } from "@/components/wallet/WalletBalanceCard";
 
 const ColdCallingCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -20,6 +23,11 @@ const ColdCallingCampaigns = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
   const isMobile = useIsMobile();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const userBalance = profile?.flexi_credits_balance || 0;
 
@@ -161,40 +169,58 @@ const ColdCallingCampaigns = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <ResponsiveContainer>
-        <div className={isMobile ? "pt-4" : "pt-8"}>
-          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-            <div className="flex items-center gap-4 mb-4">
-              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Campaigns
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                <Phone className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <h1 className={isMobile ? "text-xl font-bold text-foreground mb-1" : "text-2xl sm:text-3xl font-bold text-foreground mb-1"}>
-                  Cold Calling Campaigns
-                </h1>
-                <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-                  Professional cold calling services with trained telemarketers
-                </p>
-              </div>
-            </div>
-          </div>
+  const handleTopUpSuccess = (points: number) => {
+    refreshProfile();
+    toast({
+      title: "Top-up Successful! 🎉",
+      description: `${points} points added to your account.`
+    });
+  };
 
-          <ColdCallingWizard
-            onComplete={handleColdCallingComplete}
-            onBack={() => navigate('/campaigns/launch')}
-            userBalance={userBalance}
+  return (
+    <SidebarLayout title="Cold Calling Campaigns" description="Professional cold calling services with trained telemarketers">
+      <ResponsiveContainer>
+        <div className={isMobile ? "pt-2" : "pt-4"}>
+          {/* Hero Section - Accessibility Enhanced */}
+          <header
+            className={`${isMobile ? "mb-8" : "mb-12"} text-center`}
+            role="banner"
+            aria-labelledby="cold-calling-heading"
+          >
+            <Badge
+              variant="secondary"
+              className="inline-flex items-center gap-2 mb-3 px-4 py-2"
+            >
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              <span>Cold Calling Campaigns</span>
+            </Badge>
+            <h1
+              id="cold-calling-heading"
+              className={`${isMobile ? "text-2xl" : "text-3xl"} font-bold mb-3 text-primary`}
+            >
+              Professional Cold Calling Services
+            </h1>
+            <p className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground max-w-2xl mx-auto`}>
+              Hire trained telemarketers at 6 points per hour to generate quality leads through direct outreach
+            </p>
+          </header>
+
+          {/* Wallet Balance Card */}
+          <WalletBalanceCard
+            balance={profile?.flexi_credits_balance || 0}
+            isMobile={isMobile}
+            onTopUpClick={() => setTopUpModalOpen(true)}
+            className={isMobile ? "mb-10" : "mb-16"}
           />
+
+          {/* Campaign Wizard */}
+          <div className="max-w-7xl mx-auto">
+            <ColdCallingWizard
+              onComplete={handleColdCallingComplete}
+              onBack={() => navigate('/campaigns/launch')}
+              userBalance={userBalance}
+            />
+          </div>
         </div>
       </ResponsiveContainer>
 
@@ -211,9 +237,9 @@ const ColdCallingCampaigns = () => {
       <TopUpModal
         isOpen={topUpModalOpen}
         onClose={() => setTopUpModalOpen(false)}
-        onSuccess={refreshProfile}
+        onSuccess={handleTopUpSuccess}
       />
-    </div>
+    </SidebarLayout>
   );
 };
 

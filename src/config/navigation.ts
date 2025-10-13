@@ -1,7 +1,7 @@
-import { 
-  User, 
-  Users, 
-  Search,
+import {
+  User,
+  Users,
+  Store,
   BarChart3,
   Megaphone,
   Gift
@@ -10,33 +10,33 @@ import { NavItem, UserRole } from './types';
 
 export const navigationConfig: Partial<Record<UserRole, NavItem[]>> = {
   user: [
-    { 
-      path: "/services", 
-      label: "Marketplace", 
-      icon: Search, 
+    {
+      path: "/services",
+      label: "Marketplace",
+      icon: Store,
       roles: ["user", "admin"],
       children: [
-        { path: "/services", label: "Services", icon: Search, roles: ["user", "admin"] },
+        { path: "/services", label: "Services", icon: Store, roles: ["user", "admin"] },
         { path: "/campaigns", label: "Campaigns", icon: Megaphone, roles: ["user", "admin"] },
         { path: "/gifting", label: "Gifting", icon: Gift, roles: ["user", "admin"] }
       ]
     },
     { path: "/dashboard", label: "Dashboard", icon: User, roles: ["user", "admin"] }
   ],
-  
+
   consultant: [
-    { path: "/services", label: "Services", icon: Search, roles: ["consultant"] },
+    { path: "/services", label: "Services", icon: Store, roles: ["consultant"] },
     { path: "/consultant-dashboard", label: "Dashboard", icon: BarChart3, roles: ["consultant"] }
   ],
-  
+
   admin: [
-    { 
-      path: "/services", 
-      label: "Marketplace", 
-      icon: Search, 
+    {
+      path: "/services",
+      label: "Marketplace",
+      icon: Store,
       roles: ["admin"],
       children: [
-        { path: "/services", label: "Services", icon: Search, roles: ["admin"] },
+        { path: "/services", label: "Services", icon: Store, roles: ["admin"] },
         { path: "/campaigns", label: "Campaigns", icon: Megaphone, roles: ["admin"] },
         { path: "/gifting", label: "Gifting", icon: Gift, roles: ["admin"] }
       ]
@@ -44,15 +44,15 @@ export const navigationConfig: Partial<Record<UserRole, NavItem[]>> = {
     { path: "/dashboard", label: "Dashboard", icon: User, roles: ["admin"] },
     { path: "/admin-dashboard", label: "Admin", icon: Users, roles: ["admin"] }
   ],
-  
+
   master_admin: [
-    { 
-      path: "/services", 
-      label: "Marketplace", 
-      icon: Search, 
+    {
+      path: "/services",
+      label: "Marketplace",
+      icon: Store,
       roles: ["master_admin"],
       children: [
-        { path: "/services", label: "Services", icon: Search, roles: ["master_admin"] },
+        { path: "/services", label: "Services", icon: Store, roles: ["master_admin"] },
         { path: "/campaigns", label: "Campaigns", icon: Megaphone, roles: ["master_admin"] },
         { path: "/gifting", label: "Gifting", icon: Gift, roles: ["master_admin"] }
       ]

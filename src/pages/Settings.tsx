@@ -36,6 +36,11 @@ const Settings = () => {
   // Modal states
   const [transactionHistoryOpen, setTransactionHistoryOpen] = useState(false);
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Check if user is a consultant
   const { data: isConsultant } = useQuery({
     queryKey: ['is-consultant', user?.id],
@@ -136,6 +141,19 @@ const Settings = () => {
     }
   };
 
+  // Tab configuration
+  const tabOptions = [
+    { value: "profile", label: "Profile", icon: User },
+    { value: "notifications", label: "Notifications", icon: Bell },
+    { value: "security", label: "Security", icon: Shield },
+    { value: "billing", label: "Billing", icon: CreditCard },
+  ];
+
+  // Add auto-reply tab if user is a consultant
+  if (isConsultant) {
+    tabOptions.push({ value: "auto-reply", label: "Auto-Reply", icon: MessageSquare });
+  }
+
   // Get the active tab from URL or default to profile
   const activeTab = tab || "profile";
   const validTabs = ["profile", "notifications", "security", "billing", "auto-reply"];
@@ -148,78 +166,76 @@ const Settings = () => {
 
   return (
     <SidebarLayout title="Settings" description="Manage your account settings and preferences">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-5' : 'grid-cols-4'}`}>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Security
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Billing
-            </TabsTrigger>
-            {isConsultant && (
-              <TabsTrigger value="auto-reply" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Auto-Reply
-              </TabsTrigger>
-            )}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
+          {/* Unified Navigation - Icon-only on mobile, Icon+Text on desktop */}
+          <TabsList className={`grid w-full ${isConsultant ? 'grid-cols-5' : 'grid-cols-4'} gap-1 p-1 h-12 sm:h-10`}>
+            {tabOptions.map((option) => {
+              const Icon = option.icon;
+              return (
+                <TabsTrigger
+                  key={option.value}
+                  value={option.value}
+                  className="flex items-center justify-center gap-0 sm:gap-2 px-2 sm:px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                >
+                  <Icon className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
+                  <span className="hidden sm:inline text-sm">{option.label}</span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <p className="text-sm text-muted-foreground">
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-1 pb-4">
+                <CardTitle className="text-lg sm:text-xl">Profile Information</CardTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Update your personal information and how others see you on the platform.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={user?.email || ""}
                     disabled
-                    className="bg-muted"
+                    className="bg-muted h-11"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Email cannot be changed. Contact support if you need to update this.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
                   <Input
                     id="fullName"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your full name"
+                    className="h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="bio" className="text-sm font-medium">Bio</Label>
                   <Textarea
                     id="bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tell others about yourself..."
                     rows={4}
+                    className="resize-none"
                   />
                 </div>
 
-                <Button onClick={handleSaveProfile} disabled={isLoading}>
+                <Button
+                  onClick={handleSaveProfile}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto h-11 min-w-[120px]"
+                >
                   {isLoading ? "Saving..." : "Save Changes"}
                 </Button>
               </CardContent>
@@ -227,78 +243,88 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <p className="text-sm text-muted-foreground">
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-1 pb-4">
+                <CardTitle className="text-lg sm:text-xl">Notification Preferences</CardTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Choose what notifications you want to receive.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="flex items-center justify-between gap-4 py-2 sm:py-0">
+                  <div className="space-y-0.5 flex-1 min-w-0">
                     <div className="text-sm font-medium">Email Notifications</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground leading-relaxed">
                       Receive notifications via email
                     </div>
                   </div>
                   <Switch
                     checked={emailNotifications}
                     onCheckedChange={setEmailNotifications}
+                    className="shrink-0"
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                <div className="flex items-center justify-between gap-4 py-2 sm:py-0">
+                  <div className="space-y-0.5 flex-1 min-w-0">
                     <div className="text-sm font-medium">Campaign Updates</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground leading-relaxed">
                       Get notified about your campaign performance
                     </div>
                   </div>
                   <Switch
                     checked={campaignUpdates}
                     onCheckedChange={setCampaignUpdates}
+                    className="shrink-0"
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                <div className="flex items-center justify-between gap-4 py-2 sm:py-0">
+                  <div className="space-y-0.5 flex-1 min-w-0">
                     <div className="text-sm font-medium">Marketing Emails</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground leading-relaxed">
                       Receive updates about new features and promotions
                     </div>
                   </div>
                   <Switch
                     checked={marketingEmails}
                     onCheckedChange={setMarketingEmails}
+                    className="shrink-0"
                   />
                 </div>
 
-                <Button onClick={handleSaveNotifications}>Save Notification Settings</Button>
+                <Button
+                  onClick={handleSaveNotifications}
+                  className="w-full sm:w-auto h-11 min-w-[120px]"
+                >
+                  Save Notification Settings
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="security">
-            <Card>
-              <CardHeader>
-                <CardTitle>Security Settings</CardTitle>
-                <p className="text-sm text-muted-foreground">
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-1 pb-4">
+                <CardTitle className="text-lg sm:text-xl">Security Settings</CardTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Manage your account security and authentication.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium mb-2">Password</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                       Change your password to keep your account secure.
                     </p>
-                    <Button variant="outline">Change Password</Button>
+                    <Button variant="outline" className="w-full sm:w-auto h-11">
+                      Change Password
+                    </Button>
                   </div>
 
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="text-center py-4 px-4 sm:px-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                       Additional security features like 2FA and session management will be available soon.
                     </p>
                   </div>
@@ -308,43 +334,49 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="billing">
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing & Account</CardTitle>
-                <p className="text-sm text-muted-foreground">
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-1 pb-4">
+                <CardTitle className="text-lg sm:text-xl">Billing & Account</CardTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   View your account balance and transaction history.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 <div className="space-y-4">
-                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="p-4 sm:p-6 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
                       <h4 className="text-sm font-medium">Current Points Balance</h4>
-                      <div className="text-2xl font-bold text-primary">
+                      <div className="text-3xl sm:text-2xl font-bold text-primary">
                         {profile?.flexi_credits_balance?.toLocaleString() || 0}
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       Points available for campaign participation
                     </p>
                   </div>
 
                   <div>
                     <h4 className="text-sm font-medium mb-2">Transaction History</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                       View your past purchases and point usage.
                     </p>
-                    <Button variant="outline" onClick={() => setTransactionHistoryOpen(true)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setTransactionHistoryOpen(true)}
+                      className="w-full sm:w-auto h-11"
+                    >
                       View Full History
                     </Button>
                   </div>
 
                   <div>
                     <h4 className="text-sm font-medium mb-2">Download Receipts</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                       Download receipts for your purchases and tax records.
                     </p>
-                    <Button variant="outline">Download Receipts</Button>
+                    <Button variant="outline" className="w-full sm:w-auto h-11">
+                      Download Receipts
+                    </Button>
                   </div>
                 </div>
               </CardContent>

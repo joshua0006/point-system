@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigation } from "@/components/Navigation";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Users } from "lucide-react";
-import { VASupportPlans } from "@/components/campaigns/VASupportPlans";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CreditCard, Wallet, TrendingUp, Check, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
+import { WalletBalanceCard } from "@/components/wallet/WalletBalanceCard";
 
 const VASupportCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -21,6 +22,11 @@ const VASupportCampaigns = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
   const isMobile = useIsMobile();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const userBalance = profile?.flexi_credits_balance || 0;
 
@@ -162,44 +168,60 @@ const VASupportCampaigns = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <ResponsiveContainer>
-        <div className={isMobile ? "pt-4" : "pt-8"}>
-          <div className={isMobile ? "mb-4" : "mb-6 sm:mb-8"}>
-            <div className="flex items-center gap-4 mb-4">
-              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Campaigns
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <h1 className={isMobile ? "text-xl font-bold text-foreground mb-1" : "text-2xl sm:text-3xl font-bold text-foreground mb-1"}>
-                  VA Support Campaigns
-                </h1>
-                <p className={isMobile ? "text-sm text-muted-foreground" : "text-muted-foreground text-sm sm:text-base"}>
-                  Professional virtual assistant support for your business needs
-                </p>
-              </div>
-            </div>
-          </div>
+  const handleTopUpSuccess = (points: number) => {
+    refreshProfile();
+    toast({
+      title: "Top-up Successful! 🎉",
+      description: `${points} points added to your account.`
+    });
+  };
 
-          <div className="w-full max-w-4xl mx-auto space-y-6">
+  return (
+    <SidebarLayout title="VA Support Campaigns" description="Professional virtual assistant support for your business needs">
+      <ResponsiveContainer>
+        <div className={isMobile ? "pt-2" : "pt-4"}>
+          {/* Hero Section - Accessibility Enhanced */}
+          <header
+            className={`${isMobile ? "mb-8" : "mb-12"} text-center`}
+            role="banner"
+            aria-labelledby="va-support-heading"
+          >
+            <Badge
+              variant="secondary"
+              className="inline-flex items-center gap-2 mb-3 px-4 py-2"
+            >
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
+              <span>VA Support Campaigns</span>
+            </Badge>
+            <h1
+              id="va-support-heading"
+              className={`${isMobile ? "text-2xl" : "text-3xl"} font-bold mb-3 text-primary`}
+            >
+              Virtual Assistant Support Services
+            </h1>
+            <p className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground max-w-2xl mx-auto`}>
+              Professional VA support with managed follow-ups, appointment setting, and CRM updates to free your time for selling
+            </p>
+          </header>
+
+          {/* Wallet Balance Card */}
+          <WalletBalanceCard
+            balance={profile?.flexi_credits_balance || 0}
+            isMobile={isMobile}
+            onTopUpClick={() => setTopUpModalOpen(true)}
+            className={isMobile ? "mb-10" : "mb-16"}
+          />
+
+          {/* VA Support Plans */}
+          <div className="w-full max-w-6xl mx-auto space-y-8">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Choose Your VA Support Plan</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-2xl md:text-3xl font-semibold mb-3">Choose Your VA Support Plan</h3>
+              <p className="text-muted-foreground text-base mb-8">
                 Professional virtual assistant support to help grow your business
               </p>
             </div>
-            
-            <div className="grid gap-4 md:gap-6">
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
                   key: "basic",
@@ -209,7 +231,8 @@ const VASupportCampaigns = () => {
                     "Follow-up texting only",
                     "You take over after lead responds",
                     "Update CRM & Google Calendar",
-                  ]
+                  ],
+                  highlight: false
                 },
                 {
                   key: "standard",
@@ -220,7 +243,8 @@ const VASupportCampaigns = () => {
                     "Appointment setting",
                     "Update CRM & Google Calendar",
                     "Basic lead qualification"
-                  ]
+                  ],
+                  highlight: true
                 },
                 {
                   key: "premium",
@@ -228,50 +252,93 @@ const VASupportCampaigns = () => {
                   price: 100,
                   features: [
                     "Follow-up texting",
-                    "Appointment setting", 
+                    "Appointment setting",
                     "Full lead qualification",
                     "Update CRM & Google Calendar",
                     "Custom scripts & workflows"
-                  ]
+                  ],
+                  highlight: false
                 }
               ].map((plan) => {
                 const balanceAfter = userBalance - plan.price;
                 const canAfford = balanceAfter >= -1000;
-                
+
                 return (
-                  <Card key={plan.key} className={`${!canAfford ? 'opacity-60' : ''}`}>
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h4 className="text-lg font-semibold">{plan.name}</h4>
-                          <p className="text-2xl font-bold text-primary">{plan.price} points/month</p>
+                  <Card
+                    key={plan.key}
+                    className={`relative border-2 transition-all duration-300 ${
+                      canAfford ? 'hover:scale-105' : ''
+                    } ${
+                      plan.highlight && canAfford
+                        ? 'border-primary shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 scale-105'
+                        : 'border-border hover:border-primary/50 hover:shadow-xl'
+                    } ${!canAfford ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <CardContent className="p-8 flex flex-col h-full text-center">
+                      {plan.highlight && canAfford && (
+                        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary shadow-md" variant="default">
+                          Most Popular
+                        </Badge>
+                      )}
+
+                      {/* Icon */}
+                      <div className="flex justify-center mb-4">
+                        <div className={`p-4 rounded-xl ${
+                          plan.highlight && canAfford
+                            ? 'bg-primary shadow-lg'
+                            : 'bg-primary/10'
+                        }`}>
+                          <MessageSquare className={`h-6 w-6 ${
+                            plan.highlight && canAfford ? 'text-white' : 'text-primary'
+                          }`} />
                         </div>
                       </div>
-                      
-                      <ul className="space-y-2 mb-6">
+
+                      {/* Plan Name */}
+                      <h4 className="text-xl font-semibold mb-4">{plan.name}</h4>
+
+                      {/* Price */}
+                      <div className="mb-6">
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-5xl font-bold text-foreground">{plan.price}</span>
+                          <span className="text-sm text-muted-foreground">points</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">/month</span>
+                      </div>
+
+                      {/* Features */}
+                      <ul className="space-y-3 mb-8 flex-grow">
                         {plan.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-primary rounded-full" />
-                            <span className="text-sm">{feature}</span>
+                          <li key={idx} className="flex items-start gap-3 text-sm">
+                            <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-left">{feature}</span>
                           </li>
                         ))}
                       </ul>
-                      
+
+                      {/* CTA Button */}
                       <Button
-                        className="w-full"
-                        disabled={!canAfford}
                         onClick={() => handleVASupportComplete({
                           method: 'va-support',
                           plan,
                           consultantName: profile?.full_name || '',
                           budget: plan.price
                         })}
+                        disabled={!canAfford}
+                        className={`w-full py-6 text-base font-semibold ${
+                          plan.highlight && canAfford
+                            ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
+                            : 'hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                        }`}
+                        variant={plan.highlight && canAfford ? "default" : "outline"}
+                        size="lg"
                       >
-                        {canAfford ? `Launch ${plan.name}` : 'Balance Limit Exceeded'}
+                        {canAfford ? 'Launch Campaign' : 'Balance Limit Exceeded'}
                       </Button>
-                      
+
+                      {/* Balance Warning */}
                       {!canAfford && (
-                        <p className="text-xs text-destructive mt-2 text-center">
+                        <p className="text-xs text-destructive mt-3">
                           Would bring balance to {balanceAfter} points (minimum: -1000)
                         </p>
                       )}
@@ -297,9 +364,9 @@ const VASupportCampaigns = () => {
       <TopUpModal
         isOpen={topUpModalOpen}
         onClose={() => setTopUpModalOpen(false)}
-        onSuccess={refreshProfile}
+        onSuccess={handleTopUpSuccess}
       />
-    </div>
+    </SidebarLayout>
   );
 };
 

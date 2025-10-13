@@ -42,7 +42,12 @@ export default function UserDashboard() {
     delay: 2000,
   });
   const isMobile = useIsMobile();
-  
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Use optimized modal management
   const { modalState, openModal, closeModal } = useDashboardModals();
   
@@ -132,8 +137,16 @@ export default function UserDashboard() {
 
   return (
     <SidebarLayout>
+      {/* Skip Navigation for Keyboard Users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       <div className={isMobile ? "container mx-auto px-2 py-4" : "container mx-auto px-4 py-8"}>
-        
+
         <DashboardHeader isMobile={isMobile} />
 
         {/* Subscription Status */}
@@ -151,31 +164,34 @@ export default function UserDashboard() {
 
         {/* Tabbed Dashboard Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className={isMobile ? "grid w-full grid-cols-5 gap-1" : "grid w-full grid-cols-5"}>
-            <TabsTrigger value="overview" className="flex items-center gap-1">
+          <TabsList
+            className={isMobile ? "grid w-full grid-cols-5 gap-1" : "grid w-full grid-cols-5"}
+            aria-label="Dashboard sections"
+          >
+            <TabsTrigger value="overview" className="flex items-center gap-1" aria-label="Overview section">
               <Wallet className="w-4 h-4" />
               <span className={isMobile ? "text-xs" : ""}>Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-1">
-              <History className="w-4 h-4" />
+            <TabsTrigger value="transactions" className="flex items-center gap-1" aria-label="Transaction history section">
+              <History className="w-4 h-4" aria-hidden="true" />
               <span className={isMobile ? "text-xs" : ""}>History</span>
             </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
+            <TabsTrigger value="billing" className="flex items-center gap-1" aria-label="Billing and upcoming charges section">
+              <Clock className="w-4 h-4" aria-hidden="true" />
               <span className={isMobile ? "text-xs" : ""}>Billing</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center gap-1">
-              <Settings className="w-4 h-4" />
+            <TabsTrigger value="subscription" className="flex items-center gap-1" aria-label="Subscription plan management section">
+              <Settings className="w-4 h-4" aria-hidden="true" />
               <span className={isMobile ? "text-xs" : ""}>Plan</span>
             </TabsTrigger>
-            <TabsTrigger value="awarded" className="flex items-center gap-1">
-              <Lock className="w-4 h-4" />
+            <TabsTrigger value="awarded" className="flex items-center gap-1" aria-label="Awarded credits section">
+              <Lock className="w-4 h-4" aria-hidden="true" />
               <span className={isMobile ? "text-xs" : ""}>Awarded</span>
             </TabsTrigger>
           </TabsList>
-          
+
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-6" id="main-content" role="region" aria-label="Dashboard overview">
             {/* Dashboard Content */}
             <DashboardContent 
               isMobile={isMobile}
@@ -185,25 +201,25 @@ export default function UserDashboard() {
               openModal={openModal}
             />
           </TabsContent>
-          
+
           {/* Transactions Tab */}
-          <TabsContent value="transactions">
+          <TabsContent value="transactions" role="region" aria-label="Transaction history">
             <TransactionsTable transactions={transactions || []} />
           </TabsContent>
-          
+
           {/* Billing & Charges Tab */}
-          <TabsContent value="billing" className="space-y-6">
+          <TabsContent value="billing" className="space-y-6" role="region" aria-label="Billing and upcoming charges">
             <UpcomingChargesTable charges={upcomingCharges || []} />
             <UserRecurringDeductions />
           </TabsContent>
-          
+
           {/* Subscription Tab */}
-          <TabsContent value="subscription">
+          <TabsContent value="subscription" role="region" aria-label="Subscription plan">
             <SubscriptionStatusCard showActions={true} />
           </TabsContent>
-          
+
           {/* Awarded Credits Tab */}
-          <TabsContent value="awarded">
+          <TabsContent value="awarded" role="region" aria-label="Awarded credits">
             <AwardedCreditsCard />
           </TabsContent>
         </Tabs>

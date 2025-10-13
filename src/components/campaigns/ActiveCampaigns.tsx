@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CampaignCard } from "@/components/CampaignCard";
+import { generateMockAnalytics, getCampaignTypeFromName, type CampaignAnalytics } from "@/utils/campaignAnalytics";
+import { CampaignAnalyticsModal } from "@/components/campaigns/CampaignAnalyticsModal";
 
 interface ActiveCampaignsProps {
   hideInactiveCampaigns: boolean;
@@ -17,6 +19,8 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
+  const [selectedAnalytics, setSelectedAnalytics] = useState<CampaignAnalytics | null>(null);
 
   const fetchCampaigns = useCallback(async () => {
     if (!user?.id) return;
@@ -82,16 +86,16 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
   }, []);
 
   const getCampaignTypeColor = useCallback((campaignName: string) => {
-    if (campaignName.toLowerCase().includes('facebook')) return 'text-blue-600 bg-blue-50 border-blue-200';
-    if (campaignName.toLowerCase().includes('cold calling')) return 'text-green-600 bg-green-50 border-green-200';
-    if (campaignName.toLowerCase().includes('va support')) return 'text-purple-600 bg-purple-50 border-purple-200';
-    return 'text-blue-600 bg-blue-50 border-blue-200';
+    if (campaignName.toLowerCase().includes('facebook')) return 'text-white bg-blue-600 shadow-lg';
+    if (campaignName.toLowerCase().includes('cold calling')) return 'text-white bg-green-600 shadow-lg';
+    if (campaignName.toLowerCase().includes('va support')) return 'text-white bg-purple-600 shadow-lg';
+    return 'text-white bg-blue-600 shadow-lg';
   }, []);
 
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'paused': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'paused': return 'bg-accent/10 text-accent border-accent/30';
       case 'paused_insufficient_funds': return 'bg-red-100 text-red-800 border-red-200';
       case 'stopped': return 'bg-red-100 text-red-800 border-red-200';
       case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -159,7 +163,7 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
 
       if (error) throw error;
 
-      // Get user details for email  
+      // Get user details for email
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         // Send resume notification emails
@@ -194,12 +198,26 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
     } catch (error) {
       console.error('Error resuming campaign:', error);
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Failed to resume campaign. Please try again.",
         variant: "destructive"
       });
     }
   }, [toast, fetchCampaigns]);
+
+  const viewAnalytics = useCallback((campaignId: string) => {
+    // Find the campaign to get its details
+    const campaign = campaigns.find(c => c.id === campaignId);
+    const campaignName = campaign?.lead_gen_campaigns?.name || 'Campaign';
+
+    // Generate mock analytics data
+    const campaignType = getCampaignTypeFromName(campaignName);
+    const analyticsData = generateMockAnalytics(campaignId, campaignName, campaignType);
+
+    // Set analytics data and open modal
+    setSelectedAnalytics(analyticsData);
+    setAnalyticsModalOpen(true);
+  }, [campaigns]);
 
   if (loading) {
     return (
@@ -218,18 +236,18 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
 
   if (filteredCampaigns.length === 0) {
     return (
-      <Card className="text-center p-12">
-        <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-          <BarChart3 className="h-8 w-8 text-muted-foreground" />
+      <Card className="text-center p-8 sm:p-12">
+        <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mb-5">
+          <BarChart3 className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">No Campaigns Yet</h3>
-        <p className="text-muted-foreground mb-4">
-          {hideInactiveCampaigns 
+        <h3 className="text-base sm:text-lg font-semibold mb-2.5">No Campaigns Yet</h3>
+        <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
+          {hideInactiveCampaigns
             ? "No active campaigns found. Try showing all campaigns or launch a new one."
             : "You haven't launched any campaigns yet. Start generating leads today!"
           }
         </p>
-        <Button onClick={() => window.location.href = '/campaigns'}>
+        <Button onClick={() => window.location.href = '/campaigns'} className="w-full sm:w-auto min-h-[44px]">
           Launch Your First Campaign
         </Button>
       </Card>
@@ -237,42 +255,57 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">My Active Campaigns</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage and monitor your lead generation campaigns
-          </p>
+    <>
+      <div className="space-y-5 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-3">
+          <div className="flex-1">
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-1.5">My Active Campaigns</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Manage and monitor your lead generation campaigns
+            </p>
+          </div>
+          <Button
+            variant={hideInactiveCampaigns ? "default" : "default"}
+            size="sm"
+            onClick={() => setHideInactiveCampaigns(!hideInactiveCampaigns)}
+            className={`w-full sm:w-auto min-h-[40px] sm:min-h-[36px] font-semibold transition-all duration-200 ${
+              hideInactiveCampaigns
+                ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md hover:shadow-lg border-0'
+                : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg border-0'
+            }`}
+          >
+            {hideInactiveCampaigns ? 'Show All' : 'Active Only'}
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setHideInactiveCampaigns(!hideInactiveCampaigns)}
-        >
-          {hideInactiveCampaigns ? 'Show All' : 'Active Only'}
-        </Button>
+
+        <div className="grid gap-4 sm:gap-5">
+          {filteredCampaigns.map((campaign) => {
+            const Icon = getCampaignTypeIcon(campaign.lead_gen_campaigns?.name || '');
+            const typeColor = getCampaignTypeColor(campaign.lead_gen_campaigns?.name || '');
+            const statusColor = getStatusColor(campaign.billing_status);
+
+            return (
+              <CampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                Icon={Icon}
+                typeColor={typeColor}
+                statusColor={statusColor}
+                onPause={pauseCampaign}
+                onResume={resumeCampaign}
+                onViewAnalytics={viewAnalytics}
+              />
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {filteredCampaigns.map((campaign) => {
-          const Icon = getCampaignTypeIcon(campaign.lead_gen_campaigns?.name || '');
-          const typeColor = getCampaignTypeColor(campaign.lead_gen_campaigns?.name || '');
-          const statusColor = getStatusColor(campaign.billing_status);
-
-          return (
-            <CampaignCard
-              key={campaign.id}
-              campaign={campaign}
-              Icon={Icon}
-              typeColor={typeColor}
-              statusColor={statusColor}
-              onPause={pauseCampaign}
-              onResume={resumeCampaign}
-            />
-          );
-        })}
-      </div>
-    </div>
+      {/* Analytics Modal */}
+      <CampaignAnalyticsModal
+        isOpen={analyticsModalOpen}
+        onClose={() => setAnalyticsModalOpen(false)}
+        analytics={selectedAnalytics}
+      />
+    </>
   );
 });

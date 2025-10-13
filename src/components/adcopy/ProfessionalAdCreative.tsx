@@ -132,10 +132,10 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            margin: 0; 
-            padding: 40px; 
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 40px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
             min-height: 100vh;
             display: flex;

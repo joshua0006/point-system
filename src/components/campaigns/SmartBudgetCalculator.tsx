@@ -65,7 +65,7 @@ export const SmartBudgetCalculator = ({
   const getRoiColor = (roi: number) => {
     if (roi >= 200) return 'text-green-600 bg-green-50';
     if (roi >= 100) return 'text-blue-600 bg-blue-50';
-    if (roi >= 50) return 'text-yellow-600 bg-yellow-50';
+    if (roi >= 50) return 'text-accent bg-accent/10';
     return 'text-red-600 bg-red-50';
   };
 

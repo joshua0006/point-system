@@ -27,14 +27,14 @@ export function ConsultantReviewsSection({
       <CardContent>
         <div className="text-center py-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Star className="w-8 h-8 text-yellow-500 fill-current" />
+            <Star className="w-8 h-8 text-accent fill-current" />
             <span className="text-3xl font-bold">{rating}</span>
           </div>
           <div className="flex justify-center gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Star 
-                key={star} 
-                className={`w-4 h-4 ${star <= Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
+              <Star
+                key={star}
+                className={`w-4 h-4 ${star <= Math.floor(rating) ? 'text-accent fill-current' : 'text-gray-300'}`}
               />
             ))}
           </div>

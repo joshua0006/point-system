@@ -51,22 +51,22 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance }
         <CardContent className="space-y-6">
           <div>
             <Label className="text-base font-medium mb-4 block">Select Monthly Hours</Label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {[20, 40, 60, 80].map((hours) => {
                 const monthlyCost = hours * 6;
                 const isSelected = selectedHours === hours;
                 return (
-                  <Card 
+                  <Card
                     key={hours}
                     className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
                       isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'
                     }`}
                     onClick={() => setSelectedHours(hours)}
                   >
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-primary mb-1">{hours}h</div>
-                      <div className="text-sm text-muted-foreground mb-2">per month</div>
-                      <div className="text-lg font-semibold text-foreground">{monthlyCost} points</div>
+                    <CardContent className="p-3 sm:p-4 text-center">
+                      <div className="text-xl sm:text-2xl font-bold text-primary mb-1">{hours}h</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground mb-2">per month</div>
+                      <div className="text-base sm:text-lg font-semibold text-foreground">{monthlyCost} points</div>
                       <div className="text-xs text-muted-foreground">~{Math.round(hours * 2.5)} leads expected</div>
                     </CardContent>
                   </Card>
@@ -102,19 +102,20 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance }
       {/* Navigation */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
+          <div className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+            <Button
+              variant="outline"
               onClick={onBack}
+              className="w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Methods
             </Button>
-            
+
             <Button
               onClick={handleLaunch}
               disabled={!canProceed()}
-              className="min-w-32"
+              className="w-full sm:w-auto sm:min-w-32"
             >
               <Zap className="h-4 w-4 mr-2" />
               Launch Campaign

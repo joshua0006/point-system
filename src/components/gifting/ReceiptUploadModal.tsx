@@ -178,36 +178,38 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Submit Receipt for Reimbursement</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">Submit Receipt for Reimbursement</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {/* Receipt Upload */}
           <div className="space-y-2">
             <Label htmlFor="receipt">Receipt Images/PDFs *</Label>
             
             {receipts.length > 0 && (
-              <div className="space-y-2 mb-3">
+              <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3">
                 {receipts.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
-                    <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm flex-1 truncate">{file.name}</span>
+                  <div key={index} className="flex items-center gap-2 p-2 sm:p-3 border rounded-lg bg-muted/50">
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-xs sm:text-sm flex-1 truncate">{file.name}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
+                      className="h-8 w-8 p-0"
                       onClick={() => removeReceipt(file)}
+                      aria-label={`Remove ${file.name}`}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer">
+            <div className="border-2 border-dashed rounded-lg p-4 sm:p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer">
               <input
                 id="receipt"
                 type="file"
@@ -215,13 +217,14 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
                 onChange={handleFileChange}
                 className="hidden"
                 multiple
+                aria-label="Upload receipt files"
               />
               <label htmlFor="receipt" className="cursor-pointer">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
+                <Upload className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-1.5 sm:mb-2 text-muted-foreground" />
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Click to upload receipt{receipts.length > 0 ? 's' : ''}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                   PNG, JPG, or PDF (max 20MB each)
                 </p>
               </label>
@@ -229,22 +232,23 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
           </div>
 
           {/* Merchant */}
-          <div className="space-y-2">
-            <Label htmlFor="merchant">Merchant Name *</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="merchant" className="text-xs sm:text-sm">Merchant Name *</Label>
             <Input
               id="merchant"
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
               placeholder="e.g., Amazon, Starbucks"
+              className="h-10 sm:h-11 text-sm"
               required
             />
           </div>
 
           {/* Amount */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Reimbursement Amount *</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="amount" className="text-xs sm:text-sm">Reimbursement Amount *</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <span className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                 $
               </span>
               <Input
@@ -256,41 +260,42 @@ export function ReceiptUploadModal({ open, onOpenChange, giftingBalance }: Recei
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="pl-7"
+                className="pl-6 sm:pl-7 h-10 sm:h-11 text-sm"
                 required
               />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               Your flexi credits will be reduced by this amount upon approval
             </p>
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="description" className="text-xs sm:text-sm">Description (Optional)</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add any additional details about the purchase..."
               rows={3}
+              className="text-sm resize-none"
             />
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
+          {/* Actions - Enhanced Touch Targets */}
+          <div className="flex gap-2 pt-1 sm:pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 h-11 sm:h-10 text-sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 h-11 sm:h-10 text-sm"
             >
               {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>

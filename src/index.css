@@ -58,9 +58,10 @@
     --shadow-premium: 0 8px 30px -4px hsl(var(--accent) / 0.3);
     --shadow-hover: 0 8px 25px -5px hsl(220 15% 15% / 0.15);
 
-    /* Animations */
+    /* Animations - Performance Optimized */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.5rem;
 
@@ -127,5 +128,44 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Accessibility: Focus Visible Styles for WCAG 2.1 AA */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary ring-2 ring-primary ring-offset-2;
+  }
+
+  /* Enhanced focus for interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex="0"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary shadow-lg;
+  }
+
+  /* Screen reader only utility class */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Screen reader only that becomes visible on focus */
+  .sr-only:focus,
+  .focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
   }
 }

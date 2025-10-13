@@ -88,7 +88,7 @@ export function PerformanceModal({ open, onOpenChange }: PerformanceModalProps) 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">4.8</div>
+                <div className="text-2xl font-bold text-accent">4.8</div>
                 <p className="text-xs text-muted-foreground">out of 5 stars</p>
               </CardContent>
             </Card>

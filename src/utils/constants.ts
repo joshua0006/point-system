@@ -1,9 +1,9 @@
 // Application constants
 export const APP_CONFIG = {
-  name: 'ConsultHub',
+  name: 'AgentHub',
   shortName: 'Hub',
-  description: 'Professional consulting platform',
-  version: '1.0.0',
+  description: 'Marketing campaigns and client gifting platform',
+  version: '2.0.0',
 } as const;
 
 // API endpoints
