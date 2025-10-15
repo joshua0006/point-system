@@ -5,7 +5,7 @@ import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { OptimizedDashboardModals } from "@/components/dashboard/OptimizedDashboardModals";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStatsCards } from "@/components/dashboard/DashboardStatsCards";
-import { DashboardContent } from "@/components/dashboard/DashboardContent";
+import { DashboardCampaigns } from "@/components/dashboard/DashboardCampaigns";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDashboardModals } from "@/hooks/useDashboardModals";
 import { SuccessModal } from "@/components/SuccessModal";
@@ -20,12 +20,13 @@ import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
 import { UserRecurringDeductions } from "@/components/dashboard/UserRecurringDeductions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionsTable } from "@/components/wallet/TransactionsTable";
+import { TransactionSummaryCards } from "@/components/wallet/TransactionSummaryCards";
 import { UpcomingChargesTable } from "@/components/wallet/UpcomingChargesTable";
 import { AwardedCreditsCard } from "@/components/wallet/AwardedCreditsCard";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Wallet, History, Clock, Lock } from "lucide-react";
+import { Wallet, Clock, Lock } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { TopUpModal } from "@/components/TopUpModal";
 import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnlockModal";
@@ -73,7 +74,7 @@ export default function UserDashboard() {
   
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
-  const [activeTab, setActiveTab] = useState(tabParam || "overview");
+  const [activeTab, setActiveTab] = useState(tabParam || "transactions");
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [lastUpgradeAmount, setLastUpgradeAmount] = useState<number>(0);
@@ -157,8 +158,8 @@ export default function UserDashboard() {
           }
         })
         .finally(() => {
-          // Clean URL and redirect to dashboard overview
-          navigate('/dashboard?tab=overview', { replace: true });
+          // Clean URL and redirect to dashboard transactions tab
+          navigate('/dashboard?tab=transactions', { replace: true });
         });
     }
   }, [toast, refreshData, navigate, refreshSubscription, refreshProfile, queryClient]);
@@ -220,16 +221,12 @@ export default function UserDashboard() {
         {/* Tabbed Dashboard Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList
-            className={isMobile ? "grid w-full grid-cols-4 gap-1" : "grid w-full grid-cols-4"}
+            className={isMobile ? "grid w-full grid-cols-3 gap-1" : "grid w-full grid-cols-3"}
             aria-label="Dashboard sections"
           >
-            <TabsTrigger value="overview" className="flex items-center gap-1" aria-label="Overview section">
+            <TabsTrigger value="transactions" className="flex items-center gap-1" aria-label="Overview section">
               <Wallet className="w-4 h-4" />
               <span className={isMobile ? "text-xs" : ""}>Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-1" aria-label="Transaction history section">
-              <History className="w-4 h-4" aria-hidden="true" />
-              <span className={isMobile ? "text-xs" : ""}>History</span>
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-1" aria-label="Billing and upcoming charges section">
               <Clock className="w-4 h-4" aria-hidden="true" />
@@ -241,20 +238,13 @@ export default function UserDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6" id="main-content" role="region" aria-label="Dashboard overview">
-            {/* Dashboard Content */}
-            <DashboardContent 
-              isMobile={isMobile}
-              recentTransactions={recentTransactions}
+          {/* Overview Tab (Summary Stats + Campaigns + Transactions) */}
+          <TabsContent value="transactions" className="space-y-6" id="main-content" role="region" aria-label="Dashboard overview">
+            <TransactionSummaryCards transactions={transactions || []} />
+            <DashboardCampaigns
               campaigns={campaigns}
               campaignsLoading={campaignsLoading}
-              openModal={openModal}
             />
-          </TabsContent>
-
-          {/* Transactions Tab */}
-          <TabsContent value="transactions" role="region" aria-label="Transaction history">
             <TransactionsTable transactions={transactions || []} />
           </TabsContent>
 
