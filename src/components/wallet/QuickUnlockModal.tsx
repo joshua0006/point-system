@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,6 +38,25 @@ export const QuickUnlockModal = ({
 
     return { creditsToUnlock, newBalance };
   }, [paymentAmount, currentBalance]);
+
+  // Handle manual input change with validation
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Allow empty input for better UX
+    if (value === '') {
+      setPaymentAmount(0.2); // Set to minimum
+      return;
+    }
+
+    const numValue = parseFloat(value);
+
+    // Validate and constrain to valid range
+    if (!isNaN(numValue)) {
+      const clampedValue = Math.max(0.2, Math.min(maxPayment, numValue));
+      setPaymentAmount(clampedValue);
+    }
+  };
 
   const handleQuickUnlock = async () => {
     try {
@@ -90,9 +110,21 @@ export const QuickUnlockModal = ({
 
           {/* Payment Amount Slider */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-4">
               <span className="text-sm font-medium">Payment Amount</span>
-              <span className="text-2xl font-bold">${paymentAmount.toFixed(2)}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold">$</span>
+                <Input
+                  type="number"
+                  value={paymentAmount.toFixed(2)}
+                  onChange={handleInputChange}
+                  min={0.2}
+                  max={maxPayment}
+                  step={0.1}
+                  disabled={isProcessing}
+                  className="w-28 text-right text-xl font-bold h-10"
+                />
+              </div>
             </div>
 
             <Slider
