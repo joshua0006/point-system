@@ -321,20 +321,6 @@ export function useDashboard() {
     ]);
   }, [refetchTransactions, refetchBookings]);
 
-  // DEBUG: Log loading states for tab-switch debugging (remove after fix confirmed)
-  useEffect(() => {
-    console.log('[DEBUG useDashboard]', {
-      transactionsLoading,
-      bookingsLoading,
-      awardedCreditsLoading,
-      hasTransactionData: !!transactionData,
-      hasBookingData: !!bookingData,
-      isLoading: transactionsLoading || bookingsLoading,
-      isInitialLoading: (transactionsLoading && !transactionData) || (bookingsLoading && !bookingData),
-      timestamp: new Date().toISOString()
-    });
-  }, [transactionsLoading, bookingsLoading, awardedCreditsLoading, transactionData, bookingData]);
-
   return {
     // Stats
     userStats,

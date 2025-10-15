@@ -195,20 +195,6 @@ export default function UserDashboard() {
     userStats.currentBalance !== 0 ||
     (transactions && transactions.length > 0);
 
-  // DEBUG: Log dashboard state for tab-switch debugging (remove after fix confirmed)
-  useEffect(() => {
-    console.log('[DEBUG UserDashboard]', {
-      hasUser: !!user,
-      isInitialLoading,
-      hasAnyData,
-      allTransactionsCount: allTransactions.length,
-      campaignsCount: campaigns.length,
-      currentBalance: userStats.currentBalance,
-      willShowSkeleton: isInitialLoading && !hasAnyData,
-      timestamp: new Date().toISOString()
-    });
-  }, [user, isInitialLoading, hasAnyData, allTransactions, campaigns, userStats]);
-
   // Show loading skeleton only on TRUE initial load (when fetching data for the first time)
   // isInitialLoading = true ONLY when loading AND no data exists yet
   // This prevents skeleton flash on tab switches, background refetches, or polling queries
