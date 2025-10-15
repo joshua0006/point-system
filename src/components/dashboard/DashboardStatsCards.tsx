@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
-import { TrendingUp, Wallet, Lock } from "lucide-react";
+import { TrendingUp, Wallet, Lock, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { UserStats } from "@/hooks/useDashboard";
 import { QuickUnlockModal } from "@/components/wallet/QuickUnlockModal";
@@ -56,7 +56,7 @@ export const DashboardStatsCards = memo(({
       {isMobile ? (
         <div className="grid grid-cols-2 gap-4">
           <OptimizedCard
-        className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-accent"
+        className="cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:bg-accent/5 active:scale-[0.98] transition-all duration-200 border-l-4 border-l-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         onClick={() => setShowQuickUnlock(true)}
         role="button"
         tabIndex={0}
@@ -78,7 +78,10 @@ export const DashboardStatsCards = memo(({
                 </Badge>
               )}
             </div>
-            <Lock className="w-4 h-4 text-accent" aria-hidden="true" />
+            <div className="flex items-center gap-1">
+              <Lock className="w-4 h-4 text-accent" aria-hidden="true" />
+              <ChevronRight className="w-4 h-4 text-accent" aria-hidden="true" />
+            </div>
           </div>
         </OptimizedCardHeader>
         <OptimizedCardContent>
@@ -98,7 +101,7 @@ export const DashboardStatsCards = memo(({
       </OptimizedCard>
 
       <OptimizedCard
-        className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-muted-foreground/30"
+        className="cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:bg-accent/5 active:scale-[0.98] transition-all duration-200 border-l-4 border-l-muted-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         onClick={() => onTabChange('transactions')}
         role="button"
         tabIndex={0}
@@ -113,7 +116,10 @@ export const DashboardStatsCards = memo(({
         <OptimizedCardHeader className="pb-3">
           <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
             Total Spent
-            <TrendingUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <div className="flex items-center gap-1">
+              <TrendingUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            </div>
           </div>
         </OptimizedCardHeader>
         <OptimizedCardContent>
@@ -125,7 +131,7 @@ export const DashboardStatsCards = memo(({
       ) : (
         <>
           <OptimizedCard
-            className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-accent"
+            className="cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:bg-accent/5 active:scale-[0.98] transition-all duration-200 border-l-4 border-l-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => setShowQuickUnlock(true)}
             role="button"
             tabIndex={0}
@@ -147,7 +153,10 @@ export const DashboardStatsCards = memo(({
                     </Badge>
                   )}
                 </div>
-                <Lock className="w-4 h-4 text-accent" aria-hidden="true" />
+                <div className="flex items-center gap-1">
+                  <Lock className="w-4 h-4 text-accent" aria-hidden="true" />
+                  <ChevronRight className="w-4 h-4 text-accent" aria-hidden="true" />
+                </div>
               </div>
             </OptimizedCardHeader>
             <OptimizedCardContent>
@@ -167,7 +176,7 @@ export const DashboardStatsCards = memo(({
           </OptimizedCard>
 
           <OptimizedCard
-            className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-muted-foreground/30"
+            className="cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:bg-accent/5 active:scale-[0.98] transition-all duration-200 border-l-4 border-l-muted-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={() => onTabChange('transactions')}
             role="button"
             tabIndex={0}
@@ -182,7 +191,10 @@ export const DashboardStatsCards = memo(({
             <OptimizedCardHeader className="pb-3">
               <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
                 Total Spent
-                <TrendingUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                </div>
               </div>
             </OptimizedCardHeader>
             <OptimizedCardContent>
