@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,18 +21,12 @@ export interface UserCampaign {
 
 export function useUserCampaigns() {
   const { user } = useAuth();
-  const [campaigns, setCampaigns] = useState<UserCampaign[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchCampaigns = async () => {
-    if (!user?.id) {
-      setIsLoading(false);
-      return;
-    }
+  const { data: campaigns = [], isLoading, refetch } = useQuery({
+    queryKey: ['user-campaigns', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
 
-    try {
-      setIsLoading(true);
-      
       const { data, error } = await supabase
         .from('campaign_participants')
         .select(`
@@ -58,24 +52,20 @@ export function useUserCampaigns() {
 
       if (error) {
         console.error('Error fetching campaigns:', error);
-        return;
+        throw error;
       }
 
-      setCampaigns(data || []);
-    } catch (error) {
-      console.error('Error in fetchCampaigns:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCampaigns();
-  }, [user?.id]);
+      return (data || []) as UserCampaign[];
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on tab switch
+  });
 
   return {
     campaigns,
     isLoading,
-    refreshCampaigns: fetchCampaigns
+    refreshCampaigns: refetch,
   };
 }

@@ -65,6 +65,7 @@ export default function UserDashboard() {
     recentTransactions,
     refreshData,
     isLoading,
+    isInitialLoading,
   } = useDashboard();
   
   const { campaigns, isLoading: campaignsLoading } = useUserCampaigns();
@@ -186,10 +187,41 @@ export default function UserDashboard() {
     }
   }, [refreshData]);
 
-  // Show loading skeleton while data is being fetched
-  if (isLoading || !user) {
+  // Defensive loading state: only show skeleton if truly NO data exists
+  // Check multiple data sources to ensure we have SOMETHING to display
+  const hasAnyData =
+    allTransactions.length > 0 ||
+    campaigns.length > 0 ||
+    userStats.currentBalance !== 0 ||
+    (transactions && transactions.length > 0);
+
+  // DEBUG: Log dashboard state for tab-switch debugging (remove after fix confirmed)
+  useEffect(() => {
+    console.log('[DEBUG UserDashboard]', {
+      hasUser: !!user,
+      isInitialLoading,
+      hasAnyData,
+      allTransactionsCount: allTransactions.length,
+      campaignsCount: campaigns.length,
+      currentBalance: userStats.currentBalance,
+      willShowSkeleton: isInitialLoading && !hasAnyData,
+      timestamp: new Date().toISOString()
+    });
+  }, [user, isInitialLoading, hasAnyData, allTransactions, campaigns, userStats]);
+
+  // Show loading skeleton only on TRUE initial load (when fetching data for the first time)
+  // isInitialLoading = true ONLY when loading AND no data exists yet
+  // This prevents skeleton flash on tab switches, background refetches, or polling queries
+  if (!user) {
     return <DashboardSkeleton />;
   }
+
+  // Only show skeleton if loading AND we have absolutely no data to display
+  if (isInitialLoading && !hasAnyData) {
+    return <DashboardSkeleton />;
+  }
+
+  // If we have ANY data, render the dashboard even if background refetch is happening
 
   return (
     <SidebarLayout>

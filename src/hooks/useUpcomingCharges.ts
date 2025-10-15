@@ -48,5 +48,7 @@ export function useUpcomingCharges() {
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5, // Consider fresh for 5 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on tab switch
+    refetchOnMount: false, // Prevent refetch on component remount
   });
 }

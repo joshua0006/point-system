@@ -321,29 +321,46 @@ export function useDashboard() {
     ]);
   }, [refetchTransactions, refetchBookings]);
 
+  // DEBUG: Log loading states for tab-switch debugging (remove after fix confirmed)
+  useEffect(() => {
+    console.log('[DEBUG useDashboard]', {
+      transactionsLoading,
+      bookingsLoading,
+      awardedCreditsLoading,
+      hasTransactionData: !!transactionData,
+      hasBookingData: !!bookingData,
+      isLoading: transactionsLoading || bookingsLoading,
+      isInitialLoading: (transactionsLoading && !transactionData) || (bookingsLoading && !bookingData),
+      timestamp: new Date().toISOString()
+    });
+  }, [transactionsLoading, bookingsLoading, awardedCreditsLoading, transactionData, bookingData]);
+
   return {
     // Stats
     userStats,
-    
+
     // Transactions
     allTransactions: transactionData?.all || [],
     spentTransactions: transactionData?.spent || [],
     earnedTransactions: transactionData?.earned || [],
     recentTransactions: transactionData?.recent || [],
-    
+
     // Bookings
     bookedServices: bookingData?.all || [],
     upcomingBookings: bookingData?.upcoming || [],
-    
+
     // State
-    isLoading: transactionsLoading || bookingsLoading || awardedCreditsLoading,
-    
+    // Exclude awardedCreditsLoading from main loading state to prevent tab-switch skeleton flash
+    // (awarded credits polls every 30s, shouldn't block dashboard rendering)
+    isLoading: transactionsLoading || bookingsLoading,
+    isInitialLoading: (transactionsLoading && !transactionData) || (bookingsLoading && !bookingData),
+
     // Awarded Credits
     awardedCredits: awardedCreditsData?.awards || [],
     lockedAwardedBalance: awardedCreditsData?.lockedBalance || 0,
     expiringCredits: awardedCreditsData?.expiringCredits || [],
     hasExpiringCredits: awardedCreditsData?.hasExpiringCredits || false,
-    
+
     // Actions
     refreshData,
   };

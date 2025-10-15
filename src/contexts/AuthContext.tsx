@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
@@ -52,6 +52,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Debounce protection: prevent rapid successive auth checks (e.g., from tab switching)
+  const lastAuthCheckTime = useRef(0);
+  const MIN_AUTH_CHECK_INTERVAL = 5000; // 5 seconds
+
   useEffect(() => {
     let mounted = true;
     let realtimeChannel: any = null;
@@ -60,19 +64,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
-        
+
+        // Ignore auth events when tab is hidden to prevent tab-switch reloads
+        if (typeof document !== 'undefined' && document.hidden) {
+          logger.log('[AUTH] Ignoring auth event - tab hidden');
+          return;
+        }
+
         logger.log('Auth state changed:', event, session?.user?.email);
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Skip refetch if data already loaded for this user
+          if (profile?.user_id === session.user.id && subscription) {
+            logger.log('[AUTH] Data already loaded, skipping fetch');
+            return;
+          }
+
           // Ensure loading stays true until profile/subscription fetched
           setLoading(true);
           // Defer profile and subscription fetch to avoid blocking auth state updates
           requestIdleCallback(async () => {
             if (!mounted) return;
-            
+
+            // Debounce: Skip if checked too recently (prevents rapid tab-switch refetches)
+            const now = Date.now();
+            if (now - lastAuthCheckTime.current < MIN_AUTH_CHECK_INTERVAL) {
+              logger.log('[AUTH] Skipping refetch - too soon since last check');
+              setLoading(false);
+              return;
+            }
+            lastAuthCheckTime.current = now;
+
             try {
               // Parallel fetch for better performance
               const [profileResult, subscriptionResult] = await Promise.allSettled([

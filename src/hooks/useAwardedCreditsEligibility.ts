@@ -40,6 +40,8 @@ export const useAwardedCreditsEligibility = (params?: CheckEligibilityParams) =>
       return data;
     },
     enabled: !!params && params.topupAmount > 0,
-    staleTime: 0 // Always fetch fresh data
+    staleTime: 1000 * 60 * 5, // 5 minutes - prevent excessive refetching
+    refetchOnWindowFocus: false, // Prevent refetch on tab switch
+    refetchOnMount: false, // Prevent refetch on component remount
   });
 };

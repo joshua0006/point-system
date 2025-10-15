@@ -84,6 +84,7 @@ export const useAwardedCredits = () => {
         hasExpiringCredits: expiringCredits.length > 0
       };
     },
-    refetchInterval: 30000 // Refetch every 30 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchIntervalInBackground: true, // Continue polling even when tab is hidden (prevents catch-up refetch on tab return)
   });
 };
