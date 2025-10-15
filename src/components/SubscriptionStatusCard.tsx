@@ -195,10 +195,6 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
           id="subscription-card-title"
           className="flex items-center gap-2 text-lg"
         >
-          <StatusIcon
-            className={`h-5 w-5 ${statusInfo.textColor}`}
-            aria-hidden="true"
-          />
           <span>Subscription Status</span>
           <Badge
             variant={subscription?.subscribed ? "default" : "secondary"}
@@ -224,7 +220,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
         <dl className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <dt className="text-muted-foreground mb-1">Current Plan:</dt>
-            <dd className="font-semibold text-lg">
+            <dd className="font-semibold text-base">
               {subscription?.subscribed ? subscription.plan_name || 'Premium Plan' : 'No Plan'}
             </dd>
           </div>
@@ -233,13 +229,13 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
             <>
               <div>
                 <dt className="text-muted-foreground mb-1">Monthly Credits:</dt>
-                <dd className="font-semibold">
+                <dd className="font-semibold text-base">
                   {subscription.credits_per_month || 0} <span className="text-sm font-normal">credits</span>
                 </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground mb-1">Next Billing:</dt>
-                <dd className="font-semibold">
+                <dd className="font-semibold text-base">
                   {formatDate(subscription.subscription_end)}
                 </dd>
               </div>
@@ -249,14 +245,14 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
 
         {/* Action buttons with proper accessibility */}
         {showActions && (
-          <div className="flex gap-2 flex-wrap" role="group" aria-label="Subscription actions">
+          <div className="flex gap-3 flex-wrap" role="group" aria-label="Subscription actions">
             <Button
               variant="outline"
               size="sm"
               onClick={handleRefresh}
               disabled={refreshing}
               aria-label={refreshing ? "Refreshing subscription status" : "Refresh subscription status"}
-              className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="flex-1 min-w-[120px] shadow-sm hover:shadow-md transition-all duration-200 border-primary/20 hover:border-primary/40 hover:bg-primary/5 focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
             >
               <RefreshCw
                 className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`}
@@ -267,12 +263,12 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
             </Button>
 
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={handleChangePlan}
               disabled={changingPlan}
               aria-label="Change subscription plan"
-              className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="flex-1 min-w-[120px] shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
             >
               <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
               {changingPlan ? 'Opening...' : 'Change Plan'}
@@ -281,12 +277,12 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
 
             {subscription?.subscribed && (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleManageBilling}
                 disabled={openingPortal}
                 aria-label="Manage subscription billing and payment methods"
-                className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="flex-1 min-w-[140px] shadow-sm hover:shadow-md transition-all duration-200 hover:bg-secondary/80 focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
               >
                 <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
                 {openingPortal ? 'Opening...' : 'Manage Billing'}
