@@ -27,6 +27,7 @@ export const useAwardedCredits = () => {
   return useQuery({
     queryKey: ['awarded-credits'],
     queryFn: async () => {
+      console.log('[UNLOCK-DEBUG] useAwardedCredits: Fetching awarded credits from DB');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -65,6 +66,15 @@ export const useAwardedCredits = () => {
           )
         }))
         .sort((a, b) => a.days_until_expiry - b.days_until_expiry);
+
+      console.log('[UNLOCK-DEBUG] useAwardedCredits: Calculated balances', {
+        lockedBalance,
+        unlockedBalance,
+        totalAwards: awards.length,
+        activeAwards: awards.filter(a => a.status === 'active').length,
+        timestamp: new Date().toISOString(),
+        rawAwards: awards.map(a => ({ id: a.id, locked: a.locked_amount, unlocked: a.unlocked_amount }))
+      });
 
       return {
         awards,

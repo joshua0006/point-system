@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const ThankYou = () => {
   const isMobile = useIsMobile();
   const [showConfetti, setShowConfetti] = useState(true);
   const { user, refreshProfile } = useAuth();
+  const queryClient = useQueryClient();
 
   // Get payment type and details from URL params
   const paymentType = (searchParams.get('type') || 'subscription') as PaymentType;
@@ -120,6 +122,20 @@ const ThankYou = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]); // refreshProfile is now memoized in AuthContext, but we only want this to run when user changes
+
+  // Invalidate awarded credits query after unlock payment to update locked balance UI
+  useEffect(() => {
+    if (user && paymentType === 'unlock') {
+      console.log('[UNLOCK-DEBUG] ThankYou: Invalidating queries for unlock payment', {
+        paymentType,
+        unlocked,
+        amount,
+        timestamp: new Date().toISOString()
+      });
+      queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    }
+  }, [user, paymentType, queryClient, unlocked, amount]);
 
   // Gentle auth check: Give session time to restore after Stripe redirect
   // If user is not authenticated after 5 seconds, redirect to auth with return URL

@@ -1,3 +1,4 @@
+// Force rebuild v221 - Added transaction verification and diagnostics
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@14.21.0";
@@ -49,7 +50,7 @@ serve(async (req) => {
     // Verify webhook signature for security
     let event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       logStep("Webhook signature verified", { eventType: event.type });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -124,10 +125,47 @@ serve(async (req) => {
           throw transactionError;
         }
 
-        logStep("Payment credits added, now unlocking awarded credits", { 
+        logStep("Payment credits added, now unlocking awarded credits", {
           creditsAdded: creditsFromPayment,
-          transactionId: topupTransaction.id 
+          transactionId: topupTransaction.id
         });
+
+        // Wait for transaction to be fully committed and visible in DB
+        // Increased delay to handle database replication lag
+        await new Promise(resolve => setTimeout(resolve, 500));
+        logStep("Transaction commit delay completed");
+
+        // Verify transaction exists before calling unlock function
+        const { data: verifyTx, error: verifyError } = await supabaseClient
+          .from('flexi_credits_transactions')
+          .select('id, user_id, amount, type')
+          .eq('id', topupTransaction.id)
+          .single();
+
+        logStep("Transaction verification", {
+          found: !!verifyTx,
+          transactionId: topupTransaction.id,
+          error: verifyError?.message,
+          transaction: verifyTx
+        });
+
+        if (!verifyTx) {
+          // Get recent transactions for debugging
+          const { data: recentTx } = await supabaseClient
+            .from('flexi_credits_transactions')
+            .select('id, type, amount, description, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+          logStep("Transaction not found - recent user transactions for debugging", {
+            userId,
+            lookingFor: topupTransaction.id,
+            recentTransactions: recentTx
+          });
+
+          throw new Error(`Transaction ${topupTransaction.id} not found in DB after ${500}ms delay`);
+        }
 
         // Now unlock the awarded credits using the Supabase client
         const { data: unlockResult, error: unlockError } = await supabaseClient.functions.invoke('unlock-awarded-credits', {
@@ -139,12 +177,22 @@ serve(async (req) => {
         });
 
         if (unlockError) {
-          logStep("Error unlocking awarded credits", unlockError);
+          logStep("Error unlocking awarded credits", {
+            error: unlockError,
+            message: unlockError.message,
+            details: unlockError.context || unlockError.details,
+            stack: unlockError.stack,
+            statusCode: unlockError.status
+          });
           throw unlockError;
         }
 
         if (unlockResult?.error) {
-          logStep("Error from unlock function", { error: unlockResult.error });
+          logStep("Error from unlock function", {
+            error: unlockResult.error,
+            fullResult: JSON.stringify(unlockResult),
+            data: unlockResult.data
+          });
           throw new Error(`Failed to unlock credits: ${unlockResult.error}`);
         }
 

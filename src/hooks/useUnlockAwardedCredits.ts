@@ -30,14 +30,22 @@ export const useUnlockAwardedCredits = () => {
       return data;
     },
     onSuccess: async (data) => {
+      console.log('[UNLOCK-DEBUG] useUnlockAwardedCredits: Success handler triggered', {
+        amountUnlocked: data.data.amount_unlocked,
+        newBalance: data.data.new_balance,
+        unlockRecords: data.data.unlock_records
+      });
+
       // Refresh AuthContext profile to update balance immediately
       await refreshProfile();
+      console.log('[UNLOCK-DEBUG] useUnlockAwardedCredits: Profile refreshed');
 
-      // Invalidate relevant queries
+      // Invalidate relevant queries (including awarded-credits for locked balance UI update)
       queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['flexi-credits-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-transactions'] });
+      console.log('[UNLOCK-DEBUG] useUnlockAwardedCredits: All queries invalidated');
 
       toast.success(`Successfully unlocked ${data.data.amount_unlocked} flexi credits!`, {
         description: `New balance: ${data.data.new_balance} FXC`

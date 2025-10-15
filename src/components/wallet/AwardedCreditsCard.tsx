@@ -50,11 +50,19 @@ export function AwardedCreditsCard() {
   }
 
   const activeAwards = data.awards.filter(a => a.status === 'active' && Number(a.locked_amount) > 0);
-  const nextExpiring = activeAwards.length > 0 
-    ? activeAwards.reduce((earliest, award) => 
+  const nextExpiring = activeAwards.length > 0
+    ? activeAwards.reduce((earliest, award) =>
         new Date(award.expires_at) < new Date(earliest.expires_at) ? award : earliest
       )
     : null;
+
+  console.log('[UNLOCK-DEBUG] AwardedCreditsCard: Rendering with data', {
+    lockedBalance: data.lockedBalance,
+    unlockedBalance: data.unlockedBalance,
+    awardsCount: data.awards.length,
+    activeAwardsCount: activeAwards.length,
+    timestamp: new Date().toISOString()
+  });
 
   return (
     <Card>

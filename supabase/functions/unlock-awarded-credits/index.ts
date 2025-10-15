@@ -1,3 +1,4 @@
+// Force rebuild v22 - Fixed invalid enum type filter causing query failure
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -18,6 +19,15 @@ serve(async (req) => {
 
     // Parse request body
     const { topupTransactionId, amountToUnlock, userId: providedUserId } = await req.json();
+
+    console.log('[UNLOCK-DEBUG] Backend: Function invoked', {
+      hasTopupId: !!topupTransactionId,
+      topupTransactionId,
+      hasAmount: !!amountToUnlock,
+      amountToUnlock,
+      hasUserId: !!providedUserId,
+      providedUserId
+    });
 
     let userId: string;
 
@@ -44,14 +54,32 @@ serve(async (req) => {
       throw new Error('Amount to unlock must be greater than 0');
     }
 
+    // Log query parameters for debugging
+    console.log('[UNLOCK-DEBUG] Backend: Querying for transaction', {
+      topupTransactionId,
+      userId,
+      note: 'Filtering by ID and user_id only (no type filter due to enum constraints)'
+    });
+
     // Verify user owns the top-up transaction
+    // Note: Not filtering by type since ID + user_id is sufficient and 'credit' is not a valid enum value
     const { data: transaction, error: txError } = await supabase
       .from('flexi_credits_transactions')
       .select('*')
       .eq('id', topupTransactionId)
       .eq('user_id', userId)
-      .in('type', ['credit', 'purchase'])
       .single();
+
+    // Log query result with full details
+    console.log('[UNLOCK-DEBUG] Backend: Transaction query result', {
+      found: !!transaction,
+      transaction,
+      error: txError,
+      errorCode: txError?.code,
+      errorMessage: txError?.message,
+      errorDetails: txError?.details,
+      errorHint: txError?.hint
+    });
 
     if (txError || !transaction) {
       throw new Error('Top-up transaction not found or does not belong to user');
@@ -112,6 +140,16 @@ serve(async (req) => {
       const newLockedAmount = Number(award.locked_amount) - unlockFromThis;
       const newUnlockedAmount = Number(award.unlocked_amount) + unlockFromThis;
       const newStatus = newLockedAmount === 0 ? 'fully_unlocked' : 'active';
+
+      console.log('[UNLOCK-DEBUG] Backend: Updating awarded credit', {
+        awardId: award.id,
+        oldLocked: award.locked_amount,
+        oldUnlocked: award.unlocked_amount,
+        unlockFromThis,
+        newLockedAmount,
+        newUnlockedAmount,
+        newStatus
+      });
 
       // Update awarded credit record
       const { error: updateError } = await supabase
@@ -192,7 +230,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in unlock-awarded-credits:', error);
+    console.error('[UNLOCK-DEBUG] Backend: Error in unlock-awarded-credits', {
+      error,
+      message: error.message,
+      stack: error.stack,
+      type: error.constructor.name
+    });
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
