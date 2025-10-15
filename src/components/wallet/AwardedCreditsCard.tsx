@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, Clock, AlertTriangle } from "lucide-react";
+import { Lock, Unlock, Clock, AlertTriangle, ChevronDown } from "lucide-react";
 import { useAwardedCredits } from "@/hooks/useAwardedCredits";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -8,11 +8,16 @@ import { format, formatDistanceToNow } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { QuickUnlockModal } from "@/components/wallet/QuickUnlockModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AwardedCreditsCard() {
   const { data, isLoading } = useAwardedCredits();
+  const { profile } = useAuth();
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [unlockModalOpen, setUnlockModalOpen] = useState(false);
+
+  const currentBalance = profile?.flexi_credits_balance || 0;
 
   if (isLoading) {
     return (
@@ -79,6 +84,17 @@ export function AwardedCreditsCard() {
             <div className="text-xs text-muted-foreground">Total Awarded</div>
           </div>
         </div>
+
+        {/* Unlock Credits Button */}
+        <Button
+          onClick={() => setUnlockModalOpen(true)}
+          disabled={data.lockedBalance === 0}
+          className="w-full"
+          size="lg"
+        >
+          <Unlock className="h-4 w-4 mr-2" />
+          Unlock Credits
+        </Button>
 
         {/* Expiring Warning */}
         {data.hasExpiringCredits && data.expiringCredits[0] && (
@@ -162,11 +178,19 @@ export function AwardedCreditsCard() {
         {/* Info Box */}
         <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
           <div className="text-xs text-blue-800 dark:text-blue-200">
-            <strong>How to unlock:</strong> Top-up your account to unlock awarded credits at a 2:1 ratio. 
+            <strong>How to unlock:</strong> Top-up your account to unlock awarded credits at a 2:1 ratio.
             For example, a $200 top-up unlocks 100 FXC.
           </div>
         </div>
       </CardContent>
+
+      {/* Unlock Modal */}
+      <QuickUnlockModal
+        open={unlockModalOpen}
+        onOpenChange={setUnlockModalOpen}
+        lockedBalance={data.lockedBalance}
+        currentBalance={currentBalance}
+      />
     </Card>
   );
 }
