@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
@@ -290,16 +290,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id.toString())
         .single();
-      
+
       if (error) {
         console.error('Error refreshing profile:', error);
         setProfile(null);
@@ -310,15 +310,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.error('Profile refresh error:', err);
     }
-  };
+  }, [user]);
 
-  const refreshSubscription = async () => {
+  const refreshSubscription = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       logger.log('🔄 Refreshing subscription status for user:', user.email);
       const { data: subscriptionData, error } = await supabase.functions.invoke('check-subscription');
-      
+
       if (error) {
         console.error('❌ Error refreshing subscription:', error);
         setSubscription(null);
@@ -329,7 +329,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.error('Subscription refresh error:', err);
     }
-  };
+  }, [user]);
 
   const value = useMemo(() => ({
     user,
@@ -340,7 +340,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     refreshProfile,
     refreshSubscription,
-  }), [user, session, profile, subscription, loading]);
+  }), [user, session, profile, subscription, loading, refreshProfile, refreshSubscription]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

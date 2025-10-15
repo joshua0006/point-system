@@ -15,7 +15,7 @@ const ThankYou = () => {
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const [showConfetti, setShowConfetti] = useState(true);
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
 
   // Get payment type and details from URL params
   const paymentType = (searchParams.get('type') || 'subscription') as PaymentType;
@@ -111,6 +111,15 @@ const ThankYou = () => {
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Refresh profile on mount to ensure balance is up-to-date after payment
+  useEffect(() => {
+    if (user) {
+      // Refresh profile to get latest balance after payment
+      refreshProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // refreshProfile is now memoized in AuthContext, but we only want this to run when user changes
 
   // Gentle auth check: Give session time to restore after Stripe redirect
   // If user is not authenticated after 5 seconds, redirect to auth with return URL

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UnlockAwardedCreditsParams {
   topupTransactionId: string;
@@ -9,6 +10,7 @@ interface UnlockAwardedCreditsParams {
 
 export const useUnlockAwardedCredits = () => {
   const queryClient = useQueryClient();
+  const { refreshProfile } = useAuth();
 
   return useMutation({
     mutationFn: async ({ topupTransactionId, amountToUnlock }: UnlockAwardedCreditsParams) => {
@@ -27,12 +29,16 @@ export const useUnlockAwardedCredits = () => {
 
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Refresh AuthContext profile to update balance immediately
+      await refreshProfile();
+
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['flexi-credits-transactions'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['dashboard-transactions'] });
+
       toast.success(`Successfully unlocked ${data.data.amount_unlocked} flexi credits!`, {
         description: `New balance: ${data.data.new_balance} FXC`
       });
