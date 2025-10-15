@@ -56,58 +56,35 @@ export function useSubscriptionOperations() {
         const { data, error } = await supabase.functions.invoke('update-subscription', {
           body: { credits }
         });
-        
+
         if (error) throw error;
-        
-        // Send confirmation email
-        try {
-          await supabase.functions.invoke('send-subscription-emails', {
-            body: { 
-              emailType: 'upgrade',
-              subscriptionData: { 
-                credits, 
-                upgradeCreditsAdded: data.upgrade_credits_added 
-              }
-            }
-          });
-        } catch (emailError) {
-          console.warn('Failed to send confirmation email:', emailError);
-        }
-        
+
+        // Note: Confirmation email will be sent by webhook after successful payment
+        // Don't send email here to avoid sending before payment is complete
+
         if (data.checkout_url) {
-          // Open Stripe checkout for upgrade payment
-          window.open(data.checkout_url, '_blank');
-          
-          toast({
-            title: "Redirected to Payment",
-            description: `Complete your payment to upgrade your plan.`,
-          });
+          // Return checkout_url so caller can handle redirect
+          // Don't use window.open to avoid popup blockers
+          return { success: true, data, requiresPayment: true };
         } else {
           // Handle downgrade or no checkout needed
           toast({
             title: "Subscription Updated Successfully!",
             description: data.message || "Your subscription has been updated.",
           });
+          return { success: true, data, requiresPayment: false };
         }
-        
-        return { success: true, data };
       } else {
         // For new subscribers, use create-subscription-checkout
         const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
           body: { credits }
         });
-        
+
         if (error) throw error;
-        
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-        
-        toast({
-          title: "Redirected to Stripe Checkout",
-          description: "Complete your payment in the new tab to activate your subscription.",
-        });
-        
-        return { success: true, data };
+
+        // Return checkout URL for caller to handle redirect
+        // Use window.location.href to avoid popup blockers
+        return { success: true, data, requiresPayment: true };
       }
     } catch (error: any) {
       console.error('Error processing subscription:', error);

@@ -70,23 +70,28 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     // If already subscribed, fetch proration details and show confirmation modal
     if (subscription?.subscribed) {
       setPendingUpgrade(plan);
-      
+
       const proration = await fetchProrationDetails(plan.credits);
       if (proration) {
         setProrationDetails(proration);
         setShowConfirmationModal(true);
       }
     } else {
-      // Direct subscription for new users
+      // Direct subscription for new users - redirect to Stripe checkout
       const result = await processSubscriptionChange(plan.credits, subscription?.subscribed || false);
-      if (result.success) {
-        // Refresh subscription and profile to get updated balance
+      if (result.success && result.requiresPayment) {
+        // Redirect to Stripe checkout in the same window to avoid popup blockers
+        const checkoutUrl = result.data?.url || result.data?.checkout_url;
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl;
+        }
+      } else if (result.success) {
+        // No payment needed (shouldn't happen for new subscribers, but handle it)
         await Promise.all([
           refreshSubscription(),
           refreshProfile()
         ]);
         setLastTopUpAmount(plan.price);
-        // Invalidate eligibility query to force fresh data fetch with new amount
         queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
         queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
         onClose();
@@ -101,19 +106,26 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
     if (pendingUpgrade) {
       const result = await processSubscriptionChange(pendingUpgrade.credits, subscription?.subscribed || false);
       if (result.success) {
-        // Refresh subscription and profile to get updated balance
-        await Promise.all([
-          refreshSubscription(),
-          refreshProfile()
-        ]);
-        setLastTopUpAmount(pendingUpgrade.price);
-        // Invalidate eligibility query to force fresh data fetch with new amount
-        queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
-        queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
-        onClose();
-        setShowConfirmationModal(false);
-        if (onSuccess) {
-          onSuccess(pendingUpgrade.price, true);
+        // Check if payment is required (upgrade) or not (downgrade)
+        if (result.requiresPayment && result.data?.checkout_url) {
+          // For upgrades: Redirect to Stripe checkout in the same window
+          // User will be redirected back after payment with session_id
+          window.location.href = result.data.checkout_url;
+        } else {
+          // For downgrades or immediate updates: Refresh and close
+          await Promise.all([
+            refreshSubscription(),
+            refreshProfile()
+          ]);
+          setLastTopUpAmount(pendingUpgrade.price);
+          // Invalidate eligibility query to force fresh data fetch with new amount
+          queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
+          queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
+          onClose();
+          setShowConfirmationModal(false);
+          if (onSuccess) {
+            onSuccess(pendingUpgrade.price, true);
+          }
         }
       }
     }
