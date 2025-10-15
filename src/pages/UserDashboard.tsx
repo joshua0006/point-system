@@ -106,11 +106,25 @@ export default function UserDashboard() {
     if (upgradeSuccess && sessionId) {
       supabase.functions.invoke("confirm-upgrade-session", { body: { session_id: sessionId } })
         .then(({ data, error }) => {
+          console.log('[UPGRADE-SUCCESS] Confirm response:', { data, error });
+
           if (error) {
             console.error("Upgrade confirmation failed", error);
             toast({ title: "Upgrade processing", description: "We're verifying your payment. Refresh in a moment.", variant: "default" });
           } else if (data?.success) {
-            toast({ title: "Plan upgraded", description: `+${data.upgradeCredits} credits added for ${data.planName}` });
+            // Handle both direct and wrapped responses, with fallbacks
+            const response = data.data || data;
+            const credits = response.upgradeCredits || response.upgrade_credits_added || 0;
+            const plan = response.planName || response.plan_name || 'your new plan';
+
+            console.log('[UPGRADE-SUCCESS] Parsed values:', { credits, plan });
+
+            toast({
+              title: "Plan upgraded successfully!",
+              description: credits > 0
+                ? `+${credits} credits added for ${plan}`
+                : `Successfully upgraded to ${plan}`
+            });
             refreshData();
           }
         })

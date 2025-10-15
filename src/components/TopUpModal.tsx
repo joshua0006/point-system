@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSubscriptionOperations, type SubscriptionPlan } from "@/hooks/useSubscriptionOperations";
 import { UpgradeConfirmationModal } from "@/components/UpgradeConfirmationModal";
 import { SubscriptionHeader } from "@/components/subscription/SubscriptionHeader";
@@ -29,6 +30,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { profile, subscription, refreshSubscription, refreshProfile } = useAuth();
   const { 
     loading, 
@@ -84,6 +86,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           refreshProfile()
         ]);
         setLastTopUpAmount(plan.price);
+        // Invalidate eligibility query to force fresh data fetch with new amount
+        queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
+        queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
         onClose();
         if (onSuccess) {
           onSuccess(plan.price, true);
@@ -102,6 +107,9 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           refreshProfile()
         ]);
         setLastTopUpAmount(pendingUpgrade.price);
+        // Invalidate eligibility query to force fresh data fetch with new amount
+        queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
+        queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
         onClose();
         setShowConfirmationModal(false);
         if (onSuccess) {

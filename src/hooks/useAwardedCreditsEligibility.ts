@@ -8,7 +8,7 @@ interface CheckEligibilityParams {
 
 export const useAwardedCreditsEligibility = (params?: CheckEligibilityParams) => {
   return useQuery({
-    queryKey: ['awarded-credits-eligibility', params?.topupTransactionId],
+    queryKey: ['awarded-credits-eligibility', params?.topupTransactionId, params?.topupAmount],
     queryFn: async () => {
       if (!params || !params.topupAmount) {
         return {

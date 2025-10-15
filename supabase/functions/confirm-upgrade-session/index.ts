@@ -79,7 +79,12 @@ serve(async (req) => {
 
     if (existing) {
       logStep("Upgrade already processed", { trxId: existing.id });
-      return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
+      return new Response(JSON.stringify({
+        success: true,
+        message: "Already processed",
+        upgradeCredits,
+        planName
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -115,7 +120,10 @@ serve(async (req) => {
 
     logStep("Upgrade confirmed and credits added", { userId, upgradeCredits, planName });
 
-    return new Response(JSON.stringify({ success: true, upgradeCredits, planName }), {
+    const responsePayload = { success: true, upgradeCredits, planName };
+    console.log('[CONFIRM-UPGRADE] Returning response:', responsePayload);
+
+    return new Response(JSON.stringify(responsePayload), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
