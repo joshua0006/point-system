@@ -26,6 +26,41 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Smart origin detection for development & production
+function getAppOrigin(req: Request): string {
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer");
+
+  // Priority 1: Use origin header if present
+  if (origin) {
+    logStep("Using origin header", { origin });
+    return origin;
+  }
+
+  // Priority 2: Extract from referer
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      const refererOrigin = `${url.protocol}//${url.host}`;
+      logStep("Using referer origin", { refererOrigin });
+      return refererOrigin;
+    } catch (e) {
+      logStep("Failed to parse referer", { error: e });
+    }
+  }
+
+  // Priority 3: Use SITE_URL env var
+  const siteUrl = Deno.env.get('SITE_URL');
+  if (siteUrl) {
+    logStep("Using SITE_URL env", { siteUrl });
+    return siteUrl;
+  }
+
+  // Fallback: localhost (development default)
+  logStep("Fallback to localhost");
+  return 'http://localhost:5173';
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -110,12 +145,15 @@ serve(async (req) => {
     const now = new Date();
     const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0));
     const billingCycleAnchor = Math.floor(nextMonth.getTime() / 1000);
-    
-    logStep("Billing cycle anchor calculated", { 
+
+    logStep("Billing cycle anchor calculated", {
       currentDate: now.toISOString(),
       nextBillingDate: nextMonth.toISOString(),
-      billingCycleAnchor 
+      billingCycleAnchor
     });
+
+    // Get app origin for redirect URLs
+    const appOrigin = getAppOrigin(req);
 
     // Create checkout session with fixed price and billing cycle anchor
     const session = await stripe.checkout.sessions.create({
@@ -128,8 +166,8 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/thank-you?plan_name=${encodeURIComponent(planName)}&credits=${credits}`,
-      cancel_url: `${req.headers.get("origin")}/marketplace?subscription=canceled`,
+      success_url: `${appOrigin}/thank-you?plan_name=${encodeURIComponent(planName)}&credits=${credits}`,
+      cancel_url: `${appOrigin}/marketplace?subscription=canceled`,
       metadata: {
         user_id: user.id,
         credits: credits.toString(),

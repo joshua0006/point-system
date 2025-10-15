@@ -241,7 +241,7 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/thank-you',
     component: ThankYou,
-    protected: true,
+    protected: false, // Allow immediate access after Stripe redirect
     skeleton: PageSkeleton,
   },
   {

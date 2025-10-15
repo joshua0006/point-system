@@ -15,6 +15,41 @@ const PLAN_CONFIG: Record<PlanKey, { name: string; amount: number }> = {
   comprehensive: { name: "VA Support – Comprehensive", amount: 10000 }, // S$100
 };
 
+// Smart origin detection for development & production
+function getAppOrigin(req: Request): string {
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer");
+
+  // Priority 1: Use origin header if present
+  if (origin) {
+    console.log("[VA-CHECKOUT] Using origin header:", origin);
+    return origin;
+  }
+
+  // Priority 2: Extract from referer
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      const refererOrigin = `${url.protocol}//${url.host}`;
+      console.log("[VA-CHECKOUT] Using referer origin:", refererOrigin);
+      return refererOrigin;
+    } catch (e) {
+      console.error("[VA-CHECKOUT] Failed to parse referer:", e);
+    }
+  }
+
+  // Priority 3: Use SITE_URL env var
+  const siteUrl = Deno.env.get('SITE_URL');
+  if (siteUrl) {
+    console.log("[VA-CHECKOUT] Using SITE_URL env:", siteUrl);
+    return siteUrl;
+  }
+
+  // Fallback: localhost (development default)
+  console.log("[VA-CHECKOUT] Fallback to localhost");
+  return 'http://localhost:5173';
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -46,6 +81,11 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined = customers.data[0]?.id;
 
+    const planKey = plan as PlanKey;
+
+    // Get app origin for redirect URLs
+    const appOrigin = getAppOrigin(req);
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -54,18 +94,18 @@ serve(async (req) => {
           price_data: {
             currency: "sgd",
             product_data: {
-              name: PLAN_CONFIG[plan as PlanKey].name,
+              name: PLAN_CONFIG[planKey].name,
               description: "Monthly subscription for VA Support Services",
             },
-            unit_amount: PLAN_CONFIG[plan as PlanKey].amount,
+            unit_amount: PLAN_CONFIG[planKey].amount,
             recurring: { interval: "month" },
           },
           quantity: 1,
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/lead-gen-campaigns?va_subscribe=success`,
-      cancel_url: `${req.headers.get("origin")}/lead-gen-campaigns?va_subscribe=canceled`,
+      success_url: `${appOrigin}/thank-you?type=va_support&plan=${encodeURIComponent(PLAN_CONFIG[planKey].name)}`,
+      cancel_url: `${appOrigin}/lead-gen-campaigns?va_subscribe=canceled`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

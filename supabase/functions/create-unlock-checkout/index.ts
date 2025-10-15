@@ -6,6 +6,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Smart origin detection for development & production
+function getAppOrigin(req: Request): string {
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer");
+
+  // Priority 1: Use origin header if present
+  if (origin) {
+    console.log("[UNLOCK-CHECKOUT] Using origin header:", origin);
+    return origin;
+  }
+
+  // Priority 2: Extract from referer
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      const refererOrigin = `${url.protocol}//${url.host}`;
+      console.log("[UNLOCK-CHECKOUT] Using referer origin:", refererOrigin);
+      return refererOrigin;
+    } catch (e) {
+      console.error("[UNLOCK-CHECKOUT] Failed to parse referer:", e);
+    }
+  }
+
+  // Priority 3: Use SITE_URL env var
+  const siteUrl = Deno.env.get('SITE_URL');
+  if (siteUrl) {
+    console.log("[UNLOCK-CHECKOUT] Using SITE_URL env:", siteUrl);
+    return siteUrl;
+  }
+
+  // Fallback: localhost (development default)
+  console.log("[UNLOCK-CHECKOUT] Fallback to localhost");
+  return 'http://localhost:5173';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -46,7 +81,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
-    const siteUrl = Deno.env.get('SITE_URL') || 'http://localhost:5173';
 
     const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
@@ -91,6 +125,9 @@ serve(async (req) => {
       });
     }
 
+    // Get app origin for redirect URLs
+    const appOrigin = getAppOrigin(req);
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -109,8 +146,8 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${siteUrl}/dashboard?unlock_success=true`,
-      cancel_url: `${siteUrl}/dashboard?unlock_cancelled=true`,
+      success_url: `${appOrigin}/thank-you?type=unlock&amount=${paymentAmount}&unlocked=${creditsToUnlock}`,
+      cancel_url: `${appOrigin}/dashboard?unlock_cancelled=true`,
       metadata: {
         type: 'unlock_credits',
         user_id: user.id,

@@ -7,6 +7,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Smart origin detection for development & production
+function getAppOrigin(req: Request): string {
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer");
+
+  // Priority 1: Use origin header if present
+  if (origin) {
+    console.log("[ORIGIN-DETECT] Using origin header:", origin);
+    return origin;
+  }
+
+  // Priority 2: Extract from referer
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      const refererOrigin = `${url.protocol}//${url.host}`;
+      console.log("[ORIGIN-DETECT] Using referer origin:", refererOrigin);
+      return refererOrigin;
+    } catch (e) {
+      console.error("[ORIGIN-DETECT] Failed to parse referer:", e);
+    }
+  }
+
+  // Priority 3: Use SITE_URL env var
+  const siteUrl = Deno.env.get('SITE_URL');
+  if (siteUrl) {
+    console.log("[ORIGIN-DETECT] Using SITE_URL env:", siteUrl);
+    return siteUrl;
+  }
+
+  // Fallback: localhost (development default)
+  console.log("[ORIGIN-DETECT] Fallback to localhost");
+  return 'http://localhost:5173';
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -58,6 +93,9 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
+    // Get app origin for redirect URLs
+    const appOrigin = getAppOrigin(req);
+
     // Create one-time payment checkout for points
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -66,7 +104,7 @@ serve(async (req) => {
         {
           price_data: {
             currency: "sgd",
-            product_data: { 
+            product_data: {
               name: `${points} Points Top-up`,
               description: `Add ${points} points to your wallet balance (S$${points})`
             },
@@ -76,8 +114,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/admin-dashboard?topup=success&points=${points}`,
-      cancel_url: `${req.headers.get("origin")}/admin-dashboard?topup=cancelled`,
+      success_url: `${appOrigin}/thank-you?type=topup&amount=${points}`,
+      cancel_url: `${appOrigin}/admin-dashboard?topup=cancelled`,
       metadata: {
         user_id: user.id,
         points: points.toString(),
