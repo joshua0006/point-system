@@ -5,7 +5,6 @@ import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw, CreditCard } from "lucide-react";
 import { useState } from "react";
-import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TopUpModal } from "@/components/TopUpModal";
@@ -22,39 +21,12 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
   const [openingPortal, setOpeningPortal] = useState(false);
   const [changingPlan, setChangingPlan] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
-  const [realTimeBalance, setRealTimeBalance] = useState<number | null>(null);
   const { toast } = useToast();
-
-  // Fetch real-time balance from transactions
-  const fetchRealTimeBalance = async () => {
-    if (!profile?.user_id) return;
-
-    try {
-      const { data: transactions, error } = await supabase
-        .from('flexi_credits_transactions')
-        .select('amount')
-        .eq('user_id', profile.user_id);
-
-      if (error) throw error;
-
-      const calculatedBalance = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
-      setRealTimeBalance(calculatedBalance);
-    } catch (error) {
-      console.error('Error fetching real-time balance:', error);
-      setRealTimeBalance(profile?.flexi_credits_balance || 0);
-    }
-  };
-
-  // Fetch real-time balance on component mount and when profile changes
-  React.useEffect(() => {
-    fetchRealTimeBalance();
-  }, [profile?.user_id]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       await refreshSubscription();
-      await fetchRealTimeBalance();
       toast({
         title: "Status Updated",
         description: "Subscription status has been refreshed",
@@ -170,7 +142,6 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
-  const balance = profile?.flexi_credits_balance || 0;
 
   // Compact view for inline display
   if (compact) {
@@ -192,10 +163,6 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
                 {subscription.credits_per_month} credits/mo
               </Badge>
             )}
-          </div>
-          <div className="text-xs text-muted-foreground truncate">
-            <VisuallyHidden>Current balance: </VisuallyHidden>
-            Balance: {balance.toLocaleString()} credits
           </div>
         </div>
         {showActions && (
@@ -234,7 +201,7 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
           />
           <span>Subscription Status</span>
           <Badge
-            variant={subscription?.subscribed ? "default" : balance < 0 ? "destructive" : "secondary"}
+            variant={subscription?.subscribed ? "default" : "secondary"}
             className="ml-auto"
             aria-label={statusInfo.ariaLabel}
           >
@@ -255,16 +222,6 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
 
         {/* Subscription details using semantic definition list */}
         <dl className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-muted-foreground mb-1">Current Balance:</dt>
-            <dd
-              className={`font-semibold text-lg ${balance < 0 ? 'text-red-600' : 'text-green-600'}`}
-              aria-label={`Current balance: ${balance.toLocaleString()} credits ${balance < 0 ? 'negative' : ''}`}
-            >
-              {balance.toLocaleString()} <span className="text-sm font-normal">credits</span>
-            </dd>
-          </div>
-
           <div>
             <dt className="text-muted-foreground mb-1">Current Plan:</dt>
             <dd className="font-semibold text-lg">
@@ -289,20 +246,6 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
             </>
           )}
         </dl>
-
-        {/* Status description with proper contrast */}
-        <div
-          className="text-sm bg-muted/40 p-4 rounded-lg border border-muted-foreground/20"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="leading-relaxed">
-            {subscription?.subscribed
-              ? `Your ${subscription.plan_name || 'Premium Plan'} subscription provides ${subscription.credits_per_month || 0} credits monthly. Your next billing date is ${formatDate(subscription.subscription_end)}.`
-              : statusInfo.description
-            }
-          </p>
-        </div>
 
         {/* Action buttons with proper accessibility */}
         {showActions && (

@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { OptimizedDashboardModals } from "@/components/dashboard/OptimizedDashboardModals";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardStatsCards } from "@/components/dashboard/DashboardStatsCards";
 import { DashboardCampaigns } from "@/components/dashboard/DashboardCampaigns";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDashboardModals } from "@/hooks/useDashboardModals";
@@ -227,14 +226,6 @@ export default function UserDashboard() {
         <div className={isMobile ? "mb-6" : "mb-8"}>
           <SubscriptionStatusCard compact={isMobile} />
         </div>
-
-        {/* Stats Cards */}
-        <DashboardStatsCards 
-          isMobile={isMobile} 
-          userStats={userStats} 
-          onTabChange={handleTabChange}
-          onLockedCreditsClick={() => setTopUpModalOpen(true)}
-        />
 
         {/* Tabbed Dashboard Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
