@@ -170,25 +170,8 @@ serve(async (req) => {
         }
       });
 
-      // Schedule the subscription change for the next billing period
-      await stripe.subscriptions.update(currentSubscription.id, {
-        items: [
-          {
-            id: currentSubscription.items.data[0].id,
-            price: newPriceId,
-          },
-        ],
-        proration_behavior: "none", // No immediate proration, change takes effect next cycle
-        metadata: {
-          user_id: user.id,
-          credits: credits.toString(),
-          plan_name: planName,
-          previous_credits: currentCredits.toString(),
-          scheduled_upgrade: 'true'
-        },
-      }, {
-        idempotencyKey: `schedule-${idempotencyKey}`
-      });
+      // NOTE: Subscription will be updated AFTER successful payment via webhook
+      // This prevents upgrading the subscription if payment fails or is cancelled
 
       logStep("Checkout session created", { 
         sessionId: session.id,
@@ -204,12 +187,12 @@ serve(async (req) => {
         checkout_url: session.url,
         subscription_id: currentSubscription.id,
         upgrade_credits_added: upgradeDifference,
-        message: "Checkout session created for subscription upgrade",
+        message: "Redirecting to payment - subscription will upgrade after successful payment",
         billing_info: {
           immediate_charge: `S$${upgradeDifference}`,
           next_billing_date: "1st of next month",
           new_monthly_amount: `S$${newCredits}`,
-          explanation: `You'll pay S$${upgradeDifference} now for ${upgradeDifference} additional credits. Starting next month, you'll be charged S$${newCredits} monthly.`
+          explanation: `Complete payment of S$${upgradeDifference} to receive ${upgradeDifference} additional credits immediately. Your subscription will then be upgraded to S$${newCredits}/month starting next billing cycle.`
         }
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -28,13 +28,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, History, Clock, Settings, Lock } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { TopUpModal } from "@/components/TopUpModal";
+import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnlockModal";
+import { useAwardedCredits } from "@/hooks/useAwardedCredits";
+import { useAwardedCreditsEligibility } from "@/hooks/useAwardedCreditsEligibility";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function UserDashboard() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile, refreshSubscription } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const tabParam = searchParams.get('tab');
-  
+  const queryClient = useQueryClient();
+
   // Prefetch common routes for faster navigation
   useRoutePrefetch({
     routes: ['/marketplace', '/services', '/messages', '/settings'],
@@ -70,7 +75,16 @@ export default function UserDashboard() {
   const [successModalData, setSuccessModalData] = useState<{ type: "payment-method" | "top-up", amount?: number }>({ type: "top-up" });
   const [activeTab, setActiveTab] = useState(tabParam || "overview");
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
-  
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [lastUpgradeAmount, setLastUpgradeAmount] = useState<number>(0);
+
+  // Awarded credits hooks for unlock functionality
+  const { data: awardedCreditsData } = useAwardedCredits();
+  const lockedBalance = awardedCreditsData?.lockedBalance || 0;
+  const { data: eligibilityData } = useAwardedCreditsEligibility(
+    lastUpgradeAmount > 0 ? { topupAmount: lastUpgradeAmount } : undefined
+  );
+
   // Update active tab when URL param changes
   useEffect(() => {
     if (tabParam) {
@@ -105,7 +119,7 @@ export default function UserDashboard() {
     const sessionId = params.get("session_id");
     if (upgradeSuccess && sessionId) {
       supabase.functions.invoke("confirm-upgrade-session", { body: { session_id: sessionId } })
-        .then(({ data, error }) => {
+        .then(async ({ data, error }) => {
           console.log('[UPGRADE-SUCCESS] Confirm response:', { data, error });
 
           if (error) {
@@ -125,7 +139,21 @@ export default function UserDashboard() {
                 ? `+${credits} credits added for ${plan}`
                 : `Successfully upgraded to ${plan}`
             });
-            refreshData();
+
+            // Refresh data and subscription to get latest balance
+            await Promise.all([
+              refreshData(),
+              refreshSubscription(),
+              refreshProfile()
+            ]);
+
+            // Set upgrade amount to check unlock eligibility
+            if (credits > 0) {
+              setLastUpgradeAmount(credits);
+              // Invalidate queries to get fresh eligibility data
+              queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
+              queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
+            }
           }
         })
         .finally(() => {
@@ -133,7 +161,20 @@ export default function UserDashboard() {
           navigate('/dashboard?tab=subscription', { replace: true });
         });
     }
-  }, [toast, refreshData, navigate]);
+  }, [toast, refreshData, navigate, refreshSubscription, refreshProfile, queryClient]);
+
+  // Check unlock eligibility after upgrade payment
+  useEffect(() => {
+    if (lastUpgradeAmount > 0 && eligibilityData?.canUnlock && lockedBalance > 0) {
+      console.log('[UNLOCK-MODAL] Showing unlock modal after upgrade', {
+        lastUpgradeAmount,
+        canUnlock: eligibilityData?.canUnlock,
+        lockedBalance,
+        maxUnlock: eligibilityData?.maxUnlock
+      });
+      setShowUnlockModal(true);
+    }
+  }, [lastUpgradeAmount, eligibilityData, lockedBalance]);
 
   // Memoize callback functions to prevent unnecessary re-renders
   const handleTopUpSuccess = useMemo(() => (amount?: number, showSuccessModal?: boolean) => {
@@ -262,6 +303,20 @@ export default function UserDashboard() {
         onClose={() => setTopUpModalOpen(false)}
         onSuccess={handleTopUpSuccess}
       />
+
+      {/* Unlock Awarded Credits Modal - Shows after upgrade payment */}
+      {eligibilityData && (
+        <AwardedCreditsUnlockModal
+          open={showUnlockModal}
+          onOpenChange={setShowUnlockModal}
+          topupTransactionId=""
+          topupAmount={lastUpgradeAmount}
+          lockedBalance={lockedBalance}
+          maxUnlock={eligibilityData.maxUnlock || 0}
+          expiringCredits={eligibilityData.expiringCredits || []}
+          currentBalance={profile?.flexi_credits_balance || 0}
+        />
+      )}
     </SidebarLayout>
   );
 }

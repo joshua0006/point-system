@@ -266,6 +266,55 @@ serve(async (req) => {
           logStep("Upgrade credits granted and logged successfully", { creditsAdded: upgradeCredits });
         }
 
+        // Update the Stripe subscription to the new plan after successful payment
+        const subscriptionId = session.metadata.subscription_id;
+        const newPriceId = session.metadata.new_price_id;
+
+        if (subscriptionId && newPriceId) {
+          try {
+            // Retrieve the subscription to get the current item ID
+            const currentSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+            // Update subscription to new price for next billing cycle
+            await stripe.subscriptions.update(subscriptionId, {
+              items: [
+                {
+                  id: currentSubscription.items.data[0].id,
+                  price: newPriceId,
+                },
+              ],
+              proration_behavior: "none", // No proration, takes effect next cycle
+              metadata: {
+                ...currentSubscription.metadata,
+                credits: session.metadata.new_credits,
+                plan_name: session.metadata.plan_name,
+                previous_credits: session.metadata.old_credits,
+                scheduled_upgrade: 'true'
+              },
+            });
+
+            logStep("Subscription upgraded successfully", {
+              subscriptionId,
+              newPriceId,
+              oldCredits: session.metadata.old_credits,
+              newCredits: session.metadata.new_credits
+            });
+          } catch (subscriptionError) {
+            logStep("Warning: Failed to update subscription", {
+              error: subscriptionError instanceof Error ? subscriptionError.message : String(subscriptionError),
+              subscriptionId,
+              newPriceId
+            });
+            // Don't throw - credits were added successfully, subscription update can be fixed manually if needed
+          }
+        } else {
+          logStep("Warning: Missing subscription_id or new_price_id in metadata", {
+            subscriptionId,
+            newPriceId,
+            metadata: session.metadata
+          });
+        }
+
         // Send confirmation email
         try {
           await supabaseClient.functions.invoke('send-subscription-emails', {
