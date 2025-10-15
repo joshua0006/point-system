@@ -25,7 +25,7 @@ import { AwardedCreditsCard } from "@/components/wallet/AwardedCreditsCard";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Wallet, History, Clock, Settings, Lock } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, History, Clock, Lock } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { TopUpModal } from "@/components/TopUpModal";
 import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnlockModal";
@@ -157,8 +157,8 @@ export default function UserDashboard() {
           }
         })
         .finally(() => {
-          // Clean URL and redirect to subscription tab
-          navigate('/dashboard?tab=subscription', { replace: true });
+          // Clean URL and redirect to dashboard overview
+          navigate('/dashboard?tab=overview', { replace: true });
         });
     }
   }, [toast, refreshData, navigate, refreshSubscription, refreshProfile, queryClient]);
@@ -220,7 +220,7 @@ export default function UserDashboard() {
         {/* Tabbed Dashboard Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList
-            className={isMobile ? "grid w-full grid-cols-5 gap-1" : "grid w-full grid-cols-5"}
+            className={isMobile ? "grid w-full grid-cols-4 gap-1" : "grid w-full grid-cols-4"}
             aria-label="Dashboard sections"
           >
             <TabsTrigger value="overview" className="flex items-center gap-1" aria-label="Overview section">
@@ -234,10 +234,6 @@ export default function UserDashboard() {
             <TabsTrigger value="billing" className="flex items-center gap-1" aria-label="Billing and upcoming charges section">
               <Clock className="w-4 h-4" aria-hidden="true" />
               <span className={isMobile ? "text-xs" : ""}>Billing</span>
-            </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center gap-1" aria-label="Subscription plan management section">
-              <Settings className="w-4 h-4" aria-hidden="true" />
-              <span className={isMobile ? "text-xs" : ""}>Plan</span>
             </TabsTrigger>
             <TabsTrigger value="awarded" className="flex items-center gap-1" aria-label="Awarded credits section">
               <Lock className="w-4 h-4" aria-hidden="true" />
@@ -266,11 +262,6 @@ export default function UserDashboard() {
           <TabsContent value="billing" className="space-y-6" role="region" aria-label="Billing and upcoming charges">
             <UpcomingChargesTable charges={upcomingCharges || []} />
             <UserRecurringDeductions />
-          </TabsContent>
-
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" role="region" aria-label="Subscription plan">
-            <SubscriptionStatusCard showActions={true} />
           </TabsContent>
 
           {/* Awarded Credits Tab */}
