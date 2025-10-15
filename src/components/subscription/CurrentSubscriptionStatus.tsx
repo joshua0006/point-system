@@ -34,7 +34,7 @@ export function CurrentSubscriptionStatus({
   };
 
   return (
-    <div className="bg-primary rounded-lg p-6 border-2 border-primary-foreground/20">
+    <div className="bg-primary rounded-lg p-6 border-2 border-primary-foreground/20 max-w-2xl mx-auto w-full">
       <div className="text-center mb-4">
         <h3 className="font-bold text-xl text-primary-foreground mb-2">📅 Current Subscription</h3>
         <p className="text-sm text-primary-foreground/80">
@@ -73,7 +73,7 @@ export function CurrentSubscriptionStatus({
             <Button
               onClick={onManageBilling}
               disabled={isLoading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="bg-primary-foreground hover:bg-primary-foreground/90 text-primary"
               size="lg"
             >
               {isLoading ? (
@@ -89,12 +89,13 @@ export function CurrentSubscriptionStatus({
               )}
             </Button>
           )}
-          
+
           <Button
             onClick={onRefreshStatus}
             disabled={isRefreshing}
             variant="outline"
             size="sm"
+            className="bg-primary-foreground/15 border-primary-foreground/60 text-primary-foreground hover:bg-primary-foreground/25 hover:text-primary-foreground"
           >
             {isRefreshing ? (
               <div className="flex items-center gap-2">
