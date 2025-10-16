@@ -6,7 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { TopUpModal } from "@/components/TopUpModal";
 import { formatDate } from "@/utils/dateUtils";
 
@@ -16,31 +15,10 @@ interface SubscriptionStatusCardProps {
 }
 
 export const SubscriptionStatusCard = ({ showActions = true, compact = false }: SubscriptionStatusCardProps) => {
-  const { profile, subscription, refreshSubscription } = useAuth();
-  const [refreshing, setRefreshing] = useState(false);
-  const [openingPortal, setOpeningPortal] = useState(false);
+  const { profile, subscription } = useAuth();
   const [changingPlan, setChangingPlan] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const { toast } = useToast();
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refreshSubscription();
-      toast({
-        title: "Status Updated",
-        description: "Subscription status has been refreshed",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to refresh subscription status",
-        variant: "destructive",
-      });
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   const handleChangePlan = async () => {
     setChangingPlan(true);
@@ -59,38 +37,6 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
       });
     } finally {
       setChangingPlan(false);
-    }
-  };
-
-  const handleManageBilling = async () => {
-    setOpeningPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-
-      if (error) throw error;
-
-      window.open(data.url, '_blank');
-    } catch (error: any) {
-      console.error('Error opening customer portal:', error);
-
-      const isPortalConfigError = error.message?.includes('No configuration provided') ||
-                                 error.message?.includes('default configuration has not been created');
-
-      if (isPortalConfigError) {
-        toast({
-          title: "Customer Portal Not Configured",
-          description: "The billing portal needs to be set up in your Stripe dashboard first. Please configure it in your Stripe settings.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to open billing portal",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setOpeningPortal(false);
     }
   };
 
@@ -167,14 +113,14 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
         </div>
         {showActions && (
           <Button
-            variant="ghost"
+            variant="default"
             size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            aria-label={refreshing ? "Refreshing status" : "Refresh subscription status"}
+            onClick={handleChangePlan}
+            disabled={changingPlan}
+            aria-label="Change subscription plan"
           >
-            <RefreshCw
-              className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
+            <CreditCard
+              className="h-4 w-4"
               aria-hidden="true"
             />
           </Button>
@@ -247,48 +193,17 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
         {showActions && (
           <div className="flex gap-3 flex-wrap" role="group" aria-label="Subscription actions">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              aria-label={refreshing ? "Refreshing subscription status" : "Refresh subscription status"}
-              className="flex-1 min-w-[120px] shadow-sm hover:shadow-md transition-all duration-200 border-primary/20 hover:border-primary/40 hover:bg-primary/5 focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`}
-                aria-hidden="true"
-              />
-              {refreshing ? 'Refreshing...' : 'Refresh'}
-              {refreshing && <VisuallyHidden>Please wait, refreshing subscription status</VisuallyHidden>}
-            </Button>
-
-            <Button
               variant="default"
               size="sm"
               onClick={handleChangePlan}
               disabled={changingPlan}
               aria-label="Change subscription plan"
-              className="flex-1 min-w-[120px] shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+              className="min-w-[120px] shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
             >
               <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
               {changingPlan ? 'Opening...' : 'Change Plan'}
               {changingPlan && <VisuallyHidden>Please wait, opening plan selection</VisuallyHidden>}
             </Button>
-
-            {subscription?.subscribed && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleManageBilling}
-                disabled={openingPortal}
-                aria-label="Manage subscription billing and payment methods"
-                className="flex-1 min-w-[140px] shadow-sm hover:shadow-md transition-all duration-200 hover:bg-secondary/80 focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-              >
-                <CreditCard className="h-4 w-4 mr-2" aria-hidden="true" />
-                {openingPortal ? 'Opening...' : 'Manage Billing'}
-                {openingPortal && <VisuallyHidden>Please wait, opening billing portal</VisuallyHidden>}
-              </Button>
-            )}
           </div>
         )}
       </CardContent>
