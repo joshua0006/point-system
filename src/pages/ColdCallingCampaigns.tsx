@@ -4,6 +4,7 @@ import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { CreditCard, Wallet, Phone, Zap } from "lucide-react";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,8 @@ const ColdCallingCampaigns = () => {
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [pendingCampaign, setPendingCampaign] = useState<any>(null);
   const isMobile = useIsMobile();
 
   // Scroll to top when component mounts
@@ -30,11 +33,17 @@ const ColdCallingCampaigns = () => {
 
   const userBalance = profile?.flexi_credits_balance || 0;
 
-  const handleColdCallingComplete = async (campaignData: any) => {
-    if (!user?.id) return;
+  const handleColdCallingComplete = (campaignData: any) => {
+    console.log('Cold calling campaign data received:', campaignData);
+    setPendingCampaign(campaignData);
+    setShowCheckoutModal(true);
+  };
+
+  const confirmCheckout = async () => {
+    if (!pendingCampaign || !user?.id) return;
 
     try {
-      const { method, hours, budget } = campaignData;
+      const { method, hours, budget } = pendingCampaign;
       const amountToDeduct = budget;
 
       console.log('Starting cold calling campaign creation...');
@@ -44,7 +53,7 @@ const ColdCallingCampaigns = () => {
       const balanceAfterDeduction = userBalance - amountToDeduct;
       if (balanceAfterDeduction < -1000) {
         toast({
-          title: "Balance Limit Exceeded", 
+          title: "Balance Limit Exceeded",
           description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -1000 points.`,
           variant: "destructive"
         });
@@ -56,7 +65,7 @@ const ColdCallingCampaigns = () => {
         .from('profiles')
         .update({ flexi_credits_balance: userBalance - amountToDeduct })
         .eq('user_id', user.id);
-      
+
       if (updateError) {
         console.error('Error updating balance:', updateError);
         toast({
@@ -141,14 +150,16 @@ const ColdCallingCampaigns = () => {
 
       // Show success modal
       setSuccessCampaignDetails({
-        ...campaignData,
+        ...pendingCampaign,
         campaignId: campaignData_db.id,
         amountDeducted: amountToDeduct,
         newBalance: userBalance - amountToDeduct
       });
-      
+
       setShowSuccessModal(true);
-      
+      setShowCheckoutModal(false);
+      setPendingCampaign(null);
+
       // Refresh data
       await refreshProfile();
 
@@ -159,7 +170,7 @@ const ColdCallingCampaigns = () => {
 
       console.log('Cold calling campaign creation completed successfully!');
     } catch (error) {
-      console.error('Error in handleColdCallingComplete:', error);
+      console.error('Error in confirmCheckout:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -214,6 +225,93 @@ const ColdCallingCampaigns = () => {
           </div>
         </div>
       </ResponsiveContainer>
+
+      {/* Checkout Modal */}
+      <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+        <DialogContent
+          className="max-w-md"
+          aria-describedby="campaign-confirmation-description"
+        >
+          <DialogHeader>
+            <DialogTitle>Confirm Campaign Launch</DialogTitle>
+            <DialogDescription id="campaign-confirmation-description">
+              Review the details before confirming.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Campaign Details */}
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Campaign Type</span>
+                <strong>Cold Calling</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Hours per Month</span>
+                <strong>{pendingCampaign?.hours}h</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Monthly Budget</span>
+                <strong>{pendingCampaign?.budget} points</strong>
+              </div>
+            </div>
+
+            {/* Payment Calculation */}
+            <div className="space-y-3 pt-4 border-t">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Current Balance</span>
+                <span className="tabular-nums">{profile?.flexi_credits_balance?.toLocaleString()} points</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Deduct Now</span>
+                <span className="tabular-nums text-destructive">
+                  -{pendingCampaign?.budget?.toLocaleString()} points
+                </span>
+              </div>
+              <div
+                className="flex justify-between pt-3 border-t"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <span className="font-medium">New Balance</span>
+                <strong className={`tabular-nums ${
+                  (profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0
+                    ? 'text-destructive'
+                    : ''
+                }`}>
+                  {((profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0))?.toLocaleString()} points
+                </strong>
+              </div>
+            </div>
+
+            {/* Negative Balance Warning */}
+            {(profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0 && (
+              <p className="text-sm text-destructive" role="alert">
+                Your balance will be negative (minimum allowed: -1000)
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 flex-col-reverse sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setShowCheckoutModal(false)}
+              className="w-full sm:w-auto"
+              aria-label="Cancel campaign launch"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmCheckout}
+              className="w-full sm:w-auto"
+              aria-label={`Confirm and launch campaign. This will deduct ${pendingCampaign?.budget} points from your account`}
+            >
+              Confirm & Launch
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Success Modal */}
       {showSuccessModal && (
