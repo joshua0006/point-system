@@ -34,6 +34,7 @@ interface AuthContextType {
   profile: Profile | null;
   subscription: SubscriptionStatus | null;
   loading: boolean;
+  isRefetching: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
@@ -51,14 +52,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRefetching, setIsRefetching] = useState(false);
 
   // Debounce protection: prevent rapid successive auth checks (e.g., from tab switching)
   const lastAuthCheckTime = useRef(0);
   const MIN_AUTH_CHECK_INTERVAL = 5000; // 5 seconds
 
+  // Visibility tracking: prevent auth refetches triggered by tab visibility changes
+  const lastVisibilityChange = useRef(0);
+  const VISIBILITY_DEBOUNCE = 3000; // 3 seconds after tab becomes visible
+
+  // Store current profile/subscription in refs to avoid stale closures
+  const profileRef = useRef(profile);
+  const subscriptionRef = useRef(subscription);
+
+  useEffect(() => {
+    profileRef.current = profile;
+    subscriptionRef.current = subscription;
+  }, [profile, subscription]);
+
   useEffect(() => {
     let mounted = true;
     let realtimeChannel: any = null;
+
+    // Track tab visibility changes to prevent unnecessary auth refetches
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        lastVisibilityChange.current = Date.now();
+        logger.log('[AUTH] Tab became visible - suppressing auth checks for', VISIBILITY_DEBOUNCE, 'ms');
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -71,31 +98,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        logger.log('Auth state changed:', event, session?.user?.email);
-        
+        // Ignore auth events shortly after tab becomes visible (prevents tab-switch rerenders)
+        const timeSinceVisible = Date.now() - lastVisibilityChange.current;
+        if (timeSinceVisible < VISIBILITY_DEBOUNCE && timeSinceVisible > 0) {
+          logger.log('[AUTH] Ignoring auth event - recent tab switch (', timeSinceVisible, 'ms since visible)');
+          return;
+        }
+
+        logger.log('[AUTH] Auth state changed:', event, session?.user?.email);
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
+          // Use refs to get current values (avoid stale closures)
+          const currentProfile = profileRef.current;
+          const currentSubscription = subscriptionRef.current;
+
           // Skip refetch if data already loaded for this user
-          if (profile?.user_id === session.user.id && subscription) {
+          if (currentProfile?.user_id === session.user.id && currentSubscription) {
             logger.log('[AUTH] Data already loaded, skipping fetch');
             return;
           }
 
-          // Ensure loading stays true until profile/subscription fetched
-          setLoading(true);
+          // Debounce: Skip if checked too recently (prevents rapid refetches)
+          const now = Date.now();
+          if (now - lastAuthCheckTime.current < MIN_AUTH_CHECK_INTERVAL) {
+            logger.log('[AUTH] Skipping refetch - too soon since last check (',
+              now - lastAuthCheckTime.current, 'ms)');
+            return;
+          }
+
+          // Determine if this is initial load or background refetch
+          const isInitialLoad = !currentProfile || !currentSubscription;
+
+          if (isInitialLoad) {
+            logger.log('[AUTH] Initial load - setting loading state');
+            setLoading(true);
+          } else {
+            logger.log('[AUTH] Background refetch - using refetch state');
+            setIsRefetching(true);
+          }
+
           // Defer profile and subscription fetch to avoid blocking auth state updates
           requestIdleCallback(async () => {
             if (!mounted) return;
 
-            // Debounce: Skip if checked too recently (prevents rapid tab-switch refetches)
-            const now = Date.now();
-            if (now - lastAuthCheckTime.current < MIN_AUTH_CHECK_INTERVAL) {
-              logger.log('[AUTH] Skipping refetch - too soon since last check');
-              setLoading(false);
-              return;
-            }
             lastAuthCheckTime.current = now;
 
             try {
@@ -151,7 +199,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } catch (err) {
               console.error('Profile/subscription fetch error:', err);
             } finally {
-              if (mounted) setLoading(false);
+              if (mounted) {
+                // Clear the appropriate loading state
+                if (isInitialLoad) {
+                  setLoading(false);
+                  logger.log('[AUTH] Initial load complete');
+                } else {
+                  setIsRefetching(false);
+                  logger.log('[AUTH] Background refetch complete');
+                }
+              }
             }
           });
         } else {
@@ -163,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             realtimeChannel = null;
           }
         }
-        
+
         if (!session?.user) {
           setLoading(false);
         }
@@ -269,6 +326,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);
       }
+      // Clean up visibility change listener
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
     };
   }, []);
 
@@ -362,10 +423,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     subscription,
     loading,
+    isRefetching,
     signOut,
     refreshProfile,
     refreshSubscription,
-  }), [user, session, profile, subscription, loading, refreshProfile, refreshSubscription]);
+  }), [user, session, profile, subscription, loading, isRefetching, refreshProfile, refreshSubscription]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
