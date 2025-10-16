@@ -287,10 +287,10 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               {paginatedTransactions.map((transaction) => (
                 <Card
                   key={transaction.id}
-                  className={`border-l-4 ${
+                  className={`lg:border-l-4 ${
                     transaction.type === "earned"
-                      ? "border-l-success bg-success/5"
-                      : "border-l-destructive bg-destructive/5"
+                      ? "lg:border-l-success lg:bg-success/5"
+                      : "lg:border-l-destructive lg:bg-destructive/5"
                   }`}
                 >
                   <CardContent className="p-4 space-y-3">
