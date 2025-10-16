@@ -273,7 +273,7 @@ const VASupportCampaigns = () => {
                     } ${
                       plan.highlight && canAfford
                         ? 'border-primary shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 scale-105'
-                        : 'border-border hover:border-primary/50 hover:shadow-xl'
+                        : 'border-border hover:border-primary/50 shadow-lg shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20'
                     } ${!canAfford ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     <CardContent className="p-8 flex flex-col h-full text-center">
@@ -330,7 +330,7 @@ const VASupportCampaigns = () => {
                         className={`w-full py-6 text-base font-semibold ${
                           plan.highlight && canAfford
                             ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
-                            : 'hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                            : 'text-primary hover:bg-blue-600 hover:text-white hover:border-blue-600'
                         }`}
                         variant={plan.highlight && canAfford ? "default" : "outline"}
                         size="lg"
