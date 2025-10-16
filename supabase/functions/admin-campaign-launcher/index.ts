@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { Resend } from "https://esm.sh/resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -167,10 +168,95 @@ serve(async (req) => {
           console.error('Transaction record error:', transactionError)
         }
 
+        // Send campaign launch email notifications
+        try {
+          const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+          const campaignTypeDisplay = template.campaign_type === 'facebook-ads' ? 'Facebook Ads' :
+                                       template.campaign_type === 'cold-calling' ? 'Cold Calling' : 'VA Support';
+
+          // Send email to user
+          await resend.emails.send({
+            from: "Campaign Team <campaigns@resend.dev>",
+            to: [userProfile.email],
+            subject: `🚀 Your ${campaignTypeDisplay} Campaign is Now Live!`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #2563eb; margin: 0;">🎉 Campaign Launched Successfully!</h1>
+                </div>
+
+                <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h2 style="color: #1e293b; margin: 0 0 15px 0;">Campaign Details</h2>
+                  <p><strong>Campaign Name:</strong> ${campaignName}</p>
+                  <p><strong>Campaign ID:</strong> ${campaign.id}</p>
+                  <p><strong>Type:</strong> ${campaignTypeDisplay}</p>
+                  <p><strong>Target Audience:</strong> ${template.target_audience}</p>
+                  <p><strong>Monthly Budget:</strong> ${budget} points</p>
+                  <p><strong>Consultant:</strong> ${userProfile.full_name || userProfile.email}</p>
+                </div>
+
+                <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 20px;">
+                  <h3 style="color: #065f46; margin: 0 0 10px 0;">✅ What Happens Next?</h3>
+                  <ul style="color: #047857; margin: 0; padding-left: 20px;">
+                    <li>Your campaign is now active and running</li>
+                    <li>Our team will monitor performance and optimize as needed</li>
+                    <li>You'll receive regular updates on campaign progress</li>
+                    <li>Results and analytics will be available in your dashboard</li>
+                  </ul>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                  <p style="color: #6b7280;">Thank you for choosing our campaign management services!</p>
+                </div>
+              </div>
+            `,
+          });
+
+          // Send email to admin
+          await resend.emails.send({
+            from: "Campaign System <system@resend.dev>",
+            to: ["tanjunsing@gmail.com"],
+            subject: `🔔 New Campaign Launch: ${campaignName}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #dc2626; margin: 0;">🚨 New Campaign Alert</h1>
+                </div>
+
+                <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h2 style="color: #991b1b; margin: 0 0 15px 0;">Campaign Launch Details</h2>
+                  <p><strong>Campaign Name:</strong> ${campaignName}</p>
+                  <p><strong>Campaign ID:</strong> ${campaign.id}</p>
+                  <p><strong>Type:</strong> ${campaignTypeDisplay}</p>
+                  <p><strong>User:</strong> ${userProfile.full_name || 'Unknown'} (${userProfile.email})</p>
+                  <p><strong>Target Audience:</strong> ${template.target_audience}</p>
+                  <p><strong>Monthly Budget:</strong> ${budget} points</p>
+                  <p><strong>Launch Time:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px;">
+                  <h3 style="color: #92400e; margin: 0 0 10px 0;">⚡ Action Required</h3>
+                  <ul style="color: #b45309; margin: 0; padding-left: 20px;">
+                    <li>Review campaign parameters for compliance</li>
+                    <li>Set up monitoring and tracking systems</li>
+                    <li>Assign to appropriate team members</li>
+                    <li>Schedule initial performance review</li>
+                  </ul>
+                </div>
+              </div>
+            `,
+          });
+
+          console.log('Campaign launch emails sent successfully')
+        } catch (emailError) {
+          // Log email error but don't fail the campaign creation
+          console.error('Failed to send campaign launch emails:', emailError)
+        }
+
         console.log('Campaign launched successfully')
         return new Response(
-          JSON.stringify({ 
-            success: true, 
+          JSON.stringify({
+            success: true,
             campaignId: campaign.id,
             message: 'Campaign launched successfully'
           }),
@@ -360,13 +446,100 @@ serve(async (req) => {
           console.error('Transaction creation error:', transactionError)
         }
 
+        // Send campaign launch email notifications
+        try {
+          const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+          // Send email to user
+          await resend.emails.send({
+            from: "Campaign Team <campaigns@resend.dev>",
+            to: [assignment.profiles.email],
+            subject: `🚀 Your Facebook Ads Campaign is Now Live!`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #2563eb; margin: 0;">🎉 Campaign Launched Successfully!</h1>
+                </div>
+
+                <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h2 style="color: #1e293b; margin: 0 0 15px 0;">Campaign Details</h2>
+                  <p><strong>Campaign Name:</strong> ${campaignName}</p>
+                  <p><strong>Campaign ID:</strong> ${newCampaign.id}</p>
+                  <p><strong>Type:</strong> Facebook Ads</p>
+                  <p><strong>Target Audience:</strong> ${assignment.target_audience}</p>
+                  <p><strong>Monthly Budget:</strong> ${assignment.monthly_cost} credits</p>
+                  <p><strong>Campaign Duration:</strong> ${assignment.campaign_duration_months} months</p>
+                  <p><strong>Consultant:</strong> ${assignment.profiles.full_name || assignment.profiles.email}</p>
+                </div>
+
+                <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 20px;">
+                  <h3 style="color: #065f46; margin: 0 0 10px 0;">✅ What Happens Next?</h3>
+                  <ul style="color: #047857; margin: 0; padding-left: 20px;">
+                    <li>Your campaign is now active and running</li>
+                    <li>Our team will monitor performance and optimize as needed</li>
+                    <li>You'll receive regular updates on campaign progress</li>
+                    <li>Results and analytics will be available in your dashboard</li>
+                  </ul>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                  <p style="color: #6b7280;">Thank you for choosing our campaign management services!</p>
+                </div>
+              </div>
+            `,
+          });
+
+          // Send email to admin
+          await resend.emails.send({
+            from: "Campaign System <system@resend.dev>",
+            to: ["tanjunsing@gmail.com"],
+            subject: `🔔 New Facebook Ads Campaign Launch: ${campaignName}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #dc2626; margin: 0;">🚨 New Campaign Alert</h1>
+                </div>
+
+                <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h2 style="color: #991b1b; margin: 0 0 15px 0;">Campaign Launch Details</h2>
+                  <p><strong>Campaign Name:</strong> ${campaignName}</p>
+                  <p><strong>Campaign ID:</strong> ${newCampaign.id}</p>
+                  <p><strong>Type:</strong> Facebook Ads</p>
+                  <p><strong>User:</strong> ${assignment.profiles.full_name || 'Unknown'} (${assignment.profiles.email})</p>
+                  <p><strong>Target Audience:</strong> ${assignment.target_audience}</p>
+                  <p><strong>Monthly Cost:</strong> ${assignment.monthly_cost} credits</p>
+                  <p><strong>Campaign Duration:</strong> ${assignment.campaign_duration_months} months</p>
+                  <p><strong>Total Budget:</strong> ${assignment.monthly_cost * assignment.campaign_duration_months} credits</p>
+                  <p><strong>Assignment ID:</strong> ${assignmentId}</p>
+                  <p><strong>Launch Time:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px;">
+                  <h3 style="color: #92400e; margin: 0 0 10px 0;">⚡ Action Required</h3>
+                  <ul style="color: #b45309; margin: 0; padding-left: 20px;">
+                    <li>Review campaign parameters for compliance</li>
+                    <li>Set up monitoring and tracking systems</li>
+                    <li>Assign to appropriate team members</li>
+                    <li>Schedule initial performance review</li>
+                  </ul>
+                </div>
+              </div>
+            `,
+          });
+
+          console.log('Facebook Ads campaign launch emails sent successfully')
+        } catch (emailError) {
+          // Log email error but don't fail the campaign creation
+          console.error('Failed to send Facebook Ads campaign launch emails:', emailError)
+        }
+
         console.log('Facebook Ads campaign launched successfully')
         return new Response(
-          JSON.stringify({ 
-            success: true, 
+          JSON.stringify({
+            success: true,
             message: 'Facebook Ads campaign launched successfully',
             campaignId: newCampaign.id,
-            participantId: newParticipant.id 
+            participantId: newParticipant.id
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )

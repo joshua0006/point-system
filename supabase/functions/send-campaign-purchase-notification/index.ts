@@ -46,6 +46,68 @@ const handler = async (req: Request): Promise<Response> => {
 
     const campaignTypeDisplay = campaignType || 'Campaign';
 
+    // Send confirmation email to user
+    const userEmailResponse = await resend.emails.send({
+      from: "AgentHub <noreply@mail.themoneybees.co>",
+      to: [buyerEmail],
+      subject: `🎉 Campaign Purchase Confirmed - ${campaignName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
+            <h1 style="margin: 0; font-size: 28px;">🎉 Campaign Purchase Confirmed!</h1>
+          </div>
+
+          <div style="background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-bottom: 20px;">Hi ${buyerName},</h2>
+
+            <p style="font-size: 16px; line-height: 1.6; color: #555;">
+              Great news! Your campaign purchase has been confirmed and is now being set up.
+            </p>
+
+            <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; margin: 25px 0;">
+              <h3 style="margin: 0 0 15px 0; color: #333;">📋 Campaign Details:</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #555; list-style: none;">
+                <li style="margin-bottom: 10px;">📌 <strong>Campaign:</strong> ${campaignName}</li>
+                <li style="margin-bottom: 10px;">🎯 <strong>Type:</strong> ${campaignTypeDisplay}</li>
+                <li style="margin-bottom: 10px;">💰 <strong>Budget Contribution:</strong> ${budgetContribution} points</li>
+                <li style="margin-bottom: 10px;">👤 <strong>Consultant:</strong> ${consultantName}</li>
+                <li style="margin-bottom: 10px;">📅 <strong>Purchase Date:</strong> ${new Date(purchaseDate).toLocaleString()}</li>
+              </ul>
+            </div>
+
+            <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 25px 0;">
+              <h3 style="margin: 0 0 15px 0; color: #065f46;">✅ What's Next?</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #047857;">
+                <li style="margin-bottom: 8px;">Your campaign is being activated</li>
+                <li style="margin-bottom: 8px;">Our team will optimize for best results</li>
+                <li style="margin-bottom: 8px;">You'll receive regular performance updates</li>
+                <li style="margin-bottom: 8px;">Track progress in your dashboard</li>
+              </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${Deno.env.get("SITE_URL") || "https://rrnaquethuzvbsxcssss.supabase.co"}/campaigns"
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 15px 30px;
+                        text-decoration: none;
+                        border-radius: 25px;
+                        font-weight: bold;
+                        display: inline-block;">
+                📊 View My Campaigns
+              </a>
+            </div>
+
+            <p style="font-size: 14px; color: #777; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+              Questions? Reply to this email or contact our support team.
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    console.log("User confirmation email sent successfully:", userEmailResponse);
+
     // Send notification email to admin (tanjunsing@gmail.com)
     const adminEmailResponse = await resend.emails.send({
       from: "Campaign System <system@resend.dev>",
@@ -118,13 +180,14 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Campaign purchase notification email sent successfully:", adminEmailResponse);
+    console.log("Campaign purchase notification emails sent successfully");
 
     return new Response(
       JSON.stringify({
         success: true,
-        emailId: adminEmailResponse.data?.id,
-        message: "Campaign purchase notification sent successfully"
+        userEmailId: userEmailResponse.data?.id,
+        adminEmailId: adminEmailResponse.data?.id,
+        message: "Campaign purchase confirmation and notification emails sent successfully"
       }),
       {
         status: 200,

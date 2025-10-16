@@ -7,7 +7,7 @@ import { logger } from "@/utils/logger";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
-import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical, Loader2 } from "lucide-react";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";
@@ -36,6 +36,7 @@ const FacebookAdsCampaigns = () => {
   const [adminMode, setAdminMode] = useState(false);
   const [editingTarget, setEditingTarget] = useState<any>(null);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
   const isMobile = useIsMobile();
 
   // Scroll to top when component mounts
@@ -284,6 +285,7 @@ const FacebookAdsCampaigns = () => {
   const confirmCheckout = async () => {
     if (!pendingCampaign || !user?.id) return;
 
+    setIsLaunching(true);
     try {
       const { method, budget, targetAudience } = pendingCampaign;
       const now = new Date();
@@ -400,6 +402,27 @@ const FacebookAdsCampaigns = () => {
         return;
       }
 
+      // Send campaign launch notification emails
+      try {
+        console.log('Sending campaign launch emails...');
+        await supabase.functions.invoke('send-campaign-launch-emails', {
+          body: {
+            campaignId: campaignData.id,
+            campaignName: campaignData.name,
+            campaignType: 'facebook-ads',
+            targetAudience: targetAudience?.name || 'General Audience',
+            budget: budget,
+            consultantName: profile?.full_name || user.email,
+            userEmail: user.email,
+            userName: profile?.full_name || user.email?.split('@')[0] || 'User'
+          }
+        });
+        console.log('Campaign launch emails sent successfully');
+      } catch (emailError) {
+        // Log error but don't block campaign launch
+        console.error('Failed to send campaign launch emails:', emailError);
+      }
+
       console.log('Campaign creation completed successfully!');
 
       // Show success modal
@@ -426,6 +449,8 @@ const FacebookAdsCampaigns = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsLaunching(false);
     }
   };
 
@@ -560,11 +585,13 @@ const FacebookAdsCampaigns = () => {
             <Button
               onClick={confirmCheckout}
               className="w-full sm:w-auto"
+              disabled={isLaunching}
               aria-label={`Confirm and launch campaign. This will deduct ${pendingCampaign?.prorateFirstMonth ?
                 Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
                 : pendingCampaign?.budget} points from your account`}
             >
-              Confirm & Launch
+              {isLaunching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLaunching ? "Launching..." : "Confirm & Launch"}
             </Button>
           </DialogFooter>
         </DialogContent>

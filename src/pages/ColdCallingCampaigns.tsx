@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { CreditCard, Wallet, Phone, Zap } from "lucide-react";
+import { CreditCard, Wallet, Phone, Zap, Loader2 } from "lucide-react";
 import { ColdCallingWizard } from "@/components/campaigns/ColdCallingWizard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,7 @@ const ColdCallingCampaigns = () => {
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [pendingCampaign, setPendingCampaign] = useState<any>(null);
+  const [isLaunching, setIsLaunching] = useState(false);
   const isMobile = useIsMobile();
 
   // Scroll to top when component mounts
@@ -42,6 +43,7 @@ const ColdCallingCampaigns = () => {
   const confirmCheckout = async () => {
     if (!pendingCampaign || !user?.id) return;
 
+    setIsLaunching(true);
     try {
       const { method, hours, budget } = pendingCampaign;
       const amountToDeduct = budget;
@@ -148,6 +150,28 @@ const ColdCallingCampaigns = () => {
         return;
       }
 
+      // Send campaign launch notification emails
+      try {
+        console.log('Sending campaign launch emails...');
+        await supabase.functions.invoke('send-campaign-launch-emails', {
+          body: {
+            campaignId: campaignData_db.id,
+            campaignName: campaignData_db.name,
+            campaignType: 'cold-calling',
+            targetAudience: 'General',
+            budget: budget,
+            consultantName: profile?.full_name || user.email,
+            hours: pendingCampaign?.hours,
+            userEmail: user.email,
+            userName: profile?.full_name || user.email?.split('@')[0] || 'User'
+          }
+        });
+        console.log('Campaign launch emails sent successfully');
+      } catch (emailError) {
+        // Log error but don't block campaign launch
+        console.error('Failed to send campaign launch emails:', emailError);
+      }
+
       // Show success modal
       setSuccessCampaignDetails({
         ...pendingCampaign,
@@ -176,6 +200,8 @@ const ColdCallingCampaigns = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsLaunching(false);
     }
   };
 
@@ -305,9 +331,11 @@ const ColdCallingCampaigns = () => {
             <Button
               onClick={confirmCheckout}
               className="w-full sm:w-auto"
+              disabled={isLaunching}
               aria-label={`Confirm and launch campaign. This will deduct ${pendingCampaign?.budget} points from your account`}
             >
-              Confirm & Launch
+              {isLaunching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLaunching ? "Launching..." : "Confirm & Launch"}
             </Button>
           </DialogFooter>
         </DialogContent>

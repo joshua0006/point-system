@@ -95,7 +95,7 @@ async function handleLaunchEmail(data: CampaignLaunchEmailRequest): Promise<Resp
 
   // Send confirmation email to user
   const userEmailResponse = await resend.emails.send({
-    from: "Campaign Team <campaigns@resend.dev>",
+    from: "AgentHub <noreply@mail.themoneybees.co>",
     to: [userEmail],
     subject: `🚀 Your ${campaignTypeDisplay} Campaign is Now Live!`,
     html: `
@@ -162,8 +162,8 @@ async function handleLaunchEmail(data: CampaignLaunchEmailRequest): Promise<Resp
 
   // Send notification email to admin
   const adminEmailResponse = await resend.emails.send({
-    from: "Campaign System <system@resend.dev>",
-    to: ["admin@yourcompany.com"], // Replace with actual admin email
+    from: "AgentHub <noreply@mail.themoneybees.co>",
+    to: ["tanjunsing@gmail.com"],
     subject: `🔔 New Campaign Launch: ${campaignName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -269,7 +269,7 @@ async function handlePauseResumeEmail(data: CampaignPauseEmailRequest): Promise<
 
   // Send confirmation email to user
   const userEmailResponse = await resend.emails.send({
-    from: "Campaign Team <campaigns@resend.dev>",
+    from: "AgentHub <noreply@mail.themoneybees.co>",
     to: [userEmail],
     subject: `${actionEmoji} Campaign ${actionText}: ${campaignName}`,
     html: `
@@ -346,8 +346,8 @@ async function handlePauseResumeEmail(data: CampaignPauseEmailRequest): Promise<
 
   // Send notification email to admin
   const adminEmailResponse = await resend.emails.send({
-    from: "Campaign System <system@resend.dev>",
-    to: ["admin@yourcompany.com"], // Replace with actual admin email
+    from: "AgentHub <noreply@mail.themoneybees.co>",
+    to: ["tanjunsing@gmail.com"],
     subject: `🔔 Campaign ${actionText}: ${campaignName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
