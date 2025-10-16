@@ -1,16 +1,56 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export type CampaignType = 'cold-calling' | 'va-support';
+export type VATier = 'basic' | 'standard' | 'comprehensive';
+
+export interface TierInfo {
+  tier: VATier | number; // VATier for VA support, number (hours) for cold calling
+  budget: number;
+  name: string;
+}
 
 export interface ExistingCampaignCheck {
   hasActive: boolean;
   campaignDetails?: {
     id: string;
+    participantId: string;
     name: string;
     type: CampaignType;
     joinedAt: string;
     billingStatus: string;
+    currentBudget: number;
+    tierInfo?: TierInfo;
   };
+}
+
+/**
+ * Extract tier information from campaign name and budget
+ */
+export function getTierFromCampaign(
+  campaignType: CampaignType,
+  campaignName: string,
+  budget: number
+): TierInfo | undefined {
+  if (campaignType === 'va-support') {
+    // Extract tier from VA Support campaign name
+    if (campaignName.includes('Basic')) {
+      return { tier: 'basic', budget: 50, name: 'Basic VA Support' };
+    } else if (campaignName.includes('Standard')) {
+      return { tier: 'standard', budget: 75, name: 'Standard VA Support' };
+    } else if (campaignName.includes('Comprehensive') || campaignName.includes('Premium')) {
+      return { tier: 'comprehensive', budget: 100, name: 'Comprehensive VA Support' };
+    }
+    // Fallback based on budget
+    if (budget === 50) return { tier: 'basic', budget: 50, name: 'Basic VA Support' };
+    if (budget === 75) return { tier: 'standard', budget: 75, name: 'Standard VA Support' };
+    if (budget === 100) return { tier: 'comprehensive', budget: 100, name: 'Comprehensive VA Support' };
+  } else if (campaignType === 'cold-calling') {
+    // Extract hours from Cold Calling campaign name (e.g., "Cold Calling Campaign - 10h/month")
+    const match = campaignName.match(/(\d+)h\/month/);
+    const hours = match ? parseInt(match[1]) : budget / 6; // 6 points per hour
+    return { tier: hours, budget, name: `${hours}h/month Cold Calling` };
+  }
+  return undefined;
 }
 
 /**
@@ -37,6 +77,8 @@ export async function checkExistingCampaign(
         campaign_id,
         billing_status,
         joined_at,
+        monthly_budget,
+        budget_contribution,
         lead_gen_campaigns!inner(
           id,
           name,
@@ -58,14 +100,21 @@ export async function checkExistingCampaign(
     // If we found an active campaign, return the details
     if (data && data.length > 0) {
       const campaign = data[0];
+      const campaignName = (campaign as any).lead_gen_campaigns.name;
+      const currentBudget = campaign.monthly_budget || campaign.budget_contribution;
+      const tierInfo = getTierFromCampaign(campaignType, campaignName, currentBudget);
+
       return {
         hasActive: true,
         campaignDetails: {
           id: campaign.campaign_id,
-          name: (campaign as any).lead_gen_campaigns.name,
+          participantId: campaign.id,
+          name: campaignName,
           type: campaignType,
           joinedAt: campaign.joined_at,
           billingStatus: campaign.billing_status || 'active',
+          currentBudget,
+          tierInfo,
         },
       };
     }
@@ -85,6 +134,46 @@ export async function checkExistingCampaign(
 }
 
 /**
+ * Check if the requested plan is a tier change (upgrade/downgrade) vs duplicate
+ */
+export function isTierChange(
+  existingBudget: number,
+  newBudget: number
+): { isTierChange: boolean; isUpgrade: boolean; isDowngrade: boolean } {
+  const isSameTier = existingBudget === newBudget;
+  const isUpgrade = newBudget > existingBudget;
+  const isDowngrade = newBudget < existingBudget;
+
+  return {
+    isTierChange: !isSameTier,
+    isUpgrade,
+    isDowngrade,
+  };
+}
+
+/**
+ * Calculate the difference between tiers
+ */
+export function getTierDifference(existingBudget: number, newBudget: number): number {
+  return newBudget - existingBudget;
+}
+
+/**
+ * Get a user-friendly message for tier changes
+ */
+export function getTierChangeMessage(
+  campaignType: CampaignType,
+  isUpgrade: boolean,
+  existingTierName: string,
+  newTierName: string
+): string {
+  const typeLabel = campaignType === 'cold-calling' ? 'Cold Calling' : 'VA Support';
+  const action = isUpgrade ? 'upgrade' : 'downgrade';
+
+  return `You can ${action} your ${typeLabel} campaign from ${existingTierName} to ${newTierName}.`;
+}
+
+/**
  * Get a user-friendly error message for when they try to create a duplicate campaign
  * @param campaignType - The type of campaign
  * @param campaignName - Optional name of the existing campaign
@@ -97,8 +186,8 @@ export function getDuplicateCampaignErrorMessage(
   const typeLabel = campaignType === 'cold-calling' ? 'Cold Calling' : 'VA Support';
 
   if (campaignName) {
-    return `You already have an active ${typeLabel} campaign ("${campaignName}"). Please pause or cancel your existing campaign before creating a new one.`;
+    return `You already have an active ${typeLabel} campaign ("${campaignName}"). You can upgrade or downgrade your current plan instead.`;
   }
 
-  return `You already have an active ${typeLabel} campaign. Please pause or cancel your existing campaign before creating a new one.`;
+  return `You already have an active ${typeLabel} campaign. You can upgrade or downgrade your current plan instead.`;
 }

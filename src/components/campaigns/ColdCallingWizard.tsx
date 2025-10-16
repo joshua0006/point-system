@@ -2,21 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Phone, Zap } from "lucide-react";
-import { checkExistingCampaign } from "@/utils/campaignValidation";
+import { checkExistingCampaign, isTierChange, type ExistingCampaignCheck } from "@/utils/campaignValidation";
 
 interface ColdCallingWizardProps {
   onComplete: (campaignData: any) => void;
   onBack: () => void;
   userBalance: number;
   userId?: string;
+  existingCampaign?: ExistingCampaignCheck['campaignDetails'] | null;
 }
 
-export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance, userId }: ColdCallingWizardProps) => {
+export const ColdCallingWizard = React.memo(({
+  onComplete,
+  onBack,
+  userBalance,
+  userId,
+  existingCampaign
+}: ColdCallingWizardProps) => {
   const [selectedHours, setSelectedHours] = useState<number | null>(null);
-  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
-  const [isCheckingCampaign, setIsCheckingCampaign] = useState(true);
+  const [hasActiveCampaign, setHasActiveCampaign] = useState(!!existingCampaign);
+  const [isCheckingCampaign, setIsCheckingCampaign] = useState(!existingCampaign);
 
   const handleLaunch = () => {
     if (selectedHours) {
@@ -31,12 +39,31 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance, 
 
   const canProceed = () => {
     if (!selectedHours) return false;
+
+    // Check if this is a tier change
+    if (existingCampaign) {
+      const tierInfo = isTierChange(existingCampaign.currentBudget, selectedHours * 6);
+
+      // For upgrades, check if user can afford the difference
+      if (tierInfo.isUpgrade) {
+        const difference = (selectedHours * 6) - existingCampaign.currentBudget;
+        return (userBalance - difference) >= -1000;
+      }
+
+      // Downgrades are always allowed (no immediate charge)
+      if (tierInfo.isDowngrade) return true;
+
+      // Same tier - not allowed
+      return false;
+    }
+
+    // New campaign - check full amount
     const balanceAfterDeduction = userBalance - (selectedHours * 6);
     return balanceAfterDeduction >= -1000;
   };
 
   const checkForActiveCampaign = async () => {
-    if (!userId) {
+    if (!userId || existingCampaign) {
       setIsCheckingCampaign(false);
       return;
     }
@@ -83,19 +110,45 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance, 
               {[20, 40, 60, 80].map((hours) => {
                 const monthlyCost = hours * 6;
                 const isSelected = selectedHours === hours;
+
+                // Check tier change status
+                const isCurrentTier = existingCampaign && existingCampaign.currentBudget === monthlyCost;
+                const tierInfo = existingCampaign
+                  ? isTierChange(existingCampaign.currentBudget, monthlyCost)
+                  : { isTierChange: false, isUpgrade: false, isDowngrade: false };
+
                 return (
                   <Card
                     key={hours}
-                    className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
-                      isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'
+                    className={`cursor-pointer transition-all duration-200 relative ${
+                      isCurrentTier
+                        ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20'
+                        : isSelected
+                          ? 'ring-2 ring-primary bg-primary/5'
+                          : 'hover:shadow-md hover:scale-105'
                     }`}
                     onClick={() => setSelectedHours(hours)}
                   >
+                    {isCurrentTier && (
+                      <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-600" variant="default">
+                        Current
+                      </Badge>
+                    )}
                     <CardContent className="p-3 sm:p-4 text-center">
                       <div className="text-xl sm:text-2xl font-bold text-primary mb-1">{hours}h</div>
                       <div className="text-xs sm:text-sm text-muted-foreground mb-2">per month</div>
                       <div className="text-base sm:text-lg font-semibold text-foreground">{monthlyCost} points</div>
                       <div className="text-xs text-muted-foreground">~{Math.round(hours * 2.5)} leads expected</div>
+                      {existingCampaign && !isCurrentTier && (
+                        <div className="mt-2">
+                          <Badge variant={tierInfo.isUpgrade ? "default" : "secondary"} className="text-xs">
+                            {tierInfo.isUpgrade
+                              ? `Upgrade (+${monthlyCost - existingCampaign.currentBudget} pts)`
+                              : `Downgrade (${monthlyCost} pts/mo)`
+                            }
+                          </Badge>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
@@ -146,29 +199,52 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance, 
                   <div className="w-full sm:w-auto">
                     <Button
                       onClick={handleLaunch}
-                      disabled={!canProceed() || hasActiveCampaign || isCheckingCampaign}
+                      disabled={!canProceed() || (hasActiveCampaign && !existingCampaign) || isCheckingCampaign}
                       className="w-full sm:w-auto sm:min-w-32"
                     >
                       <Zap className="h-4 w-4 mr-2" />
-                      {isCheckingCampaign
-                        ? 'Checking...'
-                        : hasActiveCampaign
-                          ? 'Already Subscribed'
-                          : 'Launch Campaign'
-                      }
+                      {isCheckingCampaign ? 'Checking...' : (() => {
+                        if (!selectedHours) return 'Launch Campaign';
+
+                        if (existingCampaign) {
+                          const tierInfo = isTierChange(existingCampaign.currentBudget, selectedHours * 6);
+                          if (tierInfo.isUpgrade) {
+                            const diff = (selectedHours * 6) - existingCampaign.currentBudget;
+                            return `Upgrade (+${diff} pts)`;
+                          }
+                          if (tierInfo.isDowngrade) {
+                            return 'Downgrade Plan';
+                          }
+                          return 'Current Plan';
+                        }
+
+                        return hasActiveCampaign ? 'Already Subscribed' : 'Launch Campaign';
+                      })()}
                     </Button>
                   </div>
                 </TooltipTrigger>
-                {(hasActiveCampaign || !canProceed() || isCheckingCampaign) && (
+                {(!canProceed() || (hasActiveCampaign && !existingCampaign) || isCheckingCampaign) && (
                   <TooltipContent className="max-w-xs">
                     <p className="text-sm">
                       {isCheckingCampaign
                         ? 'Checking your campaign status...'
-                        : hasActiveCampaign
+                        : hasActiveCampaign && !existingCampaign
                           ? 'You already have an active Cold Calling campaign. Please pause or cancel it before launching a new one.'
-                          : selectedHours
-                            ? `This would bring your balance to ${userBalance - (selectedHours * 6)} points. Minimum allowed: -1000 points.`
-                            : 'Please select monthly hours to continue.'
+                          : selectedHours && existingCampaign
+                            ? (() => {
+                                const tierInfo = isTierChange(existingCampaign.currentBudget, selectedHours * 6);
+                                if (tierInfo.isUpgrade) {
+                                  const diff = (selectedHours * 6) - existingCampaign.currentBudget;
+                                  return `Upgrade requires ${diff} points immediately. This would bring your balance to ${userBalance - diff} points. Minimum allowed: -1000 points.`;
+                                }
+                                if (!tierInfo.isTierChange) {
+                                  return 'This is your current plan.';
+                                }
+                                return '';
+                              })()
+                            : selectedHours
+                              ? `This would bring your balance to ${userBalance - (selectedHours * 6)} points. Minimum allowed: -1000 points.`
+                              : 'Please select monthly hours to continue.'
                       }
                     </p>
                   </TooltipContent>

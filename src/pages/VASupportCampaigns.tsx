@@ -14,7 +14,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
-import { checkExistingCampaign, getDuplicateCampaignErrorMessage } from "@/utils/campaignValidation";
+import {
+  checkExistingCampaign,
+  getDuplicateCampaignErrorMessage,
+  isTierChange,
+  getTierDifference,
+  type ExistingCampaignCheck
+} from "@/utils/campaignValidation";
 
 const VASupportCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -27,7 +33,9 @@ const VASupportCampaigns = () => {
   const [pendingCampaign, setPendingCampaign] = useState<any>(null);
   const [isLaunching, setIsLaunching] = useState(false);
   const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
+  const [existingCampaignData, setExistingCampaignData] = useState<ExistingCampaignCheck['campaignDetails'] | null>(null);
   const [isCheckingCampaign, setIsCheckingCampaign] = useState(true);
+  const [isTierChangeOperation, setIsTierChangeOperation] = useState(false);
   const isMobile = useIsMobile();
 
   // Scroll to top when component mounts
@@ -39,7 +47,25 @@ const VASupportCampaigns = () => {
 
   const handleVASupportComplete = (campaignData: any) => {
     console.log('VA support campaign data received:', campaignData);
-    setPendingCampaign(campaignData);
+
+    // Check if this is a tier change operation
+    if (existingCampaignData) {
+      const currentBudget = existingCampaignData.currentBudget;
+      const newBudget = campaignData.budget;
+      const tierChangeInfo = isTierChange(currentBudget, newBudget);
+
+      setIsTierChangeOperation(tierChangeInfo.isTierChange);
+      setPendingCampaign({
+        ...campaignData,
+        tierChangeInfo,
+        existingParticipantId: existingCampaignData.participantId,
+        existingCampaignId: existingCampaignData.id
+      });
+    } else {
+      setIsTierChangeOperation(false);
+      setPendingCampaign(campaignData);
+    }
+
     setShowCheckoutModal(true);
   };
 
@@ -48,7 +74,159 @@ const VASupportCampaigns = () => {
 
     setIsLaunching(true);
     try {
-      const { method, plan, consultantName, budget } = pendingCampaign;
+      const { method, plan, consultantName, budget, tierChangeInfo, existingParticipantId, existingCampaignId } = pendingCampaign;
+
+      // Handle tier change (upgrade/downgrade)
+      if (isTierChangeOperation && tierChangeInfo && existingParticipantId) {
+        console.log('Processing tier change:', tierChangeInfo);
+        const tierDiff = getTierDifference(existingCampaignData!.currentBudget, budget);
+
+        if (tierChangeInfo.isUpgrade) {
+          // UPGRADE: Charge difference immediately
+          console.log(`Upgrading: Charging ${tierDiff} points now`);
+
+          // Check if balance would go below -1000 limit
+          const balanceAfterCharge = userBalance - tierDiff;
+          if (balanceAfterCharge < -1000) {
+            toast({
+              title: "Balance Limit Exceeded",
+              description: `This upgrade would bring your balance to ${balanceAfterCharge} points. The minimum allowed balance is -1000 points.`,
+              variant: "destructive"
+            });
+            setIsLaunching(false);
+            return;
+          }
+
+          // Deduct upgrade difference
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ flexi_credits_balance: userBalance - tierDiff })
+            .eq('user_id', user.id);
+
+          if (updateError) {
+            console.error('Error updating balance:', updateError);
+            toast({
+              title: "Error",
+              description: `Failed to update balance: ${updateError.message}`,
+              variant: "destructive"
+            });
+            setIsLaunching(false);
+            return;
+          }
+
+          // Create transaction record for upgrade
+          await supabase
+            .from('flexi_credits_transactions')
+            .insert({
+              user_id: user.id,
+              type: 'purchase',
+              amount: -tierDiff,
+              description: `VA Support upgrade to ${plan?.name} - ${tierDiff} points`
+            });
+
+          // Update participant record with new budget
+          const { error: participantUpdateError } = await supabase
+            .from('campaign_participants')
+            .update({
+              monthly_budget: budget,
+              budget_contribution: budget,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingParticipantId);
+
+          if (participantUpdateError) {
+            console.error('Error updating participant:', participantUpdateError);
+            toast({
+              title: "Error",
+              description: `Failed to update campaign: ${participantUpdateError.message}`,
+              variant: "destructive"
+            });
+            setIsLaunching(false);
+            return;
+          }
+
+          // Update campaign name
+          await supabase
+            .from('lead_gen_campaigns')
+            .update({
+              name: `VA Support Campaign - ${plan?.name}`,
+              description: `Virtual assistant support campaign with ${plan?.name} plan`,
+              total_budget: budget
+            })
+            .eq('id', existingCampaignId);
+
+          await refreshProfile();
+          toast({
+            title: "Tier Upgraded Successfully!",
+            description: `Your VA Support plan has been upgraded to ${plan?.name}. Charged ${tierDiff} points immediately.`,
+          });
+
+          setShowCheckoutModal(false);
+          setIsTierChangeOperation(false);
+          await checkForActiveCampaign();
+
+        } else if (tierChangeInfo.isDowngrade) {
+          // DOWNGRADE: Update for next billing cycle
+          console.log(`Downgrading: Saving ${Math.abs(tierDiff)} points/month starting next cycle`);
+
+          // Update participant record with new budget (effective next cycle)
+          const { error: participantUpdateError } = await supabase
+            .from('campaign_participants')
+            .update({
+              monthly_budget: budget,
+              budget_contribution: budget,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingParticipantId);
+
+          if (participantUpdateError) {
+            console.error('Error updating participant:', participantUpdateError);
+            toast({
+              title: "Error",
+              description: `Failed to update campaign: ${participantUpdateError.message}`,
+              variant: "destructive"
+            });
+            setIsLaunching(false);
+            return;
+          }
+
+          // Update campaign name
+          await supabase
+            .from('lead_gen_campaigns')
+            .update({
+              name: `VA Support Campaign - ${plan?.name}`,
+              description: `Virtual assistant support campaign with ${plan?.name} plan`,
+              total_budget: budget
+            })
+            .eq('id', existingCampaignId);
+
+          // Create transaction record for audit trail
+          await supabase
+            .from('flexi_credits_transactions')
+            .insert({
+              user_id: user.id,
+              type: 'admin_credit',
+              amount: 0,
+              description: `VA Support downgrade to ${plan?.name} (effective next billing cycle)`
+            });
+
+          await refreshProfile();
+          toast({
+            title: "Tier Downgraded Successfully!",
+            description: `Your VA Support plan will be downgraded to ${plan?.name} on next billing cycle. You'll save ${Math.abs(tierDiff)} points/month.`,
+          });
+
+          setShowCheckoutModal(false);
+          setIsTierChangeOperation(false);
+          await checkForActiveCampaign();
+
+        }
+
+        setIsLaunching(false);
+        return;
+      }
+
+      // New campaign creation logic (no tier change)
       const amountToDeduct = budget;
 
       console.log('Starting VA support campaign creation...');
@@ -81,6 +259,7 @@ const VASupportCampaigns = () => {
           description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -1000 points.`,
           variant: "destructive"
         });
+        setIsLaunching(false);
         return;
       }
 
@@ -244,9 +423,11 @@ const VASupportCampaigns = () => {
     try {
       const existingCampaignCheck = await checkExistingCampaign(user.id, 'va-support');
       setHasActiveCampaign(existingCampaignCheck.hasActive);
+      setExistingCampaignData(existingCampaignCheck.campaignDetails || null);
     } catch (error) {
       console.error('Error checking for active campaign:', error);
       setHasActiveCampaign(false);
+      setExistingCampaignData(null);
     } finally {
       setIsCheckingCampaign(false);
     }
@@ -337,19 +518,69 @@ const VASupportCampaigns = () => {
                 const balanceAfter = userBalance - plan.price;
                 const canAfford = balanceAfter >= -1000;
 
+                // Check if this is current tier, upgrade, or downgrade
+                const isCurrentTier = hasActiveCampaign && existingCampaignData?.currentBudget === plan.price;
+                const tierInfo = hasActiveCampaign && existingCampaignData
+                  ? isTierChange(existingCampaignData.currentBudget, plan.price)
+                  : { isTierChange: false, isUpgrade: false, isDowngrade: false };
+
+                // For upgrades, check if user can afford the difference
+                const upgradeDifference = hasActiveCampaign && existingCampaignData
+                  ? plan.price - existingCampaignData.currentBudget
+                  : plan.price;
+                const canAffordUpgrade = hasActiveCampaign && tierInfo.isUpgrade
+                  ? (userBalance - upgradeDifference) >= -1000
+                  : canAfford;
+
+                // Button state logic
+                const isDisabled = isCheckingCampaign || isCurrentTier || (!hasActiveCampaign && !canAfford) || (tierInfo.isUpgrade && !canAffordUpgrade);
+
+                // Button text logic
+                let buttonText = 'Launch Campaign';
+                if (isCheckingCampaign) {
+                  buttonText = 'Checking...';
+                } else if (isCurrentTier) {
+                  buttonText = 'Current Plan';
+                } else if (hasActiveCampaign && tierInfo.isUpgrade) {
+                  buttonText = `Upgrade (+${upgradeDifference} pts)`;
+                } else if (hasActiveCampaign && tierInfo.isDowngrade) {
+                  buttonText = `Downgrade (${plan.price} pts/mo)`;
+                } else if (!canAfford) {
+                  buttonText = 'Balance Limit Exceeded';
+                }
+
+                // Tooltip text logic
+                let tooltipText = '';
+                if (isCheckingCampaign) {
+                  tooltipText = 'Checking your campaign status...';
+                } else if (isCurrentTier) {
+                  tooltipText = 'This is your current plan.';
+                } else if (tierInfo.isUpgrade && !canAffordUpgrade) {
+                  tooltipText = `Upgrade requires ${upgradeDifference} points immediately. This would bring your balance to ${userBalance - upgradeDifference} points. Minimum allowed: -1000 points.`;
+                } else if (!canAfford && !hasActiveCampaign) {
+                  tooltipText = `This would bring your balance to ${balanceAfter} points. Minimum allowed: -1000 points.`;
+                }
+
                 return (
                   <Card
                     key={plan.key}
                     className={`relative border-2 transition-all duration-300 ${
-                      canAfford ? 'hover:scale-105' : ''
+                      !isDisabled && !isCurrentTier ? 'hover:scale-105' : ''
                     } ${
-                      plan.highlight && canAfford
-                        ? 'border-primary shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 scale-105'
-                        : 'border-border hover:border-primary/50 shadow-lg shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20'
-                    } ${!canAfford ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      isCurrentTier
+                        ? 'border-green-500 shadow-lg shadow-green-500/30 bg-gradient-to-br from-green-50 via-green-100 to-green-50 scale-105'
+                        : plan.highlight && !isDisabled
+                          ? 'border-primary shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 scale-105'
+                          : 'border-border hover:border-primary/50 shadow-lg shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20'
+                    } ${isDisabled && !isCurrentTier ? 'opacity-60' : ''}`}
                   >
                     <CardContent className="p-8 flex flex-col h-full text-center">
-                      {plan.highlight && canAfford && (
+                      {isCurrentTier && (
+                        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-600 shadow-md" variant="default">
+                          Current Plan
+                        </Badge>
+                      )}
+                      {plan.highlight && !isCurrentTier && !isDisabled && (
                         <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary shadow-md" variant="default">
                           Most Popular
                         </Badge>
@@ -401,41 +632,43 @@ const VASupportCampaigns = () => {
                                 consultantName: profile?.full_name || '',
                                 budget: plan.price
                               })}
-                              disabled={!canAfford || hasActiveCampaign || isCheckingCampaign}
+                              disabled={isDisabled}
                               className={`w-full py-6 text-base font-semibold ${
-                                plan.highlight && canAfford && !hasActiveCampaign
-                                  ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
-                                  : 'text-primary hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                                isCurrentTier
+                                  ? 'bg-green-600 text-white cursor-not-allowed'
+                                  : tierInfo.isUpgrade && !isDisabled
+                                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+                                    : tierInfo.isDowngrade && !isDisabled
+                                      ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl'
+                                      : plan.highlight && !isDisabled && !hasActiveCampaign
+                                        ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
+                                        : 'text-primary hover:bg-blue-600 hover:text-white hover:border-blue-600'
                               }`}
-                              variant={plan.highlight && canAfford && !hasActiveCampaign ? "default" : "outline"}
+                              variant={
+                                isCurrentTier || tierInfo.isUpgrade || tierInfo.isDowngrade || (plan.highlight && !isDisabled && !hasActiveCampaign)
+                                  ? "default"
+                                  : "outline"
+                              }
                               size="lg"
                             >
-                              {isCheckingCampaign
-                                ? 'Checking...'
-                                : hasActiveCampaign
-                                  ? 'Already Subscribed'
-                                  : canAfford
-                                    ? 'Launch Campaign'
-                                    : 'Balance Limit Exceeded'
-                              }
+                              {buttonText}
                             </Button>
                           </div>
                         </TooltipTrigger>
-                        {(hasActiveCampaign || !canAfford || isCheckingCampaign) && (
+                        {tooltipText && (
                           <TooltipContent className="max-w-xs">
-                            <p className="text-sm">
-                              {isCheckingCampaign
-                                ? 'Checking your campaign status...'
-                                : hasActiveCampaign
-                                  ? 'You already have an active VA Support campaign. Please pause or cancel it before subscribing to a new plan.'
-                                  : `This would bring your balance to ${balanceAfter} points. Minimum allowed: -1000 points.`
-                              }
-                            </p>
+                            <p className="text-sm">{tooltipText}</p>
                           </TooltipContent>
                         )}
                       </Tooltip>
 
-                      {/* Balance Warning */}
+                      {/* Balance Warning for upgrades */}
+                      {tierInfo.isUpgrade && !canAffordUpgrade && (
+                        <p className="text-xs text-destructive mt-3">
+                          Upgrade requires {upgradeDifference} points (would bring balance to {userBalance - upgradeDifference}, minimum: -1000)
+                        </p>
+                      )}
+                      {/* Balance Warning for new campaigns */}
                       {!canAfford && !hasActiveCampaign && (
                         <p className="text-xs text-destructive mt-3">
                           Would bring balance to {balanceAfter} points (minimum: -1000)
@@ -458,9 +691,19 @@ const VASupportCampaigns = () => {
           aria-describedby="campaign-confirmation-description"
         >
           <DialogHeader>
-            <DialogTitle>Confirm Campaign Launch</DialogTitle>
+            <DialogTitle>
+              {isTierChangeOperation
+                ? pendingCampaign?.tierChangeInfo?.isUpgrade
+                  ? 'Confirm Tier Upgrade'
+                  : 'Confirm Tier Downgrade'
+                : 'Confirm Campaign Launch'
+              }
+            </DialogTitle>
             <DialogDescription id="campaign-confirmation-description">
-              Review the details before confirming.
+              {isTierChangeOperation
+                ? 'Review the tier change details before confirming.'
+                : 'Review the details before confirming.'
+              }
             </DialogDescription>
           </DialogHeader>
 
@@ -468,15 +711,34 @@ const VASupportCampaigns = () => {
             {/* Campaign Details */}
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Campaign Type</span>
-                <strong>VA Support</strong>
+                <span className="text-muted-foreground">
+                  {isTierChangeOperation ? 'Action' : 'Campaign Type'}
+                </span>
+                <strong>
+                  {isTierChangeOperation
+                    ? pendingCampaign?.tierChangeInfo?.isUpgrade
+                      ? 'Upgrade Tier'
+                      : 'Downgrade Tier'
+                    : 'VA Support'
+                  }
+                </strong>
               </div>
+              {isTierChangeOperation && existingCampaignData && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current Plan</span>
+                  <strong>{existingCampaignData.tierInfo?.name || `${existingCampaignData.currentBudget} points/mo`}</strong>
+                </div>
+              )}
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Plan</span>
+                <span className="text-muted-foreground">
+                  {isTierChangeOperation ? 'New Plan' : 'Plan'}
+                </span>
                 <strong>{pendingCampaign?.plan?.name}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Monthly Budget</span>
+                <span className="text-muted-foreground">
+                  {isTierChangeOperation ? 'New' : ''} Monthly Budget
+                </span>
                 <strong>{pendingCampaign?.budget} points</strong>
               </div>
             </div>
@@ -487,31 +749,69 @@ const VASupportCampaigns = () => {
                 <span className="text-muted-foreground">Current Balance</span>
                 <span className="tabular-nums">{profile?.flexi_credits_balance?.toLocaleString()} points</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Deduct Now</span>
-                <span className="tabular-nums text-destructive">
-                  -{pendingCampaign?.budget?.toLocaleString()} points
-                </span>
-              </div>
-              <div
-                className="flex justify-between pt-3 border-t"
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                <span className="font-medium">New Balance</span>
-                <strong className={`tabular-nums ${
-                  (profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0
-                    ? 'text-destructive'
-                    : ''
-                }`}>
-                  {((profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0))?.toLocaleString()} points
-                </strong>
-              </div>
+              {isTierChangeOperation && pendingCampaign?.tierChangeInfo ? (
+                <>
+                  {pendingCampaign.tierChangeInfo.isUpgrade ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Charge Now (Upgrade Difference)</span>
+                        <span className="tabular-nums text-destructive">
+                          -{getTierDifference(existingCampaignData!.currentBudget, pendingCampaign.budget).toLocaleString()} points
+                        </span>
+                      </div>
+                      <div
+                        className="flex justify-between pt-3 border-t"
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                      >
+                        <span className="font-medium">New Balance</span>
+                        <strong className={`tabular-nums ${
+                          (profile?.flexi_credits_balance || 0) - getTierDifference(existingCampaignData!.currentBudget, pendingCampaign.budget) < 0
+                            ? 'text-destructive'
+                            : ''
+                        }`}>
+                          {((profile?.flexi_credits_balance || 0) - getTierDifference(existingCampaignData!.currentBudget, pendingCampaign.budget))?.toLocaleString()} points
+                        </strong>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 rounded-r-lg">
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        No immediate charge. Downgrade takes effect on next billing cycle. You'll save {Math.abs(getTierDifference(existingCampaignData!.currentBudget, pendingCampaign.budget))} points/month.
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Deduct Now</span>
+                    <span className="tabular-nums text-destructive">
+                      -{pendingCampaign?.budget?.toLocaleString()} points
+                    </span>
+                  </div>
+                  <div
+                    className="flex justify-between pt-3 border-t"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <span className="font-medium">New Balance</span>
+                    <strong className={`tabular-nums ${
+                      (profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0
+                        ? 'text-destructive'
+                        : ''
+                    }`}>
+                      {((profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0))?.toLocaleString()} points
+                    </strong>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Negative Balance Warning */}
-            {(profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0 && (
+            {!isTierChangeOperation && (profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0 && (
               <p className="text-sm text-destructive" role="alert">
                 Your balance will be negative (minimum allowed: -1000)
               </p>
@@ -523,7 +823,7 @@ const VASupportCampaigns = () => {
               variant="outline"
               onClick={() => setShowCheckoutModal(false)}
               className="w-full sm:w-auto"
-              aria-label="Cancel campaign launch"
+              aria-label={isTierChangeOperation ? "Cancel tier change" : "Cancel campaign launch"}
             >
               Cancel
             </Button>
@@ -531,10 +831,25 @@ const VASupportCampaigns = () => {
               onClick={confirmCheckout}
               className="w-full sm:w-auto"
               disabled={isLaunching}
-              aria-label={`Confirm and launch campaign. This will deduct ${pendingCampaign?.budget} points from your account`}
+              aria-label={
+                isTierChangeOperation
+                  ? `Confirm tier ${pendingCampaign?.tierChangeInfo?.isUpgrade ? 'upgrade' : 'downgrade'}`
+                  : `Confirm and launch campaign. This will deduct ${pendingCampaign?.budget} points from your account`
+              }
             >
               {isLaunching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLaunching ? "Launching..." : "Confirm & Launch"}
+              {isLaunching
+                ? isTierChangeOperation
+                  ? pendingCampaign?.tierChangeInfo?.isUpgrade
+                    ? "Upgrading..."
+                    : "Downgrading..."
+                  : "Launching..."
+                : isTierChangeOperation
+                  ? pendingCampaign?.tierChangeInfo?.isUpgrade
+                    ? "Confirm Upgrade"
+                    : "Confirm Downgrade"
+                  : "Confirm & Launch"
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
