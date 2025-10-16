@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Target, Phone, Users } from "lucide-react";
+import { BarChart3, Target, Phone, Users, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -247,18 +247,34 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
               Manage and monitor your lead generation campaigns
             </p>
           </div>
-          <Button
-            variant={hideInactiveCampaigns ? "default" : "default"}
-            size="sm"
-            onClick={() => setHideInactiveCampaigns(!hideInactiveCampaigns)}
-            className={`w-full sm:w-auto min-h-[40px] sm:min-h-[36px] font-semibold transition-all duration-200 ${
-              hideInactiveCampaigns
-                ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md hover:shadow-lg border-0'
-                : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg border-0'
-            }`}
-          >
-            {hideInactiveCampaigns ? 'Show All' : 'Active Only'}
-          </Button>
+
+          {/* Filter Controls */}
+          <div className="inline-flex rounded-lg bg-muted p-1 w-full sm:w-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setHideInactiveCampaigns(true)}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition-all duration-200 ${
+                  hideInactiveCampaigns
+                    ? 'bg-white text-primary shadow-sm font-semibold pointer-events-none'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
+                }`}
+              >
+                Active Only
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setHideInactiveCampaigns(false)}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition-all duration-200 ${
+                  !hideInactiveCampaigns
+                    ? 'bg-white text-primary shadow-sm font-semibold pointer-events-none'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
+                }`}
+              >
+                Show All
+              </Button>
+            </div>
         </div>
 
         <div className="grid gap-4 sm:gap-5">
