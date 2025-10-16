@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
+import { checkExistingCampaign, getDuplicateCampaignErrorMessage } from "@/utils/campaignValidation";
 
 const ColdCallingCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -50,6 +51,25 @@ const ColdCallingCampaigns = () => {
 
       console.log('Starting cold calling campaign creation...');
       console.log('Budget:', budget, 'Amount to deduct:', amountToDeduct, 'User Balance:', userBalance);
+
+      // Check for existing active cold calling campaign
+      console.log('Checking for existing cold calling campaigns...');
+      const existingCampaignCheck = await checkExistingCampaign(user.id, 'cold-calling');
+
+      if (existingCampaignCheck.hasActive) {
+        console.log('User already has an active cold calling campaign:', existingCampaignCheck.campaignDetails);
+        toast({
+          title: "Duplicate Campaign Not Allowed",
+          description: getDuplicateCampaignErrorMessage(
+            'cold-calling',
+            existingCampaignCheck.campaignDetails?.name
+          ),
+          variant: "destructive"
+        });
+        setIsLaunching(false);
+        setShowCheckoutModal(false);
+        return;
+      }
 
       // Check if balance would go below -1000 limit
       const balanceAfterDeduction = userBalance - amountToDeduct;
@@ -247,6 +267,7 @@ const ColdCallingCampaigns = () => {
               onComplete={handleColdCallingComplete}
               onBack={() => navigate('/campaigns/launch')}
               userBalance={userBalance}
+              userId={user?.id}
             />
           </div>
         </div>

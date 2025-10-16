@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Phone, Zap } from "lucide-react";
+import { checkExistingCampaign } from "@/utils/campaignValidation";
 
 interface ColdCallingWizardProps {
   onComplete: (campaignData: any) => void;
   onBack: () => void;
   userBalance: number;
+  userId?: string;
 }
 
-export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance }: ColdCallingWizardProps) => {
+export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance, userId }: ColdCallingWizardProps) => {
   const [selectedHours, setSelectedHours] = useState<number | null>(null);
+  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
+  const [isCheckingCampaign, setIsCheckingCampaign] = useState(true);
 
   const handleLaunch = () => {
     if (selectedHours) {
@@ -29,6 +34,29 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance }
     const balanceAfterDeduction = userBalance - (selectedHours * 6);
     return balanceAfterDeduction >= -1000;
   };
+
+  const checkForActiveCampaign = async () => {
+    if (!userId) {
+      setIsCheckingCampaign(false);
+      return;
+    }
+
+    setIsCheckingCampaign(true);
+    try {
+      const existingCampaignCheck = await checkExistingCampaign(userId, 'cold-calling');
+      setHasActiveCampaign(existingCampaignCheck.hasActive);
+    } catch (error) {
+      console.error('Error checking for active campaign:', error);
+      setHasActiveCampaign(false);
+    } finally {
+      setIsCheckingCampaign(false);
+    }
+  };
+
+  // Check for active campaign on mount
+  useEffect(() => {
+    checkForActiveCampaign();
+  }, [userId]);
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -112,14 +140,41 @@ export const ColdCallingWizard = React.memo(({ onComplete, onBack, userBalance }
               Back to Methods
             </Button>
 
-            <Button
-              onClick={handleLaunch}
-              disabled={!canProceed()}
-              className="w-full sm:w-auto sm:min-w-32"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Launch Campaign
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full sm:w-auto">
+                    <Button
+                      onClick={handleLaunch}
+                      disabled={!canProceed() || hasActiveCampaign || isCheckingCampaign}
+                      className="w-full sm:w-auto sm:min-w-32"
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      {isCheckingCampaign
+                        ? 'Checking...'
+                        : hasActiveCampaign
+                          ? 'Already Subscribed'
+                          : 'Launch Campaign'
+                      }
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {(hasActiveCampaign || !canProceed() || isCheckingCampaign) && (
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-sm">
+                      {isCheckingCampaign
+                        ? 'Checking your campaign status...'
+                        : hasActiveCampaign
+                          ? 'You already have an active Cold Calling campaign. Please pause or cancel it before launching a new one.'
+                          : selectedHours
+                            ? `This would bring your balance to ${userBalance - (selectedHours * 6)} points. Minimum allowed: -1000 points.`
+                            : 'Please select monthly hours to continue.'
+                      }
+                    </p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </CardContent>
       </Card>

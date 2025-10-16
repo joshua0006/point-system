@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreditCard, Wallet, TrendingUp, Check, MessageSquare, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
+import { checkExistingCampaign, getDuplicateCampaignErrorMessage } from "@/utils/campaignValidation";
 
 const VASupportCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -24,6 +26,8 @@ const VASupportCampaigns = () => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [pendingCampaign, setPendingCampaign] = useState<any>(null);
   const [isLaunching, setIsLaunching] = useState(false);
+  const [hasActiveCampaign, setHasActiveCampaign] = useState(false);
+  const [isCheckingCampaign, setIsCheckingCampaign] = useState(true);
   const isMobile = useIsMobile();
 
   // Scroll to top when component mounts
@@ -49,6 +53,25 @@ const VASupportCampaigns = () => {
 
       console.log('Starting VA support campaign creation...');
       console.log('Plan:', plan, 'Budget:', budget, 'Amount to deduct:', amountToDeduct, 'User Balance:', userBalance);
+
+      // Check for existing active VA support campaign
+      console.log('Checking for existing VA support campaigns...');
+      const existingCampaignCheck = await checkExistingCampaign(user.id, 'va-support');
+
+      if (existingCampaignCheck.hasActive) {
+        console.log('User already has an active VA support campaign:', existingCampaignCheck.campaignDetails);
+        toast({
+          title: "Duplicate Campaign Not Allowed",
+          description: getDuplicateCampaignErrorMessage(
+            'va-support',
+            existingCampaignCheck.campaignDetails?.name
+          ),
+          variant: "destructive"
+        });
+        setIsLaunching(false);
+        setShowCheckoutModal(false);
+        return;
+      }
 
       // Check if balance would go below -1000 limit
       const balanceAfterDeduction = userBalance - amountToDeduct;
@@ -211,6 +234,29 @@ const VASupportCampaigns = () => {
     });
   };
 
+  const checkForActiveCampaign = async () => {
+    if (!user?.id) {
+      setIsCheckingCampaign(false);
+      return;
+    }
+
+    setIsCheckingCampaign(true);
+    try {
+      const existingCampaignCheck = await checkExistingCampaign(user.id, 'va-support');
+      setHasActiveCampaign(existingCampaignCheck.hasActive);
+    } catch (error) {
+      console.error('Error checking for active campaign:', error);
+      setHasActiveCampaign(false);
+    } finally {
+      setIsCheckingCampaign(false);
+    }
+  };
+
+  // Check for active campaign on mount
+  useEffect(() => {
+    checkForActiveCampaign();
+  }, [user?.id]);
+
   return (
     <SidebarLayout title="VA Support Campaigns" description="Professional virtual assistant support for your business needs">
       <ResponsiveContainer>
@@ -248,8 +294,9 @@ const VASupportCampaigns = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
+            <TooltipProvider>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
                 {
                   key: "basic",
                   name: "Basic VA Support",
@@ -344,27 +391,52 @@ const VASupportCampaigns = () => {
                       </ul>
 
                       {/* CTA Button */}
-                      <Button
-                        onClick={() => handleVASupportComplete({
-                          method: 'va-support',
-                          plan,
-                          consultantName: profile?.full_name || '',
-                          budget: plan.price
-                        })}
-                        disabled={!canAfford}
-                        className={`w-full py-6 text-base font-semibold ${
-                          plan.highlight && canAfford
-                            ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
-                            : 'text-primary hover:bg-blue-600 hover:text-white hover:border-blue-600'
-                        }`}
-                        variant={plan.highlight && canAfford ? "default" : "outline"}
-                        size="lg"
-                      >
-                        {canAfford ? 'Launch Campaign' : 'Balance Limit Exceeded'}
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="w-full">
+                            <Button
+                              onClick={() => handleVASupportComplete({
+                                method: 'va-support',
+                                plan,
+                                consultantName: profile?.full_name || '',
+                                budget: plan.price
+                              })}
+                              disabled={!canAfford || hasActiveCampaign || isCheckingCampaign}
+                              className={`w-full py-6 text-base font-semibold ${
+                                plan.highlight && canAfford && !hasActiveCampaign
+                                  ? 'bg-primary hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl'
+                                  : 'text-primary hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                              }`}
+                              variant={plan.highlight && canAfford && !hasActiveCampaign ? "default" : "outline"}
+                              size="lg"
+                            >
+                              {isCheckingCampaign
+                                ? 'Checking...'
+                                : hasActiveCampaign
+                                  ? 'Already Subscribed'
+                                  : canAfford
+                                    ? 'Launch Campaign'
+                                    : 'Balance Limit Exceeded'
+                              }
+                            </Button>
+                          </div>
+                        </TooltipTrigger>
+                        {(hasActiveCampaign || !canAfford || isCheckingCampaign) && (
+                          <TooltipContent className="max-w-xs">
+                            <p className="text-sm">
+                              {isCheckingCampaign
+                                ? 'Checking your campaign status...'
+                                : hasActiveCampaign
+                                  ? 'You already have an active VA Support campaign. Please pause or cancel it before subscribing to a new plan.'
+                                  : `This would bring your balance to ${balanceAfter} points. Minimum allowed: -1000 points.`
+                              }
+                            </p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
 
                       {/* Balance Warning */}
-                      {!canAfford && (
+                      {!canAfford && !hasActiveCampaign && (
                         <p className="text-xs text-destructive mt-3">
                           Would bring balance to {balanceAfter} points (minimum: -1000)
                         </p>
@@ -372,8 +444,9 @@ const VASupportCampaigns = () => {
                     </CardContent>
                   </Card>
                 );
-              })}
-            </div>
+                })}
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </ResponsiveContainer>
