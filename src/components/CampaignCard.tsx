@@ -2,7 +2,13 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, BarChart3, Calendar, DollarSign, TrendingUp, Pause, Play, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Settings, BarChart3, Calendar, DollarSign, TrendingUp, Pause, Play, Loader2, UserX, RefreshCw } from "lucide-react";
 
 // Proper Campaign interface with complete typing
 interface LeadGenCampaign {
@@ -32,6 +38,8 @@ interface CampaignCardProps {
   onPause: (id: string) => void;
   onResume: (id: string) => void;
   onViewAnalytics: (id: string) => void;
+  onUnsubscribe: (id: string) => void;
+  onResubscribe: (id: string) => void;
   isProcessing?: boolean;
 }
 
@@ -41,7 +49,7 @@ const getStatusText = (status: Campaign['billing_status']): string => {
     'active': 'Active',
     'paused': 'Paused',
     'paused_insufficient_funds': 'Paused due to low balance',
-    'stopped': 'Stopped',
+    'stopped': 'Ending Soon',
     'completed': 'Completed'
   };
   return statusMap[status] || status;
@@ -53,7 +61,7 @@ const getStatusAriaLabel = (status: Campaign['billing_status']): string => {
     'active': 'Campaign is currently active and running',
     'paused': 'Campaign is paused',
     'paused_insufficient_funds': 'Campaign paused due to insufficient account balance',
-    'stopped': 'Campaign has been stopped',
+    'stopped': 'Campaign is ending soon - no further charges will be made',
     'completed': 'Campaign has completed'
   };
   return ariaMap[status] || `Campaign status: ${status}`;
@@ -67,11 +75,14 @@ export const CampaignCard = React.memo(({
   onPause,
   onResume,
   onViewAnalytics,
+  onUnsubscribe,
+  onResubscribe,
   isProcessing = false
 }: CampaignCardProps) => {
   const isActive = campaign.billing_status === 'active';
   const isPaused = campaign.billing_status === 'paused' || campaign.billing_status === 'paused_insufficient_funds';
   const isLowBalance = campaign.billing_status === 'paused_insufficient_funds';
+  const isStopped = campaign.billing_status === 'stopped';
   const campaignName = campaign.lead_gen_campaigns?.name || 'Campaign';
   const conversionRate = campaign.leads_received && campaign.conversions
     ? Math.round((campaign.conversions / campaign.leads_received) * 100)
@@ -116,15 +127,31 @@ export const CampaignCard = React.memo(({
                 {getStatusText(campaign.billing_status)}
               </Badge>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label={`Campaign settings for ${campaignName}`}
-              >
-                <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span className="sr-only">Campaign Settings</span>
-              </Button>
+              {/* Only show settings button for active/paused campaigns */}
+              {!isStopped && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary"
+                      aria-label={`Campaign settings for ${campaignName}`}
+                    >
+                      <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                      <span className="sr-only">Campaign Settings</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => onUnsubscribe(campaign.id)}
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                    >
+                      <UserX className="h-4 w-4 mr-2" aria-hidden="true" />
+                      <span>Unsubscribe from Campaign</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -203,10 +230,30 @@ export const CampaignCard = React.memo(({
               </p>
             </div>
           )}
+
+          {/* Stopped Campaign Notice */}
+          {isStopped && (
+            <div
+              className="mt-3 sm:mt-4 p-2 sm:p-3 bg-yellow-50 dark:bg-yellow-950/30 border-l-4 border-yellow-500 rounded-r-lg"
+              role="status"
+              aria-live="polite"
+            >
+              <p className="text-xs sm:text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                Campaign unsubscribed. You will continue receiving leads until{' '}
+                {campaign.next_billing_date
+                  ? new Date(campaign.next_billing_date).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })
+                  : 'the end of your billing period'}. No further charges will be made.
+              </p>
+            </div>
+          )}
         </CardContent>
 
         {/* Card Footer with Primary Actions */}
-        {(isActive || isPaused) && (
+        {(isActive || isPaused || isStopped) && (
           <CardFooter className="px-4 sm:px-6 pt-0 pb-4 sm:pb-5 gap-2.5 sm:gap-3 flex-wrap">
             {isActive && (
               <Button
@@ -242,6 +289,25 @@ export const CampaignCard = React.memo(({
                 )}
                 <span className="text-xs sm:text-sm whitespace-nowrap">
                   {isProcessing ? "Resuming..." : "Resume Campaign"}
+                </span>
+              </Button>
+            )}
+            {isStopped && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => onResubscribe(campaign.id)}
+                disabled={isProcessing}
+                className="flex-1 min-w-[130px] sm:min-w-[140px] focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                aria-label={`Subscribe again to ${campaignName} campaign`}
+              >
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0 animate-spin" aria-hidden="true" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
+                )}
+                <span className="text-xs sm:text-sm whitespace-nowrap">
+                  {isProcessing ? "Subscribing..." : "Subscribe Again"}
                 </span>
               </Button>
             )}

@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { BarChart3, Target, Phone, Users, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +32,8 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
   const [processingCampaignId, setProcessingCampaignId] = useState<string | null>(null);
   const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
   const [selectedAnalytics, setSelectedAnalytics] = useState<CampaignAnalytics | null>(null);
+  const [unsubscribeDialogOpen, setUnsubscribeDialogOpen] = useState(false);
+  const [campaignToUnsubscribe, setCampaignToUnsubscribe] = useState<{ id: string; name: string } | null>(null);
 
   const fetchCampaigns = useCallback(async () => {
     if (!user?.id) return;
@@ -71,11 +83,12 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
   // Memoized filtered campaigns
   const filteredCampaigns = useMemo(() => {
     if (!hideInactiveCampaigns) return campaigns;
-    
-    return campaigns.filter(campaign => 
-      campaign.billing_status === 'active' || 
+
+    return campaigns.filter(campaign =>
+      campaign.billing_status === 'active' ||
       campaign.billing_status === 'paused' ||
-      campaign.billing_status === 'paused_insufficient_funds'
+      campaign.billing_status === 'paused_insufficient_funds' ||
+      campaign.billing_status === 'stopped'
     );
   }, [campaigns, hideInactiveCampaigns]);
 
@@ -98,7 +111,7 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
       case 'paused': return 'bg-accent/10 text-accent border-accent/30';
       case 'paused_insufficient_funds': return 'bg-red-100 text-red-800 border-red-200';
-      case 'stopped': return 'bg-red-100 text-red-800 border-red-200';
+      case 'stopped': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -202,6 +215,89 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
     setAnalyticsModalOpen(true);
   }, [campaigns]);
 
+  const handleUnsubscribeClick = useCallback((campaignId: string) => {
+    // Find the campaign to get its name for the confirmation dialog
+    const campaign = campaigns.find(c => c.id === campaignId);
+    const campaignName = campaign?.lead_gen_campaigns?.name || 'Campaign';
+
+    setCampaignToUnsubscribe({ id: campaignId, name: campaignName });
+    setUnsubscribeDialogOpen(true);
+  }, [campaigns]);
+
+  const confirmUnsubscribe = useCallback(async () => {
+    if (!campaignToUnsubscribe) return;
+
+    try {
+      setProcessingCampaignId(campaignToUnsubscribe.id);
+      setUnsubscribeDialogOpen(false);
+
+      // Get campaign details to show next billing date
+      const campaign = campaigns.find(c => c.id === campaignToUnsubscribe.id);
+      const nextBillingDate = campaign?.next_billing_date
+        ? new Date(campaign.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : 'the end of your billing period';
+
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({
+          billing_status: 'stopped',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', campaignToUnsubscribe.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Unsubscribed Successfully",
+        description: `You will continue to receive leads until ${nextBillingDate}. No further charges will be made.`,
+      });
+
+      fetchCampaigns();
+    } catch (error) {
+      console.error('Error unsubscribing from campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to unsubscribe from campaign. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingCampaignId(null);
+      setCampaignToUnsubscribe(null);
+    }
+  }, [campaignToUnsubscribe, campaigns, toast, fetchCampaigns]);
+
+  const resubscribeCampaign = useCallback(async (campaignId: string) => {
+    try {
+      setProcessingCampaignId(campaignId);
+
+      const { error } = await supabase
+        .from('campaign_participants')
+        .update({
+          billing_status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Subscribed Successfully",
+        description: "You have resubscribed to the campaign. Regular billing will resume.",
+      });
+
+      fetchCampaigns();
+    } catch (error) {
+      console.error('Error resubscribing to campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resubscribe to campaign. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingCampaignId(null);
+    }
+  }, [toast, fetchCampaigns]);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -293,6 +389,8 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
                 onPause={pauseCampaign}
                 onResume={resumeCampaign}
                 onViewAnalytics={viewAnalytics}
+                onUnsubscribe={handleUnsubscribeClick}
+                onResubscribe={resubscribeCampaign}
                 isProcessing={processingCampaignId === campaign.id}
               />
             );
@@ -306,6 +404,28 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
         onClose={() => setAnalyticsModalOpen(false)}
         analytics={selectedAnalytics}
       />
+
+      {/* Unsubscribe Confirmation Dialog */}
+      <AlertDialog open={unsubscribeDialogOpen} onOpenChange={setUnsubscribeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsubscribe from Campaign?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to unsubscribe from <strong>{campaignToUnsubscribe?.name}</strong>?
+              {' '}You will continue to receive leads until your next billing date, but no further charges will be made after that.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmUnsubscribe}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Unsubscribe
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 });
