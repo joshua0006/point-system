@@ -12,7 +12,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
-import { WalletBalanceCard } from "@/components/wallet/WalletBalanceCard";
 
 const VASupportCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -203,14 +202,6 @@ const VASupportCampaigns = () => {
               Professional VA support with managed follow-ups, appointment setting, and CRM updates to free your time for selling
             </p>
           </header>
-
-          {/* Wallet Balance Card */}
-          <WalletBalanceCard
-            balance={profile?.flexi_credits_balance || 0}
-            isMobile={isMobile}
-            onTopUpClick={() => setTopUpModalOpen(true)}
-            className={isMobile ? "mb-10" : "mb-16"}
-          />
 
           {/* VA Support Plans */}
           <div className="w-full max-w-6xl mx-auto space-y-8">

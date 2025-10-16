@@ -19,7 +19,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { SuperAdminInterface } from "@/components/campaigns/SuperAdminInterface";
-import { WalletBalanceCard } from "@/components/wallet/WalletBalanceCard";
 
 const FacebookAdsCampaigns = () => {
   const { user, signOut, profile, refreshProfile } = useAuth();
@@ -457,14 +456,6 @@ const FacebookAdsCampaigns = () => {
               Reach your ideal audience with targeted Facebook advertising campaigns
             </p>
           </header>
-
-          {/* Wallet Balance Card */}
-          <WalletBalanceCard
-            balance={profile?.flexi_credits_balance || 0}
-            isMobile={isMobile}
-            onTopUpClick={() => setTopUpModalOpen(true)}
-            className={isMobile ? "mb-10" : "mb-16"}
-          />
 
           {isAdmin && (
             <SuperAdminInterface />

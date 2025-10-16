@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useCampaignTargets } from '@/hooks/useCampaignTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
-import { WalletBalanceCard } from '@/components/wallet/WalletBalanceCard';
 
 // Lazy load heavy components for optimal performance
 const ActiveCampaigns = lazy(() => import('@/components/campaigns/ActiveCampaigns').then(m => ({ default: m.ActiveCampaigns })));
@@ -219,14 +218,6 @@ const MyCampaigns = React.memo(() => {
               Manage and monitor your active lead generation campaigns
             </p>
           </header>
-
-          {/* Wallet Balance Card */}
-          <WalletBalanceCard
-            balance={profile?.flexi_credits_balance || 0}
-            isMobile={isMobile}
-            onTopUpClick={() => setTopUpModalOpen(true)}
-            className="mb-8"
-          />
 
           {/* Launch Button */}
           <div className="flex justify-center mb-8 px-4 sm:px-0">

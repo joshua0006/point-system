@@ -8,7 +8,6 @@ import { TopUpModal } from '@/components/TopUpModal';
 import { useToast } from '@/hooks/use-toast';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { CampaignMethodSelector } from '@/components/campaigns/CampaignMethodSelector';
-import { WalletBalanceCard } from '@/components/wallet/WalletBalanceCard';
 
 const CampaignLaunch = React.memo(() => {
   const isMobile = useIsMobile();
@@ -56,14 +55,6 @@ const CampaignLaunch = React.memo(() => {
               Choose from our proven campaign strategies to generate quality leads and grow your business
             </p>
           </header>
-
-          {/* Wallet Balance Card */}
-          <WalletBalanceCard
-            balance={profile?.flexi_credits_balance || 0}
-            isMobile={isMobile}
-            onTopUpClick={() => setTopUpModalOpen(true)}
-            className={isMobile ? "mb-10" : "mb-16"}
-          />
 
           {/* Campaign Method Selection */}
           <div className="max-w-7xl mx-auto">

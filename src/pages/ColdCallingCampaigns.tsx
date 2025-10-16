@@ -13,7 +13,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
-import { WalletBalanceCard } from "@/components/wallet/WalletBalanceCard";
 
 const ColdCallingCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -204,14 +203,6 @@ const ColdCallingCampaigns = () => {
               Hire trained telemarketers at 6 points per hour to generate quality leads through direct outreach
             </p>
           </header>
-
-          {/* Wallet Balance Card */}
-          <WalletBalanceCard
-            balance={profile?.flexi_credits_balance || 0}
-            isMobile={isMobile}
-            onTopUpClick={() => setTopUpModalOpen(true)}
-            className={isMobile ? "mb-10" : "mb-16"}
-          />
 
           {/* Campaign Wizard */}
           <div className="max-w-7xl mx-auto">
