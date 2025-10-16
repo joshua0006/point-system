@@ -19,6 +19,7 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingCampaignId, setProcessingCampaignId] = useState<string | null>(null);
   const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
   const [selectedAnalytics, setSelectedAnalytics] = useState<CampaignAnalytics | null>(null);
 
@@ -105,6 +106,8 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
 
   const pauseCampaign = useCallback(async (campaignId: string) => {
     try {
+      setProcessingCampaignId(campaignId);
+
       const { error } = await supabase
         .from('campaign_participants')
         .update({ billing_status: 'paused' })
@@ -112,35 +115,9 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
 
       if (error) throw error;
 
-      // Get user details for email
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Send pause notification emails
-        try {
-          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-campaign-launch-emails', {
-            body: {
-              emailType: 'pause',
-              campaignId: campaignId,
-              campaignName: 'Campaign',
-              campaignType: 'facebook-ads',
-              budget: 100,
-              userEmail: user.email || 'user@example.com',
-              userName: user.email || 'User',
-              action: 'pause'
-            }
-          });
-
-          if (emailError) {
-            console.error('Failed to send pause notification emails:', emailError);
-          }
-        } catch (emailError) {
-          console.error('Error sending pause notification emails:', emailError);
-        }
-      }
-
       toast({
         title: "Campaign Paused",
-        description: "Your campaign has been paused. Confirmation emails sent.",
+        description: "Your campaign has been paused.",
       });
 
       fetchCampaigns();
@@ -151,11 +128,15 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
         description: "Failed to pause campaign. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setProcessingCampaignId(null);
     }
   }, [toast, fetchCampaigns]);
 
   const resumeCampaign = useCallback(async (campaignId: string) => {
     try {
+      setProcessingCampaignId(campaignId);
+
       const { error } = await supabase
         .from('campaign_participants')
         .update({ billing_status: 'active' })
@@ -202,6 +183,8 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
         description: "Failed to resume campaign. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setProcessingCampaignId(null);
     }
   }, [toast, fetchCampaigns]);
 
@@ -294,6 +277,7 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
                 onPause={pauseCampaign}
                 onResume={resumeCampaign}
                 onViewAnalytics={viewAnalytics}
+                isProcessing={processingCampaignId === campaign.id}
               />
             );
           })}

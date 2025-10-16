@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, BarChart3, Calendar, DollarSign, TrendingUp, Pause, Play } from "lucide-react";
+import { Settings, BarChart3, Calendar, DollarSign, TrendingUp, Pause, Play, Loader2 } from "lucide-react";
 
 // Proper Campaign interface with complete typing
 interface LeadGenCampaign {
@@ -32,6 +32,7 @@ interface CampaignCardProps {
   onPause: (id: string) => void;
   onResume: (id: string) => void;
   onViewAnalytics: (id: string) => void;
+  isProcessing?: boolean;
 }
 
 // Helper function to format status text for accessibility
@@ -65,7 +66,8 @@ export const CampaignCard = React.memo(({
   statusColor,
   onPause,
   onResume,
-  onViewAnalytics
+  onViewAnalytics,
+  isProcessing = false
 }: CampaignCardProps) => {
   const isActive = campaign.billing_status === 'active';
   const isPaused = campaign.billing_status === 'paused' || campaign.billing_status === 'paused_insufficient_funds';
@@ -210,11 +212,18 @@ export const CampaignCard = React.memo(({
               <Button
                 size="sm"
                 onClick={() => onPause(campaign.id)}
-                className="flex-1 min-w-[130px] sm:min-w-[140px] bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-600 focus-visible:ring-2 focus-visible:ring-primary"
+                disabled={isProcessing}
+                className="flex-1 min-w-[130px] sm:min-w-[140px] bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-600 focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
                 aria-label={`Pause ${campaignName} campaign`}
               >
-                <Pause className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
-                <span className="text-xs sm:text-sm whitespace-nowrap">Pause Campaign</span>
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Pause className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
+                )}
+                <span className="text-xs sm:text-sm whitespace-nowrap">
+                  {isProcessing ? "Pausing..." : "Pause Campaign"}
+                </span>
               </Button>
             )}
             {isPaused && (
@@ -222,11 +231,18 @@ export const CampaignCard = React.memo(({
                 variant="default"
                 size="sm"
                 onClick={() => onResume(campaign.id)}
-                className="flex-1 min-w-[130px] sm:min-w-[140px] focus-visible:ring-2 focus-visible:ring-primary"
+                disabled={isProcessing}
+                className="flex-1 min-w-[130px] sm:min-w-[140px] focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
                 aria-label={`Resume ${campaignName} campaign`}
               >
-                <Play className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
-                <span className="text-xs sm:text-sm whitespace-nowrap">Resume Campaign</span>
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Play className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
+                )}
+                <span className="text-xs sm:text-sm whitespace-nowrap">
+                  {isProcessing ? "Resuming..." : "Resume Campaign"}
+                </span>
               </Button>
             )}
             <Button
