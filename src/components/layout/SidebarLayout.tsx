@@ -124,15 +124,15 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
               {/* Wallet Balance - Clickable - WCAG 2.1 SC 2.1.1, 2.5.5 */}
               <button
                 onClick={() => setShowTopUpModal(true)}
-                className="group flex items-center gap-1 bg-card border rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-accent transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 min-h-[44px]"
+                className="group flex items-center gap-1 bg-primary/10 border border-primary/20 rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-primary/90 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 min-h-[44px]"
                 aria-label={`Wallet balance: ${profile?.flexi_credits_balance?.toLocaleString() || 0} flexi-credits. Click to top up`}
                 type="button"
               >
-                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent group-hover:text-white transition-colors" aria-hidden="true" />
-                <span className="font-semibold text-foreground text-sm sm:text-base group-hover:text-white transition-colors">
+                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-primary group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-semibold text-primary text-sm sm:text-base group-hover:text-white transition-colors">
                   {profile?.flexi_credits_balance?.toLocaleString() || 0}
                 </span>
-                <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
+                <span className="text-primary/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
                   flexi-credits
                 </span>
               </button>
@@ -140,15 +140,15 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
               {/* Locked Awarded FXC - Click to view in dashboard - WCAG 2.1 SC 2.1.1, 2.5.5 */}
               <button
                 onClick={() => navigate('/dashboard?tab=awarded')}
-                className="group flex items-center gap-1 bg-orange-500/10 border border-orange-200 dark:border-orange-800 rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-orange-500/90 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 min-h-[44px]"
+                className="group flex items-center gap-1 bg-success/10 border border-success/20 rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-success/90 transition-colors focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 min-h-[44px]"
                 aria-label={`Locked awarded credits: ${awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'} AFC. Click to view details in dashboard`}
                 type="button"
               >
-                <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors" aria-hidden="true" />
-                <span className="font-semibold text-orange-600 dark:text-orange-400 text-sm sm:text-base group-hover:text-white transition-colors">
+                <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-success group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-semibold text-success text-sm sm:text-base group-hover:text-white transition-colors">
                   {awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'}
                 </span>
-                <span className="text-orange-600/70 dark:text-orange-400/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
+                <span className="text-success/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
                   AFC
                 </span>
               </button>

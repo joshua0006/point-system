@@ -197,10 +197,10 @@ export function Navigation() {
               {profile ? (
                   <>
                   <WalletDrawer>
-                    <div className="flex items-center space-x-1 sm:space-x-2 bg-card border rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors">
-                      <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-                      <span className="font-semibold text-foreground text-sm sm:text-base">{profile?.flexi_credits_balance?.toLocaleString() || 0}</span>
-                      <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">flexi-credits</span>
+                    <div className="flex items-center space-x-1 sm:space-x-2 bg-primary/10 border border-primary/20 rounded-lg px-2 sm:px-3 py-2 cursor-pointer hover:bg-primary/90 transition-colors group">
+                      <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-primary group-hover:text-white transition-colors" />
+                      <span className="font-semibold text-primary text-sm sm:text-base group-hover:text-white transition-colors">{profile?.flexi_credits_balance?.toLocaleString() || 0}</span>
+                      <span className="text-primary/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors">flexi-credits</span>
                     </div>
                   </WalletDrawer>
                   
