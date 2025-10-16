@@ -134,20 +134,25 @@ export const CampaignCard = React.memo(({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary"
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all"
                       aria-label={`Campaign settings for ${campaignName}`}
                     >
                       <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                       <span className="sr-only">Campaign Settings</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuContent
+                    align="end"
+                    className="min-w-max shadow-lg border-2"
+                    sideOffset={8}
+                  >
                     <DropdownMenuItem
                       onClick={() => onUnsubscribe(campaign.id)}
-                      className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                      className="text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300 focus:bg-red-50 dark:focus:bg-red-950/50 cursor-pointer py-3 px-3 transition-colors whitespace-nowrap"
+                      aria-label={`Unsubscribe from ${campaignName}. You will continue receiving leads until the next billing date.`}
                     >
-                      <UserX className="h-4 w-4 mr-2" aria-hidden="true" />
-                      <span>Unsubscribe from Campaign</span>
+                      <UserX className="h-4 w-4 mr-3 flex-shrink-0" aria-hidden="true" />
+                      <span className="font-medium">Unsubscribe from Campaign</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
