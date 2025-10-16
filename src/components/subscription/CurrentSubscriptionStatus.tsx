@@ -1,16 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { CreditCard, RefreshCw } from "lucide-react";
-
 interface CurrentSubscriptionStatusProps {
   hasSubscription: boolean;
   planName?: string;
   creditsPerMonth?: number;
   subscriptionEnd?: string;
   balance: number;
-  isLoading: boolean;
-  isRefreshing: boolean;
-  onManageBilling: () => void;
-  onRefreshStatus: () => void;
 }
 
 export function CurrentSubscriptionStatus({
@@ -18,11 +11,7 @@ export function CurrentSubscriptionStatus({
   planName,
   creditsPerMonth,
   subscriptionEnd,
-  balance,
-  isLoading,
-  isRefreshing,
-  onManageBilling,
-  onRefreshStatus
+  balance
 }: CurrentSubscriptionStatusProps) {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
@@ -34,81 +23,41 @@ export function CurrentSubscriptionStatus({
   };
 
   return (
-    <div className="bg-primary rounded-lg p-6 border-2 border-primary-foreground/20 max-w-2xl mx-auto w-full">
-      <div className="text-center mb-4">
-        <h3 className="font-bold text-xl text-primary-foreground mb-2">📅 Current Subscription</h3>
-        <p className="text-sm text-primary-foreground/80">
-          {hasSubscription ? "Your subscription renews monthly" : "No active subscription"}
-        </p>
-      </div>
-
-      <div className="text-center">
-        <div className="text-lg font-semibold mb-2 text-primary-foreground">
-          Current Plan: <span className="font-bold">
-            {hasSubscription ? planName || "Active Subscription" : "No Plan"}
-          </span>
+    <div className="bg-primary rounded-lg border-2 border-primary-foreground/20 w-full">
+      <div className="max-w-2xl mx-auto p-4">
+        {/* Header - Full Width */}
+        <div className="text-center mb-3">
+          <h3 className="font-bold text-xl text-primary-foreground mb-1">📅 Current Subscription</h3>
+          <p className="text-sm text-primary-foreground/80">
+            {hasSubscription ? "Your subscription renews monthly" : "No active subscription"}
+          </p>
         </div>
 
-        {hasSubscription && (
-          <p className="text-sm text-primary-foreground/80 mb-4">
-            {creditsPerMonth} credits/month • Next billing: {formatDate(subscriptionEnd || null)}
-          </p>
-        )}
-
-        {/* Plan Change Instructions */}
-        {hasSubscription && (
-          <div className="bg-primary-foreground/10 border border-primary-foreground/20 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-primary-foreground mb-2">💡 How to Change Your Plan</h4>
-            <p className="text-sm text-primary-foreground/80 mb-3">
-              To upgrade or downgrade your plan, select a new plan below. You'll be redirected to Stripe's secure checkout page to complete the change.
-            </p>
-            <p className="text-xs text-primary-foreground/80">
-              For billing details and payment methods, use "Manage Subscription & Billing" below.
+        {/* Three Column Layout - Subscription Details */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Column 1 - Current Plan */}
+          <div className="text-center">
+            <p className="text-xs text-primary-foreground/70 mb-1">Current Plan</p>
+            <p className="text-lg font-semibold text-primary-foreground">
+              {hasSubscription ? planName || "Active Subscription" : "No Plan"}
             </p>
           </div>
-        )}
-        
-        <div className="flex flex-col gap-3 justify-center">
-          {hasSubscription && (
-            <Button
-              onClick={onManageBilling}
-              disabled={isLoading}
-              className="bg-primary-foreground hover:bg-primary-foreground/90 text-primary"
-              size="lg"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                  Loading...
-                </div>
-              ) : (
-                <>
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Manage Subscription & Billing
-                </>
-              )}
-            </Button>
-          )}
 
-          <Button
-            onClick={onRefreshStatus}
-            disabled={isRefreshing}
-            variant="outline"
-            size="sm"
-            className="bg-primary-foreground/15 border-primary-foreground/60 text-primary-foreground hover:bg-primary-foreground/25 hover:text-primary-foreground"
-          >
-            {isRefreshing ? (
-              <div className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Refreshing...
-              </div>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4" />
-                Refresh Status
-              </>
-            )}
-          </Button>
+          {/* Column 2 - Credits per Month */}
+          <div className="text-center">
+            <p className="text-xs text-primary-foreground/70 mb-1">Credits per Month</p>
+            <p className="text-lg font-semibold text-primary-foreground">
+              {hasSubscription ? `${creditsPerMonth} credits` : "0 credits"}
+            </p>
+          </div>
+
+          {/* Column 3 - Next Billing */}
+          <div className="text-center">
+            <p className="text-xs text-primary-foreground/70 mb-1">Next Billing</p>
+            <p className="text-lg font-semibold text-primary-foreground">
+              {hasSubscription ? formatDate(subscriptionEnd || null) : "N/A"}
+            </p>
+          </div>
         </div>
       </div>
     </div>
