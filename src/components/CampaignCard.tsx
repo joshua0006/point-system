@@ -208,10 +208,9 @@ export const CampaignCard = React.memo(({
           <CardFooter className="px-4 sm:px-6 pt-0 pb-4 sm:pb-5 gap-2.5 sm:gap-3 flex-wrap">
             {isActive && (
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => onPause(campaign.id)}
-                className="flex-1 min-w-[130px] sm:min-w-[140px] focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex-1 min-w-[130px] sm:min-w-[140px] bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-600 focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label={`Pause ${campaignName} campaign`}
               >
                 <Pause className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
@@ -231,10 +230,9 @@ export const CampaignCard = React.memo(({
               </Button>
             )}
             <Button
-              variant="ghost"
               size="sm"
               onClick={() => onViewAnalytics(campaign.id)}
-              className="flex-1 min-w-[130px] sm:min-w-[140px] focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex-1 min-w-[130px] sm:min-w-[140px] bg-white hover:bg-green-50 text-green-600 border-2 border-green-600 focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={`View analytics for ${campaignName} campaign`}
             >
               <BarChart3 className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" aria-hidden="true" />
