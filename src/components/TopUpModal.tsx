@@ -112,13 +112,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           // User will be redirected back after payment with session_id
           window.location.href = result.data.checkout_url;
         } else {
-          // For downgrades or immediate updates: Refresh and close
+          // For downgrades: Refresh and close (no unlock modal triggered)
           await Promise.all([
             refreshSubscription(),
             refreshProfile()
           ]);
-          setLastTopUpAmount(pendingUpgrade.price);
-          // Invalidate eligibility query to force fresh data fetch with new amount
+          // Note: Don't set lastTopUpAmount for downgrades - no payment means no unlock eligibility
           queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
           queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
           onClose();
