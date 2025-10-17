@@ -1,3 +1,4 @@
+import * as React from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMode } from "@/contexts/ModeContext"
@@ -58,7 +59,7 @@ interface NavGroup {
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar()
+  const { state, isMobile, setOpenMobile } = useSidebar()
   const location = useLocation()
   const { profile } = useAuth()
   const { isSellerMode } = useMode()
@@ -66,6 +67,13 @@ export function AppSidebar() {
   const userRole = profile?.role === "master_admin" ? "admin" : (profile?.role || "user")
 
   const isCollapsed = state === "collapsed"
+
+  // Close mobile sidebar when route changes
+  React.useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }, [currentPath, isMobile, setOpenMobile])
 
   // Navigation groups based on user role
   const getNavGroups = (): NavGroup[] => {
@@ -148,14 +156,14 @@ export function AppSidebar() {
   const singleNavItems = getSingleNavItems().filter(item => item.roles.includes(userRole))
 
   return (
-    <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarHeader className="border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center flex-shrink-0" aria-hidden="true">
+    <Sidebar collapsible="icon">
+      <SidebarHeader className={`border-b transition-all duration-300 ${isCollapsed ? 'px-2 py-2' : 'px-4 py-3'}`}>
+        <div className={`flex items-center gap-2 transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}>
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-300" aria-hidden="true">
             <Wallet className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
           </div>
           {!isCollapsed && (
-            <div>
+            <div className="transition-opacity duration-300">
               <h2 className="font-bold text-lg text-foreground">AgentHub</h2>
               <p className="text-xs text-muted-foreground">v2.0</p>
             </div>
@@ -163,14 +171,14 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className={`transition-all duration-300 ${isCollapsed ? 'px-1 py-4' : 'px-2 py-4'}`}>
         {/* Single Navigation Items */}
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={isCollapsed ? 'gap-2' : 'gap-1'}>
               {singleNavItems.map((item) => {
                 const isItemActive = currentPath === item.url || (item.url !== "/" && currentPath.startsWith(item.url))
                 return (
@@ -184,14 +192,15 @@ export function AppSidebar() {
                       {({ isActive }) => (
                         <SidebarMenuButton
                           isActive={isActive}
+                          tooltip={item.title}
                           className="h-10 w-full data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90"
                         >
-                          <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                          <item.icon className={`flex-shrink-0 transition-all duration-200 ${isCollapsed ? 'h-5 w-5' : 'h-4 w-4'}`} aria-hidden="true" />
                           {!isCollapsed && (
-                            <span className="flex-1">{item.title}</span>
+                            <span className="flex-1 transition-opacity duration-200">{item.title}</span>
                           )}
                           {item.badge && !isCollapsed && (
-                            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full transition-opacity duration-200">
                               {item.badge}
                             </span>
                           )}
@@ -212,7 +221,7 @@ export function AppSidebar() {
               {group.title}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className={isCollapsed ? 'gap-2' : 'gap-1'}>
                 {group.items.map((item) => {
                   const isItemActive = currentPath === item.url || currentPath.startsWith(item.url)
                   return (
@@ -225,14 +234,15 @@ export function AppSidebar() {
                         {({ isActive }) => (
                           <SidebarMenuButton
                             isActive={isActive}
+                            tooltip={item.title}
                             className="h-10 w-full data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90"
                           >
-                            <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                            <item.icon className={`flex-shrink-0 transition-all duration-200 ${isCollapsed ? 'h-5 w-5' : 'h-4 w-4'}`} aria-hidden="true" />
                             {!isCollapsed && (
-                              <span className="flex-1">{item.title}</span>
+                              <span className="flex-1 transition-opacity duration-200">{item.title}</span>
                             )}
                             {item.badge && !isCollapsed && (
-                              <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                              <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full transition-opacity duration-200">
                                 {item.badge}
                               </span>
                             )}
@@ -248,9 +258,9 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-2">
+      <SidebarFooter className={`border-t transition-all duration-300 ${isCollapsed ? 'p-1' : 'p-2'}`}>
         {!isCollapsed && profile && (
-          <div className="px-2 py-2">
+          <div className="px-2 py-2 transition-opacity duration-300">
             <div className="text-xs text-muted-foreground mb-1">
               Signed in as
             </div>
