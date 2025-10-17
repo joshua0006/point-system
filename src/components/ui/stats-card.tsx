@@ -46,15 +46,15 @@ export function StatsCard({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <Skeleton className={cn("h-8 w-20 mb-2", skeletonClasses[variant])} />
+          <Skeleton className={cn("h-7 sm:h-8 w-16 sm:w-20 mb-2", skeletonClasses[variant])} />
         ) : (
-          <div className="text-2xl font-bold">
+          <div className="text-xl sm:text-2xl font-bold truncate">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </div>
         )}
         {subtitle && (
           <p className={cn(
-            "text-xs",
+            "text-xs truncate",
             variant === 'default' ? "text-muted-foreground" : "opacity-90"
           )}>
             {subtitle}

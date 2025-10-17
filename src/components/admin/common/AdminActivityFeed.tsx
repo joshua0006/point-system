@@ -26,11 +26,11 @@ export function AdminActivityFeed({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Activity className="w-5 h-5" />
-            <span>Flexi Credits Activity Log</span>
-            <Badge variant="outline" className="text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <CardTitle className="flex flex-wrap items-center gap-2">
+            <Activity className="w-5 h-5 shrink-0" />
+            <span className="truncate">Flexi Credits Activity Log</span>
+            <Badge variant="outline" className="text-xs shrink-0">
               {allActivity?.length || 0} total
             </Badge>
           </CardTitle>
@@ -38,16 +38,17 @@ export function AdminActivityFeed({
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="flex items-center gap-2 text-xs bg-primary text-primary-foreground px-3 py-1 rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Refreshing...' : 'Refresh'}
+              <span className="hidden xs:inline">{loading ? 'Refreshing...' : 'Refresh'}</span>
+              <span className="inline xs:hidden">{loading ? '...' : '↻'}</span>
             </button>
           </div>
         </div>
-        
+
         {/* Activity Filters */}
-        <div className="flex flex-wrap gap-2 mt-4">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-4">
           {ACTIVITY_FILTERS.map((filter) => (
             <button
               key={filter.key}
@@ -85,27 +86,27 @@ function ActivityItem({ activity }: { activity: RecentActivity }) {
   const categoryStyles = getActivityCategoryStyles(activity.category);
 
   return (
-    <div className="flex items-start space-x-3 p-3 rounded-lg transition-colors hover:bg-muted/50">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full border mt-0.5 bg-background border">
-        <span className="text-sm">{activity.emoji || '📊'}</span>
+    <div className="flex items-start space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-colors hover:bg-muted/50">
+      <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border mt-0.5 bg-background border shrink-0">
+        <span className="text-xs sm:text-sm">{activity.emoji || '📊'}</span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm leading-relaxed text-foreground">
+        <p className="text-sm leading-relaxed text-foreground break-words">
           {activity.description}
         </p>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
-            <Badge className={`text-xs ${categoryStyles}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <p className="text-xs text-muted-foreground truncate">{activity.timestamp}</p>
+            <Badge className={`text-xs shrink-0 ${categoryStyles}`}>
               {activity.category}
             </Badge>
           </div>
           {activity.points > 0 && (
-            <Badge variant="outline" className={`text-xs font-mono ${
-              activity.category === 'credit' 
-                ? 'text-green-600 border-green-200' 
-                : activity.category === 'debit' 
-                  ? 'text-red-600 border-red-200' 
+            <Badge variant="outline" className={`text-xs font-mono shrink-0 ${
+              activity.category === 'credit'
+                ? 'text-green-600 border-green-200'
+                : activity.category === 'debit'
+                  ? 'text-red-600 border-red-200'
                   : ''
             }`}>
               {activity.category === 'credit' ? '+' : activity.category === 'debit' ? '-' : ''}{activity.points} pts

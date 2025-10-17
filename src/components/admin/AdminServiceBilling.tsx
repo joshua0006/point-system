@@ -38,13 +38,13 @@ export const AdminServiceBilling = memo(function AdminServiceBilling() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Admin Service Billing
+        <CardTitle className="flex flex-wrap items-center gap-2">
+          <Calendar className="h-5 w-5 shrink-0" />
+          <span>Admin Service Billing</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-sm text-muted-foreground">
               Process monthly billing for admin-assigned VA Support and Cold Calling services
@@ -56,22 +56,23 @@ export const AdminServiceBilling = memo(function AdminServiceBilling() {
               </div>
             )}
           </div>
-          <Button 
+          <Button
             onClick={handleProcessBilling}
             disabled={isProcessing}
             size="sm"
+            className="w-full sm:w-auto"
           >
             <Play className="h-4 w-4 mr-2" />
             {isProcessing ? 'Processing...' : 'Run Billing'}
           </Button>
         </div>
 
-        <div className="p-3 bg-muted rounded-lg">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5" />
-            <div className="text-sm text-muted-foreground">
-              <p className="font-medium text-foreground mb-1">Billing Process:</p>
-              <ul className="space-y-1 text-xs">
+        <div className="p-3 sm:p-4 bg-muted rounded-lg">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+            <div className="text-sm text-muted-foreground min-w-0">
+              <p className="font-medium text-foreground mb-1 sm:mb-2">Billing Process:</p>
+              <ul className="space-y-1 text-xs sm:text-sm">
                 <li>• Checks all active service assignments due for billing</li>
                 <li>• Deducts credits from user accounts</li>
                 <li>• Records billing transactions</li>

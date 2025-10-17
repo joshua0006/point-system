@@ -110,7 +110,7 @@ export function GlobalTransactionLedger() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -120,7 +120,7 @@ export function GlobalTransactionLedger() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">From Date</label>
               <Input
@@ -170,13 +170,13 @@ export function GlobalTransactionLedger() {
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
               <label className="text-sm font-medium">Actions</label>
               <div className="flex gap-2">
-                <Button onClick={clearFilters} variant="outline" size="sm">
+                <Button onClick={clearFilters} variant="outline" size="sm" className="flex-1 sm:flex-none">
                   Clear
                 </Button>
-                <Button onClick={() => refetch()} variant="outline" size="sm">
+                <Button onClick={() => refetch()} variant="outline" size="sm" className="px-3">
                   <RefreshCw className="w-4 h-4" />
                 </Button>
               </div>
@@ -188,17 +188,17 @@ export function GlobalTransactionLedger() {
       {/* Results */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Global Transaction Ledger
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              <Calendar className="w-5 h-5 shrink-0" />
+              <span className="truncate">Global Transaction Ledger</span>
               {filteredTransactions.length > 0 && (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="shrink-0">
                   {filteredTransactions.length} transactions
                 </Badge>
               )}
             </CardTitle>
-            <Button onClick={handleExport} variant="outline" size="sm" disabled={!filteredTransactions.length}>
+            <Button onClick={handleExport} variant="outline" size="sm" disabled={!filteredTransactions.length} className="w-full sm:w-auto">
               <Download className="w-4 h-4 mr-2" />
               Export CSV
             </Button>
@@ -215,41 +215,41 @@ export function GlobalTransactionLedger() {
               <p className="text-muted-foreground">No transactions found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-2 sm:mx-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Service/Consultant</TableHead>
+                    <TableHead className="min-w-[100px]">Date</TableHead>
+                    <TableHead className="min-w-[180px]">User</TableHead>
+                    <TableHead className="min-w-[100px]">Type</TableHead>
+                    <TableHead className="min-w-[100px]">Amount</TableHead>
+                    <TableHead className="min-w-[200px]">Description</TableHead>
+                    <TableHead className="min-w-[150px]">Service/Consultant</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell>
-                        <div className="text-sm">
+                        <div className="text-sm whitespace-nowrap">
                           {new Date(transaction.created_at).toLocaleDateString()}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(transaction.created_at).toLocaleTimeString()}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="w-8 h-8">
+                        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                          <Avatar className="w-7 h-7 sm:w-8 sm:h-8 shrink-0">
                             <AvatarFallback>
                               {transaction.user_name.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <div className="font-medium text-sm">
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">
                               {transaction.user_name}
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground truncate">
                               {transaction.user_email}
                             </div>
                           </div>
@@ -266,23 +266,23 @@ export function GlobalTransactionLedger() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className={`font-medium ${
+                        <div className={`font-medium whitespace-nowrap ${
                           transaction.type === 'earned' ? 'text-success' : 'text-destructive'
                         }`}>
                           {transaction.type === 'earned' ? '+' : '-'}{transaction.amount.toLocaleString()} pts
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
+                        <div className="text-sm max-w-[250px] break-words">
                           {transaction.description}
                         </div>
                       </TableCell>
                       <TableCell>
                         {transaction.service_title && (
-                          <div className="text-sm">
-                            <div className="font-medium">{transaction.service_title}</div>
+                          <div className="text-sm min-w-0">
+                            <div className="font-medium truncate">{transaction.service_title}</div>
                             {transaction.consultant_name && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-xs text-muted-foreground truncate">
                                 with {transaction.consultant_name}
                               </div>
                             )}

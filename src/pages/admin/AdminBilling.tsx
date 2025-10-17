@@ -12,7 +12,7 @@ export default function AdminBilling() {
       title="Billing & Transactions" 
       description="Monitor billing and transaction activity"
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <Suspense fallback={<CardSkeleton />}>
           <BillingOverview />
         </Suspense>

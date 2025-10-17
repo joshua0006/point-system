@@ -29,9 +29,9 @@ export function BillingOverview() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Revenue Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         <StatsCard
           title="Total Revenue"
           value={`${(stats?.totalRevenue || 0).toLocaleString()} pts`}
@@ -68,7 +68,7 @@ export function BillingOverview() {
       </div>
 
       {/* Financial Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         <StatsCard
           title="Top-Up Revenue"
           value={(stats?.topUpRevenue || 0).toLocaleString()}
@@ -114,42 +114,42 @@ export function BillingOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Subscription Rate</span>
-                <Badge variant="secondary">
-                  {stats?.totalUsers 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-2 sm:space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground truncate">Subscription Rate</span>
+                <Badge variant="secondary" className="shrink-0 text-xs">
+                  {stats?.totalUsers
                     ? Math.round((stats.activeSubscriptions / stats.totalUsers) * 100)
                     : 0}%
                 </Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Revenue per User</span>
-                <Badge variant="outline">
-                  {stats?.totalUsers 
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground truncate">Revenue per User</span>
+                <Badge variant="outline" className="shrink-0 text-xs">
+                  {stats?.totalUsers
                     ? Math.round(stats.totalRevenue / stats.totalUsers)
                     : 0} pts
                 </Badge>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Top-Up vs Subscription</span>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {stats?.totalRevenue 
+            <div className="space-y-2 sm:space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground truncate">Top-Up vs Subscription</span>
+                <div className="flex gap-1 shrink-0">
+                  <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                    {stats?.totalRevenue
                       ? Math.round((stats.topUpRevenue / stats.totalRevenue) * 100)
-                      : 0}% / {stats?.totalRevenue 
+                      : 0}% / {stats?.totalRevenue
                       ? Math.round((stats.subscriptionRevenue / stats.totalRevenue) * 100)
                       : 0}%
                   </Badge>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Transactions per User</span>
-                <Badge variant="outline">
-                  {stats?.totalUsers 
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground truncate">Transactions per User</span>
+                <Badge variant="outline" className="shrink-0 text-xs">
+                  {stats?.totalUsers
                     ? Math.round(stats.totalTransactions / stats.totalUsers)
                     : 0}
                 </Badge>
