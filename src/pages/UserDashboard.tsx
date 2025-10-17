@@ -32,6 +32,7 @@ import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnl
 import { useAwardedCredits } from "@/hooks/useAwardedCredits";
 import { useAwardedCreditsEligibility } from "@/hooks/useAwardedCreditsEligibility";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 
 export default function UserDashboard() {
   const { user, profile, refreshProfile, refreshSubscription } = useAuth();
@@ -78,6 +79,7 @@ export default function UserDashboard() {
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [lastUpgradeAmount, setLastUpgradeAmount] = useState<number>(0);
+  const [lastUpgradeTransactionId, setLastUpgradeTransactionId] = useState<string>("");
 
   // Awarded credits hooks for unlock functionality
   const { data: awardedCreditsData } = useAwardedCredits();
@@ -131,8 +133,9 @@ export default function UserDashboard() {
             const response = data.data || data;
             const credits = response.upgradeCredits || response.upgrade_credits_added || 0;
             const plan = response.planName || response.plan_name || 'your new plan';
+            const transactionId = response.transactionId || '';
 
-            console.log('[UPGRADE-SUCCESS] Parsed values:', { credits, plan });
+            console.log('[UPGRADE-SUCCESS] Parsed values:', { credits, plan, transactionId });
 
             toast({
               title: "Plan upgraded successfully!",
@@ -148,9 +151,28 @@ export default function UserDashboard() {
               refreshProfile()
             ]);
 
-            // Set upgrade amount to check unlock eligibility
+            // Set upgrade amount and transaction ID to check unlock eligibility
             if (credits > 0) {
               setLastUpgradeAmount(credits);
+
+              // Fallback: Query for transaction if not returned from backend
+              let txId = transactionId;
+              if (!txId && user) {
+                console.log('[UPGRADE-SUCCESS] Transaction ID missing, querying for recent transaction');
+                const { data: recentTx } = await supabaseClient
+                  .from('flexi_credits_transactions')
+                  .select('id')
+                  .eq('user_id', user.id)
+                  .eq('type', 'purchase')
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .single();
+
+                txId = recentTx?.id || '';
+                console.log('[UPGRADE-SUCCESS] Fallback transaction ID:', txId);
+              }
+
+              setLastUpgradeTransactionId(txId);
               // Invalidate queries to get fresh eligibility data
               queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
               queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
@@ -166,16 +188,17 @@ export default function UserDashboard() {
 
   // Check unlock eligibility after upgrade payment
   useEffect(() => {
-    if (lastUpgradeAmount > 0 && eligibilityData?.canUnlock && lockedBalance > 0) {
+    if (lastUpgradeAmount > 0 && lastUpgradeTransactionId && eligibilityData?.canUnlock && lockedBalance > 0) {
       console.log('[UNLOCK-MODAL] Showing unlock modal after upgrade', {
         lastUpgradeAmount,
+        lastUpgradeTransactionId,
         canUnlock: eligibilityData?.canUnlock,
         lockedBalance,
         maxUnlock: eligibilityData?.maxUnlock
       });
       setShowUnlockModal(true);
     }
-  }, [lastUpgradeAmount, eligibilityData, lockedBalance]);
+  }, [lastUpgradeAmount, lastUpgradeTransactionId, eligibilityData, lockedBalance]);
 
   // Memoize callback functions to prevent unnecessary re-renders
   const handleTopUpSuccess = useMemo(() => (amount?: number, showSuccessModal?: boolean) => {
@@ -299,7 +322,7 @@ export default function UserDashboard() {
         <AwardedCreditsUnlockModal
           open={showUnlockModal}
           onOpenChange={setShowUnlockModal}
-          topupTransactionId=""
+          topupTransactionId={lastUpgradeTransactionId}
           topupAmount={lastUpgradeAmount}
           lockedBalance={lockedBalance}
           maxUnlock={eligibilityData.maxUnlock || 0}

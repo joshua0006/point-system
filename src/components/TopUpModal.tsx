@@ -13,6 +13,7 @@ import { BillingInformation } from "@/components/subscription/BillingInformation
 import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnlockModal";
 import { useAwardedCredits } from "@/hooks/useAwardedCredits";
 import { useAwardedCreditsEligibility } from "@/hooks/useAwardedCreditsEligibility";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -27,11 +28,12 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
   const [refreshingSubscription, setRefreshingSubscription] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [lastTopUpAmount, setLastTopUpAmount] = useState<number>(0);
-  
+  const [lastTransactionId, setLastTransactionId] = useState<string>("");
+
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { profile, subscription, refreshSubscription, refreshProfile } = useAuth();
+  const { profile, subscription, refreshSubscription, refreshProfile, user } = useAuth();
   const { 
     loading, 
     loadingProration, 
@@ -91,6 +93,30 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
           refreshSubscription(),
           refreshProfile()
         ]);
+
+        // Query for the most recent transaction to get transaction ID for unlock
+        if (user) {
+          const { data: recentTransactions } = await queryClient.fetchQuery({
+            queryKey: ['recent-transaction', user.id],
+            queryFn: async () => {
+              const { data, error } = await supabase
+                .from('flexi_credits_transactions')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('type', 'purchase')
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+              if (error) throw error;
+              return data;
+            }
+          }) as { data: { id: string }[] | null };
+
+          if (recentTransactions && recentTransactions.length > 0) {
+            setLastTransactionId(recentTransactions[0].id);
+          }
+        }
+
         setLastTopUpAmount(plan.price);
         queryClient.invalidateQueries({ queryKey: ['awarded-credits-eligibility'] });
         queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
@@ -219,7 +245,7 @@ export const TopUpModal = ({ isOpen, onClose, onSuccess }: TopUpModalProps) => {
         <AwardedCreditsUnlockModal
           open={showUnlockModal}
           onOpenChange={setShowUnlockModal}
-          topupTransactionId=""
+          topupTransactionId={lastTransactionId}
           topupAmount={lastTopUpAmount}
           lockedBalance={lockedBalance}
           maxUnlock={eligibilityData.maxUnlock || 0}

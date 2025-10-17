@@ -83,7 +83,8 @@ serve(async (req) => {
         success: true,
         message: "Already processed",
         upgradeCredits,
-        planName
+        planName,
+        transactionId: existing.id
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -104,23 +105,33 @@ serve(async (req) => {
       });
     }
 
-    // Log transaction
-    const { error: trxError } = await supabase
+    // Log transaction and capture ID
+    const { data: transaction, error: trxError } = await supabase
       .from("flexi_credits_transactions")
       .insert({
         user_id: userId,
         amount: upgradeCredits,
         type: "purchase",
         description: `Plan upgrade credits - Session ${session.id}`,
-      });
+      })
+      .select('id')
+      .single();
 
     if (trxError) {
       logStep("Failed to log transaction", { error: trxError.message });
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Transaction creation failed: ${trxError.message}`
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    logStep("Upgrade confirmed and credits added", { userId, upgradeCredits, planName });
+    const transactionId = transaction?.id || null;
+    logStep("Upgrade confirmed and credits added", { userId, upgradeCredits, planName, transactionId });
 
-    const responsePayload = { success: true, upgradeCredits, planName };
+    const responsePayload = { success: true, upgradeCredits, planName, transactionId };
     console.log('[CONFIRM-UPGRADE] Returning response:', responsePayload);
 
     return new Response(JSON.stringify(responsePayload), {

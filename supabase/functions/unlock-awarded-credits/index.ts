@@ -41,7 +41,10 @@ serve(async (req) => {
       
       const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) {
-        throw new Error('Unauthorized');
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       userId = user.id;
     }
@@ -82,7 +85,10 @@ serve(async (req) => {
     });
 
     if (txError || !transaction) {
-      throw new Error('Top-up transaction not found or does not belong to user');
+      return new Response(
+        JSON.stringify({ error: 'Top-up transaction not found or does not belong to user' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Calculate max unlock amount (topup amount / 2)
@@ -236,9 +242,19 @@ serve(async (req) => {
       stack: error.stack,
       type: error.constructor.name
     });
+
+    // Determine appropriate status code based on error type
+    let statusCode = 500; // Default to server error
+    if (error.message?.includes('required fields') ||
+        error.message?.includes('must be greater than') ||
+        error.message?.includes('can only unlock') ||
+        error.message?.includes('Insufficient locked')) {
+      statusCode = 400; // Validation errors
+    }
+
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

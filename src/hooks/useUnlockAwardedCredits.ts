@@ -40,11 +40,13 @@ export const useUnlockAwardedCredits = () => {
       await refreshProfile();
       console.log('[UNLOCK-DEBUG] useUnlockAwardedCredits: Profile refreshed');
 
-      // Invalidate relevant queries (including awarded-credits for locked balance UI update)
-      queryClient.invalidateQueries({ queryKey: ['awarded-credits'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['flexi-credits-transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-transactions'] });
+      // Invalidate relevant queries in parallel for performance
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['awarded-credits'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['flexi-credits-transactions'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard-transactions'] })
+      ]);
       console.log('[UNLOCK-DEBUG] useUnlockAwardedCredits: All queries invalidated');
 
       toast.success(`Successfully unlocked ${data.data.amount_unlocked} flexi credits!`, {

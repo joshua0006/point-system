@@ -42,6 +42,9 @@ export function AwardedCreditsUnlockModal({
       {
         onSuccess: () => {
           onOpenChange(false);
+        },
+        onError: () => {
+          onOpenChange(false);
         }
       }
     );
