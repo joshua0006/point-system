@@ -316,13 +316,13 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                     </div>
 
                     {/* Service Name */}
-                    <p className="font-semibold text-sm">{transaction.service}</p>
+                    <p className="font-semibold text-sm truncate" title={transaction.service}>{transaction.service}</p>
 
                     {/* Footer Row */}
                     <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                       {transaction.consultant && (
                         <>
-                          <span>{transaction.consultant}</span>
+                          <span className="truncate min-w-0 max-w-[180px]" title={transaction.consultant}>{transaction.consultant}</span>
                           <span>•</span>
                         </>
                       )}
