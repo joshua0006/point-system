@@ -121,6 +121,43 @@ const Auth = () => {
         });
       } else if (data.user) {
         // If email confirmation is disabled, user is immediately signed in
+
+        // Verify profile was created (fallback check)
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .single();
+
+          if (profileError || !profileData) {
+            console.warn('Profile not found after signup, attempting manual creation');
+
+            // Attempt to create profile manually as fallback
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                user_id: data.user.id,
+                email: data.user.email!,
+                full_name: fullName,
+                role: 'user',
+                flexi_credits_balance: 0,
+                approval_status: 'pending'
+              });
+
+            if (createError) {
+              console.error('Failed to create profile manually:', createError);
+              toast({
+                title: "Account Created with Issues",
+                description: "Your account was created but there was an issue setting up your profile. Please contact support if you experience any problems.",
+                variant: "destructive",
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Error checking/creating profile:', err);
+        }
+
         toast({
           title: "Welcome!",
           description: "Your account has been created successfully.",

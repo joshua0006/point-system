@@ -160,7 +160,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(profileResult.value.data);
                 logger.log('Profile loaded successfully:', profileResult.value.data);
               } else {
-                console.error('Error fetching profile:', profileResult.status === 'fulfilled' ? profileResult.value.error : profileResult.reason);
+                const profileError = profileResult.status === 'fulfilled' ? profileResult.value.error : profileResult.reason;
+                console.error('❌ Error fetching profile for user', session.user.email, ':', profileError);
+
+                // Log specific error details for debugging
+                if (profileError?.code === 'PGRST116') {
+                  console.error('Profile not found in database - trigger may have failed during signup');
+                } else if (profileError?.message) {
+                  console.error('Profile fetch error message:', profileError.message);
+                }
+
                 setProfile(null);
               }
 
@@ -254,7 +263,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             if (mounted) {
               if (error) {
-                console.error('Profile fetch error during init:', error);
+                console.error('❌ Profile fetch error during init for user', session.user.email, ':', error);
+
+                // Log specific error details for debugging
+                if (error?.code === 'PGRST116') {
+                  console.error('Profile not found in database - trigger may have failed during signup');
+                } else if (error?.message) {
+                  console.error('Profile fetch error message:', error.message);
+                }
+
                 setProfile(null);
               } else {
                 setProfile(profileData);

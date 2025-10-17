@@ -124,9 +124,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
               <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <CardTitle className="text-xl">Profile Missing</CardTitle>
+            <CardTitle className="text-xl">Profile Setup Issue</CardTitle>
             <CardDescription>
-              Your account exists but profile data is missing
+              We're having trouble loading your profile data
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -136,19 +136,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
                 Profile Not Found
               </Badge>
               <p className="text-sm text-muted-foreground">
-                There was an issue setting up your profile. Please try signing out and signing up again.
+                Your account was created but your profile couldn't be loaded. This usually resolves by signing out and back in. If the issue persists, please contact support.
               </p>
             </div>
-            
-            <div className="pt-4 border-t">
-              <Button 
-                onClick={signOut} 
-                variant="outline" 
+
+            <div className="pt-4 border-t space-y-2">
+              <Button
+                onClick={signOut}
+                variant="outline"
                 className="w-full"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out & Try Again
               </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Check your browser console for error details if this persists
+              </p>
             </div>
           </CardContent>
         </Card>
