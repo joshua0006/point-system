@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   checkExistingCampaign,
   getDuplicateCampaignErrorMessage,
@@ -26,6 +27,7 @@ const ColdCallingCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
@@ -159,6 +161,10 @@ const ColdCallingCampaigns = () => {
             .eq('id', existingCampaignId);
 
           await refreshProfile();
+
+          // Invalidate React Query cache for real-time updates
+          queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
+
           toast({
             title: "Tier Upgraded Successfully!",
             description: `Your Cold Calling plan has been upgraded to ${hours}h/month. Charged ${tierDiff} points immediately.`,
@@ -214,6 +220,10 @@ const ColdCallingCampaigns = () => {
             });
 
           await refreshProfile();
+
+          // Invalidate React Query cache for real-time updates
+          queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
+
           toast({
             title: "Tier Downgraded Successfully!",
             description: `Your Cold Calling plan will be downgraded to ${hours}h/month on next billing cycle. You'll save ${Math.abs(tierDiff)} points/month.`,
@@ -390,6 +400,9 @@ const ColdCallingCampaigns = () => {
 
       // Refresh data
       await refreshProfile();
+
+      // Invalidate React Query cache for real-time updates
+      queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
 
       toast({
         title: "Campaign Launched Successfully!",

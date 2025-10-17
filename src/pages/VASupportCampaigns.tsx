@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   checkExistingCampaign,
   getDuplicateCampaignErrorMessage,
@@ -26,6 +27,7 @@ const VASupportCampaigns = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successCampaignDetails, setSuccessCampaignDetails] = useState<any>(null);
@@ -156,6 +158,10 @@ const VASupportCampaigns = () => {
             .eq('id', existingCampaignId);
 
           await refreshProfile();
+
+          // Invalidate React Query cache for real-time updates
+          queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
+
           toast({
             title: "Tier Upgraded Successfully!",
             description: `Your VA Support plan has been upgraded to ${plan?.name}. Charged ${tierDiff} points immediately.`,
@@ -211,6 +217,10 @@ const VASupportCampaigns = () => {
             });
 
           await refreshProfile();
+
+          // Invalidate React Query cache for real-time updates
+          queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
+
           toast({
             title: "Tier Downgraded Successfully!",
             description: `Your VA Support plan will be downgraded to ${plan?.name} on next billing cycle. You'll save ${Math.abs(tierDiff)} points/month.`,
@@ -386,6 +396,9 @@ const VASupportCampaigns = () => {
 
       // Refresh data
       await refreshProfile();
+
+      // Invalidate React Query cache for real-time updates
+      queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
 
       toast({
         title: "Campaign Launched Successfully!",

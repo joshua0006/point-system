@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 export interface UserCampaign {
   id: string;
@@ -60,8 +61,35 @@ export function useUserCampaigns() {
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnWindowFocus: false, // Prevent refetch on tab switch
+    refetchOnWindowFocus: true, // Enable refetch on tab switch for real-time sync
   });
+
+  // Real-time subscription for campaign updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('user-campaigns-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'campaign_participants',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[useUserCampaigns] Real-time update:', payload);
+          // Refetch campaigns when any change occurs
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, refetch]);
 
   return {
     campaigns,

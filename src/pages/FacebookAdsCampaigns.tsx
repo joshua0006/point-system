@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ const FacebookAdsCampaigns = () => {
   const { user, signOut, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const { campaignTargets, setCampaignTargets, refreshTargets } = useCampaignTargets();
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -440,6 +442,9 @@ const FacebookAdsCampaigns = () => {
       // Refresh data
       await refreshProfile();
       await fetchUserCampaigns();
+
+      // Invalidate React Query cache for real-time updates
+      queryClient.invalidateQueries({ queryKey: ['user-campaigns'] });
 
       console.log('All updates completed successfully!');
     } catch (error) {

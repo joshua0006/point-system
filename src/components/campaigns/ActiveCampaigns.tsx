@@ -80,6 +80,33 @@ export const ActiveCampaigns = React.memo(({ hideInactiveCampaigns, setHideInact
     fetchCampaigns();
   }, [fetchCampaigns]);
 
+  // Real-time subscription for campaign updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('active-campaigns-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'campaign_participants',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[ActiveCampaigns] Real-time update:', payload);
+          // Refetch campaigns when any change occurs
+          fetchCampaigns();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, fetchCampaigns]);
+
   // Memoized filtered campaigns
   const filteredCampaigns = useMemo(() => {
     if (!hideInactiveCampaigns) return campaigns;
