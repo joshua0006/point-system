@@ -161,9 +161,9 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
             </div>
 
             {/* Filters Row */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className={`h-10 ${isMobile ? "w-full" : "w-[140px]"}`}>
+                <SelectTrigger className={`h-10 ${isMobile ? "w-full" : "w-[140px] lg:w-[160px]"}`}>
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -174,7 +174,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               </Select>
 
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className={`h-10 ${isMobile ? "w-full" : "w-[160px]"}`}>
+                <SelectTrigger className={`h-10 ${isMobile ? "w-full" : "w-[160px] lg:w-[180px]"}`}>
                   <Calendar className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Date Range" />
                 </SelectTrigger>
@@ -197,7 +197,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               </Button>
 
               <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
-                <SelectTrigger className={`h-10 ${isMobile ? "w-full" : "w-[140px]"}`}>
+                <SelectTrigger className={`h-10 ${isMobile ? "w-full" : "w-[140px] lg:w-[160px]"}`}>
                   <SelectValue placeholder="Per page" />
                 </SelectTrigger>
                 <SelectContent>
@@ -257,8 +257,8 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                           {transaction.type === "earned" ? "Earned" : "Spent"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{transaction.service}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="max-w-[200px] truncate" title={transaction.service}>{transaction.service}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[150px] truncate" title={transaction.consultant || "N/A"}>
                         {transaction.consultant || "N/A"}
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${

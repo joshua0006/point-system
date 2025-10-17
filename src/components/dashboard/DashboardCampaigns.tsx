@@ -39,16 +39,17 @@ export const DashboardCampaigns = memo(({
       ) : campaigns.length > 0 ? (
         <ul className="space-y-3 list-none" role="list" aria-label="Active campaigns">
           {campaigns.map((campaign) => (
-            <li key={campaign.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
-              <div>
-                <p className="font-medium">{campaign.lead_gen_campaigns.name}</p>
-                <p className="text-sm text-muted-foreground">
+            <li key={campaign.id} className="flex justify-between items-center gap-3 py-2 border-b last:border-b-0">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium truncate" title={campaign.lead_gen_campaigns.name}>{campaign.lead_gen_campaigns.name}</p>
+                <p className="text-sm text-muted-foreground truncate">
                   {campaign.leads_received} leads • ${campaign.budget_contribution}/month
                 </p>
               </div>
               <Badge
                 variant={campaign.billing_status === 'active' ? 'default' : 'secondary'}
                 aria-label={`Campaign status: ${campaign.billing_status}`}
+                className="flex-shrink-0"
               >
                 {campaign.billing_status}
               </Badge>

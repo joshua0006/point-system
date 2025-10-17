@@ -16,7 +16,7 @@ export function TransactionSummaryCards({ transactions }: TransactionSummaryCard
     .reduce((sum, t) => sum + t.points, 0);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">

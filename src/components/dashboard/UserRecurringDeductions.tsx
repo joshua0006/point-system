@@ -153,7 +153,7 @@ export function UserRecurringDeductions() {
           </div>
         ) : (
           // Desktop: Table layout
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -170,7 +170,7 @@ export function UserRecurringDeductions() {
 
                   return (
                     <TableRow key={deduction.id}>
-                      <TableCell className="max-w-xs truncate" title={deduction.reason}>
+                      <TableCell className="max-w-[180px] lg:max-w-xs truncate" title={deduction.reason}>
                         {deduction.reason}
                       </TableCell>
                       <TableCell className="font-medium">

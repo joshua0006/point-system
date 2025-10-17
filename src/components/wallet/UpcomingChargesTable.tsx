@@ -65,7 +65,7 @@ export function UpcomingChargesTable({ charges }: UpcomingChargesTableProps) {
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -134,9 +134,9 @@ export function UpcomingChargesTable({ charges }: UpcomingChargesTableProps) {
                     : "flex items-center justify-between p-3 bg-card rounded-lg border border-destructive/20"
                   }
                 >
-                  <div className={isMobile ? "w-full" : ""}>
-                    <p className="font-medium text-sm">{charge.campaign_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className={isMobile ? "w-full min-w-0" : "min-w-0 flex-1"}>
+                    <p className="font-medium text-sm truncate" title={charge.campaign_name}>{charge.campaign_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {charge.consultant_name} • Due: {charge.due_date}
                     </p>
                   </div>
@@ -178,14 +178,14 @@ export function UpcomingChargesTable({ charges }: UpcomingChargesTableProps) {
                   <CardContent className="pt-4 pb-3 space-y-3">
                     {/* Campaign Name & Status */}
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-semibold text-sm leading-tight flex-1">
+                      <h4 className="font-semibold text-sm leading-tight flex-1 min-w-0 break-words" title={charge.campaign_name}>
                         {charge.campaign_name}
                       </h4>
                       {getStatusBadge(charge)}
                     </div>
 
                     {/* Consultant */}
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground truncate" title={charge.consultant_name}>
                       {charge.consultant_name}
                     </p>
 
@@ -226,7 +226,7 @@ export function UpcomingChargesTable({ charges }: UpcomingChargesTableProps) {
             </div>
           ) : (
             // Desktop: Table layout
-            <div className="border rounded-lg">
+            <div className="border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -244,10 +244,10 @@ export function UpcomingChargesTable({ charges }: UpcomingChargesTableProps) {
                       key={charge.participant_id}
                       className={getUrgencyColor(charge)}
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium max-w-[200px] lg:max-w-xs truncate" title={charge.campaign_name}>
                         {charge.campaign_name}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground max-w-[150px] lg:max-w-[180px] truncate" title={charge.consultant_name}>
                         {charge.consultant_name}
                       </TableCell>
                       <TableCell>

@@ -241,7 +241,7 @@ export default function UserDashboard() {
         Skip to main content
       </a>
 
-      <div className={isMobile ? "container mx-auto px-2 py-4" : "container mx-auto px-4 py-8"}>
+      <div className={isMobile ? "container mx-auto px-2 py-4" : "container mx-auto px-4 lg:px-6 xl:px-8 py-8 max-w-[1400px]"}>
 
         <DashboardHeader isMobile={isMobile} />
 
@@ -251,7 +251,7 @@ export default function UserDashboard() {
         </div>
 
         {/* Tabbed Dashboard Content */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 lg:space-y-8">
           <TabsList
             className={isMobile ? "grid w-full grid-cols-3 gap-1" : "grid w-full grid-cols-3"}
             aria-label="Dashboard sections"
@@ -271,7 +271,7 @@ export default function UserDashboard() {
           </TabsList>
 
           {/* Overview Tab (Summary Stats + Campaigns + Transactions) */}
-          <TabsContent value="transactions" className="space-y-6" id="main-content" role="region" aria-label="Dashboard overview">
+          <TabsContent value="transactions" className="space-y-6 lg:space-y-8" id="main-content" role="region" aria-label="Dashboard overview">
             <TransactionSummaryCards transactions={transactions || []} />
             <DashboardCampaigns
               campaigns={campaigns}
@@ -281,7 +281,7 @@ export default function UserDashboard() {
           </TabsContent>
 
           {/* Billing & Charges Tab */}
-          <TabsContent value="billing" className="space-y-6" role="region" aria-label="Billing and upcoming charges">
+          <TabsContent value="billing" className="space-y-6 lg:space-y-8" role="region" aria-label="Billing and upcoming charges">
             <UpcomingChargesTable charges={upcomingCharges || []} />
             <UserRecurringDeductions />
           </TabsContent>
