@@ -32,7 +32,7 @@ interface Campaign {
 
 interface CampaignCardProps {
   campaign: Campaign;
-  Icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+  Icon: any;
   typeColor: string;
   statusColor: string;
   onPause: (id: string) => void;

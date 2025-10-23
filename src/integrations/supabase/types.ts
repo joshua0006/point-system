@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          description: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          description: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          description?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ad_variants: {
         Row: {
           ad_content: Json
@@ -855,6 +896,69 @@ export type Database = {
         }
         Relationships: []
       }
+      case_studies: {
+        Row: {
+          budget: string
+          challenge: string
+          client: string
+          created_at: string
+          created_by: string
+          display_order: number
+          duration: string
+          featured: boolean
+          id: string
+          image_url: string | null
+          industry: string
+          is_active: boolean
+          results: Json
+          services: string[]
+          solution: string
+          testimonial: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget: string
+          challenge: string
+          client: string
+          created_at?: string
+          created_by: string
+          display_order?: number
+          duration: string
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          industry: string
+          is_active?: boolean
+          results?: Json
+          services?: string[]
+          solution: string
+          testimonial?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: string
+          challenge?: string
+          client?: string
+          created_at?: string
+          created_by?: string
+          display_order?: number
+          duration?: string
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          industry?: string
+          is_active?: boolean
+          results?: Json
+          services?: string[]
+          solution?: string
+          testimonial?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -1468,6 +1572,41 @@ export type Database = {
           },
         ]
       }
+      package_feature_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_text: string
+          package_feature_id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_text: string
+          package_feature_id: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_text?: string
+          package_feature_id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_feature_items_package_feature_id_fkey"
+            columns: ["package_feature_id"]
+            isOneToOne: false
+            referencedRelation: "package_features"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       package_features: {
         Row: {
           created_at: string
@@ -1507,11 +1646,12 @@ export type Database = {
           description: string
           id: string
           is_active: boolean
+          is_custom: boolean
           is_popular: boolean
           name: string
           original_price: number | null
           period: string
-          price: number
+          price: number | null
           sort_order: number
           updated_at: string
         }
@@ -1521,11 +1661,12 @@ export type Database = {
           description: string
           id?: string
           is_active?: boolean
+          is_custom?: boolean
           is_popular?: boolean
           name: string
           original_price?: number | null
           period?: string
-          price: number
+          price?: number | null
           sort_order?: number
           updated_at?: string
         }
@@ -1535,11 +1676,12 @@ export type Database = {
           description?: string
           id?: string
           is_active?: boolean
+          is_custom?: boolean
           is_popular?: boolean
           name?: string
           original_price?: number | null
           period?: string
-          price?: number
+          price?: number | null
           sort_order?: number
           updated_at?: string
         }
@@ -1592,6 +1734,60 @@ export type Database = {
           stripe_payment_method_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      portfolio_items: {
+        Row: {
+          client_name: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          display_order: number
+          featured: boolean
+          id: string
+          image_url: string | null
+          is_active: boolean
+          project_type: string
+          results_metrics: Json | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_name?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          display_order?: number
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          project_type: string
+          results_metrics?: Json | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          display_order?: number
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          project_type?: string
+          results_metrics?: Json | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1665,7 +1861,9 @@ export type Database = {
           description: string | null
           id: string
           package_details: Json
+          proposal_content: Json | null
           sent_at: string | null
+          share_token: string | null
           status: string
           title: string
           total_amount: number
@@ -1685,7 +1883,9 @@ export type Database = {
           description?: string | null
           id?: string
           package_details: Json
+          proposal_content?: Json | null
           sent_at?: string | null
+          share_token?: string | null
           status?: string
           title: string
           total_amount: number
@@ -1705,7 +1905,9 @@ export type Database = {
           description?: string | null
           id?: string
           package_details?: Json
+          proposal_content?: Json | null
           sent_at?: string | null
+          share_token?: string | null
           status?: string
           title?: string
           total_amount?: number
@@ -1816,7 +2018,9 @@ export type Database = {
           customer_user_id: string
           id: string
           is_active: boolean
+          notes: string | null
           sales_user_id: string
+          status: string
         }
         Insert: {
           assigned_at?: string
@@ -1824,7 +2028,9 @@ export type Database = {
           customer_user_id: string
           id?: string
           is_active?: boolean
+          notes?: string | null
           sales_user_id: string
+          status?: string
         }
         Update: {
           assigned_at?: string
@@ -1832,7 +2038,9 @@ export type Database = {
           customer_user_id?: string
           id?: string
           is_active?: boolean
+          notes?: string | null
           sales_user_id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -2031,13 +2239,14 @@ export type Database = {
           created_by: string | null
           email: string
           full_name: string | null
+          has_completed_tutorial: boolean | null
           id: string
           is_active: boolean
           phone: string | null
           position: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -2046,13 +2255,14 @@ export type Database = {
           created_by?: string | null
           email: string
           full_name?: string | null
+          has_completed_tutorial?: boolean | null
           id?: string
           is_active?: boolean
           phone?: string | null
           position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -2061,13 +2271,14 @@ export type Database = {
           created_by?: string | null
           email?: string
           full_name?: string | null
+          has_completed_tutorial?: boolean | null
           id?: string
           is_active?: boolean
           phone?: string | null
           position?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2217,6 +2428,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           category: Database["public"]["Enums"]["wishlist_category"]
@@ -2310,32 +2545,29 @@ export type Database = {
       }
     }
     Functions: {
-      current_user_profile_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
+      can_create_proposal: { Args: { creator_id: string }; Returns: boolean }
+      current_user_profile_role: { Args: never; Returns: string }
+      generate_order_number: { Args: never; Returns: string }
+      get_admin_stats: { Args: never; Returns: Json }
+      get_category_id: { Args: { category_slug: string }; Returns: string }
+      get_user_role: { Args: { check_user_id: string }; Returns: string }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
       }
-      generate_order_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_admin_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_category_id: {
-        Args: { category_slug: string }
-        Returns: string
-      }
-      get_user_role: {
-        Args: { check_user_id: string }
-        Returns: string
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       increment_flexi_credits_balance: {
         Args: { credits_to_add: number; user_id: string }
         Returns: undefined
       }
       my_upcoming_flexi_charges: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amount: number
           billing_status: string
@@ -2350,6 +2582,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "sales" | "user" | "consultant" | "master_admin"
       approval_status: "pending" | "approved" | "rejected"
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"
       consultant_tier: "bronze" | "silver" | "gold" | "platinum"
@@ -2508,6 +2741,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "sales", "user", "consultant", "master_admin"],
       approval_status: ["pending", "approved", "rejected"],
       booking_status: ["pending", "confirmed", "completed", "cancelled"],
       consultant_tier: ["bronze", "silver", "gold", "platinum"],

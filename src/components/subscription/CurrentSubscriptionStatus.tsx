@@ -4,6 +4,10 @@ interface CurrentSubscriptionStatusProps {
   creditsPerMonth?: number;
   subscriptionEnd?: string;
   balance: number;
+  isLoading?: boolean;
+  isRefreshing?: boolean;
+  onManageBilling?: () => Promise<void>;
+  onRefreshStatus?: () => Promise<void>;
 }
 
 export function CurrentSubscriptionStatus({
