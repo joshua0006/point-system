@@ -1,10 +1,10 @@
+import { memo, useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw, CreditCard } from "lucide-react";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TopUpModal } from "@/components/TopUpModal";
 import { formatDate } from "@/utils/dateUtils";
@@ -14,13 +14,13 @@ interface SubscriptionStatusCardProps {
   compact?: boolean;
 }
 
-export const SubscriptionStatusCard = ({ showActions = true, compact = false }: SubscriptionStatusCardProps) => {
+export const SubscriptionStatusCard = memo(function SubscriptionStatusCard({ showActions = true, compact = false }: SubscriptionStatusCardProps) {
   const { profile, subscription } = useAuth();
   const [changingPlan, setChangingPlan] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleChangePlan = async () => {
+  const handleChangePlan = useCallback(async () => {
     setChangingPlan(true);
     try {
       setPlanModalOpen(true);
@@ -38,9 +38,9 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
     } finally {
       setChangingPlan(false);
     }
-  };
+  }, [toast]);
 
-  const getStatusInfo = () => {
+  const statusInfo = useMemo(() => {
     const currentBalance = profile?.flexi_credits_balance || 0;
 
     if (!subscription) {
@@ -84,9 +84,8 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
       description: "No active subscription. Subscribe to get monthly credits and unlock premium features.",
       ariaLabel: "No active subscription"
     };
-  };
+  }, [profile?.flexi_credits_balance, subscription]);
 
-  const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
 
   // Compact view for inline display
@@ -215,4 +214,4 @@ export const SubscriptionStatusCard = ({ showActions = true, compact = false }: 
       />
     </Card>
   );
-};
+});

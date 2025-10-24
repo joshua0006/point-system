@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ interface ActiveCampaignCardProps {
   onUpdate: () => void;
 }
 
-export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardProps) => {
+export const ActiveCampaignCard = memo(function ActiveCampaignCard({ campaign, onUpdate }: ActiveCampaignCardProps) {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPauseDialog, setShowPauseDialog] = useState(false);
@@ -20,7 +20,7 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
 
   const isPaused = campaign.notes === 'PAUSED';
 
-  const pauseCampaign = async () => {
+  const pauseCampaign = useCallback(async () => {
     try {
       setIsProcessing(true);
 
@@ -47,9 +47,9 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [campaign.id, toast, onUpdate]);
 
-  const resumeCampaign = async () => {
+  const resumeCampaign = useCallback(async () => {
     try {
       setIsProcessing(true);
       
@@ -76,7 +76,12 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [campaign.id, toast, onUpdate]);
+
+  const daysUntilNextCharge = useMemo(() =>
+    30 - Math.floor((Date.now() - new Date(campaign.joined_at).getTime()) / (1000 * 60 * 60 * 24)) % 30,
+    [campaign.joined_at]
+  );
 
   return (
     <Card className={`transition-all duration-300 ${isPaused ? 'opacity-75 border-accent/20' : 'border-green-200 bg-green-50/30'}`}>
@@ -132,7 +137,7 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
             Started: {new Date(campaign.joined_at).toLocaleDateString()}
           </div>
           <div className="text-right">
-            <p className="font-medium">Next charge in {30 - Math.floor((Date.now() - new Date(campaign.joined_at).getTime()) / (1000 * 60 * 60 * 24)) % 30} days</p>
+            <p className="font-medium">Next charge in {daysUntilNextCharge} days</p>
           </div>
         </div>
 
@@ -220,4 +225,4 @@ export const ActiveCampaignCard = ({ campaign, onUpdate }: ActiveCampaignCardPro
       </CardContent>
     </Card>
   );
-};
+});

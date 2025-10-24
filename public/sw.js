@@ -50,6 +50,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Vite dev server paths (HMR, modules, etc.)
+  if (
+    url.pathname.startsWith('/@vite') ||
+    url.pathname.startsWith('/__vite') ||
+    url.pathname.includes('/node_modules/.vite/') ||
+    url.pathname.includes('/@fs/') ||
+    url.pathname.includes('/@id/') ||
+    url.pathname === '/@react-refresh' ||
+    url.searchParams.has('import') ||
+    url.searchParams.has('direct')
+  ) {
+    return;
+  }
+
+  // Skip WebSocket upgrade requests
+  if (request.headers.get('upgrade') === 'websocket') {
+    return;
+  }
+
   // Skip Supabase API calls (need fresh data)
   if (url.hostname.includes('supabase.co')) {
     return;

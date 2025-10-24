@@ -33,9 +33,10 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Service Worker Registration for Performance -->
-    <script>
-      if ('serviceWorker' in navigator) {
+    <!-- Service Worker Registration for Performance (Production Only) -->
+    <script type="module">
+      // Only register ServiceWorker in production to avoid conflicts with Vite dev server
+      if ('serviceWorker' in navigator && import.meta.env.PROD) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').then(
             (registration) => {
@@ -45,6 +46,15 @@
               console.log('ServiceWorker registration failed:', err);
             }
           );
+        });
+      } else if ('serviceWorker' in navigator && import.meta.env.DEV) {
+        // Unregister any existing ServiceWorker in development mode
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => {
+            registration.unregister().then(() => {
+              console.log('ServiceWorker unregistered in development mode');
+            });
+          });
         });
       }
     </script>

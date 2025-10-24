@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 export type TierType = "bronze" | "silver" | "gold" | "platinum";
@@ -14,7 +15,7 @@ const tierConfig = {
     className: "bg-tier-bronze text-white",
   },
   silver: {
-    label: "Silver", 
+    label: "Silver",
     className: "bg-tier-silver text-white",
   },
   gold: {
@@ -29,13 +30,13 @@ const tierConfig = {
 
 const sizeClasses = {
   sm: "px-2 py-1 text-xs",
-  md: "px-3 py-1.5 text-sm", 
+  md: "px-3 py-1.5 text-sm",
   lg: "px-4 py-2 text-base",
 };
 
-export function TierBadge({ tier, size = "md", className }: TierBadgeProps) {
+export const TierBadge = memo(function TierBadge({ tier, size = "md", className }: TierBadgeProps) {
   const config = tierConfig[tier];
-  
+
   return (
     <span
       className={cn(
@@ -48,4 +49,4 @@ export function TierBadge({ tier, size = "md", className }: TierBadgeProps) {
       {config.label}
     </span>
   );
-}
+});

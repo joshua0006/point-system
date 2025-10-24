@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,26 +22,28 @@ interface CampaignCardProps {
   };
 }
 
-export const CampaignCard = ({ 
-  title, 
-  description, 
-  audience, 
-  budgetRange, 
-  onLaunch, 
+const tierColors = {
+  bronze: "bg-amber-100 text-amber-800 border-amber-200",
+  silver: "bg-slate-100 text-slate-800 border-slate-200",
+  gold: "bg-accent/10 text-accent border-accent/20"
+};
+
+export const CampaignCard = memo(function CampaignCard({
+  title,
+  description,
+  audience,
+  budgetRange,
+  onLaunch,
   onViewScripts,
-  metrics 
-}: CampaignCardProps) => {
-  const getBudgetTier = () => {
+  metrics
+}: CampaignCardProps) {
+  const budgetTier = useMemo(() => {
     if (budgetRange.max <= 500) return "bronze";
     if (budgetRange.max <= 1000) return "silver";
     return "gold";
-  };
+  }, [budgetRange.max]);
 
-  const tierColors = {
-    bronze: "bg-amber-100 text-amber-800 border-amber-200",
-    silver: "bg-slate-100 text-slate-800 border-slate-200",
-    gold: "bg-accent/10 text-accent border-accent/20"
-  };
+  const tierColor = useMemo(() => tierColors[budgetTier], [budgetTier]);
 
   return (
     <Card className="group rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 bg-card border-border h-[280px] flex flex-col">
@@ -67,9 +70,9 @@ export const CampaignCard = ({
 
         {/* Budget Badge */}
         <div className="mb-4">
-          <Badge 
-            variant="outline" 
-            className={`text-sm font-medium rounded-full px-3 py-1 border ${tierColors[getBudgetTier()]}`}
+          <Badge
+            variant="outline"
+            className={`text-sm font-medium rounded-full px-3 py-1 border ${tierColor}`}
           >
             ${budgetRange.min}-${budgetRange.max}
           </Badge>
@@ -131,4 +134,4 @@ export const CampaignCard = ({
       </CardContent>
     </Card>
   );
-};
+});

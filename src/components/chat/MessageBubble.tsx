@@ -1,4 +1,4 @@
-
+import { memo, useMemo } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Message } from '@/hooks/useMessages';
@@ -18,10 +18,10 @@ function isEmojiOnly(text: string): boolean {
 function formatMessageText(text: string): React.ReactNode {
   // Split text by emojis to handle mixed content
   const parts = text.split(/([\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}]+)/u);
-  
+
   return parts.map((part, index) => {
     const isEmoji = /[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}]/u.test(part);
-    
+
     if (isEmoji) {
       return (
         <span key={index} className="inline-block" role="img">
@@ -29,16 +29,19 @@ function formatMessageText(text: string): React.ReactNode {
         </span>
       );
     }
-    
+
     return part;
   });
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message }: MessageBubbleProps) {
   const { user } = useAuth();
   const isOwnMessage = message.sender_id === user?.id;
-  const senderName = message.sender_profile?.full_name || message.sender_profile?.email || 'Unknown';
-  const isEmojiOnlyMessage = isEmojiOnly(message.message_text);
+  const senderName = useMemo(() =>
+    message.sender_profile?.full_name || message.sender_profile?.email || 'Unknown',
+    [message.sender_profile]
+  );
+  const isEmojiOnlyMessage = useMemo(() => isEmojiOnly(message.message_text), [message.message_text]);
 
   return (
     <div className={cn(
@@ -85,4 +88,4 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       </div>
     </div>
   );
-}
+});

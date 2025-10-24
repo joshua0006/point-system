@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,20 +13,29 @@ interface BookingCardProps {
   booking: BookingWithDetails;
 }
 
-export function BookingCard({ booking }: BookingCardProps) {
+export const BookingCard = memo(function BookingCard({ booking }: BookingCardProps) {
   const { user } = useAuth();
   const updateStatus = useUpdateBookingStatus();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const { data: existingReviews = [] } = useBookingReviews(booking.id);
 
   const isConsultant = user?.id !== booking.user_id;
-  const otherParty = isConsultant ? booking.buyer_profile : booking.consultant_profile;
-  const otherPartyId = isConsultant ? booking.user_id : booking.consultant_profile.user_id;
+  const otherParty = useMemo(() =>
+    isConsultant ? booking.buyer_profile : booking.consultant_profile,
+    [isConsultant, booking.buyer_profile, booking.consultant_profile]
+  );
+  const otherPartyId = useMemo(() =>
+    isConsultant ? booking.user_id : booking.consultant_profile.user_id,
+    [isConsultant, booking.user_id, booking.consultant_profile.user_id]
+  );
 
   // Check if current user has already submitted a review for this booking
-  const hasUserReviewed = existingReviews.some(review => review.reviewer_id === user?.id);
+  const hasUserReviewed = useMemo(() =>
+    existingReviews.some(review => review.reviewer_id === user?.id),
+    [existingReviews, user?.id]
+  );
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'pending': return 'bg-accent/10 text-accent border-accent/30';
       case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-300';
@@ -34,16 +43,16 @@ export function BookingCard({ booking }: BookingCardProps) {
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
-  };
+  }, []);
 
-  const handleStatusUpdate = async (newStatus: 'confirmed' | 'completed' | 'cancelled') => {
+  const handleStatusUpdate = useCallback(async (newStatus: 'confirmed' | 'completed' | 'cancelled') => {
     updateStatus.mutate({
       bookingId: booking.id,
       status: newStatus,
     });
-  };
+  }, [updateStatus, booking.id]);
 
-  const getActionButtons = () => {
+  const getActionButtons = useCallback(() => {
     if (booking.status === 'pending' && isConsultant) {
       return (
         <div className="flex gap-2">
@@ -106,7 +115,7 @@ export function BookingCard({ booking }: BookingCardProps) {
     }
 
     return null;
-  };
+  }, [booking.status, isConsultant, booking.consultant_completed, booking.buyer_completed, hasUserReviewed, updateStatus.isPending, handleStatusUpdate]);
 
   return (
     <>
@@ -115,10 +124,12 @@ export function BookingCard({ booking }: BookingCardProps) {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {booking.services.image_url && (
-                <img 
-                  src={booking.services.image_url} 
+                <img
+                  src={booking.services.image_url}
                   alt={booking.services.title}
                   className="w-12 h-12 rounded-lg object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               )}
               <div>
@@ -193,4 +204,4 @@ export function BookingCard({ booking }: BookingCardProps) {
       />
     </>
   );
-}
+});

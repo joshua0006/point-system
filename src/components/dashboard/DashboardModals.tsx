@@ -1,13 +1,16 @@
-import { BalanceDetailsModal } from "./BalanceDetailsModal";
-import { SpentDetailsModal } from "./SpentDetailsModal";
-import { ServicesBookedModal } from "./ServicesBookedModal";
-import { CompletionRateModal } from "./CompletionRateModal";
-import { UpcomingSessionsModal } from "./UpcomingSessionsModal";
-import { RecentTransactionsModal } from "./RecentTransactionsModal";
-import { RecentBookingsModal } from "./RecentBookingsModal";
-import { TopUpModal } from "@/components/TopUpModal";
-import { UpcomingChargesModal } from "./UpcomingChargesModal";
+import { lazy, Suspense } from "react";
 import { Transaction, BookedService, UpcomingSession, UserStats } from "@/hooks/useDashboard";
+
+// Lazy load all modal components for better code splitting
+const BalanceDetailsModal = lazy(() => import("./BalanceDetailsModal").then(m => ({ default: m.BalanceDetailsModal })));
+const SpentDetailsModal = lazy(() => import("./SpentDetailsModal").then(m => ({ default: m.SpentDetailsModal })));
+const ServicesBookedModal = lazy(() => import("./ServicesBookedModal").then(m => ({ default: m.ServicesBookedModal })));
+const CompletionRateModal = lazy(() => import("./CompletionRateModal").then(m => ({ default: m.CompletionRateModal })));
+const UpcomingSessionsModal = lazy(() => import("./UpcomingSessionsModal").then(m => ({ default: m.UpcomingSessionsModal })));
+const RecentTransactionsModal = lazy(() => import("./RecentTransactionsModal").then(m => ({ default: m.RecentTransactionsModal })));
+const RecentBookingsModal = lazy(() => import("./RecentBookingsModal").then(m => ({ default: m.RecentBookingsModal })));
+const TopUpModal = lazy(() => import("@/components/TopUpModal").then(m => ({ default: m.TopUpModal })));
+const UpcomingChargesModal = lazy(() => import("./UpcomingChargesModal").then(m => ({ default: m.UpcomingChargesModal })));
 
 interface DashboardModalsProps {
   // Modal states
@@ -68,7 +71,7 @@ export function DashboardModals({
   onTopUpSuccess,
 }: DashboardModalsProps) {
   return (
-    <>
+    <Suspense fallback={null}>
       <BalanceDetailsModal 
         open={balanceModalOpen}
         onOpenChange={setBalanceModalOpen}
@@ -132,6 +135,6 @@ export function DashboardModals({
           onOpenChange={setUpcomingChargesModalOpen}
         />
       )}
-    </>
+    </Suspense>
   );
 }

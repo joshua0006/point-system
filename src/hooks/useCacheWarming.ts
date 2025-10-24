@@ -141,11 +141,11 @@ export function useCacheWarming() {
         () => {
           triggerCacheWarming();
         },
-        { timeout: 5000 } // Extended to 5 seconds - cache warming is non-critical
+        { timeout: 12000 } // Extended to 12 seconds - cache warming is non-critical, defer aggressively
       );
     } else {
       // Fallback for browsers without requestIdleCallback - extended delay
-      timeoutId = setTimeout(triggerCacheWarming, 5000);
+      timeoutId = setTimeout(triggerCacheWarming, 12000);
     }
 
     return () => {
