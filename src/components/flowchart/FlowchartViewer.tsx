@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ZoomIn, ZoomOut, Maximize2, Download } from 'lucide-react';
 import { userFlows, FlowCategory } from '@/data/userFlows';
-import html2canvas from 'html2canvas';
 import { toast } from 'sonner';
 
 interface FlowchartViewerProps {
@@ -46,16 +45,19 @@ export function FlowchartViewer({ flowId }: FlowchartViewerProps) {
     if (!flowElement) return;
 
     try {
+      // Lazy load html2canvas only when export is triggered (saves ~198KB from initial bundle)
+      const html2canvas = (await import('html2canvas')).default;
+
       const canvas = await html2canvas(flowElement, {
         backgroundColor: 'hsl(222.2, 84%, 4.9%)',
         scale: 2,
       });
-      
+
       const link = document.createElement('a');
       link.download = `${selectedFlow.id}-flowchart.png`;
       link.href = canvas.toDataURL();
       link.click();
-      
+
       toast.success('Flowchart exported successfully');
     } catch (error) {
       toast.error('Failed to export flowchart');

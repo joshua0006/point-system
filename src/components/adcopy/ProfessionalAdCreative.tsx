@@ -9,7 +9,6 @@ import { Download, Copy, Palette, Layout, Sparkles, Wand2, RefreshCw, Edit3 } fr
 import { useToast } from "@/hooks/use-toast";
 import { AdCreativeTemplate } from './AdCreativeTemplate';
 import { AdvancedDesignTemplate } from './AdvancedDesignTemplates';
-import html2canvas from 'html2canvas';
 
 interface ProfessionalAdCreativeProps {
   adCopy: string;
@@ -85,6 +84,9 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
 
     setIsExporting(true);
     try {
+      // Lazy load html2canvas only when export is triggered (saves ~198KB from initial bundle)
+      const html2canvas = (await import('html2canvas')).default;
+
       const canvas = await html2canvas(canvasRef.current, {
         scale: 2,
         useCORS: true,

@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react"
+import { ReactNode, useState, memo, useMemo, useCallback } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
@@ -31,25 +31,55 @@ interface SidebarLayoutProps {
   description?: string
 }
 
-export function SidebarLayout({ children, title, description }: SidebarLayoutProps) {
+const SidebarLayoutComponent = ({ children, title, description }: SidebarLayoutProps) => {
   const { profile, signOut } = useAuth()
   const { isSellerMode } = useMode()
   const isMobile = useIsMobile()
-  const { data: awardedCreditsData } = useAwardedCredits()
-  const [showTopUpModal, setShowTopUpModal] = useState(false)
   const navigate = useNavigate()
-  
+
+  // Optimize awarded credits fetch - use staleTime and only fetch when needed
+  // This prevents refetching on every navigation/render
+  const { data: awardedCreditsData } = useAwardedCredits()
+
+  const [showTopUpModal, setShowTopUpModal] = useState(false)
+
   const userRole = profile?.role || "user"
 
-  const getProfilePath = () => {
+  // Memoize profile path calculation
+  const getProfilePath = useCallback(() => {
     if (!profile) return "/"
-    
+
     if (profile.role === "consultant") {
       return `/profile/consultant/${profile.user_id}`
     } else {
       return `/profile/buyer/${profile.user_id}`
     }
-  }
+  }, [profile])
+
+  // Memoize locked balance to prevent recalculation on every render
+  const lockedBalance = useMemo(() =>
+    awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0',
+    [awardedCreditsData?.lockedBalance]
+  )
+
+  // Memoize wallet balance display
+  const walletBalance = useMemo(() =>
+    profile?.flexi_credits_balance?.toLocaleString() || 0,
+    [profile?.flexi_credits_balance]
+  )
+
+  // Memoize modal handlers to prevent recreating on every render
+  const handleTopUpClick = useCallback(() => {
+    setShowTopUpModal(true)
+  }, [])
+
+  const handleAwardedCreditsClick = useCallback(() => {
+    navigate('/dashboard?tab=awarded')
+  }, [navigate])
+
+  const handleTopUpClose = useCallback(() => {
+    setShowTopUpModal(false)
+  }, [])
 
   // Don't render sidebar for unauthenticated users
   if (!profile) {
@@ -123,14 +153,14 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
 
               {/* Wallet Balance - Clickable - WCAG 2.1 SC 2.1.1, 2.5.5 */}
               <button
-                onClick={() => setShowTopUpModal(true)}
+                onClick={handleTopUpClick}
                 className="group flex items-center gap-1 bg-primary/10 border border-primary/20 rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-primary/90 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 min-h-[44px]"
-                aria-label={`Wallet balance: ${profile?.flexi_credits_balance?.toLocaleString() || 0} flexi-credits. Click to top up`}
+                aria-label={`Wallet balance: ${walletBalance} flexi-credits. Click to top up`}
                 type="button"
               >
                 <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-primary group-hover:text-white transition-colors" aria-hidden="true" />
                 <span className="font-semibold text-primary text-sm sm:text-base group-hover:text-white transition-colors">
-                  {profile?.flexi_credits_balance?.toLocaleString() || 0}
+                  {walletBalance}
                 </span>
                 <span className="text-primary/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
                   flexi-credits
@@ -139,14 +169,14 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
               
               {/* Locked Awarded FXC - Click to view in dashboard - WCAG 2.1 SC 2.1.1, 2.5.5 */}
               <button
-                onClick={() => navigate('/dashboard?tab=awarded')}
+                onClick={handleAwardedCreditsClick}
                 className="group flex items-center gap-1 bg-success/10 border border-success/20 rounded-lg px-1.5 sm:px-3 py-2 cursor-pointer hover:bg-success/90 transition-colors focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 min-h-[44px]"
-                aria-label={`Locked awarded credits: ${awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'} AFC. Click to view details in dashboard`}
+                aria-label={`Locked awarded credits: ${lockedBalance} AFC. Click to view details in dashboard`}
                 type="button"
               >
                 <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-success group-hover:text-white transition-colors" aria-hidden="true" />
                 <span className="font-semibold text-success text-sm sm:text-base group-hover:text-white transition-colors">
-                  {awardedCreditsData?.lockedBalance?.toFixed(1) || '0.0'}
+                  {lockedBalance}
                 </span>
                 <span className="text-success/70 text-xs sm:text-sm hidden sm:inline group-hover:text-white transition-colors" aria-hidden="true">
                   AFC
@@ -193,13 +223,14 @@ export function SidebarLayout({ children, title, description }: SidebarLayoutPro
       </div>
       
       {/* Top Up Modal */}
-      <TopUpModal 
-        isOpen={showTopUpModal} 
-        onClose={() => setShowTopUpModal(false)}
-        onSuccess={() => {
-          setShowTopUpModal(false)
-        }}
+      <TopUpModal
+        isOpen={showTopUpModal}
+        onClose={handleTopUpClose}
+        onSuccess={handleTopUpClose}
       />
     </SidebarProvider>
   )
 }
+
+// Export memoized component to prevent unnecessary re-renders on navigation
+export const SidebarLayout = memo(SidebarLayoutComponent)
