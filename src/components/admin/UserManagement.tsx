@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useUserSubscription } from '@/hooks/useUserSubscription';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,38 @@ import type { UserProfile } from "@/config/types";
 
 // TopUpModal moved to separate component
 // Modal components moved to separate files
+
+// Memoized subscription cell component to prevent re-renders
+const SubscriptionCell = React.memo(({
+  user,
+  getSubscription,
+  isSubscriptionLoading,
+  getSubscriptionBadge,
+  onViewClick
+}: {
+  user: UserProfile;
+  getSubscription: (userId: string) => any;
+  isSubscriptionLoading: (userId: string) => boolean;
+  getSubscriptionBadge: (sub: any, loading: boolean) => { variant: any; text: string };
+  onViewClick: () => void;
+}) => {
+  const subscription = getSubscription(user.user_id);
+  const loading = isSubscriptionLoading(user.user_id);
+  const badge = getSubscriptionBadge(
+    subscription || { isActive: false, planName: 'No Plan', subscriptionTier: 'none', creditsPerMonth: 0 },
+    loading
+  );
+
+  return (
+    <div className="flex items-center gap-2">
+      <Badge variant={badge.variant}>{badge.text}</Badge>
+      <Button onClick={onViewClick} size="sm" variant="outline">
+        View Sub
+      </Button>
+    </div>
+  );
+});
+SubscriptionCell.displayName = 'SubscriptionCell';
 
 export function UserManagement() {
   const { profile } = useAuth();
@@ -69,6 +101,16 @@ export function UserManagement() {
       fetchUsers();
     }
   }, [profile]);
+
+  // Batch-fetch subscriptions once users are loaded
+  useEffect(() => {
+    if (users.length > 0) {
+      users.forEach(user => {
+        // Only fetch if not already cached - hook handles deduplication
+        fetchUserSubscription(user.user_id, user.email);
+      });
+    }
+  }, [users, fetchUserSubscription]);
 
   if (profile?.role !== 'admin' && profile?.role !== 'master_admin') {
     return (
@@ -305,29 +347,16 @@ export function UserManagement() {
                        </div>
                      </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {(() => {
-                            const subscription = getSubscription(user.user_id);
-                            const loading = isSubscriptionLoading(user.user_id);
-                            const badge = getSubscriptionBadge(
-                              subscription || { isActive: false, planName: 'No Plan', subscriptionTier: 'none', creditsPerMonth: 0 },
-                              loading
-                            );
-                            return <Badge variant={badge.variant}>{badge.text}</Badge>;
-                          })()}
-                          <Button
-                            onClick={async () => {
-                              setSelectedUser(user);
-                              setSubscriptionModalOpen(true);
-                              // Fetch subscription data when modal opens
-                              await fetchUserSubscription(user.user_id, user.email);
-                            }}
-                            size="sm"
-                            variant="outline"
-                          >
-                            View Sub
-                          </Button>
-                        </div>
+                        <SubscriptionCell
+                          user={user}
+                          getSubscription={getSubscription}
+                          isSubscriptionLoading={isSubscriptionLoading}
+                          getSubscriptionBadge={getSubscriptionBadge}
+                          onViewClick={() => {
+                            setSelectedUser(user);
+                            setSubscriptionModalOpen(true);
+                          }}
+                        />
                       </TableCell>
                     <TableCell>
                       <div className="text-sm text-muted-foreground">

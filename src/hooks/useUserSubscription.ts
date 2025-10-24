@@ -18,18 +18,15 @@ export function useUserSubscription() {
 
 
   const fetchUserSubscription = useCallback(async (userId: string, userEmail: string): Promise<SubscriptionData> => {
-    console.log('🔍 Fetching subscription for:', { userId, userEmail });
-
     // Avoid duplicate in-flight requests
     if (loading[userId]) {
       return subscriptionData[userId] || { isActive: false, planName: 'Loading', subscriptionTier: 'none', creditsPerMonth: 0 };
     }
 
-    // Return cached value if it's fresh (even if not active)
+    // Return cached value if it's fresh (including inactive subscriptions)
     const cached = subscriptionData[userId];
     const fetchedAt = lastFetched[userId];
-    if (cached && fetchedAt && Date.now() - fetchedAt < STALE_TIME_MS && cached.isActive) {
-      console.log('📋 Using cached subscription data for:', userEmail);
+    if (cached && fetchedAt && Date.now() - fetchedAt < STALE_TIME_MS) {
       return cached;
     }
 
@@ -40,7 +37,6 @@ export function useUserSubscription() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('No session found');
 
-      console.log('🚀 Calling admin-check-user-subscription for:', userEmail);
       const { data, error } = await supabase.functions.invoke('admin-check-user-subscription', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
