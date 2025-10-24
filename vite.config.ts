@@ -27,20 +27,6 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
-            // React ecosystem (bundled together to prevent createContext race condition)
-            // Includes: React core, Radix UI, React Aria, theme providers, router, and other React-dependent libraries
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('router') ||
-                id.includes('@radix-ui') || id.includes('scheduler') ||
-                id.includes('react-aria') || id.includes('react-stately') ||
-                id.includes('next-themes') || id.includes('embla') || id.includes('cmdk')) {
-              return 'vendor-react';
-            }
-
-            // Supabase and data fetching
-            if (id.includes('@supabase') || id.includes('@tanstack/react-query')) {
-              return 'vendor-data';
-            }
-
             // Heavy visualization libraries - separate chunks for lazy loading
             if (id.includes('reactflow')) {
               return 'vendor-reactflow';
@@ -54,7 +40,13 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-html2canvas';
             }
 
-            // All other vendor code
+            // Supabase and data fetching (separate from React to allow independent caching)
+            if (id.includes('@supabase') || id.includes('@tanstack/react-query')) {
+              return 'vendor-data';
+            }
+
+            // All other vendor code (React, UI libs, utilities) - bundled together
+            // to prevent module initialization race conditions
             return 'vendor';
           }
         },
