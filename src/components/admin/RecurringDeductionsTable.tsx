@@ -45,7 +45,7 @@ export function RecurringDeductionsTable() {
   const fetchDeductions = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch deductions
       const { data: deductionsData, error: deductionsError } = await supabase
         .from('admin_recurring_deductions')
@@ -56,6 +56,12 @@ export function RecurringDeductionsTable() {
 
       // Fetch user profiles for all user_ids
       const userIds = [...new Set(deductionsData?.map(d => d.user_id) || [])];
+
+      if (userIds.length === 0) {
+        setDeductions([]);
+        return;
+      }
+
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, email, full_name')
@@ -70,13 +76,13 @@ export function RecurringDeductionsTable() {
         profilesData?.map(p => [p.user_id, p]) || []
       );
 
-      // Merge the data
+      // Merge the data with improved fallback handling
       const formattedData = deductionsData?.map((deduction) => {
         const profile = profilesMap.get(deduction.user_id);
         return {
           ...deduction,
-          user_email: profile?.email || 'Unknown',
-          user_name: profile?.full_name || 'Unknown User'
+          user_email: profile?.email || '(No email on file)',
+          user_name: profile?.full_name || '(No name on file)'
         };
       }) || [];
 
