@@ -11,15 +11,14 @@ export function useCacheWarming() {
     if (!profile) return;
 
     const warmCache = async () => {
-      // PERFORMANCE: Delay cache warming to avoid blocking initial page render
-      // Wait for user interaction or idle time before prefetching
+      // PERFORMANCE: Skip if data already cached
       const promises: Promise<any>[] = [];
 
-      // Check if data is already cached - skip if so
+      // Check if subscription data is already cached
       const cachedSubscription = queryClient.getQueryData(['subscription-status']);
 
-      // DEFERRED: Subscription already loaded in AuthContext, skip redundant fetch
-      // Only prefetch if truly missing (rare edge case)
+      // Skip subscription prefetch - already loaded in AuthContext parallel fetch
+      // Only prefetch if truly missing (very rare edge case)
       if (!cachedSubscription) {
         promises.push(
           queryClient.prefetchQuery({
@@ -91,32 +90,28 @@ export function useCacheWarming() {
         }
       }
 
-      // Execute all prefetch operations in parallel (only if there's something to prefetch)
+      // Execute prefetch operations (skip if nothing to prefetch)
       if (promises.length === 0) {
-        console.log('Cache warming skipped - all data already cached');
-        return;
+        return; // All data already cached
       }
 
       try {
         await Promise.allSettled(promises);
-        console.log('Cache warming completed:', promises.length, 'queries prefetched');
       } catch (error) {
-        console.warn('Cache warming partially failed:', error);
+        console.warn('Cache warming failed:', error);
       }
     };
 
-    // PERFORMANCE OPTIMIZATION: Delay cache warming significantly
-    // Use requestIdleCallback with extended timeout to avoid blocking initial load
-    // Cache warming is a nice-to-have, not critical for first render
+    // PERFORMANCE: Balanced delay for initial load optimization
+    // Cache warming happens after initial render completes
     let idleCallbackId: number;
     let timeoutId: NodeJS.Timeout;
     let interactionListener: (() => void) | null = null;
 
-    // Strategy: Warm cache on first user interaction OR after 5 seconds idle
     const triggerCacheWarming = () => {
       warmCache();
 
-      // Clean up interaction listeners after first trigger
+      // Clean up listeners
       if (interactionListener) {
         ['click', 'keydown', 'scroll', 'touchstart'].forEach(event => {
           window.removeEventListener(event, interactionListener!, { capture: true });
@@ -125,27 +120,17 @@ export function useCacheWarming() {
       }
     };
 
-    // Setup interaction listener for immediate cache warming on user action
-    interactionListener = () => {
-      triggerCacheWarming();
-    };
-
-    // Listen for first user interaction
+    // Listen for first user interaction (immediate cache warm)
+    interactionListener = triggerCacheWarming;
     ['click', 'keydown', 'scroll', 'touchstart'].forEach(event => {
       window.addEventListener(event, interactionListener!, { capture: true, once: true });
     });
 
-    // Fallback: Use requestIdleCallback with extended delay
+    // Fallback: Warm cache after 2 seconds if no interaction
     if ('requestIdleCallback' in window) {
-      idleCallbackId = requestIdleCallback(
-        () => {
-          triggerCacheWarming();
-        },
-        { timeout: 12000 } // Extended to 12 seconds - cache warming is non-critical, defer aggressively
-      );
+      idleCallbackId = requestIdleCallback(triggerCacheWarming, { timeout: 2000 });
     } else {
-      // Fallback for browsers without requestIdleCallback - extended delay
-      timeoutId = setTimeout(triggerCacheWarming, 12000);
+      timeoutId = setTimeout(triggerCacheWarming, 2000);
     }
 
     return () => {

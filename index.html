@@ -15,6 +15,15 @@
     <!-- Preload critical self-hosted fonts (only most-used weight) -->
     <link rel="preload" href="/fonts/montserrat-400-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/montserrat-500-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- PERFORMANCE: Preload critical vendor chunks for faster initial load -->
+    <!-- React vendor bundle (574KB) - Critical for initial render -->
+    <link rel="modulepreload" href="/assets/vendor-react-CtNGLEgR.js" />
+    <!-- Supabase client (111KB) - Critical for auth on initial load -->
+    <link rel="modulepreload" href="/assets/vendor-supabase-C_3uddtn.js" />
+    <!-- Main app bundle - Critical entry point -->
+    <link rel="modulepreload" href="/assets/index-BRvuudSq.js" />
+
     <title>AgentHub - Marketing Campaigns & Client Gifting Platform</title>
     <meta name="description" content="A modern marketplace platform combining marketing campaign management with client relationship gifting to help businesses manage outreach and strengthen client connections." />
     <meta name="author" content="AgentHub" />

@@ -6,19 +6,58 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { RouteRenderer } from "@/components/RouteRenderer";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { useCacheWarming } from "@/hooks/useCacheWarming";
+import { useEffect, useState } from "react";
 
-// Cache warming component (must be inside providers)
-const CacheWarmingProvider = ({ children }: { children: React.ReactNode }) => {
+// PERFORMANCE: Lazy load performance optimization hooks
+// This prevents blocking critical render path on initial load
+const useDeferredPerformanceHooks = () => {
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    // Defer until after initial render completes
+    const initPerformanceHooks = () => {
+      setInitialized(true);
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(initPerformanceHooks, { timeout: 1000 });
+    } else {
+      setTimeout(initPerformanceHooks, 1000);
+    }
+  }, []);
+
+  return initialized;
+};
+
+// Lazy loaded performance provider component
+const LazyPerformanceHooks = () => {
+  // Dynamic imports to split these from main bundle
+  const { useCacheWarming } = require('@/hooks/useCacheWarming');
+  const { useRoleBasedPrefetch } = require('@/hooks/useRoutePrefetch');
+
   useCacheWarming();
-  return <>{children}</>;
+  useRoleBasedPrefetch();
+
+  return null;
+};
+
+// Performance optimization providers (must be inside auth/mode providers)
+const PerformanceProvider = ({ children }: { children: React.ReactNode }) => {
+  const shouldInitialize = useDeferredPerformanceHooks();
+
+  return (
+    <>
+      {shouldInitialize && <LazyPerformanceHooks />}
+      {children}
+    </>
+  );
 };
 
 const App = () => (
   <ErrorBoundary>
     <AuthProvider>
       <ModeProvider>
-        <CacheWarmingProvider>
+        <PerformanceProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -26,7 +65,7 @@ const App = () => (
               <RouteRenderer />
             </BrowserRouter>
           </TooltipProvider>
-        </CacheWarmingProvider>
+        </PerformanceProvider>
       </ModeProvider>
     </AuthProvider>
   </ErrorBoundary>
