@@ -27,8 +27,12 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
-            // React core libraries + Radix UI (bundled together to prevent createContext race condition)
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('@radix-ui')) {
+            // React ecosystem (bundled together to prevent createContext race condition)
+            // Includes: React core, Radix UI, React Aria, theme providers, router, and other React-dependent libraries
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('router') ||
+                id.includes('@radix-ui') || id.includes('scheduler') ||
+                id.includes('react-aria') || id.includes('react-stately') ||
+                id.includes('next-themes') || id.includes('embla') || id.includes('cmdk')) {
               return 'vendor-react';
             }
 
