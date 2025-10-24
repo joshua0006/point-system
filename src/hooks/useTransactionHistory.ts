@@ -42,12 +42,12 @@ export function useTransactionHistory() {
           description,
           booking_id,
           bookings (
+            consultant_id,
+            consultants(
+              user_id
+            ),
             services (
-              title,
-              consultant_id,
-              consultants (
-                user_id
-              )
+              title
             )
           )
         `)
@@ -60,20 +60,30 @@ export function useTransactionHistory() {
         throw error;
       }
 
-      // For services with consultants, fetch consultant names separately
+      // For bookings with consultants, fetch consultant names separately
+      // Handle consultants as either array or single object (PostgREST can return either)
       const consultantIds = transactions
-        ?.filter(t => t.bookings?.services?.consultants?.user_id)
-        .map(t => t.bookings!.services!.consultants!.user_id)
+        ?.filter(t => {
+          const consultant = t.bookings?.consultants;
+          if (!consultant) return false;
+          const consultantObj = Array.isArray(consultant) ? consultant[0] : consultant;
+          return consultantObj?.user_id;
+        })
+        .map(t => {
+          const consultant = t.bookings!.consultants;
+          const consultantObj = Array.isArray(consultant) ? consultant[0] : consultant;
+          return consultantObj.user_id;
+        })
         .filter(Boolean) || [];
 
       let consultantNames: Record<string, string> = {};
-      
+
       if (consultantIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
           .select('user_id, full_name')
           .in('user_id', consultantIds);
-        
+
         consultantNames = (profiles || []).reduce((acc, profile) => {
           acc[profile.user_id] = profile.full_name || 'Unknown';
           return acc;
@@ -83,7 +93,11 @@ export function useTransactionHistory() {
       // Transform the data to match the expected interface
       const transformedTransactions: TransactionHistoryItem[] = (transactions || []).map(t => {
         const serviceTitle = t.bookings?.services?.title;
-        const consultantUserId = t.bookings?.services?.consultants?.user_id;
+
+        // Handle consultants as either array or single object
+        const consultant = t.bookings?.consultants;
+        const consultantObj = consultant ? (Array.isArray(consultant) ? consultant[0] : consultant) : null;
+        const consultantUserId = consultantObj?.user_id;
         const consultantName = consultantUserId ? consultantNames[consultantUserId] : undefined;
         
         // Determine transaction type based on amount and type
@@ -95,7 +109,7 @@ export function useTransactionHistory() {
           id: t.id,
           type: transactionType,
           service: serviceTitle || t.description || 'Transaction',
-          consultant: consultantName,
+          consultant: t.booking_id ? (consultantName || "Unknown Consultant") : undefined,
           points: Math.abs(t.amount),
           date: new Date(t.created_at).toLocaleDateString(),
           status: 'completed'

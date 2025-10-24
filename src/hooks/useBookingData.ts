@@ -43,7 +43,7 @@ export function useBookingData() {
           .select(`
             *,
             services!inner(title, duration_minutes),
-            consultants!bookings_consultant_id_fkey(user_id)
+            consultants(user_id)
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })

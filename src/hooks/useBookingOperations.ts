@@ -96,7 +96,7 @@ export function useUpdateBookingStatus() {
           .from('bookings')
           .select(`
             *,
-            consultants!bookings_consultant_id_fkey(
+            consultants(
               id,
               user_id,
               bio,

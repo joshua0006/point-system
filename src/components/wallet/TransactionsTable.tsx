@@ -110,7 +110,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
         transaction.date,
         transaction.type,
         transaction.service,
-        transaction.consultant || "N/A",
+        transaction.consultant || "",
         transaction.points,
         transaction.status
       ].join(","))
@@ -258,8 +258,8 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate" title={transaction.service}>{transaction.service}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[150px] truncate" title={transaction.consultant || "N/A"}>
-                        {transaction.consultant || "N/A"}
+                      <TableCell className="text-muted-foreground max-w-[150px] truncate" title={transaction.consultant || ""}>
+                        {transaction.consultant || "—"}
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${
                         transaction.type === "earned" ? "text-success" : "text-destructive"
