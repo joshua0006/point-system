@@ -406,6 +406,11 @@ export function useAdminActivity() {
           description = `💳 ${userName} purchased ${amount} flexi credits via Stripe`;
           category = 'credit';
           emoji = '💳';
+        } else if (transaction.description?.includes('Unlock credits top-up')) {
+          activityType = 'wallet_topup';
+          description = `💰 ${userName} paid $${amount} to unlock awarded credits`;
+          category = 'credit';
+          emoji = '💰';
         } else {
           activityType = 'manual_adjustment';
           description = `💸 ${userName} spent ${amount} flexi credits`;
@@ -438,7 +443,13 @@ export function useAdminActivity() {
       default:
         // Enhanced subscription activity detection
         const desc = transaction.description?.toLowerCase() || '';
-        if (context.isSubscriptionRelated || desc.includes('subscription') || desc.includes('plan') || desc.includes('upgrade') || desc.includes('downgrade')) {
+        // Check for unlock transactions first
+        if (desc.includes('unlocked') && desc.includes('awarded')) {
+          activityType = 'admin_credit';
+          category = 'credit';
+          emoji = '🔓';
+          description = `🔓 ${userName} unlocked ${amount} awarded flexi credits`;
+        } else if (context.isSubscriptionRelated || desc.includes('subscription') || desc.includes('plan') || desc.includes('upgrade') || desc.includes('downgrade')) {
           category = 'subscription';
           if (desc.includes('upgrade') || desc.includes('plan upgrade')) {
             activityType = 'subscription_upgrade';
