@@ -62,8 +62,9 @@ export default defineConfig(({ mode }) => ({
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
             // CRITICAL: React ecosystem - bundle ALL React-dependent libraries together
-            // This prevents createContext race conditions and module initialization errors
-            // All libraries using React APIs (createContext, useState, etc.) MUST be in this chunk
+            // This prevents createContext, useLayoutEffect, and other hook race conditions
+            // ALL libraries using ANY React APIs must be in this single chunk to ensure
+            // React initializes before any library tries to use its APIs
             if (
               // React core
               id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler') ||
@@ -75,10 +76,19 @@ export default defineConfig(({ mode }) => ({
               id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul') ||
               // Theme and toast providers - use createContext
               id.includes('next-themes') || id.includes('sonner') ||
-              // Other React component libraries
+              // React component libraries
               id.includes('react-day-picker') || id.includes('react-helmet') ||
               id.includes('react-resizable-panels') || id.includes('react-window') ||
-              id.includes('input-otp')
+              id.includes('input-otp') ||
+              // CRITICAL: State management - uses React hooks
+              id.includes('@tanstack/react-query') || id.includes('zustand') ||
+              // CRITICAL: Form libraries - react-hook-form uses useLayoutEffect
+              id.includes('react-hook-form') || id.includes('@hookform') ||
+              // CRITICAL: React utility libraries (transitive deps from Radix UI)
+              // These use React hooks and MUST load with React
+              id.includes('aria-hidden') || id.includes('react-remove-scroll') ||
+              id.includes('react-style-singleton') || id.includes('use-sync-external-store') ||
+              id.includes('use-callback-ref') || id.includes('use-sidecar')
             ) {
               return 'vendor-react';
             }
@@ -86,11 +96,6 @@ export default defineConfig(({ mode }) => ({
             // CRITICAL: Supabase client - needed for auth on initial load
             if (id.includes('@supabase/supabase-js') || id.includes('@supabase/')) {
               return 'vendor-supabase';
-            }
-
-            // CRITICAL: React Query - needed for data fetching
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-react-query';
             }
 
             // LAZY LOAD: Heavy visualization libraries
@@ -111,9 +116,9 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-utils';
             }
 
-            // Form and validation libraries
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-              return 'vendor-forms';
+            // Validation library (non-React)
+            if (id.includes('zod')) {
+              return 'vendor-utils';
             }
 
             // Stripe (payment - lazy load)
