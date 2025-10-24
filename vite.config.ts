@@ -27,19 +27,14 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
-            // React core libraries
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // React core libraries + Radix UI (bundled together to prevent createContext race condition)
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('@radix-ui')) {
               return 'vendor-react';
             }
 
             // Supabase and data fetching
             if (id.includes('@supabase') || id.includes('@tanstack/react-query')) {
               return 'vendor-data';
-            }
-
-            // UI component libraries (Radix UI)
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui';
             }
 
             // Heavy visualization libraries - separate chunks for lazy loading
