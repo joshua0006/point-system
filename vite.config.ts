@@ -2,37 +2,92 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import viteCompression from 'vite-plugin-compression';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Enable HTTP/2 for better multiplexing
+    https: false,
+    // Optimize HMR
+    hmr: {
+      overlay: true,
+    },
+  },
+  // Performance hints
+  preview: {
+    port: 8080,
+    strictPort: false,
+    host: true,
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
+    // Gzip compression for production builds
+    mode === 'production' && viteCompression({
+      verbose: true,
+      disable: false,
+      threshold: 10240, // Only compress files larger than 10KB
+      algorithm: 'gzip',
+      ext: '.gz',
+    }),
+    // Brotli compression for production builds (better compression)
+    mode === 'production' && viteCompression({
+      verbose: true,
+      disable: false,
+      threshold: 10240,
+      algorithm: 'brotliCompress',
+      ext: '.br',
+    }),
   ].filter(Boolean),
+  // Enable esbuild optimization for faster builds
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
+    // Drop console/debugger in production
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
-    // Optimize chunk size and splitting
+    // Optimize chunk size and splitting for faster initial load
     rollupOptions: {
       output: {
-        // Manual chunk splitting for better caching and performance
+        // Manual chunk splitting optimized for initial page load performance
         manualChunks: (id) => {
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
-            // Heavy visualization libraries - separate chunks for lazy loading
+            // CRITICAL: React ecosystem - bundle together to prevent hook errors
+            // React, React-DOM, and React-Router must stay together for module resolution
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) {
+              return 'vendor-react';
+            }
+
+            // CRITICAL: Supabase client - needed for auth on initial load
+            if (id.includes('@supabase/supabase-js') || id.includes('@supabase/')) {
+              return 'vendor-supabase';
+            }
+
+            // CRITICAL: React Query - needed for data fetching
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-react-query';
+            }
+
+            // UI Framework - Radix UI components (used across app)
+            if (id.includes('@radix-ui')) {
+              return 'vendor-ui-radix';
+            }
+
+            // LAZY LOAD: Heavy visualization libraries
             if (id.includes('reactflow')) {
               return 'vendor-reactflow';
             }
 
-            if (id.includes('recharts')) {
+            if (id.includes('recharts') || id.includes('recharts/')) {
               return 'vendor-charts';
             }
 
@@ -40,14 +95,33 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-html2canvas';
             }
 
-            // Supabase and data fetching (separate from React to allow independent caching)
-            if (id.includes('@supabase') || id.includes('@tanstack/react-query')) {
-              return 'vendor-data';
+            // Utilities and smaller libraries
+            if (id.includes('lucide-react') || id.includes('date-fns') || id.includes('clsx') || id.includes('class-variance-authority')) {
+              return 'vendor-utils';
             }
 
-            // All other vendor code (React, UI libs, utilities) - bundled together
-            // to prevent module initialization race conditions
-            return 'vendor';
+            // Form and validation libraries
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'vendor-forms';
+            }
+
+            // UI utilities (lazy load candidates)
+            if (id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul')) {
+              return 'vendor-ui-utils';
+            }
+
+            // Stripe (payment - lazy load)
+            if (id.includes('@stripe')) {
+              return 'vendor-stripe';
+            }
+
+            // React Aria/Stately (accessibility)
+            if (id.includes('react-aria') || id.includes('react-stately')) {
+              return 'vendor-aria';
+            }
+
+            // All other vendor code
+            return 'vendor-misc';
           }
         },
         // Optimize chunk file names for better caching
@@ -56,29 +130,53 @@ export default defineConfig(({ mode }) => ({
         assetFileNames: 'assets/[name]-[hash][extname]',
       },
     },
-    // Increase chunk size warning limit (we're splitting intentionally)
+    // Increase chunk size warning limit (intentional chunking strategy)
     chunkSizeWarningLimit: 600,
-    // Enable minification
+    // Enable aggressive minification
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: mode === 'production', // Remove console.logs in production
         drop_debugger: true,
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
+        passes: 2, // Multiple passes for better compression
+      },
+      mangle: {
+        safari10: true, // Prevent Safari 10 issues
       },
     },
+    // CSS code splitting for faster initial load
+    cssCodeSplit: true,
+    // Reduce CSS chunk size
+    cssMinify: true,
+    // Enable source maps for production debugging (compressed)
+    sourcemap: mode === 'production' ? 'hidden' : true,
   },
-  // Optimize dependency pre-bundling
+  // Optimize dependency pre-bundling for faster dev server startup
   optimizeDeps: {
+    // Force pre-bundle critical dependencies for faster initial load
     include: [
       'react',
       'react-dom',
+      'react/jsx-runtime',
       'react-router-dom',
       '@tanstack/react-query',
       '@supabase/supabase-js',
+      'lucide-react', // Commonly used icons
+      'date-fns', // Date utilities
     ],
+    // Exclude heavy deps from pre-bundling - these will be lazy loaded
     exclude: [
-      'html2canvas', // Exclude heavy deps from pre-bundling for lazy loading
+      'html2canvas',
       'reactflow',
+      'recharts',
+      '@stripe/stripe-js', // Lazy load payment processing
+      'embla-carousel-react', // Lazy load carousel
+    ],
+    // Optimize dependency discovery
+    entries: [
+      'src/main.tsx',
+      'src/App.tsx',
     ],
   },
 }));

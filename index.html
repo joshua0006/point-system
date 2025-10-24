@@ -2,16 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preconnect" href="https://rrnaquethuzvbsxcssss.supabase.co" />
-  <link rel="preconnect" href="https://js.stripe.com" />
-  <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-  <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-  <link rel="dns-prefetch" href="//rrnaquethuzvbsxcssss.supabase.co" />
-  <link rel="dns-prefetch" href="//js.stripe.com" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- DNS prefetch for third-party domains (earliest possible connection) -->
+    <link rel="dns-prefetch" href="https://rrnaquethuzvbsxcssss.supabase.co" />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
+
+    <!-- Preconnect to critical third-party origins with crossorigin -->
+    <link rel="preconnect" href="https://rrnaquethuzvbsxcssss.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+
+    <!-- Preload critical self-hosted fonts (only most-used weight) -->
+    <link rel="preload" href="/fonts/montserrat-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/montserrat-500-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>AgentHub - Marketing Campaigns & Client Gifting Platform</title>
     <meta name="description" content="A modern marketplace platform combining marketing campaign management with client relationship gifting to help businesses manage outreach and strengthen client connections." />
     <meta name="author" content="AgentHub" />
@@ -29,5 +32,21 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Service Worker Registration for Performance -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(
+            (registration) => {
+              console.log('ServiceWorker registered:', registration.scope);
+            },
+            (err) => {
+              console.log('ServiceWorker registration failed:', err);
+            }
+          );
+        });
+      }
+    </script>
   </body>
 </html>

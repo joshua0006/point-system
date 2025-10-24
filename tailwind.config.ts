@@ -8,6 +8,13 @@ export default {
 		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
 	],
+	// Performance: Safelist only critical classes to reduce CSS output
+	safelist: [
+		// Critical utility classes for initial render
+		'bg-background',
+		'text-foreground',
+		'border-border',
+	],
 	prefix: "",
 	theme: {
 		container: {

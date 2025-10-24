@@ -141,46 +141,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           // Defer profile and subscription fetch to avoid blocking auth state updates
-          requestIdleCallback(async () => {
+          // Use setTimeout with 0 delay for faster execution than requestIdleCallback
+          const fetchData = async () => {
             if (!mounted) return;
 
             lastAuthCheckTime.current = now;
 
             try {
-              // Parallel fetch for better performance
-              const [profileResult, subscriptionResult] = await Promise.allSettled([
-                supabase.from('profiles').select('*').eq('user_id', session.user.id.toString()).single(),
-                supabase.functions.invoke('check-subscription')
-              ]);
-              
-              if (!mounted) return;
-              
-              // Handle profile result
-              if (profileResult.status === 'fulfilled' && !profileResult.value.error) {
-                setProfile(profileResult.value.data);
-                logger.log('Profile loaded successfully:', profileResult.value.data);
-              } else {
-                const profileError = profileResult.status === 'fulfilled' ? profileResult.value.error : profileResult.reason;
-                console.error('❌ Error fetching profile for user', session.user.email, ':', profileError);
+              // CRITICAL: Profile first (needed for auth decisions)
+              const profileResult = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id.toString())
+                .single();
 
-                // Log specific error details for debugging
-                if (profileError?.code === 'PGRST116') {
+              if (!mounted) return;
+
+              // Handle profile immediately
+              if (!profileResult.error) {
+                setProfile(profileResult.data);
+                logger.log('Profile loaded successfully:', profileResult.data);
+              } else {
+                console.error('❌ Error fetching profile for user', session.user.email, ':', profileResult.error);
+
+                if (profileResult.error?.code === 'PGRST116') {
                   console.error('Profile not found in database - trigger may have failed during signup');
-                } else if (profileError?.message) {
-                  console.error('Profile fetch error message:', profileError.message);
+                } else if (profileResult.error?.message) {
+                  console.error('Profile fetch error message:', profileResult.error.message);
                 }
 
                 setProfile(null);
               }
 
-              // Handle subscription result  
-              if (subscriptionResult.status === 'fulfilled' && !subscriptionResult.value.error) {
-                logger.log('✅ Subscription loaded successfully:', subscriptionResult.value.data);
-                setSubscription(subscriptionResult.value.data);
-              } else {
-                console.error('❌ Error fetching subscription:', subscriptionResult.status === 'fulfilled' ? subscriptionResult.value.error : subscriptionResult.reason);
-                setSubscription(null);
-              }
+              // DEFERRED: Subscription status (non-critical for initial render)
+              // Fetch in background without blocking
+              supabase.functions.invoke('check-subscription').then(subscriptionResult => {
+                if (!mounted) return;
+              
+                if (!subscriptionResult.error) {
+                  logger.log('✅ Subscription loaded successfully:', subscriptionResult.data);
+                  setSubscription(subscriptionResult.data);
+                } else {
+                  console.error('❌ Error fetching subscription:', subscriptionResult.error);
+                  setSubscription(null);
+                }
+              }).catch(err => {
+                console.error('❌ Subscription fetch error:', err);
+                if (mounted) setSubscription(null);
+              });
 
               // Set up real-time subscription for profile updates
               if (realtimeChannel) {
@@ -206,10 +214,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 )
                 .subscribe();
             } catch (err) {
-              console.error('Profile/subscription fetch error:', err);
+              console.error('Profile fetch error:', err);
             } finally {
               if (mounted) {
-                // Clear the appropriate loading state
+                // Clear loading state immediately after profile loads
                 if (isInitialLoad) {
                   setLoading(false);
                   logger.log('[AUTH] Initial load complete');
@@ -219,7 +227,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               }
             }
-          });
+          };
+
+          // Execute immediately for critical profile data
+          fetchData();
         } else {
           setProfile(null);
           setSubscription(null);

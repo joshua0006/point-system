@@ -4,31 +4,37 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App.tsx'
 import './index.css'
 
-// React Query client with optimized defaults for performance and data freshness balance
+// React Query client - optimized for initial page load performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Prevent aggressive refetching on tab focus (fixes loading animation on tab switch)
+      // Prevent aggressive refetching on tab focus
       refetchOnWindowFocus: false,
 
-      // Allow smart refetching on mount - only if data is stale
-      // This is safer than `false` and prevents showing stale data after navigating back
+      // Smart refetching - only if data is stale
       refetchOnMount: 'stale',
 
-      // Data stays fresh for 2 minutes before considered stale
-      // Reduced from 5 minutes for better data freshness on navigation
-      staleTime: 2 * 60 * 1000,
+      // Aggressive stale time for initial load performance (5 minutes)
+      // Data considered fresh for longer to reduce initial load queries
+      staleTime: 5 * 60 * 1000,
 
-      // Cache retained for 5 minutes (garbage collection time)
-      // Reduced from 10 minutes to free memory faster for unused queries
-      gcTime: 5 * 60 * 1000,
+      // Extended cache time for better performance (10 minutes)
+      gcTime: 10 * 60 * 1000,
 
-      // Reduce retry attempts for faster failure feedback
+      // Minimal retry for faster initial page load
       retry: 1,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 3000),
 
-      // Enable automatic refetching in background for stale data
-      // This keeps data fresh without blocking UI
+      // Background refetching only for stale data
       refetchOnReconnect: 'stale',
+
+      // Network mode: prioritize cache for faster perceived performance
+      networkMode: 'online',
+    },
+    mutations: {
+      // Faster mutation retry for better UX
+      retry: 1,
+      retryDelay: 1000,
     },
   },
 });

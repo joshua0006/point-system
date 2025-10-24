@@ -1,3 +1,28 @@
+/* Self-hosted Montserrat fonts - optimized loading strategy */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap; /* Show fallback immediately, swap when loaded */
+  src: url('/fonts/montserrat-400-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/montserrat-500-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: optional; /* Only use if already cached, prevent layout shift */
+  src: url('/fonts/montserrat-600-latin.woff2') format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
