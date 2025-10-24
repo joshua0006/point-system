@@ -61,9 +61,25 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
-            // CRITICAL: React ecosystem - bundle together to prevent hook errors
-            // React, React-DOM, and React-Router must stay together for module resolution
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) {
+            // CRITICAL: React ecosystem - bundle ALL React-dependent libraries together
+            // This prevents createContext race conditions and module initialization errors
+            // All libraries using React APIs (createContext, useState, etc.) MUST be in this chunk
+            if (
+              // React core
+              id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler') ||
+              // Radix UI - uses createContext extensively
+              id.includes('@radix-ui') ||
+              // React Aria/Stately - accessibility primitives using React context
+              id.includes('react-aria') || id.includes('react-stately') ||
+              // UI utilities that depend on React context
+              id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul') ||
+              // Theme and toast providers - use createContext
+              id.includes('next-themes') || id.includes('sonner') ||
+              // Other React component libraries
+              id.includes('react-day-picker') || id.includes('react-helmet') ||
+              id.includes('react-resizable-panels') || id.includes('react-window') ||
+              id.includes('input-otp')
+            ) {
               return 'vendor-react';
             }
 
@@ -75,11 +91,6 @@ export default defineConfig(({ mode }) => ({
             // CRITICAL: React Query - needed for data fetching
             if (id.includes('@tanstack/react-query')) {
               return 'vendor-react-query';
-            }
-
-            // UI Framework - Radix UI components (used across app)
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui-radix';
             }
 
             // LAZY LOAD: Heavy visualization libraries
@@ -95,7 +106,7 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-html2canvas';
             }
 
-            // Utilities and smaller libraries
+            // Utilities and smaller libraries (non-React)
             if (id.includes('lucide-react') || id.includes('date-fns') || id.includes('clsx') || id.includes('class-variance-authority')) {
               return 'vendor-utils';
             }
@@ -105,19 +116,9 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-forms';
             }
 
-            // UI utilities (lazy load candidates)
-            if (id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul')) {
-              return 'vendor-ui-utils';
-            }
-
             // Stripe (payment - lazy load)
             if (id.includes('@stripe')) {
               return 'vendor-stripe';
-            }
-
-            // React Aria/Stately (accessibility)
-            if (id.includes('react-aria') || id.includes('react-stately')) {
-              return 'vendor-aria';
             }
 
             // All other vendor code
