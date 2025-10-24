@@ -6,7 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { RouteRenderer } from "@/components/RouteRenderer";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 
 // PERFORMANCE: Lazy load performance optimization hooks
 // This prevents blocking critical render path on initial load
@@ -29,17 +29,8 @@ const useDeferredPerformanceHooks = () => {
   return initialized;
 };
 
-// Lazy loaded performance provider component
-const LazyPerformanceHooks = () => {
-  // Dynamic imports to split these from main bundle
-  const { useCacheWarming } = require('@/hooks/useCacheWarming');
-  const { useRoleBasedPrefetch } = require('@/hooks/useRoutePrefetch');
-
-  useCacheWarming();
-  useRoleBasedPrefetch();
-
-  return null;
-};
+// Lazy loaded performance hooks component (code-split from main bundle)
+const LazyPerformanceHooks = lazy(() => import('@/components/PerformanceHooks'));
 
 // Performance optimization providers (must be inside auth/mode providers)
 const PerformanceProvider = ({ children }: { children: React.ReactNode }) => {
@@ -47,7 +38,11 @@ const PerformanceProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      {shouldInitialize && <LazyPerformanceHooks />}
+      {shouldInitialize && (
+        <Suspense fallback={null}>
+          <LazyPerformanceHooks />
+        </Suspense>
+      )}
       {children}
     </>
   );
