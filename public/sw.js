@@ -1,11 +1,9 @@
 // Service Worker for AgentHub - Performance Optimization
 // Implements stale-while-revalidate strategy for static assets
-// ENHANCED: Aggressive caching for vendor chunks to improve repeat visit performance
 
-const CACHE_VERSION = 'v3.0'; // Increment when caching strategy changes
-const STATIC_CACHE = `agenthub-static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `agenthub-dynamic-${CACHE_VERSION}`;
-const VENDOR_CACHE = `agenthub-vendor-${CACHE_VERSION}`;
+const CACHE_NAME = 'agenthub-v1';
+const STATIC_CACHE = 'agenthub-static-v1';
+const DYNAMIC_CACHE = 'agenthub-dynamic-v1';
 
 // Assets to cache immediately on install
 const STATIC_ASSETS = [
@@ -14,31 +12,27 @@ const STATIC_ASSETS = [
   '/fonts/montserrat-500-latin.woff2',
 ];
 
-// PERFORMANCE: Vendor chunks are cached dynamically via pattern matching
-// No hardcoded filenames - matches any vendor-*.js, index-*.js, or *.css files
-
-// Install event - cache static assets only
+// Install event - cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting()) // Activate immediately
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    }).then(() => {
+      return self.skipWaiting(); // Activate immediately
+    })
   );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  const currentCaches = [STATIC_CACHE, DYNAMIC_CACHE, VENDOR_CACHE];
-
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((cacheName) => !currentCaches.includes(cacheName))
-          .map((cacheName) => {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+          .filter((cacheName) => {
+            return cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE;
           })
+          .map((cacheName) => caches.delete(cacheName))
       );
     }).then(() => {
       return self.clients.claim(); // Take control immediately
@@ -82,31 +76,16 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      // PERFORMANCE: Pattern-based vendor chunk detection (works with any hash)
-      // Matches: vendor-*.js, index-*.js, index-*.css files
-      const isVendorChunk = /\/assets\/vendor-[a-zA-Z0-9_-]+\.js$/.test(url.pathname) ||
-                            /\/assets\/index-[a-zA-Z0-9_-]+\.(js|css)$/.test(url.pathname);
-
-      if (cachedResponse && isVendorChunk) {
-        // Return cached vendor chunk immediately, no network fetch needed
-        return cachedResponse;
-      }
-
-      // Fetch from network in background for non-vendor resources
+      // Fetch from network in background
       const fetchPromise = fetch(request).then((networkResponse) => {
         // Cache successful responses
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
 
           // Determine which cache to use
-          let cacheName;
-          if (isVendorChunk) {
-            cacheName = VENDOR_CACHE;
-          } else if (url.pathname.startsWith('/assets/')) {
-            cacheName = STATIC_CACHE;
-          } else {
-            cacheName = DYNAMIC_CACHE;
-          }
+          const cacheName = url.pathname.startsWith('/assets/')
+            ? STATIC_CACHE
+            : DYNAMIC_CACHE;
 
           caches.open(cacheName).then((cache) => {
             cache.put(request, responseToCache);

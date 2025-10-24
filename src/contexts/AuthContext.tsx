@@ -140,16 +140,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsRefetching(true);
           }
 
-          // PERFORMANCE: Optimized fetch strategy
-          // Priority 1: Load profile immediately (critical for app routing)
-          // Priority 2: Load subscription in background (non-blocking, UI enhancement only)
+          // Defer profile and subscription fetch to avoid blocking auth state updates
+          // Use setTimeout with 0 delay for faster execution than requestIdleCallback
           const fetchData = async () => {
             if (!mounted) return;
 
             lastAuthCheckTime.current = now;
 
             try {
-              // CRITICAL: Fetch profile first (required for auth routing)
+              // CRITICAL: Profile first (needed for auth decisions)
               const profileResult = await supabase
                 .from('profiles')
                 .select('*')
@@ -158,20 +157,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               if (!mounted) return;
 
-              // Handle profile result immediately
+              // Handle profile immediately
               if (!profileResult.error) {
                 setProfile(profileResult.data);
                 logger.log('Profile loaded successfully:', profileResult.data);
-
-                // PERFORMANCE: Clear loading state as soon as profile loads
-                // This allows UI to render immediately, subscription loads in background
-                if (isInitialLoad) {
-                  setLoading(false);
-                  logger.log('[AUTH] Initial load complete - profile ready');
-                } else {
-                  setIsRefetching(false);
-                  logger.log('[AUTH] Background refetch complete');
-                }
               } else {
                 console.error('❌ Error fetching profile for user', session.user.email, ':', profileResult.error);
 
@@ -182,20 +171,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
 
                 setProfile(null);
-
-                // Still clear loading state on error
-                if (isInitialLoad) {
-                  setLoading(false);
-                } else {
-                  setIsRefetching(false);
-                }
               }
 
-              // PERFORMANCE: Fetch subscription in background (non-blocking)
-              // This happens AFTER profile loads and UI renders
+              // DEFERRED: Subscription status (non-critical for initial render)
+              // Fetch in background without blocking
               supabase.functions.invoke('check-subscription').then(subscriptionResult => {
                 if (!mounted) return;
-
+              
                 if (!subscriptionResult.error) {
                   logger.log('✅ Subscription loaded successfully:', subscriptionResult.data);
                   setSubscription(subscriptionResult.data);
@@ -204,8 +186,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   setSubscription(null);
                 }
               }).catch(err => {
-                console.error('Subscription fetch error:', err);
-                setSubscription(null);
+                console.error('❌ Subscription fetch error:', err);
+                if (mounted) setSubscription(null);
               });
 
               // Set up real-time subscription for profile updates
@@ -233,12 +215,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .subscribe();
             } catch (err) {
               console.error('Profile fetch error:', err);
-              // Clear loading state on error
+            } finally {
               if (mounted) {
+                // Clear loading state immediately after profile loads
                 if (isInitialLoad) {
                   setLoading(false);
+                  logger.log('[AUTH] Initial load complete');
                 } else {
                   setIsRefetching(false);
+                  logger.log('[AUTH] Background refetch complete');
                 }
               }
             }
@@ -277,59 +262,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logger.log('Initial session check:', session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-
+        
         if (session?.user) {
           try {
-            // PERFORMANCE: Optimized initialization - profile first, subscription in background
-            const profileResult = await supabase
+            // Fetch profile
+            const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id.toString())
               .single();
-
+            
             if (mounted) {
-              // Handle profile result immediately
-              if (!profileResult.error) {
-                setProfile(profileResult.data);
-                logger.log('Profile loaded during init:', profileResult.data);
+              if (error) {
+                console.error('❌ Profile fetch error during init for user', session.user.email, ':', error);
 
-                // PERFORMANCE: Clear loading state as soon as profile loads
-                setLoading(false);
-              } else {
-                console.error('❌ Profile fetch error during init for user', session.user.email, ':', profileResult.error);
-
-                if (profileResult.error?.code === 'PGRST116') {
+                // Log specific error details for debugging
+                if (error?.code === 'PGRST116') {
                   console.error('Profile not found in database - trigger may have failed during signup');
-                } else if (profileResult.error?.message) {
-                  console.error('Profile fetch error message:', profileResult.error.message);
+                } else if (error?.message) {
+                  console.error('Profile fetch error message:', error.message);
                 }
 
                 setProfile(null);
-                setLoading(false);
+              } else {
+                setProfile(profileData);
+                logger.log('Profile loaded during init:', profileData);
               }
-
-              // PERFORMANCE: Fetch subscription in background (non-blocking)
-              supabase.functions.invoke('check-subscription').then(subscriptionResult => {
-                if (!mounted) return;
-
-                if (!subscriptionResult.error) {
-                  setSubscription(subscriptionResult.data);
-                  logger.log('Subscription loaded during init:', subscriptionResult.data);
-                } else {
-                  console.error('Subscription fetch error during init:', subscriptionResult.error);
-                  setSubscription(null);
-                }
-              }).catch(err => {
-                console.error('Subscription fetch error during init:', err);
-                setSubscription(null);
-              });
             }
 
             // Set up real-time subscription for profile updates
             if (realtimeChannel) {
               supabase.removeChannel(realtimeChannel);
             }
-
+            
             realtimeChannel = supabase
               .channel('profile-changes')
               .on(
@@ -348,17 +313,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               )
               .subscribe();
-          } catch (err) {
-            console.error('Auth data fetch error during init:', err);
-            if (mounted) {
-              setLoading(false);
+
+            // Fetch subscription status
+            try {
+              const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
+              
+              if (mounted) {
+                if (subscriptionError) {
+                  console.error('Subscription fetch error during init:', subscriptionError);
+                  setSubscription(null);
+                } else {
+                  setSubscription(subscriptionData);
+                  logger.log('Subscription loaded during init:', subscriptionData);
+                }
+              }
+            } catch (err) {
+              console.error('Subscription fetch error during init:', err);
             }
+          } catch (err) {
+            console.error('Profile fetch error during init:', err);
           }
-        } else {
-          // No session
-          if (mounted) {
-            setLoading(false);
-          }
+        }
+        
+        if (mounted) {
+          setLoading(false);
         }
       } catch (err) {
         console.error('Auth initialization error:', err);
