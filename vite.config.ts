@@ -59,36 +59,45 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks for better caching
           if (id.includes('node_modules')) {
-            // CRITICAL: React ecosystem - bundle ALL React-dependent libraries together
-            // This prevents createContext, useLayoutEffect, and other hook race conditions
-            // ALL libraries using ANY React APIs must be in this single chunk to ensure
-            // React initializes before any library tries to use its APIs
+            // OPTIMIZED: Split React ecosystem for better initial load performance
+            // Phase 2: Separate core React from heavy UI libraries
+
+            // CRITICAL: React core - MUST load first (highest priority)
             if (
-              // React core
-              id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler') ||
-              // Radix UI - uses createContext extensively
-              id.includes('@radix-ui') ||
-              // React Aria/Stately - accessibility primitives using React context
-              id.includes('react-aria') || id.includes('react-stately') ||
-              // UI utilities that depend on React context
-              id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul') ||
-              // Theme and toast providers - use createContext
-              id.includes('next-themes') || id.includes('sonner') ||
-              // React component libraries
-              id.includes('react-day-picker') || id.includes('react-helmet') ||
-              id.includes('react-resizable-panels') || id.includes('react-window') ||
-              id.includes('input-otp') ||
-              // CRITICAL: State management - uses React hooks
-              id.includes('@tanstack/react-query') || id.includes('zustand') ||
-              // CRITICAL: Form libraries - react-hook-form uses useLayoutEffect
-              id.includes('react-hook-form') || id.includes('@hookform') ||
-              // CRITICAL: React utility libraries (transitive deps from Radix UI)
-              // These use React hooks and MUST load with React
-              id.includes('aria-hidden') || id.includes('react-remove-scroll') ||
-              id.includes('react-style-singleton') || id.includes('use-sync-external-store') ||
-              id.includes('use-callback-ref') || id.includes('use-sidecar')
+              (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) &&
+              !id.includes('@radix-ui') && !id.includes('@tanstack') && !id.includes('react-hook-form')
             ) {
-              return 'vendor-react';
+              return 'vendor-react-core'; // ~150 KB - Critical path
+            }
+
+            // Radix UI - Large UI component library (loads after React core)
+            if (id.includes('@radix-ui') ||
+                // Radix UI transitive dependencies
+                id.includes('aria-hidden') || id.includes('react-remove-scroll') ||
+                id.includes('react-style-singleton') || id.includes('use-callback-ref') ||
+                id.includes('use-sidecar')) {
+              return 'vendor-radix'; // ~120 KB - Deferred priority
+            }
+
+            // State management - Can load in parallel with Radix
+            if (id.includes('@tanstack/react-query') || id.includes('zustand') ||
+                id.includes('use-sync-external-store')) {
+              return 'vendor-state'; // ~80 KB - Parallel load
+            }
+
+            // Form libraries - Load when forms are needed
+            if (id.includes('react-hook-form') || id.includes('@hookform')) {
+              return 'vendor-forms'; // ~60 KB - Parallel load
+            }
+
+            // React component libraries - Lower priority
+            if (id.includes('react-aria') || id.includes('react-stately') ||
+                id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul') ||
+                id.includes('next-themes') || id.includes('sonner') ||
+                id.includes('react-day-picker') || id.includes('react-helmet') ||
+                id.includes('react-resizable-panels') || id.includes('react-window') ||
+                id.includes('input-otp')) {
+              return 'vendor-react-components'; // ~80 KB - Lower priority
             }
 
             // CRITICAL: Supabase client - needed for auth on initial load
