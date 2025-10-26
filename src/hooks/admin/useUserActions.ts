@@ -121,13 +121,17 @@ export function useUserActions() {
   }, [toast]);
 
   const toggleHideUser = useCallback(async (userId: string) => {
+    console.log('[toggleHideUser] Called with userId:', userId);
     try {
+      console.log('[toggleHideUser] Invoking edge function...');
       const { data, error } = await supabase.functions.invoke('admin-user-management', {
         body: { 
           action: 'toggle_hide_user',
           userId 
         }
       });
+
+      console.log('[toggleHideUser] Response:', { data, error });
 
       if (error) throw error;
 
@@ -138,7 +142,7 @@ export function useUserActions() {
 
       return true;
     } catch (error) {
-      console.error('Error toggling user hidden status:', error);
+      console.error('[toggleHideUser] Error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to toggle user visibility. Please try again.",

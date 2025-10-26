@@ -164,7 +164,10 @@ export const UserTableRow = memo(function UserTableRow({
 
           {user.role !== 'admin' && user.role !== 'master_admin' && (
             <Button 
-              onClick={() => onToggleHide(user)} 
+              onClick={() => {
+                console.log('[UserTableRow] Hide button clicked for user:', user.user_id, user.email);
+                onToggleHide(user);
+              }} 
               size="sm" 
               variant="outline"
               title={isHidden ? "Unhide user" : "Hide user"}
