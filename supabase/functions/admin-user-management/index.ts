@@ -286,7 +286,7 @@ serve(async (req) => {
           user_id: userId,
           amount: -points,
           type: 'refund',
-          description: `Admin deduction - ${points} flexi credits deducted by admin: ${reason || 'No reason provided'}`
+          description: reason || 'No reason provided'
         });
 
       if (transactionError) throw new Error(`Error creating transaction: ${transactionError.message}`);
