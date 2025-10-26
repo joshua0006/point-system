@@ -236,7 +236,13 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                           <div className="flex items-center gap-2">
                             {getTransactionIcon(transaction.type, transaction.amount)}
                             <span className="truncate max-w-[150px]">
-                              {transaction.description}
+                              {transaction.description
+                                .replace(/Admin deduction - \d+ flexi credits deducted by admin:\s*/i, '')
+                                .replace(/Admin deduction - /i, '')
+                                .replace(/\d+ flexi credits deducted by admin:\s*/i, '')
+                                .replace(/Admin credit - \d+ flexi credits added by admin:\s*/i, '')
+                                .replace(/Admin credit - /i, '')
+                                .replace(/\d+ flexi credits added by admin:\s*/i, '')}
                             </span>
                           </div>
                           <span className={`font-medium ${getTransactionTypeColor(transaction.type)}`}>
