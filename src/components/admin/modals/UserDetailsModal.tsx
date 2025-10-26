@@ -287,7 +287,7 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="max-w-[300px] truncate">
+                          <TableCell>
                             {transaction.description}
                           </TableCell>
                           <TableCell className={`text-right font-medium ${getTransactionTypeColor(transaction.type)}`}>
