@@ -288,7 +288,10 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                             </div>
                           </TableCell>
                           <TableCell>
-                            {transaction.description}
+                            {transaction.description
+                              .replace(/Admin deduction - \d+ flexi credits deducted by admin:\s*/i, '')
+                              .replace(/Admin deduction - /i, '')
+                              .replace(/\d+ flexi credits deducted by admin:\s*/i, '')}
                           </TableCell>
                           <TableCell className={`text-right font-medium ${getTransactionTypeColor(transaction.type)}`}>
                             {transaction.amount > 0 ? '+' : ''}{transaction.amount} credits
