@@ -280,7 +280,11 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                           <TableCell>
                             <div className="flex items-center gap-2">
                               {getTransactionIcon(transaction.type, transaction.amount)}
-                              <span className="capitalize">{transaction.type.replace('_', ' ')}</span>
+                              <span className="capitalize">
+                                {transaction.type === 'refund' && transaction.amount < 0 
+                                  ? 'Deduction' 
+                                  : transaction.type.replace('_', ' ')}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell className="max-w-[300px] truncate">
