@@ -47,7 +47,7 @@ export const ColdCallingWizard = React.memo(({
       // For upgrades, check if user can afford the difference
       if (tierInfo.isUpgrade) {
         const difference = (selectedHours * 6) - existingCampaign.currentBudget;
-        return (userBalance - difference) >= -1000;
+        return (userBalance - difference) >= -2000;
       }
 
       // Downgrades are always allowed (no immediate charge)
@@ -59,7 +59,7 @@ export const ColdCallingWizard = React.memo(({
 
     // New campaign - check full amount
     const balanceAfterDeduction = userBalance - (selectedHours * 6);
-    return balanceAfterDeduction >= -1000;
+    return balanceAfterDeduction >= -2000;
   };
 
   const checkForActiveCampaign = async () => {
@@ -169,11 +169,11 @@ export const ColdCallingWizard = React.memo(({
             </div>
           )}
 
-          {selectedHours && (userBalance - (selectedHours * 6)) < -1000 && (
+          {selectedHours && (userBalance - (selectedHours * 6)) < -2000 && (
             <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
               <p className="text-red-700 dark:text-red-400 text-sm">
                 <strong>Balance limit exceeded:</strong> This would bring your balance to {userBalance - (selectedHours * 6)} points. 
-                The minimum allowed balance is -1000 points.
+                The minimum allowed balance is -2000 points.
               </p>
             </div>
           )}
@@ -235,7 +235,7 @@ export const ColdCallingWizard = React.memo(({
                                 const tierInfo = isTierChange(existingCampaign.currentBudget, selectedHours * 6);
                                 if (tierInfo.isUpgrade) {
                                   const diff = (selectedHours * 6) - existingCampaign.currentBudget;
-                                  return `Upgrade requires ${diff} points immediately. This would bring your balance to ${userBalance - diff} points. Minimum allowed: -1000 points.`;
+                                  return `Upgrade requires ${diff} points immediately. This would bring your balance to ${userBalance - diff} points. Minimum allowed: -2000 points.`;
                                 }
                                 if (!tierInfo.isTierChange) {
                                   return 'This is your current plan.';
@@ -243,7 +243,7 @@ export const ColdCallingWizard = React.memo(({
                                 return '';
                               })()
                             : selectedHours
-                              ? `This would bring your balance to ${userBalance - (selectedHours * 6)} points. Minimum allowed: -1000 points.`
+                              ? `This would bring your balance to ${userBalance - (selectedHours * 6)} points. Minimum allowed: -2000 points.`
                               : 'Please select monthly hours to continue.'
                       }
                     </p>

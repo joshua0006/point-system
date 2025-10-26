@@ -90,12 +90,12 @@ const ColdCallingCampaigns = () => {
           // UPGRADE: Charge difference immediately
           console.log(`Upgrading: Charging ${tierDiff} points now`);
 
-          // Check if balance would go below -1000 limit
+          // Check if balance would go below -2000 limit
           const balanceAfterCharge = userBalance - tierDiff;
-          if (balanceAfterCharge < -1000) {
+          if (balanceAfterCharge < -2000) {
             toast({
               title: "Balance Limit Exceeded",
-              description: `This upgrade would bring your balance to ${balanceAfterCharge} points. The minimum allowed balance is -1000 points.`,
+              description: `This upgrade would bring your balance to ${balanceAfterCharge} points. The minimum allowed balance is -2000 points.`,
               variant: "destructive"
             });
             setIsLaunching(false);
@@ -264,12 +264,12 @@ const ColdCallingCampaigns = () => {
         return;
       }
 
-      // Check if balance would go below -1000 limit
+      // Check if balance would go below -2000 limit
       const balanceAfterDeduction = userBalance - amountToDeduct;
-      if (balanceAfterDeduction < -1000) {
+      if (balanceAfterDeduction < -2000) {
         toast({
           title: "Balance Limit Exceeded",
-          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -1000 points.`,
+          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -2000 points.`,
           variant: "destructive"
         });
         setIsLaunching(false);
@@ -612,7 +612,7 @@ const ColdCallingCampaigns = () => {
             {/* Negative Balance Warning */}
             {!isTierChangeOperation && (profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0 && (
               <p className="text-sm text-destructive" role="alert">
-                Your balance will be negative (minimum allowed: -1000)
+                Your balance will be negative (minimum allowed: -2000)
               </p>
             )}
           </div>

@@ -139,7 +139,7 @@ export const UserTableRow = memo(function UserTableRow({
             onClick={() => onDeduct(user)}
             size="sm"
             variant="outline"
-            disabled={(user.flexi_credits_balance || 0) <= -500}
+            disabled={(user.flexi_credits_balance || 0) <= -2000}
           >
             <Minus className="w-4 h-4 mr-1" />
             Deduct

@@ -129,7 +129,7 @@ export const CampaignAngleSelector = ({ targetAudience, onSelectAngle, userBalan
         <div className="grid gap-4">
           {templates.map((template) => {
             const IconComponent = ANGLE_ICONS[template.campaign_angle as keyof typeof ANGLE_ICONS] || Target;
-            const canAfford = (userBalance - template.template_config.budget) >= -1000;
+            const canAfford = (userBalance - template.template_config.budget) >= -2000;
             const isSelected = selectedTemplate === template.id;
             
             return (
@@ -192,9 +192,9 @@ export const CampaignAngleSelector = ({ targetAudience, onSelectAngle, userBalan
                     </div>
                   ) : (
                      <div className="text-center py-2">
-                       <p className="text-sm text-muted-foreground">
-                         Balance limit exceeded (would bring balance to {userBalance - template.template_config.budget} points, minimum is -1000)
-                       </p>
+                        <p className="text-sm text-muted-foreground">
+                          Balance limit exceeded (would bring balance to {userBalance - template.template_config.budget} points, minimum is -2000)
+                        </p>
                      </div>
                   )}
                 </CardContent>

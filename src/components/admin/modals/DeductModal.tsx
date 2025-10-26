@@ -51,10 +51,10 @@ export function DeductModal({ user, open, onOpenChange, onSuccess }: DeductModal
     }
 
     const balanceAfter = (user.flexi_credits_balance || 0) - creditsAmount;
-    if (balanceAfter < -500) {
+    if (balanceAfter < -2000) {
       toast({
         title: "Balance Limit Exceeded",
-        description: `This would bring user's balance to ${balanceAfter} flexi credits. Minimum allowed balance is -500.`,
+        description: `This would bring user's balance to ${balanceAfter} flexi credits. Minimum allowed balance is -2000.`,
         variant: "destructive",
       });
       return;

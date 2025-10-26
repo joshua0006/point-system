@@ -127,7 +127,7 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
     if (!budget) return false;
     
     const balanceAfterDeduction = balance - budget;
-    return balanceAfterDeduction >= -1000;
+    return balanceAfterDeduction >= -2000;
   };
 
   if (loading) {
@@ -268,11 +268,11 @@ export function FacebookAdsCatalog({ onComplete, onBack, userBalance }: Facebook
               </div>
 
               {/* Balance Warning */}
-              {campaignData.budget && (userBalance - campaignData.budget) < -1000 && (
+              {campaignData.budget && (userBalance - campaignData.budget) < -2000 && (
                 <div className="bg-red-50 dark:bg-red-900/20 p-3 sm:p-4 rounded-lg border border-red-200 dark:border-red-800">
                   <p className="text-red-700 dark:text-red-400 text-sm">
                     <strong>Balance limit exceeded:</strong> This would bring your balance to {userBalance - campaignData.budget} points.
-                    The minimum allowed balance is -1000 points.
+                    The minimum allowed balance is -2000 points.
                   </p>
                 </div>
               )}

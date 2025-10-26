@@ -87,12 +87,12 @@ const VASupportCampaigns = () => {
           // UPGRADE: Charge difference immediately
           console.log(`Upgrading: Charging ${tierDiff} points now`);
 
-          // Check if balance would go below -1000 limit
+          // Check if balance would go below -2000 limit
           const balanceAfterCharge = userBalance - tierDiff;
-          if (balanceAfterCharge < -1000) {
+          if (balanceAfterCharge < -2000) {
             toast({
               title: "Balance Limit Exceeded",
-              description: `This upgrade would bring your balance to ${balanceAfterCharge} points. The minimum allowed balance is -1000 points.`,
+              description: `This upgrade would bring your balance to ${balanceAfterCharge} points. The minimum allowed balance is -2000 points.`,
               variant: "destructive"
             });
             setIsLaunching(false);
@@ -261,12 +261,12 @@ const VASupportCampaigns = () => {
         return;
       }
 
-      // Check if balance would go below -1000 limit
+      // Check if balance would go below -2000 limit
       const balanceAfterDeduction = userBalance - amountToDeduct;
-      if (balanceAfterDeduction < -1000) {
+      if (balanceAfterDeduction < -2000) {
         toast({
           title: "Balance Limit Exceeded",
-          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -1000 points.`,
+          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -2000 points.`,
           variant: "destructive"
         });
         setIsLaunching(false);
@@ -529,7 +529,7 @@ const VASupportCampaigns = () => {
                 }
               ].map((plan) => {
                 const balanceAfter = userBalance - plan.price;
-                const canAfford = balanceAfter >= -1000;
+                const canAfford = balanceAfter >= -2000;
 
                 // Check if this is current tier, upgrade, or downgrade
                 const isCurrentTier = hasActiveCampaign && existingCampaignData?.currentBudget === plan.price;
@@ -542,7 +542,7 @@ const VASupportCampaigns = () => {
                   ? plan.price - existingCampaignData.currentBudget
                   : plan.price;
                 const canAffordUpgrade = hasActiveCampaign && tierInfo.isUpgrade
-                  ? (userBalance - upgradeDifference) >= -1000
+                  ? (userBalance - upgradeDifference) >= -2000
                   : canAfford;
 
                 // Button state logic
@@ -569,9 +569,9 @@ const VASupportCampaigns = () => {
                 } else if (isCurrentTier) {
                   tooltipText = 'This is your current plan.';
                 } else if (tierInfo.isUpgrade && !canAffordUpgrade) {
-                  tooltipText = `Upgrade requires ${upgradeDifference} points immediately. This would bring your balance to ${userBalance - upgradeDifference} points. Minimum allowed: -1000 points.`;
+                  tooltipText = `Upgrade requires ${upgradeDifference} points immediately. This would bring your balance to ${userBalance - upgradeDifference} points. Minimum allowed: -2000 points.`;
                 } else if (!canAfford && !hasActiveCampaign) {
-                  tooltipText = `This would bring your balance to ${balanceAfter} points. Minimum allowed: -1000 points.`;
+                  tooltipText = `This would bring your balance to ${balanceAfter} points. Minimum allowed: -2000 points.`;
                 }
 
                 return (
@@ -678,13 +678,13 @@ const VASupportCampaigns = () => {
                       {/* Balance Warning for upgrades */}
                       {tierInfo.isUpgrade && !canAffordUpgrade && (
                         <p className="text-xs text-destructive mt-3">
-                          Upgrade requires {upgradeDifference} points (would bring balance to {userBalance - upgradeDifference}, minimum: -1000)
+                          Upgrade requires {upgradeDifference} points (would bring balance to {userBalance - upgradeDifference}, minimum: -2000)
                         </p>
                       )}
                       {/* Balance Warning for new campaigns */}
                       {!canAfford && !hasActiveCampaign && (
                         <p className="text-xs text-destructive mt-3">
-                          Would bring balance to {balanceAfter} points (minimum: -1000)
+                          Would bring balance to {balanceAfter} points (minimum: -2000)
                         </p>
                       )}
                     </CardContent>
@@ -826,7 +826,7 @@ const VASupportCampaigns = () => {
             {/* Negative Balance Warning */}
             {!isTierChangeOperation && (profile?.flexi_credits_balance || 0) - (pendingCampaign?.budget || 0) < 0 && (
               <p className="text-sm text-destructive" role="alert">
-                Your balance will be negative (minimum allowed: -1000)
+                Your balance will be negative (minimum allowed: -2000)
               </p>
             )}
           </div>

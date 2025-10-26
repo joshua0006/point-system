@@ -109,10 +109,10 @@ export const SmartBudgetCalculator = ({
             <span>S$500</span>
             <span>S${Math.min(userBalance, 3000)}</span>
           </div>
-          {(userBalance - budget) < -1000 && (
+          {(userBalance - budget) < -2000 && (
             <div className="flex items-center gap-1 text-xs text-red-600">
               <AlertCircle className="h-3 w-3" />
-              Balance limit exceeded (Would bring balance to {userBalance - budget} points, minimum is -1000)
+              Balance limit exceeded (Would bring balance to {userBalance - budget} points, minimum is -2000)
             </div>
           )}
         </div>

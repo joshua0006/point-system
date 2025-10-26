@@ -30,8 +30,8 @@ export const CampaignValidation = ({ budgetAmount, consultantName, userBalance, 
     warnings.push("Consider starting with a smaller budget to test performance");
   }
 
-  if (budget > 0 && (userBalance - budget) < -1000) {
-    errors.push(`Balance limit exceeded. This would bring your balance to $${userBalance - budget}. Minimum allowed balance is -$1000.`);
+  if (budget > 0 && (userBalance - budget) < -2000) {
+    errors.push(`Balance limit exceeded. This would bring your balance to $${userBalance - budget}. Minimum allowed balance is -$2000.`);
   }
 
   const isValid = errors.length === 0;

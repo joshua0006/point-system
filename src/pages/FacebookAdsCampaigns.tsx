@@ -302,12 +302,12 @@ const FacebookAdsCampaigns = () => {
       logger.log('Budget (monthly):', budget, 'Amount to deduct (now):', amountToDeduct, 'User Balance:', userBalance);
       logger.log('Pending Campaign:', pendingCampaign);
 
-      // Check if balance would go below -1000 limit
+      // Check if balance would go below -2000 limit
       const balanceAfterDeduction = userBalance - amountToDeduct;
-      if (balanceAfterDeduction < -1000) {
+      if (balanceAfterDeduction < -2000) {
         toast({
           title: "Balance Limit Exceeded", 
-          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -1000 points.`,
+          description: `This transaction would bring your balance to ${balanceAfterDeduction} points. The minimum allowed balance is -2000 points.`,
           variant: "destructive"
         });
         return;
@@ -573,7 +573,7 @@ const FacebookAdsCampaigns = () => {
               Math.max(1, Math.round((pendingCampaign?.budget * (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1)) / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))
               : pendingCampaign?.budget || 0) < 0 && (
               <p className="text-sm text-destructive" role="alert">
-                Your balance will be negative (minimum allowed: -1000)
+                Your balance will be negative (minimum allowed: -2000)
               </p>
             )}
           </div>
