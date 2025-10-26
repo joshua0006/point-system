@@ -281,7 +281,7 @@ export function UserDetailsModal({ user, open, onOpenChange }: UserDetailsModalP
                       {transactions.map((transaction) => (
                         <TableRow key={transaction.id}>
                           <TableCell>
-                            {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
+                            {format(new Date(transaction.created_at), 'dd/MM/yy')}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
