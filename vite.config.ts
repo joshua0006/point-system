@@ -96,17 +96,18 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-supabase';
             }
 
-            // LAZY LOAD: Heavy visualization libraries
+            // LAZY LOAD: Heavy visualization libraries (code-split for on-demand loading)
+            // These are NOT in initial bundle - loaded only when component using them renders
             if (id.includes('reactflow')) {
-              return 'vendor-reactflow';
+              return 'lazy-reactflow';
             }
 
             if (id.includes('recharts') || id.includes('recharts/')) {
-              return 'vendor-charts';
+              return 'lazy-charts';
             }
 
             if (id.includes('html2canvas')) {
-              return 'vendor-html2canvas';
+              return 'lazy-html2canvas';
             }
 
             // Utilities and smaller libraries (non-React)
@@ -124,10 +125,13 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-stripe';
             }
 
-            // All other vendor code
+            // Remaining vendor code (non-React, non-critical utilities)
+            // FUTURE OPTIMIZATION: Further split this bundle if it grows beyond 300KB
             return 'vendor-misc';
           }
         },
+        // Prioritize initial load chunks for faster rendering
+        inlineDynamicImports: false,
         // Optimize chunk file names for better caching
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
@@ -169,11 +173,11 @@ export default defineConfig(({ mode }) => ({
       'lucide-react', // Commonly used icons
       'date-fns', // Date utilities
     ],
-    // Exclude heavy deps from pre-bundling - these will be lazy loaded
+    // Exclude heavy deps from pre-bundling - load on-demand for better initial performance
     exclude: [
-      'html2canvas',
-      'reactflow',
-      'recharts',
+      'html2canvas',      // 199 KB - Only used in ad creative/flowchart export
+      'reactflow',        // Large - Only used in specific flowchart pages
+      'recharts',         // 234 KB - Only used in dashboard/analytics charts
       '@stripe/stripe-js', // Lazy load payment processing
       'embla-carousel-react', // Lazy load carousel
     ],

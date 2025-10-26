@@ -174,21 +174,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
 
               // DEFERRED: Subscription status (non-critical for initial render)
-              // Fetch in background without blocking
-              supabase.functions.invoke('check-subscription').then(subscriptionResult => {
+              // Fetch in background with additional delay to prioritize profile load
+              setTimeout(() => {
                 if (!mounted) return;
-              
-                if (!subscriptionResult.error) {
-                  logger.log('✅ Subscription loaded successfully:', subscriptionResult.data);
-                  setSubscription(subscriptionResult.data);
-                } else {
-                  console.error('❌ Error fetching subscription:', subscriptionResult.error);
-                  setSubscription(null);
-                }
-              }).catch(err => {
-                console.error('❌ Subscription fetch error:', err);
-                if (mounted) setSubscription(null);
-              });
+                supabase.functions.invoke('check-subscription').then(subscriptionResult => {
+                  if (!mounted) return;
+
+                  if (!subscriptionResult.error) {
+                    logger.log('✅ Subscription loaded successfully:', subscriptionResult.data);
+                    setSubscription(subscriptionResult.data);
+                  } else {
+                    console.error('❌ Error fetching subscription:', subscriptionResult.error);
+                    setSubscription(null);
+                  }
+                }).catch(err => {
+                  console.error('❌ Subscription fetch error:', err);
+                  if (mounted) setSubscription(null);
+                });
+              }, 100); // Small delay to let profile render first
 
               // Set up real-time subscription for profile updates
               if (realtimeChannel) {
@@ -314,22 +317,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               )
               .subscribe();
 
-            // Fetch subscription status
-            try {
-              const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('check-subscription');
-              
-              if (mounted) {
-                if (subscriptionError) {
-                  console.error('Subscription fetch error during init:', subscriptionError);
-                  setSubscription(null);
-                } else {
-                  setSubscription(subscriptionData);
-                  logger.log('Subscription loaded during init:', subscriptionData);
+            // PERFORMANCE: Defer subscription status to background (non-blocking)
+            // Prioritize profile load for faster initial render
+            setTimeout(() => {
+              if (!mounted) return;
+
+              supabase.functions.invoke('check-subscription').then(({ data: subscriptionData, error: subscriptionError }) => {
+                if (mounted) {
+                  if (subscriptionError) {
+                    console.error('Subscription fetch error during init:', subscriptionError);
+                    setSubscription(null);
+                  } else {
+                    setSubscription(subscriptionData);
+                    logger.log('Subscription loaded during init:', subscriptionData);
+                  }
                 }
-              }
-            } catch (err) {
-              console.error('Subscription fetch error during init:', err);
-            }
+              }).catch(err => {
+                console.error('Subscription fetch error during init:', err);
+                if (mounted) setSubscription(null);
+              });
+            }, 150); // Defer to prioritize profile rendering
           } catch (err) {
             console.error('Profile fetch error during init:', err);
           }
