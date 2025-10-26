@@ -1,9 +1,10 @@
 import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Eye, EyeOff } from "lucide-react";
 import { UserTableRow } from "./UserTableRow";
 import type { UserProfile } from "@/config/types";
 
@@ -19,9 +20,13 @@ interface UsersTableProps {
   onViewSubscription: (user: UserProfile) => void;
   onServiceAssignment: (user: UserProfile) => void;
   onAwardCredits: (user: UserProfile) => void;
+  onToggleHide: (user: UserProfile) => void;
   getSubscription: (userId: string) => any;
   isSubscriptionLoading: (userId: string) => boolean;
   userRole: string;
+  showHiddenUsers: boolean;
+  onToggleShowHidden: () => void;
+  hiddenUsersCount: number;
 }
 
 export const UsersTable = memo(function UsersTable({
@@ -36,19 +41,51 @@ export const UsersTable = memo(function UsersTable({
   onViewSubscription,
   onServiceAssignment,
   onAwardCredits,
+  onToggleHide,
   getSubscription,
   isSubscriptionLoading,
-  userRole
+  userRole,
+  showHiddenUsers,
+  onToggleShowHidden,
+  hiddenUsersCount
 }: UsersTableProps) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>User Management</CardTitle>
-          <Button onClick={onRefresh} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-3">
+            <CardTitle>User Management</CardTitle>
+            {hiddenUsersCount > 0 && (
+              <Badge variant="secondary">
+                {hiddenUsersCount} hidden
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {hiddenUsersCount > 0 && (
+              <Button 
+                onClick={onToggleShowHidden} 
+                variant="outline" 
+                size="sm"
+              >
+                {showHiddenUsers ? (
+                  <>
+                    <EyeOff className="w-4 h-4 mr-2" />
+                    Hide Hidden Users
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Show Hidden Users ({hiddenUsersCount})
+                  </>
+                )}
+              </Button>
+            )}
+            <Button onClick={onRefresh} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -80,6 +117,7 @@ export const UsersTable = memo(function UsersTable({
                     onViewSubscription={onViewSubscription}
                     onServiceAssignment={onServiceAssignment}
                     onAwardCredits={onAwardCredits}
+                    onToggleHide={onToggleHide}
                     getSubscription={getSubscription}
                     isSubscriptionLoading={isSubscriptionLoading}
                     userRole={userRole}

@@ -23,6 +23,7 @@ export interface Profile {
   couple_id: string | null;
   partner_name: string | null;
   onboarding_completed: boolean;
+  is_hidden?: boolean;
 }
 
 export interface UserProfile extends Profile {

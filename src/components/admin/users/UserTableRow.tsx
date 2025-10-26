@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Plus, Minus, Receipt, UserX, Trash2, Settings } from "lucide-react";
+import { Plus, Minus, Receipt, UserX, Trash2, Settings, Eye, EyeOff } from "lucide-react";
 import type { UserProfile } from "@/config/types";
 
 interface UserTableRowProps {
@@ -17,6 +17,7 @@ interface UserTableRowProps {
   onViewSubscription: (user: UserProfile) => void;
   onServiceAssignment: (user: UserProfile) => void;
   onAwardCredits: (user: UserProfile) => void;
+  onToggleHide: (user: UserProfile) => void;
   getSubscription: (userId: string) => any;
   isSubscriptionLoading: (userId: string) => boolean;
   userRole: string;
@@ -33,12 +34,14 @@ export const UserTableRow = memo(function UserTableRow({
   onViewSubscription,
   onServiceAssignment,
   onAwardCredits,
+  onToggleHide,
   getSubscription,
   isSubscriptionLoading,
   userRole
 }: UserTableRowProps) {
   const subscription = getSubscription(user.user_id);
   const loading = isSubscriptionLoading(user.user_id);
+  const isHidden = user.is_hidden || false;
 
   const renderSubscriptionBadge = () => {
     const badgeClass = "min-w-[120px] justify-center";
@@ -58,7 +61,7 @@ export const UserTableRow = memo(function UserTableRow({
     (userRole === 'admin' && user.role !== 'admin' && user.role !== 'master_admin');
 
   return (
-    <TableRow>
+    <TableRow className={isHidden ? "opacity-50" : ""}>
       <TableCell>
         <div 
           className="flex items-center space-x-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors" 
@@ -71,8 +74,15 @@ export const UserTableRow = memo(function UserTableRow({
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-medium">
-              {user.full_name || "No name"}
+            <div className="flex items-center gap-2">
+              <span className="font-medium">
+                {user.full_name || "No name"}
+              </span>
+              {isHidden && (
+                <Badge variant="secondary" className="text-xs">
+                  Hidden
+                </Badge>
+              )}
             </div>
             <div className="text-sm text-muted-foreground">
               {user.email}
@@ -151,6 +161,27 @@ export const UserTableRow = memo(function UserTableRow({
             <Settings className="w-4 h-4 mr-1" />
             Services
           </Button>
+
+          {user.role !== 'admin' && user.role !== 'master_admin' && (
+            <Button 
+              onClick={() => onToggleHide(user)} 
+              size="sm" 
+              variant="outline"
+              title={isHidden ? "Unhide user" : "Hide user"}
+            >
+              {isHidden ? (
+                <>
+                  <Eye className="w-4 h-4 mr-1" />
+                  Unhide
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-4 h-4 mr-1" />
+                  Hide
+                </>
+              )}
+            </Button>
+          )}
           
           {canDelete && (
             <Button onClick={() => onDelete(user)} size="sm" variant="destructive">

@@ -1216,6 +1216,89 @@ export type Database = {
         }
         Relationships: []
       }
+      email_template_usage: {
+        Row: {
+          client_email: string | null
+          id: string
+          template_id: string
+          used_at: string
+          user_id: string
+          was_sent: boolean
+        }
+        Insert: {
+          client_email?: string | null
+          id?: string
+          template_id: string
+          used_at?: string
+          user_id: string
+          was_sent?: boolean
+        }
+        Update: {
+          client_email?: string | null
+          id?: string
+          template_id?: string
+          used_at?: string
+          user_id?: string
+          was_sent?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_template_usage_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          subject_line: string
+          tags: string[] | null
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          subject_line: string
+          tags?: string[] | null
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          subject_line?: string
+          tags?: string[] | null
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flexi_credits_transactions: {
         Row: {
           amount: number
@@ -1804,6 +1887,7 @@ export type Database = {
           flexi_credits_balance: number
           full_name: string | null
           id: string
+          is_hidden: boolean
           onboarding_completed: boolean | null
           partner_name: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -1822,6 +1906,7 @@ export type Database = {
           flexi_credits_balance?: number
           full_name?: string | null
           id?: string
+          is_hidden?: boolean
           onboarding_completed?: boolean | null
           partner_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -1840,6 +1925,7 @@ export type Database = {
           flexi_credits_balance?: number
           full_name?: string | null
           id?: string
+          is_hidden?: boolean
           onboarding_completed?: boolean | null
           partner_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -2566,6 +2652,7 @@ export type Database = {
         Args: { credits_to_add: number; user_id: string }
         Returns: undefined
       }
+      is_admin: { Args: never; Returns: boolean }
       my_upcoming_flexi_charges: {
         Args: never
         Returns: {

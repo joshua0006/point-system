@@ -120,10 +120,39 @@ export function useUserActions() {
     }
   }, [toast]);
 
+  const toggleHideUser = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-user-management', {
+        body: { 
+          action: 'toggle_hide_user',
+          userId 
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: data.isHidden ? "User Hidden" : "User Unhidden",
+        description: data.message,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error toggling user hidden status:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to toggle user visibility. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [toast]);
+
   return {
     approveUser,
     revokeUser,
     deleteUser,
     updateUserCredits,
+    toggleHideUser,
   };
 }

@@ -12,7 +12,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
 
       // Smart refetching - only if data is stale
-      refetchOnMount: 'stale',
+      refetchOnMount: true,
 
       // Aggressive stale time for initial load performance (5 minutes)
       // Data considered fresh for longer to reduce initial load queries
@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 3000),
 
       // Background refetching only for stale data
-      refetchOnReconnect: 'stale',
+      refetchOnReconnect: true,
 
       // Network mode: prioritize cache for faster perceived performance
       networkMode: 'online',

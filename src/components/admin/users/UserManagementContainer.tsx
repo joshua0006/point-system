@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState, useMemo } from "react";
 import { useAdminUsers } from "@/hooks/admin/useAdminUsers";
 import { useUserSubscription } from '@/hooks/useUserSubscription';
 import { useAdminRealtime } from "@/hooks/admin/useAdminRealtime";
@@ -23,7 +23,7 @@ export const UserManagementContainer = memo(function UserManagementContainer({
   const { users, usersLoading, refreshAllUsers } = useAdminUsers();
   const { fetchUserSubscription, isLoading: isSubscriptionLoading, getSubscription } = useUserSubscription();
   const { profile } = useAuth();
-  const { revokeUser, deleteUser } = useUserActions();
+  const { revokeUser, deleteUser, toggleHideUser } = useUserActions();
   const { 
     selectedUser, 
     modalsState, 
@@ -34,6 +34,17 @@ export const UserManagementContainer = memo(function UserManagementContainer({
 
   const [awardModalOpen, setAwardModalOpen] = useState(false);
   const [selectedUserForAward, setSelectedUserForAward] = useState<UserProfile | null>(null);
+  const [showHiddenUsers, setShowHiddenUsers] = useState(false);
+
+  // Filter users based on hidden status
+  const filteredUsers = useMemo(() => {
+    if (showHiddenUsers) return users;
+    return users.filter(user => !user.is_hidden);
+  }, [users, showHiddenUsers]);
+
+  const hiddenUsersCount = useMemo(() => {
+    return users.filter(user => user.is_hidden).length;
+  }, [users]);
   
   // Set up real-time updates
   const handleDataChange = useCallback(() => {
@@ -102,6 +113,13 @@ export const UserManagementContainer = memo(function UserManagementContainer({
     setAwardModalOpen(true);
   }, []);
 
+  const handleToggleHide = useCallback(async (user: UserProfile) => {
+    const success = await toggleHideUser(user.user_id);
+    if (success) {
+      refreshAllUsers();
+    }
+  }, [toggleHideUser, refreshAllUsers]);
+
   if (usersLoading) {
     return (
       <div className="space-y-6">
@@ -123,7 +141,7 @@ export const UserManagementContainer = memo(function UserManagementContainer({
       <UserStatsCards users={users} />
       
       <UsersTable
-        users={users}
+        users={filteredUsers}
         onRefresh={refreshAllUsers}
         onTopUp={handleTopUp}
         onDeduct={handleDeduct}
@@ -134,9 +152,13 @@ export const UserManagementContainer = memo(function UserManagementContainer({
         onViewSubscription={handleViewSubscription}
         onServiceAssignment={handleServiceAssignment}
         onAwardCredits={handleAwardCredits}
+        onToggleHide={handleToggleHide}
         getSubscription={getSubscription}
         isSubscriptionLoading={isSubscriptionLoading}
         userRole={profile?.role || 'user'}
+        showHiddenUsers={showHiddenUsers}
+        onToggleShowHidden={() => setShowHiddenUsers(!showHiddenUsers)}
+        hiddenUsersCount={hiddenUsersCount}
       />
 
       <UserManagementModals

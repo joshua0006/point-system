@@ -9,8 +9,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    // Enable HTTP/2 for better multiplexing
-    https: false,
     // Optimize HMR
     hmr: {
       overlay: true,

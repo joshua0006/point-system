@@ -572,6 +572,56 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'toggle_hide_user') {
+      if (!userId) {
+        throw new Error("Valid userId required");
+      }
+
+      // Get current hidden status
+      const { data: currentProfile, error: fetchError } = await supabaseClient
+        .from('profiles')
+        .select('is_hidden, role, email, full_name')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) throw new Error(`Error fetching user profile: ${fetchError.message}`);
+
+      // Prevent hiding admins or master admins
+      if (currentProfile.role === 'admin' || currentProfile.role === 'master_admin') {
+        throw new Error("Cannot hide admin users");
+      }
+
+      // Prevent users from hiding themselves
+      if (userId === user.id) {
+        throw new Error("Cannot hide your own account");
+      }
+
+      // Toggle the hidden status
+      const newHiddenStatus = !currentProfile.is_hidden;
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({ is_hidden: newHiddenStatus })
+        .eq('user_id', userId);
+
+      if (updateError) throw new Error(`Error toggling user hidden status: ${updateError.message}`);
+
+      logStep("User hidden status toggled", { 
+        userId, 
+        userEmail: currentProfile.email, 
+        newStatus: newHiddenStatus ? 'hidden' : 'visible',
+        toggledBy: user.id 
+      });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `User ${newHiddenStatus ? 'hidden' : 'unhidden'} successfully`,
+        isHidden: newHiddenStatus
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     throw new Error("Invalid action");
 
   } catch (error) {
