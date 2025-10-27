@@ -57,13 +57,14 @@ export default defineConfig(({ mode }) => ({
     modulePreload: {
       polyfill: true,
       resolveDependencies: (_filename, deps) => {
-        // Preload only critical vendor chunks for faster initial render
-        // This prevents waterfall loading of essential dependencies
-        // vendor-react-core now includes base Radix UI components
+        // Preload all vendor chunks in correct dependency order
+        // vendor-utils depends on vendor-react-core, so both must be preloaded
+        // This prevents "useLayoutEffect of undefined" errors from race conditions
         return deps.filter(dep =>
           dep.includes('vendor-react-core') ||
           dep.includes('vendor-router') ||
-          dep.includes('vendor-query')
+          dep.includes('vendor-query') ||
+          dep.includes('vendor-utils')
         );
       },
     },
@@ -131,9 +132,10 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-date';
             }
 
-            // Everything else - pure utilities ONLY (no React dependencies)
-            // All React-dependent libs caught by comprehensive catch-all above
-            return 'vendor-utils';
+            // Everything else - bundle with React to avoid race conditions
+            // This ensures all unidentified dependencies load with React
+            // Prevents "useLayoutEffect of undefined" errors
+            return 'vendor-react-core';
           }
         },
         // Prioritize initial load chunks for faster rendering
