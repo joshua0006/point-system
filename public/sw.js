@@ -6,10 +6,18 @@ const STATIC_CACHE = 'agenthub-static-v1';
 const DYNAMIC_CACHE = 'agenthub-dynamic-v1';
 
 // Assets to cache immediately on install
+// CRITICAL: These are fetched and cached during Service Worker installation
+// for instant repeat-visit performance (Network Waterfall Optimization)
 const STATIC_ASSETS = [
   '/',
   '/fonts/montserrat-400-latin.woff2',
   '/fonts/montserrat-500-latin.woff2',
+  // Note: montserrat-600 removed (Phase 4 font optimization)
+  // Note: Vite-generated JS/CSS chunks are NOT listed here because:
+  // 1. Filenames include content hashes that change with each build
+  // 2. SW would need to be regenerated after every build
+  // 3. Instead, we cache them dynamically via fetch event (stale-while-revalidate)
+  // 4. This approach provides better cache invalidation and flexibility
 ];
 
 // Install event - cache static assets
@@ -82,10 +90,19 @@ self.addEventListener('fetch', (event) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
 
-          // Determine which cache to use
-          const cacheName = url.pathname.startsWith('/assets/')
-            ? STATIC_CACHE
-            : DYNAMIC_CACHE;
+          // Determine which cache to use based on asset type
+          let cacheName = DYNAMIC_CACHE;
+
+          // Static assets (vendor chunks, fonts, images)
+          if (url.pathname.startsWith('/assets/vendor-') ||
+              url.pathname.startsWith('/fonts/') ||
+              url.pathname.match(/\.(woff2?|ttf|eot|png|jpg|jpeg|gif|svg|ico)$/)) {
+            cacheName = STATIC_CACHE;
+          }
+          // Route chunks and other assets
+          else if (url.pathname.startsWith('/assets/')) {
+            cacheName = DYNAMIC_CACHE;
+          }
 
           caches.open(cacheName).then((cache) => {
             cache.put(request, responseToCache);

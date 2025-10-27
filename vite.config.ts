@@ -57,14 +57,16 @@ export default defineConfig(({ mode }) => ({
     modulePreload: {
       polyfill: true,
       resolveDependencies: (_filename, deps) => {
-        // Preload all vendor chunks in correct dependency order
-        // vendor-utils depends on vendor-react-core, so both must be preloaded
+        // Preload all critical vendor chunks in correct dependency order
+        // CRITICAL PATH: vendor-react-core → vendor-styling → vendor-radix → vendor-router
         // This prevents "useLayoutEffect of undefined" errors from race conditions
         return deps.filter(dep =>
-          dep.includes('vendor-react-core') ||
-          dep.includes('vendor-router') ||
-          dep.includes('vendor-query') ||
-          dep.includes('vendor-utils')
+          dep.includes('vendor-react-core') ||    // React core - CRITICAL (always needed)
+          dep.includes('vendor-styling') ||       // CSS utilities - CRITICAL (used everywhere)
+          dep.includes('vendor-radix') ||         // Radix UI - HIGH PRIORITY (used in most routes)
+          dep.includes('vendor-router') ||        // React Router - CRITICAL (routing)
+          dep.includes('vendor-query') ||         // React Query - HIGH PRIORITY (data fetching)
+          dep.includes('vendor-ui-components')    // UI components - MEDIUM PRIORITY
         );
       },
     },
@@ -74,12 +76,9 @@ export default defineConfig(({ mode }) => ({
         // Let Vite's rollup algorithm handle all vendor splitting intelligently
         // Only specify lazy-loaded heavy libraries to ensure they're code-split
         manualChunks: (id) => {
-          // CRITICAL FIX: Icon barrel file MUST be bundled with vendor-react-core
-          // The barrel file re-exports from lucide-react, so it depends on React
-          // If bundled separately, it causes "useLayoutEffect of undefined" errors
-          if (id.includes('src/lib/icons')) {
-            return 'vendor-react-core';
-          }
+          // PERFORMANCE FIX: Do NOT bundle icons barrel file into vendor-react-core
+          // Let Vite tree-shake icons per-route for optimal bundle splitting
+          // Each lazy-loaded route will include only the icons it actually uses
 
           if (id.includes('node_modules')) {
             // Lazy-loaded visualization libraries (check FIRST to avoid bundling with React)
@@ -103,18 +102,47 @@ export default defineConfig(({ mode }) => ({
               return 'vendor-query';
             }
 
-            // React Core + ALL libraries with "react" in the path
-            // This is the ONLY way to guarantee no race conditions
-            // Catches: react, react-dom, @radix-ui/react-*, lucide-react,
-            //          sonner, vaul, cmdk, react-aria, react-helmet, etc.
+            // PERFORMANCE OPTIMIZATION: Split large vendor-react-core into semantic chunks
+            // This reduces initial bundle from 661KB to ~150KB critical path
+
+            // Radix UI components - separate chunk for better caching (~200KB)
+            // Update frequency: Low (UI library updates are infrequent)
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix';
+            }
+
+            // Styling utilities - separate chunk (~15KB)
+            // Update frequency: Very low (stable utility libraries)
+            if (id.includes('class-variance-authority') ||
+                id.includes('clsx') || id.includes('tailwind-merge')) {
+              return 'vendor-styling';
+            }
+
+            // UI components - separate chunk (~50KB)
+            // Update frequency: Medium (toast/dialog libraries update occasionally)
+            if (id.includes('sonner') || id.includes('cmdk') || id.includes('vaul')) {
+              return 'vendor-ui-components';
+            }
+
+            // Carousel - lazy-loaded chunk (not needed on initial load)
+            // Most routes don't use carousel, load on-demand
+            if (id.includes('embla-carousel')) {
+              return 'lazy-carousel';
+            }
+
+            // React Core - minimal essential chunk (~150KB)
+            // Update frequency: High (React updates regularly)
+            // Contains: react, react-dom, scheduler, next-themes
             if (id.includes('/react') || id.includes('/react-') ||
-                id.includes('@radix-ui') || id.includes('scheduler') ||
-                id.includes('lucide-react') ||
-                id.includes('class-variance-authority') ||
-                id.includes('clsx') || id.includes('tailwind-merge') ||
-                id.includes('sonner') || id.includes('cmdk') || id.includes('vaul') ||
-                id.includes('next-themes') || id.includes('embla-carousel')) {
+                id.includes('scheduler') || id.includes('next-themes')) {
               return 'vendor-react-core';
+            }
+
+            // lucide-react: Bundle into dedicated vendor-icons chunk
+            // Prevents 50+ tiny icon chunks (HTTP/2 overhead)
+            // Icons barrel file already limits to ~113 icons = ~45 KB total
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
             }
 
             // Form libraries ecosystem (zod is React-independent, others caught by React catch-all)

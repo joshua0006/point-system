@@ -149,26 +149,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             lastAuthCheckTime.current = now;
 
             try {
-              // PERFORMANCE OPTIMIZATION: Parallel data fetching
-              // Fetch profile and subscription simultaneously instead of sequentially
+              // PERFORMANCE OPTIMIZATION: Profile-first loading strategy
+              // 1. Fetch profile immediately (critical for UI routing and role checks)
+              // 2. Defer subscription check to after first paint (not blocking)
               mark('profile-refetch-start');
-              mark('subscription-refetch-start');
 
-              const [profileResult, subscriptionResult] = await Promise.all([
-                // Profile fetch
-                supabase
-                  .from('profiles')
-                  .select('*')
-                  .eq('user_id', session.user.id.toString())
-                  .single(),
-                // Subscription fetch (parallel, not deferred)
-                supabase.functions.invoke('check-subscription'),
-              ]);
+              const profileResult = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id.toString())
+                .single();
 
               mark('profile-refetch-end');
-              mark('subscription-refetch-end');
               measure('Profile Refetch', 'profile-refetch-start', 'profile-refetch-end');
-              measure('Subscription Refetch', 'subscription-refetch-start', 'subscription-refetch-end');
 
               if (!mounted) return;
 
@@ -188,13 +181,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(null);
               }
 
-              // Handle subscription result
-              if (!subscriptionResult.error) {
-                logger.log('✅ Subscription loaded successfully:', subscriptionResult.data);
-                setSubscription(subscriptionResult.data);
+              // PERFORMANCE: Defer subscription check to avoid blocking first paint
+              // Use requestIdleCallback with timeout fallback for maximum deferral
+              const fetchSubscription = async () => {
+                if (!mounted) return;
+
+                mark('subscription-refetch-start');
+                const subscriptionResult = await supabase.functions.invoke('check-subscription');
+                mark('subscription-refetch-end');
+                measure('Subscription Refetch', 'subscription-refetch-start', 'subscription-refetch-end');
+
+                if (!mounted) return;
+
+                if (!subscriptionResult.error) {
+                  logger.log('✅ Subscription loaded successfully:', subscriptionResult.data);
+                  setSubscription(subscriptionResult.data);
+                } else {
+                  console.error('❌ Error fetching subscription:', subscriptionResult.error);
+                  setSubscription(null);
+                }
+              };
+
+              // Defer subscription fetch to after profile loads and first paint completes
+              if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => fetchSubscription(), { timeout: 3000 });
               } else {
-                console.error('❌ Error fetching subscription:', subscriptionResult.error);
-                setSubscription(null);
+                setTimeout(fetchSubscription, 100); // Fallback: small delay
               }
 
               // Set up real-time subscription for profile updates
