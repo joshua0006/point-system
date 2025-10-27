@@ -15,12 +15,23 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Button } from '@/components/ui/button';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
+import { useChunkPrefetch } from '@/hooks/useChunkPrefetch';
 
 const Marketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedTier, setSelectedTier] = useState<string>('All');
   const isMobile = useIsMobile();
+
+  // Prefetch likely next pages from marketplace
+  useChunkPrefetch({
+    imports: [
+      () => import('@/pages/ServiceDetail'),
+      () => import('@/pages/Services'),
+    ],
+    priority: 'low',
+    delay: 2000,
+  });
   
   const navigate = useNavigate();
   const { toast } = useToast();

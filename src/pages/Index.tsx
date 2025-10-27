@@ -8,12 +8,25 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { FocusIndicator } from '@/components/a11y/FocusIndicator';
 import { Link } from 'react-router-dom';
 import { Megaphone, Gift, BarChart3, Target, Phone, Headphones, Sparkles, Heart, TrendingUp, ChevronRight } from 'lucide-react';
+import { useChunkPrefetch } from '@/hooks/useChunkPrefetch';
 
 const Index = () => {
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Prefetch high-traffic pages for instant navigation
+  useChunkPrefetch({
+    imports: [
+      () => import('@/pages/Campaigns'),
+      () => import('@/pages/Gifting'),
+      () => import('@/pages/Marketplace'),
+      () => import('@/pages/UserDashboard'),
+    ],
+    priority: 'high',
+    delay: 1500,
+  });
 
   return (
     <SidebarLayout title="Dashboard" description="Welcome to your AgentHub dashboard">

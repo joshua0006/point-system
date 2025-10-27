@@ -15,7 +15,7 @@ import { useUserCampaigns } from "@/hooks/useUserCampaigns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FixUpgradeButton } from "@/components/FixUpgradeButton";
-import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { useChunkPrefetch } from '@/hooks/useChunkPrefetch';
 import { UserRecurringDeductions } from "@/components/dashboard/UserRecurringDeductions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionsTable } from "@/components/wallet/TransactionsTable";
@@ -41,9 +41,13 @@ export default function UserDashboard() {
   const tabParam = searchParams.get('tab');
   const queryClient = useQueryClient();
 
-  // Prefetch common routes for faster navigation
-  useRoutePrefetch({
-    routes: ['/marketplace', '/services', '/messages', '/settings'],
+  // Prefetch common route chunks for faster navigation
+  useChunkPrefetch({
+    imports: [
+      () => import('@/pages/Marketplace'),
+      () => import('@/pages/Services'),
+      () => import('@/pages/Settings'),
+    ],
     priority: 'low',
     delay: 2000,
   });
