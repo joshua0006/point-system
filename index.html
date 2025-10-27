@@ -25,12 +25,7 @@
     <link rel="preload" href="/fonts/montserrat-500-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/montserrat-600-latin.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- PERFORMANCE OPTIMIZATION: Critical JavaScript Preloading -->
-    <!-- Preload critical vendor chunks to eliminate waterfall loading -->
-    <!-- These chunks are required for initial React render and should load ASAP -->
-    <link rel="modulepreload" href="/src/main.tsx" />
-    <link rel="modulepreload" href="/src/App.tsx" />
-    <link rel="preload" as="script" crossorigin href="/src/main.tsx" />
+    <!-- PERFORMANCE OPTIMIZATION: Vite automatically handles modulepreload -->
     <title>AgentHub - Marketing Campaigns & Client Gifting Platform</title>
     <meta name="description" content="A modern marketplace platform combining marketing campaign management with client relationship gifting to help businesses manage outreach and strengthen client connections." />
     <meta name="author" content="AgentHub" />
