@@ -16,7 +16,6 @@ import {
   Settings,
   Bot,
   Briefcase,
-  Link as LinkIcon,
   Archive,
   Wallet,
   Target,
