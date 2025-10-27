@@ -141,7 +141,7 @@ export const generatePerformanceReport = (): void => {
 function identifyBottlenecks(measures: Array<{ name: string; duration: number }>): BottleneckInfo[] {
   return measures
     .map(m => {
-      const type = m.duration > 100 ? 'critical' : m.duration > 50 ? 'warning' : 'info';
+      const type: 'critical' | 'warning' | 'info' = m.duration > 100 ? 'critical' : m.duration > 50 ? 'warning' : 'info';
       const recommendation = getRecommendation(m.name, m.duration);
 
       return {
