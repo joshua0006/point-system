@@ -1,5 +1,6 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PrefetchLink } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMode } from "@/contexts/ModeContext";
@@ -111,14 +112,14 @@ export function Navigation() {
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4 sm:space-x-8">
-              <Link to="/" className="flex items-center space-x-2">
+              <PrefetchLink to="/" className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center">
                   <Wallet className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg sm:text-xl text-foreground">
                   {isMobile ? "Hub" : "AgentHub"}
                 </span>
-              </Link>
+              </PrefetchLink>
               
               <div className="hidden md:flex items-center space-x-1">
                 {filteredNavItems.map((item) => {
@@ -141,22 +142,22 @@ export function Navigation() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-48">
                           <DropdownMenuItem asChild>
-                            <Link to="/services" className="flex items-center space-x-2 cursor-pointer">
+                            <PrefetchLink to="/services" className="flex items-center space-x-2 cursor-pointer">
                               <Search className="w-4 h-4" />
                               <span>Services</span>
-                            </Link>
+                            </PrefetchLink>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link to="/campaigns" className="flex items-center space-x-2 cursor-pointer">
+                            <PrefetchLink to="/campaigns" className="flex items-center space-x-2 cursor-pointer">
                               <Megaphone className="w-4 h-4" />
                               <span>Campaigns</span>
-                            </Link>
+                            </PrefetchLink>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link to="/gifting" className="flex items-center space-x-2 cursor-pointer">
+                            <PrefetchLink to="/gifting" className="flex items-center space-x-2 cursor-pointer">
                               <Gift className="w-4 h-4" />
                               <span>Gifting</span>
-                            </Link>
+                            </PrefetchLink>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -164,7 +165,7 @@ export function Navigation() {
                   }
                   
                   return (
-                    <Link key={item.path} to={item.path}>
+                    <PrefetchLink key={item.path} to={item.path}>
                       <Button
                         variant={isActive(item.path) ? "default" : "ghost"}
                         size="sm"
@@ -176,7 +177,7 @@ export function Navigation() {
                           <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                         )}
                       </Button>
-                    </Link>
+                    </PrefetchLink>
                   );
                 })}
               </div>
@@ -245,36 +246,36 @@ export function Navigation() {
                                   <div className="px-3 py-2 text-sm font-medium text-muted-foreground">
                                     Marketplace
                                   </div>
-                                  <Link
+                                  <PrefetchLink
                                     to="/services"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent"
                                   >
                                     <Search className="w-4 h-4 mr-3" />
                                     Services
-                                  </Link>
-                                  <Link
+                                  </PrefetchLink>
+                                  <PrefetchLink
                                     to="/campaigns"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent"
                                   >
                                     <Megaphone className="w-4 h-4 mr-3" />
                                     Campaigns
-                                  </Link>
-                                  <Link
+                                  </PrefetchLink>
+                                  <PrefetchLink
                                     to="/gifting"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent"
                                   >
                                     <Gift className="w-4 h-4 mr-3" />
                                     Gifting
-                                  </Link>
+                                  </PrefetchLink>
                                 </div>
                               );
                             }
                             
                             return (
-                              <Link
+                              <PrefetchLink
                                 key={item.path}
                                 to={item.path}
                                 onClick={() => setMobileMenuOpen(false)}
@@ -285,27 +286,27 @@ export function Navigation() {
                                 {item.hasNotification && (
                                   <div className="absolute right-3 w-2 h-2 bg-red-500 rounded-full"></div>
                                 )}
-                              </Link>
+                              </PrefetchLink>
                             );
                           })}
                           
                           <div className="border-t pt-4 mt-4 space-y-1">
-                            <Link
+                            <PrefetchLink
                               to={getProfilePath()}
                               onClick={() => setMobileMenuOpen(false)}
                               className="flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors hover:bg-accent"
                             >
                               <User className="w-5 h-5 mr-3" />
                               Profile
-                            </Link>
-                            <Link
+                            </PrefetchLink>
+                            <PrefetchLink
                               to="/settings"
                               onClick={() => setMobileMenuOpen(false)}
                               className="flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors hover:bg-accent"
                             >
                               <Settings className="w-5 h-5 mr-3" />
                               Settings
-                            </Link>
+                            </PrefetchLink>
                             <Button
                               variant="ghost"
                               onClick={() => {
@@ -330,16 +331,16 @@ export function Navigation() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
-                          <Link to={getProfilePath()} className="flex items-center space-x-2 cursor-pointer">
+                          <PrefetchLink to={getProfilePath()} className="flex items-center space-x-2 cursor-pointer">
                             <User className="w-4 h-4" />
                             <span>Profile</span>
-                          </Link>
+                          </PrefetchLink>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/settings" className="flex items-center space-x-2 cursor-pointer">
+                          <PrefetchLink to="/settings" className="flex items-center space-x-2 cursor-pointer">
                             <Settings className="w-4 h-4" />
                             <span>Settings</span>
-                          </Link>
+                          </PrefetchLink>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">
@@ -353,10 +354,10 @@ export function Navigation() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size={isMobile ? "sm" : "sm"} asChild>
-                    <Link to="/auth">{isMobile ? "Login" : "Login"}</Link>
+                    <PrefetchLink to="/auth">{isMobile ? "Login" : "Login"}</PrefetchLink>
                   </Button>
                   <Button size={isMobile ? "sm" : "sm"} asChild>
-                    <Link to="/auth">{isMobile ? "Sign Up" : "Sign Up"}</Link>
+                    <PrefetchLink to="/auth">{isMobile ? "Sign Up" : "Sign Up"}</PrefetchLink>
                   </Button>
                 </div>
               )}

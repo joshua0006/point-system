@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PrefetchLink } from "@/components/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -80,7 +81,7 @@ export function BreadcrumbsBar() {
                 <BreadcrumbItem>
                   {idx < crumbs.length - 1 ? (
                     <BreadcrumbLink asChild>
-                      <Link to={c.href}>{c.name}</Link>
+                      <PrefetchLink to={c.href}>{c.name}</PrefetchLink>
                     </BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{c.name}</BreadcrumbPage>

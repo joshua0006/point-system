@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Performance Mark: HTML Start -->
+    <script>
+      if (typeof performance !== 'undefined' && performance.mark) {
+        performance.mark('app:html-start');
+        console.log('[PERF] 🏁 HTML Start: 0ms');
+      }
+    </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -31,7 +39,26 @@
   </head>
 
   <body>
+    <!-- Performance Mark: Body Start -->
+    <script>
+      if (typeof performance !== 'undefined' && performance.mark) {
+        performance.mark('app:body-start');
+        const bodyTime = performance.now();
+        console.log('[PERF] 📍 Body Start: ' + bodyTime.toFixed(2) + 'ms');
+      }
+    </script>
+
     <div id="root"></div>
+
+    <!-- Performance Mark: Before Main Script -->
+    <script>
+      if (typeof performance !== 'undefined' && performance.mark) {
+        performance.mark('app:before-main-script');
+        const scriptTime = performance.now();
+        console.log('[PERF] 📍 Before Main Script: ' + scriptTime.toFixed(2) + 'ms');
+      }
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
 
     <!-- Service Worker Registration for Performance (Production Only) -->

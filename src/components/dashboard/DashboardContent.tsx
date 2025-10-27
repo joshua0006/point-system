@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { PrefetchLink } from "@/components/navigation";
 import { TrendingUp, Target, Plus, Wallet } from "lucide-react";
 import { Transaction } from "@/hooks/useDashboard";
 import { ModalType } from "@/hooks/useDashboardModals";
@@ -131,9 +131,9 @@ export const DashboardContent = memo(({
             My Campaigns
           </div>
           <Button asChild variant="outline" size="sm" aria-label="View all campaigns">
-            <Link to="/campaigns/my-campaigns">
+            <PrefetchLink to="/campaigns/my-campaigns">
               View All
-            </Link>
+            </PrefetchLink>
           </Button>
         </CardTitle>
       </CardHeader>
@@ -168,10 +168,10 @@ export const DashboardContent = memo(({
           <div className="text-center py-4" role="status">
             <p className="text-muted-foreground mb-3">No campaigns yet</p>
             <Button asChild size="sm" aria-label="Launch your first campaign">
-              <Link to="/campaigns/launch">
+              <PrefetchLink to="/campaigns/launch">
                 <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
                 Launch Campaign
-              </Link>
+              </PrefetchLink>
             </Button>
           </div>
         )}

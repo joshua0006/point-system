@@ -6,7 +6,8 @@ import { TopUpModal } from "@/components/TopUpModal"
 import { ModeToggle } from "@/components/ModeToggle"
 import { useMode } from "@/contexts/ModeContext"
 import { Button } from "@/components/ui/button"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import { PrefetchLink } from "@/components/navigation"
 import { useAwardedCredits } from "@/hooks/useAwardedCredits"
 import { 
   User, 
@@ -88,21 +89,21 @@ const SidebarLayoutComponent = ({ children, title, description }: SidebarLayoutP
         <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
-              <Link to="/" className="flex items-center space-x-2">
+              <PrefetchLink to="/" className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
                   <Wallet className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg sm:text-xl text-foreground">
                   AgentHub
                 </span>
-              </Link>
+              </PrefetchLink>
               
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/auth">Login</Link>
+                  <PrefetchLink to="/auth">Login</PrefetchLink>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/auth">Sign Up</Link>
+                  <PrefetchLink to="/auth">Sign Up</PrefetchLink>
                 </Button>
               </div>
             </div>
@@ -193,16 +194,16 @@ const SidebarLayoutComponent = ({ children, title, description }: SidebarLayoutP
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem asChild>
-                      <Link to={getProfilePath()} className="flex items-center space-x-2 cursor-pointer">
+                      <PrefetchLink to={getProfilePath()} className="flex items-center space-x-2 cursor-pointer">
                         <User className="w-4 h-4" />
                         <span>Profile</span>
-                      </Link>
+                      </PrefetchLink>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/settings" className="flex items-center space-x-2 cursor-pointer">
+                      <PrefetchLink to="/settings" className="flex items-center space-x-2 cursor-pointer">
                         <Settings className="w-4 h-4" />
                         <span>Settings</span>
-                      </Link>
+                      </PrefetchLink>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut} className="text-red-600 focus:text-red-600">

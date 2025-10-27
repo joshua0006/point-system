@@ -1,5 +1,6 @@
 import * as React from "react"
-import { NavLink, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { PrefetchNavLink } from "@/components/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { useMode } from "@/contexts/ModeContext"
 import {
@@ -183,7 +184,7 @@ export function AppSidebar() {
                 const isItemActive = currentPath === item.url || (item.url !== "/" && currentPath.startsWith(item.url))
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <NavLink
+                    <PrefetchNavLink
                       to={item.url}
                       end={item.url === "/"}
                       aria-label={item.title}
@@ -206,7 +207,7 @@ export function AppSidebar() {
                           )}
                         </SidebarMenuButton>
                       )}
-                    </NavLink>
+                    </PrefetchNavLink>
                   </SidebarMenuItem>
                 )
               })}
@@ -226,7 +227,7 @@ export function AppSidebar() {
                   const isItemActive = currentPath === item.url || currentPath.startsWith(item.url)
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <NavLink
+                      <PrefetchNavLink
                         to={item.url}
                         aria-label={item.title}
                         aria-current={isItemActive ? "page" : undefined}
@@ -248,7 +249,7 @@ export function AppSidebar() {
                             )}
                           </SidebarMenuButton>
                         )}
-                      </NavLink>
+                      </PrefetchNavLink>
                     </SidebarMenuItem>
                   )
                 })}

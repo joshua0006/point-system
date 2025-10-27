@@ -3,6 +3,16 @@ import { StrictMode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App.tsx'
 import './index.css'
+import { mark, measure, initPerformanceMonitoring } from './utils/performance'
+
+// Performance: Mark React imports complete
+mark('react-imports-complete');
+
+// Performance: Initialize monitoring
+initPerformanceMonitoring();
+
+// Performance: Mark QueryClient creation start
+mark('query-client-start');
 
 // React Query client - optimized for initial page load performance
 const queryClient = new QueryClient({
@@ -39,6 +49,13 @@ const queryClient = new QueryClient({
   },
 });
 
+// Performance: Mark QueryClient created
+mark('query-client-created');
+measure('QueryClient Creation', 'query-client-start', 'query-client-created');
+
+// Performance: Mark React render start
+mark('react-render-start');
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -46,3 +63,7 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </StrictMode>
 );
+
+// Performance: Mark render initiated
+mark('react-render-initiated');
+measure('React Render Setup', 'react-render-start', 'react-render-initiated');

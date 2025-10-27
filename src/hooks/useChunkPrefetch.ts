@@ -79,10 +79,10 @@ export function useChunkPrefetch({
  * ```
  */
 export function useHoverChunkPrefetch() {
-  const prefetchChunk = (importFn: () => Promise<any>) => {
+  const prefetchChunk = (importFn: () => Promise<any>): Promise<void> => {
     // Trigger dynamic import on hover
     // By the time user clicks, chunk is likely already downloaded
-    importFn().catch(() => {
+    return importFn().catch(() => {
       // Silently fail - hover prefetch is optional optimization
       console.debug('Hover prefetch failed (non-critical)');
     });

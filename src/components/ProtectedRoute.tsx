@@ -1,10 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth, AuthContext } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, AlertCircle, CheckCircle, XCircle, LogOut } from 'lucide-react';
+import { mark, measure, now } from '@/utils/performance';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,13 +14,47 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Check if AuthContext is available first
   const authContext = useContext(AuthContext);
-  
+  const { user, profile, loading, signOut } = authContext || {};
+
+  // ✅ ALL HOOKS AT THE TOP (Rules of Hooks compliance)
+  // Performance tracking - runs on mount
+  useEffect(() => {
+    mark('protected-route-start');
+    console.log('[PERF] 🔐 ProtectedRoute guard evaluation:', now().toFixed(2), 'ms');
+  }, []);
+
+  // Track loading state
+  useEffect(() => {
+    if (loading) {
+      mark('protected-route-loading');
+      console.log('[PERF] 🔐 ProtectedRoute showing loading spinner:', now().toFixed(2), 'ms');
+    }
+  }, [loading]);
+
+  // Track when guard passes (user authenticated and profile loaded)
+  useEffect(() => {
+    if (!loading && user && profile) {
+      mark('protected-route-guard-passed');
+      measure('ProtectedRoute Guard', 'protected-route-start', 'protected-route-guard-passed');
+      console.log('[PERF] ✅ ProtectedRoute guard passed:', now().toFixed(2), 'ms');
+    }
+  }, [loading, user, profile]);
+
+  // Track approval status screens
+  useEffect(() => {
+    if (profile?.approval_status === 'pending') {
+      mark('protected-route-pending-approval');
+      console.log('[PERF] ⏳ ProtectedRoute showing pending approval:', now().toFixed(2), 'ms');
+    }
+  }, [profile?.approval_status]);
+
+  // NOW SAFE TO DO CONDITIONAL LOGIC AND RETURNS
+
   // If no auth context, redirect to auth page
   if (!authContext) {
+    mark('protected-route-no-context');
     return <Navigate to="/auth" replace />;
   }
-  
-  const { user, profile, loading, signOut } = authContext;
 
   if (loading) {
     return (
@@ -30,6 +65,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
+    mark('protected-route-no-user');
     return <Navigate to="/auth" replace />;
   }
 

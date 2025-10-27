@@ -16,7 +16,7 @@ import { FacebookAdsCatalog } from "@/components/campaigns/FacebookAdsCatalog";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { SuperAdminInterface } from "@/components/campaigns/SuperAdminInterface";

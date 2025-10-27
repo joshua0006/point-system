@@ -1,10 +1,11 @@
 import { memo, useMemo } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { 
-  TrendingUp, 
-  Settings, 
-  DollarSign, 
-  Briefcase, 
+import { useLocation } from "react-router-dom";
+import { PrefetchNavLink } from "@/components/navigation";
+import {
+  TrendingUp,
+  Settings,
+  DollarSign,
+  Briefcase,
   Target,
   Receipt
 } from "lucide-react";
@@ -67,20 +68,20 @@ export const AdminNavigation = memo(function AdminNavigation({ className }: Admi
     const isActive = isActiveRoute(item);
     
     return (
-      <NavLink
+      <PrefetchNavLink
         key={item.path}
         to={item.path}
         className={cn(
           "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
           "hover:bg-background/80",
-          isActive 
-            ? "bg-background text-foreground shadow-sm" 
+          isActive
+            ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
       >
         <Icon className="w-4 h-4" />
         {item.label}
-      </NavLink>
+      </PrefetchNavLink>
     );
   }), [isActiveRoute]);
 

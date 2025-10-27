@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState, useMemo, useCall
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { mark, measure, startTimer, trackOperation } from '@/utils/performance';
 
 interface Profile {
   id: string;
@@ -149,11 +150,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             try {
               // CRITICAL: Profile first (needed for auth decisions)
+              mark('profile-refetch-start');
               const profileResult = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('user_id', session.user.id.toString())
                 .single();
+              mark('profile-refetch-end');
+              measure('Profile Refetch', 'profile-refetch-start', 'profile-refetch-end');
 
               if (!mounted) return;
 
@@ -177,7 +181,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Fetch in background with additional delay to prioritize profile load
               setTimeout(() => {
                 if (!mounted) return;
+                mark('subscription-refetch-start');
                 supabase.functions.invoke('check-subscription').then(subscriptionResult => {
+                  mark('subscription-refetch-end');
+                  measure('Subscription Refetch', 'subscription-refetch-start', 'subscription-refetch-end');
                   if (!mounted) return;
 
                   if (!subscriptionResult.error) {
@@ -252,8 +259,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session on component mount
     const initializeAuth = async () => {
+      mark('auth-init-start');
+      logger.log('[AUTH] Initialization started');
+
       try {
+        mark('session-check-start');
         const { data: { session }, error } = await supabase.auth.getSession();
+        mark('session-check-end');
+        measure('Session Check', 'session-check-start', 'session-check-end');
         if (!mounted) return;
         
         if (error) {
@@ -269,11 +282,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           try {
             // Fetch profile
+            mark('profile-fetch-start');
             const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id.toString())
               .single();
+            mark('profile-fetch-end');
+            measure('Profile Fetch', 'profile-fetch-start', 'profile-fetch-end');
             
             if (mounted) {
               if (error) {
@@ -294,10 +310,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             // Set up real-time subscription for profile updates
+            mark('realtime-setup-start');
             if (realtimeChannel) {
               supabase.removeChannel(realtimeChannel);
             }
-            
+
             realtimeChannel = supabase
               .channel('profile-changes')
               .on(
@@ -316,13 +333,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               )
               .subscribe();
+            mark('realtime-setup-end');
+            measure('Realtime Setup', 'realtime-setup-start', 'realtime-setup-end');
 
             // PERFORMANCE: Defer subscription status to background (non-blocking)
             // Prioritize profile load for faster initial render
             setTimeout(() => {
               if (!mounted) return;
 
+              mark('subscription-fetch-start');
               supabase.functions.invoke('check-subscription').then(({ data: subscriptionData, error: subscriptionError }) => {
+                mark('subscription-fetch-end');
+                measure('Subscription Fetch', 'subscription-fetch-start', 'subscription-fetch-end');
                 if (mounted) {
                   if (subscriptionError) {
                     console.error('Subscription fetch error during init:', subscriptionError);
@@ -341,9 +363,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Profile fetch error during init:', err);
           }
         }
-        
+
         if (mounted) {
           setLoading(false);
+          mark('auth-init-end');
+          measure('Auth Initialization', 'auth-init-start', 'auth-init-end');
+          logger.log('[AUTH] Initialization complete');
         }
       } catch (err) {
         console.error('Auth initialization error:', err);
