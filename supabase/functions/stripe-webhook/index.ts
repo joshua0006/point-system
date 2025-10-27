@@ -115,7 +115,7 @@ serve(async (req) => {
             user_id: userId,
             amount: creditsFromPayment,
             type: 'purchase',
-            description: `Unlock credits top-up - Session ${session.id}`
+            description: `Payment: $${paymentAmount} to unlock ${creditsToUnlock} AFC (added ${creditsFromPayment} FXC)`
           })
           .select('id')
           .single();

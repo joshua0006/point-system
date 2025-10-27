@@ -205,14 +205,15 @@ serve(async (req) => {
       throw new Error(`Failed to update balance: ${balanceError.message}`);
     }
 
-    // Record transaction
+    // Record transaction with total benefit shown
+    const totalFXCFromUnlock = amountToUnlock + Number(transaction.amount);
     await supabase
       .from('flexi_credits_transactions')
       .insert({
         user_id: userId,
         type: 'credit',
         amount: amountToUnlock,
-        description: `Unlocked ${amountToUnlock} awarded flexi credits`
+        description: `Unlocked ${amountToUnlock} AFC from $${transaction.amount} payment (total benefit: ${totalFXCFromUnlock} FXC)`
       });
 
     // Get updated balance

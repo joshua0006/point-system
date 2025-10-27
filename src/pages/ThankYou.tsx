@@ -50,19 +50,23 @@ const ThankYou = () => {
         };
 
       case 'unlock':
+        const paymentCredits = amount ? parseFloat(amount) : 0;
+        const unlockedCredits = unlocked ? parseFloat(unlocked) : 0;
+        const totalCredits = paymentCredits + unlockedCredits;
+
         return {
           title: 'Awarded Credits Unlocked! 🔓',
           subtitle: 'Your awarded credits are now usable',
           icon: Unlock,
           details: [
-            { label: 'Payment Amount', value: `$${amount}` },
-            { label: 'Credits Unlocked', value: `${unlocked} FXC` },
-            { label: 'Unlock Ratio', value: '2:1' }
+            { label: 'Payment Amount', value: `$${amount} → +${paymentCredits} FXC` },
+            { label: 'AFC Unlocked', value: `${unlocked} → +${unlockedCredits} FXC` },
+            { label: '✨ Total Benefit', value: `+${totalCredits} FXC` }
           ],
           nextSteps: [
-            'Your awarded credits have been unlocked',
-            'Payment credits have also been added to your balance',
-            'Start using your credits immediately'
+            `You paid $${amount} and received ${paymentCredits} FXC`,
+            `This payment also unlocked ${unlockedCredits} AFC`,
+            `Total added to your balance: ${totalCredits} FXC - start using immediately!`
           ],
           primaryAction: { label: 'View Wallet', path: '/dashboard' },
           secondaryAction: { label: 'Browse Services', path: '/marketplace' }
