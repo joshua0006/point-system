@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, DollarSign, User } from "lucide-react";
+import { AlertTriangle, CheckCircle, DollarSign, User } from '@/lib/icons';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CampaignValidationProps {

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Phone, MessageSquare, Clock, Edit2, Save, X, Users, ExternalLink } from "lucide-react";
+import { Phone, MessageSquare, Clock, Edit2, Save, X, Users, ExternalLink } from '@/lib/icons';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 

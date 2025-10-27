@@ -17,7 +17,7 @@ import {
   TrendingDown,
   Calendar,
   User
-} from "lucide-react";
+} from '@/lib/icons';
 
 export function GlobalTransactionLedger() {
   const [filters, setFilters] = useState({

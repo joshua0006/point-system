@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, MessageSquare, CalendarClock, CalendarX2, ExternalLink, ArrowLeft } from "lucide-react";
+import { Check, MessageSquare, CalendarClock, CalendarX2, ExternalLink, ArrowLeft } from '@/lib/icons';
 import React from "react";
 
 interface VASupportPlansProps {

@@ -9,7 +9,7 @@ import {
   Calendar, 
   Edit,
   Target
-} from 'lucide-react';
+} from '@/lib/icons';
 import { ExperienceLevelInfo } from '@/utils/profileUtils';
 
 interface BuyerProfileHeaderProps {

@@ -39,7 +39,7 @@ import {
   ArrowUpDown,
   TrendingDown,
   BookOpen
-} from "lucide-react";
+} from '@/lib/icons';
 
 type TimeScale = "lifetime" | "yearly" | "monthly";
 type EarningsMode = "earnings" | "spendings";

@@ -25,7 +25,7 @@ import { AwardedCreditsCard } from "@/components/wallet/AwardedCreditsCard";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wallet, Clock, Lock } from "lucide-react";
+import { Wallet, Clock, Lock } from '@/lib/icons';
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { TopUpModal } from "@/components/TopUpModal";
 import { AwardedCreditsUnlockModal } from "@/components/wallet/AwardedCreditsUnlockModal";

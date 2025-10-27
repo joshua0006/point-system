@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Plus, DollarSign, Star, Clock, Calendar, MapPin, ArrowUp, ArrowDown, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, Plus, DollarSign, Star, Clock, Calendar, MapPin, ArrowUp, ArrowDown, Wallet } from '@/lib/icons';
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useReviews, useRatingStats } from "@/hooks/useReviews";
 import { UserStats } from "@/hooks/useDashboard";

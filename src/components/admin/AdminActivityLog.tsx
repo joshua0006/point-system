@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity } from "lucide-react";
+import { Activity } from '@/lib/icons';
 import { RecentActivity } from "@/hooks/useAdminDashboard";
 
 interface AdminActivityLogProps {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Wand2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Copy, Wand2, ChevronUp, ChevronDown } from '@/lib/icons';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useScriptRegeneration } from '@/hooks/useScriptRegeneration';
 import { toast } from '@/hooks/use-toast';

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { OptimizedCard, OptimizedCardContent } from "@/components/ui/optimized-card";
-import { Heart, MessageCircle, Share } from "lucide-react";
+import { Heart, MessageCircle, Share } from '@/lib/icons';
 import { cn } from "@/lib/utils";
 
 interface FacebookAdMockupProps {

@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from '@/lib/icons';
 
 // User and Role Types
 export type UserRole = 'user' | 'consultant' | 'admin' | 'master_admin' | 'sales';

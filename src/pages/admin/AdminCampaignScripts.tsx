@@ -3,7 +3,7 @@ import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CampaignScriptEditor } from "@/components/admin/CampaignScriptEditor";
-import { Edit3 } from "lucide-react";
+import { Edit3 } from '@/lib/icons';
 
 export default function AdminCampaignScripts() {
   const [showScriptEditor, setShowScriptEditor] = useState(false);

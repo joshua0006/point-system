@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown, CreditCard, Wallet, Calendar, Receipt } from "lucide-react";
+import { TrendingUp, TrendingDown, CreditCard, Wallet, Calendar, Receipt } from '@/lib/icons';
 import { format } from "date-fns";
 
 interface Transaction {

@@ -6,7 +6,7 @@ import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { RedemptionProcess } from '@/components/gifting/RedemptionProcess';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
-import { Gift } from 'lucide-react';
+import { Gift } from '@/lib/icons';
 
 const Gifting = () => {
   const isMobile = useIsMobile();

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, CheckCircle, Target, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Target, Zap } from '@/lib/icons';
 import { CampaignAngleSelector } from "./CampaignAngleSelector";
 import { SmartBudgetCalculator } from "./SmartBudgetCalculator";
 

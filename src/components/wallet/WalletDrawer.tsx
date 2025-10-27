@@ -23,7 +23,7 @@ import {
   ArrowUpRight,
   Clock,
   Lock
-} from "lucide-react";
+} from '@/lib/icons';
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";

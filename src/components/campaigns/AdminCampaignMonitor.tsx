@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight, User, Pause, Play, Edit, Save, X } from "lucide-react";
+import { Eye, Users, DollarSign, TrendingUp, Phone, Target, ToggleLeft, ToggleRight, User, Pause, Play, Edit, Save, X } from '@/lib/icons';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminOperations } from "@/hooks/admin/useAdminOperations";

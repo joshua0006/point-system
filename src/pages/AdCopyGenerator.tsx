@@ -3,7 +3,7 @@ import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdCopyWizard } from '@/components/adcopy/AdCopyWizard';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Target, Zap, PenTool } from 'lucide-react';
+import { Sparkles, Target, Zap, PenTool } from '@/lib/icons';
 
 const AdCopyGenerator = () => {
   return (

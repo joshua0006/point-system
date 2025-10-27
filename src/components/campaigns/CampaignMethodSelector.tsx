@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Target, Phone, MessageSquare, Check } from "lucide-react";
+import { Target, Phone, MessageSquare, Check } from '@/lib/icons';
 
 export const CampaignMethodSelector = React.memo(() => {
   const navigate = useNavigate();

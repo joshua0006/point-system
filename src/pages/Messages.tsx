@@ -10,7 +10,7 @@ import { useMarkMessagesAsRead } from '@/hooks/useMessages';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, Archive, Clock, CheckCircle } from 'lucide-react';
+import { MessageCircle, Archive, Clock, CheckCircle } from '@/lib/icons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 

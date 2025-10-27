@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, CreditCard, RefreshCw, Zap } from "lucide-react";
+import { Shield, CreditCard, RefreshCw, Zap } from '@/lib/icons';
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/utils/dateUtils";
 import { UpgradeConfirmationModal } from "@/components/UpgradeConfirmationModal";

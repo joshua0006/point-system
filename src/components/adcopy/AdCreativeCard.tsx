@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Copy, Image as ImageIcon } from "lucide-react";
+import { Download, Copy, Image as ImageIcon } from '@/lib/icons';
 import { useToast } from "@/hooks/use-toast";
 
 interface AdCreativeCardProps {

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
-import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, MessageSquare } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, CreditCard, MessageSquare } from '@/lib/icons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";

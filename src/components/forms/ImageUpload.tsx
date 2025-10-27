@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useUploadServiceImage } from "@/hooks/useServiceOperations";
-import { ImageIcon, Upload, X, Loader2 } from "lucide-react";
+import { ImageIcon, Upload, X, Loader2 } from '@/lib/icons';
 import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {

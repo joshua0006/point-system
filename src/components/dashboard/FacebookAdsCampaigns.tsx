@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, DollarSign, Target, TrendingUp } from "lucide-react";
+import { Calendar, DollarSign, Target, TrendingUp } from '@/lib/icons';
 import { format } from "date-fns";
 import { useServiceAssignments } from "@/hooks/useServiceAssignments";
 import { useAuth } from "@/contexts/AuthContext";

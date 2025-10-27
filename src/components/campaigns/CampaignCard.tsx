@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Phone, MessageSquare, Mail, Rocket, Target } from "lucide-react";
+import { Phone, MessageSquare, Mail, Rocket, Target } from '@/lib/icons';
 
 interface CampaignCardProps {
   title: string;

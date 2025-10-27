@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Info,
   ArrowRight
-} from 'lucide-react';
+} from '@/lib/icons';
 import { ReceiptUploadModal } from './ReceiptUploadModal';
 
 interface Step {

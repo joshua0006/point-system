@@ -5,7 +5,7 @@ import {
   BarChart3,
   Megaphone,
   Gift
-} from "lucide-react";
+} from '@/lib/icons';
 import { NavItem, UserRole } from './types';
 
 export const navigationConfig: Partial<Record<UserRole, NavItem[]>> = {

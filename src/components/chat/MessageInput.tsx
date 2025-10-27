@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Send, Smile } from 'lucide-react';
+import { Send, Smile } from '@/lib/icons';
 import { EmojiPicker } from './EmojiPicker';
 
 interface MessageInputProps {

@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, Calendar, Award, Clock } from 'lucide-react';
+import { TrendingUp, Calendar, Award, Clock } from '@/lib/icons';
 
 interface ConsultantProfileStatsProps {
   servicesCount: number;

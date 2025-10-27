@@ -10,7 +10,7 @@ import { ActiveFilters } from "@/components/marketplace/ActiveFilters";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, Loader2, Settings, Search, Megaphone, Gift } from 'lucide-react';
+import { AlertCircle, Loader2, Settings, Search, Megaphone, Gift } from '@/lib/icons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Button } from '@/components/ui/button';

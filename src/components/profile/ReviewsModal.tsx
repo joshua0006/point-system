@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, Calendar, User } from "lucide-react";
+import { Star, Calendar, User } from '@/lib/icons';
 import { useState } from "react";
 import { useConsultantReviews } from '@/hooks/useConsultantReviews';
 

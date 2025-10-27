@@ -26,7 +26,7 @@ import {
   Shield,
   DollarSign,
   Settings
-} from "lucide-react";
+} from '@/lib/icons';
 
 interface CustomGPTLink {
   id: string;

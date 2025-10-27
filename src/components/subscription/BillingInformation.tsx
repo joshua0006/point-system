@@ -1,4 +1,4 @@
-import { Shield, CreditCard, Zap } from "lucide-react";
+import { Shield, CreditCard, Zap } from '@/lib/icons';
 
 export function BillingInformation() {
   return (

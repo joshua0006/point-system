@@ -1,7 +1,7 @@
 import React, { memo, useState } from "react";
 import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Edit3, Monitor, Plus, Trash2, Save, Shield, Users, User } from "lucide-react";
+import { Settings, Edit3, Monitor, Plus, Trash2, Save, Shield, Users, User } from '@/lib/icons';
 import { AdminCampaignMonitor } from "@/components/campaigns/AdminCampaignMonitor";
 import { AdminCampaignLauncher } from "@/components/admin/AdminCampaignLauncher";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -4,7 +4,7 @@ import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Plus, Target, BarChart3, Wallet } from 'lucide-react';
+import { CreditCard, Plus, Target, BarChart3, Wallet } from '@/lib/icons';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopUpModal } from '@/components/TopUpModal';

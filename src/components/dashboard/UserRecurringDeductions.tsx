@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar } from "lucide-react";
+import { Calendar } from '@/lib/icons';
 import { format } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 

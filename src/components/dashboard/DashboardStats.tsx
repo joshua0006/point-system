@@ -5,7 +5,7 @@ import {
   Calendar, 
   TrendingUp,
   CheckCircle
-} from "lucide-react";
+} from '@/lib/icons';
 import { UserStats } from "@/hooks/useDashboard";
 import { memo, useMemo } from "react";
 

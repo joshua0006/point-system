@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { StatsCard } from "@/components/ui/stats-card";
-import { Users, Coins } from "lucide-react";
+import { Users, Coins } from '@/lib/icons';
 import type { UserProfile } from "@/config/types";
 
 interface UserStatsCardsProps {

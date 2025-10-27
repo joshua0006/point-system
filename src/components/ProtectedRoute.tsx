@@ -4,7 +4,7 @@ import { useAuth, AuthContext } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, AlertCircle, CheckCircle, XCircle, LogOut } from 'lucide-react';
+import { Clock, AlertCircle, CheckCircle, XCircle, LogOut } from '@/lib/icons';
 import { mark, measure, now } from '@/utils/performance';
 
 interface ProtectedRouteProps {

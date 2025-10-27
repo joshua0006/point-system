@@ -1,5 +1,5 @@
 
-import { Check, CheckCheck } from 'lucide-react';
+import { Check, CheckCheck } from '@/lib/icons';
 import { cn } from '@/lib/utils';
 
 interface MessageStatusProps {

@@ -14,7 +14,7 @@ import {
   Award,
   BarChart3,
   Clock
-} from "lucide-react";
+} from '@/lib/icons';
 import { CampaignAnalytics } from "@/utils/campaignAnalytics";
 import { useIsMobile } from "@/hooks/use-mobile";
 

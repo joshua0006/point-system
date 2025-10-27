@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CreditCard, Settings, X, Rocket } from "lucide-react";
+import { Calendar, CreditCard, Settings, X, Rocket } from '@/lib/icons';
 import { format } from "date-fns";
 import { useServiceAssignments } from "@/hooks/useServiceAssignments";
 import { supabase } from "@/integrations/supabase/client";

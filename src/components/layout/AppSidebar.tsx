@@ -25,7 +25,7 @@ import {
   PenTool,
   MessageSquare,
   Rocket
-} from "lucide-react"
+} from '@/lib/icons'
 import { iconA11y } from "@/lib/iconConstants"
 
 import {

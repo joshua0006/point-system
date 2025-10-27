@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCheck, Plus } from "lucide-react";
+import { UserCheck, Plus } from '@/lib/icons';
 import UserPermissionManagement from "../admin/UserPermissionManagement";
 import { AdminCampaignLauncher } from "../admin/AdminCampaignLauncher";
 

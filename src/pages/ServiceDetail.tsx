@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TierBadge } from '@/components/TierBadge';
-import { Star, Clock, ArrowLeft, Check, X, Calendar, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Star, Clock, ArrowLeft, Check, X, Calendar, ShoppingCart, MessageCircle } from '@/lib/icons';
 import { useServices } from '@/hooks/useServices';
 import { useBookService } from '@/hooks/useBookings';
 import { useToast } from '@/hooks/use-toast';

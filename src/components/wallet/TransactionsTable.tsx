@@ -27,7 +27,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight
-} from "lucide-react";
+} from '@/lib/icons';
 import { TransactionHistoryItem } from "@/hooks/useTransactionHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 

@@ -16,7 +16,7 @@ import { useCategories } from '@/hooks/useServices';
 import { ServiceForm } from '@/components/forms/ServiceForm';
 import { ServiceTypeManager } from '@/components/admin/ServiceTypeManager';
 import { TierBadge } from '@/components/TierBadge';
-import { Search, Edit, Trash2, ExternalLink, Plus, Phone, Users, Target, DollarSign } from 'lucide-react';
+import { Search, Edit, Trash2, ExternalLink, Plus, Phone, Users, Target, DollarSign } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 
 export const AdminServiceManagement: React.FC = () => {

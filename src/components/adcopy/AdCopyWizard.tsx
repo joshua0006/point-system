@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Send, RotateCcw, Copy, Check, MessageSquare, Zap, Sparkles } from 'lucide-react';
+import { Loader2, Send, RotateCcw, Copy, Check, MessageSquare, Zap, Sparkles } from '@/lib/icons';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGenerator } from './ImageGenerator';

@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Calendar, User, DollarSign } from "lucide-react";
+import { AlertTriangle, Calendar, User, DollarSign } from '@/lib/icons';
 import { useUpcomingCharges } from "@/hooks/useUpcomingCharges";
 import { useIsMobile } from "@/hooks/use-mobile";
 

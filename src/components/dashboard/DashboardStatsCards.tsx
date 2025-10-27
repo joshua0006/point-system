@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
-import { TrendingUp, Wallet, Lock, ChevronRight } from "lucide-react";
+import { TrendingUp, Wallet, Lock, ChevronRight } from '@/lib/icons';
 import { Badge } from "@/components/ui/badge";
 import { UserStats } from "@/hooks/useDashboard";
 import { QuickUnlockModal } from "@/components/wallet/QuickUnlockModal";

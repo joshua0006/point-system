@@ -8,7 +8,7 @@ import {
   Briefcase,
   Target,
   Receipt
-} from "lucide-react";
+} from '@/lib/icons';
 import { cn } from "@/lib/utils";
 
 interface AdminNavigationProps {

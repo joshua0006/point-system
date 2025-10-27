@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, BarChart3, Calendar, DollarSign, TrendingUp, Pause, Play, Loader2, UserX, RefreshCw } from "lucide-react";
+import { Settings, BarChart3, Calendar, DollarSign, TrendingUp, Pause, Play, Loader2, UserX, RefreshCw } from '@/lib/icons';
 
 // Proper Campaign interface with complete typing
 interface LeadGenCampaign {

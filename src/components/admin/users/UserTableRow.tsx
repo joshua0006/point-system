@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Plus, Minus, Receipt, UserX, Trash2, Settings, Eye, EyeOff } from "lucide-react";
+import { Plus, Minus, Receipt, UserX, Trash2, Settings, Eye, EyeOff } from '@/lib/icons';
 import type { UserProfile } from "@/config/types";
 
 interface UserTableRowProps {

@@ -11,7 +11,7 @@ import {
   Activity,
   PiggyBank,
   Receipt
-} from "lucide-react";
+} from '@/lib/icons';
 
 export function BillingOverview() {
   const { data: stats, isLoading, error } = useAdminBilling();

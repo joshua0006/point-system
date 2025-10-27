@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Sparkles, ArrowRight, Home, Wallet, Unlock, Headphones } from "lucide-react";
+import { CheckCircle2, Sparkles, ArrowRight, Home, Wallet, Unlock, Headphones } from '@/lib/icons';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveContainer } from "@/components/ui/mobile-responsive";
 import { useAuth } from "@/contexts/AuthContext";

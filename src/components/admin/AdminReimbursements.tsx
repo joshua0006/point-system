@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Check, X, ExternalLink, FileText } from 'lucide-react';
+import { Check, X, ExternalLink, FileText } from '@/lib/icons';
 import { format } from 'date-fns';
 
 interface ReimbursementRequest {

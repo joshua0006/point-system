@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Phone, Users, Target, DollarSign, Plus, Minus, Edit } from 'lucide-react';
+import { Phone, Users, Target, DollarSign, Plus, Minus, Edit } from '@/lib/icons';
 import { useToast } from '@/hooks/use-toast';
 
 interface ServiceTypeManagerProps {

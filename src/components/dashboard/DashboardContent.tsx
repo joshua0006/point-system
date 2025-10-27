@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PrefetchLink } from "@/components/navigation";
-import { TrendingUp, Target, Plus, Wallet } from "lucide-react";
+import { TrendingUp, Target, Plus, Wallet } from '@/lib/icons';
 import { Transaction } from "@/hooks/useDashboard";
 import { ModalType } from "@/hooks/useDashboardModals";
 

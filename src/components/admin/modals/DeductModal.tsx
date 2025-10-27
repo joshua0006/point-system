@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, AlertTriangle, Calendar } from "lucide-react";
+import { Minus, AlertTriangle, Calendar } from '@/lib/icons';
 import { logger } from "@/utils/logger";
 import type { UserProfile } from "@/config/types";
 import { getNextBillingDateISO } from "@/utils/dateUtils";

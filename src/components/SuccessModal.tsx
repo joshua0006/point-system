@@ -1,4 +1,4 @@
-import { CheckCircle, CreditCard, Coins } from "lucide-react";
+import { CheckCircle, CreditCard, Coins } from '@/lib/icons';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";

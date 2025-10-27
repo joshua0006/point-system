@@ -53,33 +53,87 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     // Optimize chunk size and splitting for faster initial load
+    // Enable modulePreload for critical vendor chunks
+    modulePreload: {
+      polyfill: true,
+      resolveDependencies: (_filename, deps) => {
+        // Preload only critical vendor chunks for faster initial render
+        // This prevents waterfall loading of essential dependencies
+        // vendor-react-core now includes base Radix UI components
+        return deps.filter(dep =>
+          dep.includes('vendor-react-core') ||
+          dep.includes('vendor-router') ||
+          dep.includes('vendor-query')
+        );
+      },
+    },
     rollupOptions: {
       output: {
         // Optimized automatic chunk splitting - FULLY AUTOMATIC with exceptions
         // Let Vite's rollup algorithm handle all vendor splitting intelligently
         // Only specify lazy-loaded heavy libraries to ensure they're code-split
         manualChunks: (id) => {
+          // CRITICAL FIX: Icon barrel file MUST be bundled with vendor-react-core
+          // The barrel file re-exports from lucide-react, so it depends on React
+          // If bundled separately, it causes "useLayoutEffect of undefined" errors
+          if (id.includes('src/lib/icons')) {
+            return 'vendor-react-core';
+          }
+
           if (id.includes('node_modules')) {
-            // ONLY specify lazy-loaded visualization libraries
-            // These should NOT be in the initial bundle
+            // Lazy-loaded visualization libraries (check FIRST to avoid bundling with React)
             if (id.includes('reactflow')) {
               return 'lazy-reactflow';
             }
-
             if (id.includes('recharts')) {
               return 'lazy-charts';
             }
-
             if (id.includes('html2canvas')) {
               return 'lazy-html2canvas';
             }
 
-            // For everything else, return undefined to let Vite's automatic algorithm decide
-            // Vite will intelligently split React, Radix UI, Supabase, etc. based on:
-            // - Shared dependencies
-            // - Bundle size optimization
-            // - Module initialization order
-            // This prevents the monolithic 564KB vendor-react bundle
+            // React Router - separate for optimal caching (check BEFORE React catch-all)
+            if (id.includes('react-router')) {
+              return 'vendor-router';
+            }
+
+            // TanStack React Query - separate (check BEFORE React catch-all)
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query';
+            }
+
+            // React Core + ALL libraries with "react" in the path
+            // This is the ONLY way to guarantee no race conditions
+            // Catches: react, react-dom, @radix-ui/react-*, lucide-react,
+            //          sonner, vaul, cmdk, react-aria, react-helmet, etc.
+            if (id.includes('/react') || id.includes('/react-') ||
+                id.includes('@radix-ui') || id.includes('scheduler') ||
+                id.includes('lucide-react') ||
+                id.includes('class-variance-authority') ||
+                id.includes('clsx') || id.includes('tailwind-merge') ||
+                id.includes('sonner') || id.includes('cmdk') || id.includes('vaul') ||
+                id.includes('next-themes') || id.includes('embla-carousel')) {
+              return 'vendor-react-core';
+            }
+
+            // Form libraries ecosystem (zod is React-independent, others caught by React catch-all)
+            if (id.includes('zod') || id.includes('@hookform') || id.includes('input-otp')) {
+              return 'vendor-forms';
+            }
+
+            // Supabase - API client (React-independent)
+            if (id.includes('@supabase/')) {
+              return 'vendor-supabase';
+            }
+
+            // Date utilities (date-fns is React-independent, react-day-picker caught by React catch-all)
+            if (id.includes('date-fns')) {
+              return 'vendor-date';
+            }
+
+            // Everything else - pure utilities ONLY (no React dependencies)
+            // All React-dependent libs caught by comprehensive catch-all above
+            return 'vendor-utils';
           }
         },
         // Prioritize initial load chunks for faster rendering

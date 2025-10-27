@@ -1,6 +1,6 @@
 
 import { Switch } from '@/components/ui/switch';
-import { TrendingUp, ShoppingCart } from 'lucide-react';
+import { TrendingUp, ShoppingCart } from '@/lib/icons';
 
 interface ChatModeToggleProps {
   isSellingMode: boolean;

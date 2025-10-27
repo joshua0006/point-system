@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, User, Target, Phone, DollarSign } from "lucide-react";
+import { Shield, Users, User, Target, Phone, DollarSign } from '@/lib/icons';
 
 // Icon mapping for custom audiences
 const ICON_MAP: Record<string, any> = {

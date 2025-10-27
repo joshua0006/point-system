@@ -25,7 +25,7 @@ import {
   ChevronDown,
   Gift,
   Megaphone
-} from "lucide-react";
+} from '@/lib/icons';
 import {
   DropdownMenu,
   DropdownMenuContent,

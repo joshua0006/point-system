@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Transaction } from "@/hooks/useDashboard";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from '@/lib/icons';
 
 interface RecentTransactionsModalProps {
   open: boolean;

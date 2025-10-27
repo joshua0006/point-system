@@ -6,7 +6,7 @@ import {
   Calendar,
   UserCheck,
   AlertCircle
-} from "lucide-react";
+} from '@/lib/icons';
 import { AdminStats } from "@/hooks/useAdminDashboard";
 
 interface AdminDashboardStatsProps {

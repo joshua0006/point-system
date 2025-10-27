@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 import { Badge } from '@/components/ui/badge';
-import { Zap } from 'lucide-react';
+import { Zap } from '@/lib/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { TopUpModal } from '@/components/TopUpModal';
 import { useToast } from '@/hooks/use-toast';

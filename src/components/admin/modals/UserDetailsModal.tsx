@@ -18,7 +18,7 @@ import {
   TrendingDown,
   Receipt,
   X
-} from "lucide-react";
+} from '@/lib/icons';
 import { format } from "date-fns";
 import { UserServiceAssignments } from "../users/UserServiceAssignments";
 import type { UserProfile } from "@/config/types";

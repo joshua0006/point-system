@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Calendar, Trash2, Pencil } from "lucide-react";
+import { AlertCircle, Calendar, Trash2, Pencil } from '@/lib/icons';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {

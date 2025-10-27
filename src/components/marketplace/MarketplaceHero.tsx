@@ -1,6 +1,6 @@
 
 import { memo } from 'react';
-import { Search } from 'lucide-react';
+import { Search } from '@/lib/icons';
 
 interface MarketplaceHeroProps {
   servicesCount: number;

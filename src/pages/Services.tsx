@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2, BarChart3, Presentation, Smartphone, GraduationCap, ExternalLink } from 'lucide-react';
+import { AlertCircle, Loader2, BarChart3, Presentation, Smartphone, GraduationCap, ExternalLink } from '@/lib/icons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ResponsiveContainer } from '@/components/ui/mobile-responsive';
 

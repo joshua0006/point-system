@@ -14,7 +14,7 @@ import { BillingProfileModal } from "@/components/admin/BillingProfileModal";
 import { TopUpModal } from "@/components/admin/modals/TopUpModal";
 import { DeductModal } from "@/components/admin/modals/DeductModal";
 import { StatsCard } from "@/components/ui/stats-card";
-import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle, Receipt, Trash2 } from "lucide-react";
+import { Users, Plus, Coins, RefreshCw, UserX, Minus, AlertTriangle, Receipt, Trash2 } from '@/lib/icons';
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 import type { UserProfile } from "@/config/types";

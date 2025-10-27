@@ -20,7 +20,7 @@ import {
   TrendingUp,
   TrendingDown,
   AlertTriangle
-} from "lucide-react";
+} from '@/lib/icons';
 
 interface UserProfile {
   id: string;

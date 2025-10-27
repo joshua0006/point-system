@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Edit, Trash2, ExternalLink, DollarSign, Clock, BarChart3 } from "lucide-react";
+import { Edit, Trash2, ExternalLink, DollarSign, Clock, BarChart3 } from '@/lib/icons';
 
 interface ServicesDetailsModalProps {
   open: boolean;

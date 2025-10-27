@@ -9,7 +9,7 @@ import { UndoToast } from '@/components/ui/undo-toast';
 import { Conversation, useArchiveConversation, useUnarchiveConversation, useDeleteConversation } from '@/hooks/useConversations';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { MoreVertical, Archive, ArchiveX, Trash2 } from 'lucide-react';
+import { MoreVertical, Archive, ArchiveX, Trash2 } from '@/lib/icons';
 
 interface ConversationListProps {
   conversations: Conversation[];

@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/components/ui/optimized-card";
 import { Badge } from "@/components/ui/badge";
 import { TierBadge, TierType } from "@/components/TierBadge";
-import { User, Wallet, Star, Clock } from "lucide-react";
+import { User, Wallet, Star, Clock } from '@/lib/icons';
 import { useHoverPrefetch } from '@/hooks/useRoutePrefetch';
 
 export interface Service {

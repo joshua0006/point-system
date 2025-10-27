@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from "recharts";
-import { TrendingUp, Star, Users, Target } from "lucide-react";
+import { TrendingUp, Star, Users, Target } from '@/lib/icons';
 import { useState } from "react";
 
 interface PerformanceModalProps {

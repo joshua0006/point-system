@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, TrendingUp, Target, DollarSign, AlertCircle } from "lucide-react";
+import { Calculator, TrendingUp, Target, DollarSign, AlertCircle } from '@/lib/icons';
 
 interface BudgetProjection {
   budget: number;

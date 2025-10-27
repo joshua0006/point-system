@@ -6,7 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Plus, Trash2, Star, Loader2 } from "lucide-react";
+import { CreditCard, Plus, Trash2, Star, Loader2 } from '@/lib/icons';
 import { AddPaymentMethodModal } from "./AddPaymentMethodModal";
 import { SuccessModal } from "../SuccessModal";
 

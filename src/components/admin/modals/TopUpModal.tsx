@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Gift } from "lucide-react";
+import { Plus, Gift } from '@/lib/icons';
 import { logger } from "@/utils/logger";
 import type { UserProfile } from "@/config/types";
 

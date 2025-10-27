@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Rocket, User, Target, DollarSign } from "lucide-react";
+import { Loader2, Rocket, User, Target, DollarSign } from '@/lib/icons';
 
 interface User {
   user_id: string;

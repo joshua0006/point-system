@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, Clock, AlertTriangle, ChevronDown } from "lucide-react";
+import { Lock, Unlock, Clock, AlertTriangle, ChevronDown } from '@/lib/icons';
 import { useAwardedCredits } from "@/hooks/useAwardedCredits";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";

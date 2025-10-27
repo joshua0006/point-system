@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Star, MessageCircle, Calendar, User } from "lucide-react";
+import { Star, MessageCircle, Calendar, User } from '@/lib/icons';
 import { useState } from "react";
 import { useConsultantReviews } from '@/hooks/useConsultantReviews';
 import { useBuyerReviews } from '@/hooks/useBuyerReviews';

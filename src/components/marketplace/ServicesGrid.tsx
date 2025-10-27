@@ -1,7 +1,7 @@
 import { ServiceCard } from '@/components/ServiceCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search } from 'lucide-react';
+import { Search } from '@/lib/icons';
 import { Service } from '@/hooks/useServices';
 
 interface ServicesGridProps {

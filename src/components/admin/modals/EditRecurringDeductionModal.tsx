@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Edit, AlertTriangle } from "lucide-react";
+import { Calendar, Edit, AlertTriangle } from '@/lib/icons';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 

@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag } from '@/lib/icons';
 
 interface SpentTransaction {
   id: string;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw } from '@/lib/icons';
 import { Button } from './button';
 import { Card } from './card';
 

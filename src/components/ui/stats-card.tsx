@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon } from '@/lib/icons';
 import { cn } from "@/lib/utils";
 
 interface StatsCardProps {

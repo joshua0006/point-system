@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { BookedService } from "@/hooks/useDashboard";
-import { Users, Calendar, Clock } from "lucide-react";
+import { Users, Calendar, Clock } from '@/lib/icons';
 
 interface RecentBookingsModalProps {
   open: boolean;

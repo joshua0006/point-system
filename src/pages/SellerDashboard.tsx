@@ -28,7 +28,7 @@ import {
   MessageCircle,
   Star,
   Clock
-} from "lucide-react";
+} from '@/lib/icons';
 
 type TimeScale = "lifetime" | "yearly" | "monthly";
 

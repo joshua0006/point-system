@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Phone, MessageSquare, Mail, RefreshCw, Copy, Check } from "lucide-react";
+import { Phone, MessageSquare, Mail, RefreshCw, Copy, Check } from '@/lib/icons';
 import { useScriptRegeneration } from "@/hooks/useScriptRegeneration";
 import { useToast } from "@/hooks/use-toast";
 

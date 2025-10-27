@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Phone, Zap } from "lucide-react";
+import { ArrowLeft, Phone, Zap } from '@/lib/icons';
 import { checkExistingCampaign, isTierChange, type ExistingCampaignCheck } from "@/utils/campaignValidation";
 
 interface ColdCallingWizardProps {

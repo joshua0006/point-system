@@ -1,6 +1,6 @@
 
 import { ProfileStatCard } from './ProfileStatCard';
-import { Calendar, Award, MessageSquare, Star } from 'lucide-react';
+import { Calendar, Award, MessageSquare, Star } from '@/lib/icons';
 
 interface BuyerProfileStatsProps {
   profileStats: {

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, RefreshCw } from "lucide-react";
+import { Activity, RefreshCw } from '@/lib/icons';
 import { RecentActivity } from "@/hooks/admin/useAdminActivity";
 import { ACTIVITY_FILTERS } from "@/utils/admin/adminConstants";
 import { getActivityCategoryStyles } from "@/utils/admin/adminHelpers";

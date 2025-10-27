@@ -3,7 +3,7 @@ import { AdminPageContainer } from "@/components/admin/common/AdminPageContainer
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Settings, Trash2 } from "lucide-react";
+import { Plus, Edit3, Settings, Trash2 } from '@/lib/icons';
 import { useCampaignTargets } from "@/hooks/useCampaignTargets";
 import type { CampaignTarget } from "@/config/types";
 

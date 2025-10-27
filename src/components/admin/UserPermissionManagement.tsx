@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, Edit, Users, Shield, Search } from 'lucide-react';
+import { Trash2, Plus, Edit, Users, Shield, Search } from '@/lib/icons';
 
 interface UserPermission {
   id: string;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Lock, Unlock, AlertTriangle } from "lucide-react";
+import { Lock, Unlock, AlertTriangle } from '@/lib/icons';
 import { useUnlockAwardedCredits } from "@/hooks/useUnlockAwardedCredits";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";

@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageUpload } from "@/components/forms/ImageUpload";
 import { useCategories } from "@/hooks/useServices";
 import { ServiceFormData } from "@/hooks/useServiceOperations";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from '@/lib/icons';
 
 const serviceSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),

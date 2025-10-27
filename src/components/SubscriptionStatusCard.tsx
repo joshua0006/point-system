@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useAuth } from "@/contexts/AuthContext";
-import { AlertTriangle, CheckCircle, XCircle, RefreshCw, CreditCard } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle, RefreshCw, CreditCard } from '@/lib/icons';
 import { useToast } from "@/hooks/use-toast";
 import { TopUpModal } from "@/components/TopUpModal";
 import { formatDate } from "@/utils/dateUtils";

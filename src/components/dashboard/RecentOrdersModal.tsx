@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, DollarSign, Clock, User } from "lucide-react";
+import { Calendar, DollarSign, Clock, User } from '@/lib/icons';
 import { useState } from "react";
 
 interface RecentOrdersModalProps {

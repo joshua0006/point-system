@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { X } from '@/lib/icons';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { AvatarUpload } from '@/components/forms/AvatarUpload';

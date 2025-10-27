@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { BookingProgressTracker } from "./BookingProgressTracker";
 import { MockSessionInterface } from "./MockSessionInterface";
-import { Check, Calendar, MessageCircle, Star, Clock, User, CreditCard, Loader2 } from 'lucide-react';
+import { Check, Calendar, MessageCircle, Star, Clock, User, CreditCard, Loader2 } from '@/lib/icons';
 import { useState, useEffect } from 'react';
 import { useSendMessage } from '@/hooks/useMessages';
 import { useQueryClient } from '@tanstack/react-query';

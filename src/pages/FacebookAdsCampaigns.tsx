@@ -8,7 +8,7 @@ import { logger } from "@/utils/logger";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SidebarLayout } from "@/components/layout/SidebarLayout";
-import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical, Loader2 } from "lucide-react";
+import { DollarSign, Target, Phone, Settings, LogOut, Pause, Play, CreditCard, Shield, Users, User, Plus, MoreVertical, Loader2 } from '@/lib/icons';
 import { TopUpModal } from "@/components/TopUpModal";
 import { CampaignLaunchSuccessModal } from "@/components/campaigns/CampaignLaunchSuccessModal";
 import { AdminInterface } from "@/components/campaigns/AdminInterface";

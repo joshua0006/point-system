@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ConsultantTierBadge } from '@/components/profile/ConsultantTierBadge';
-import { Calendar, Edit, Target, User } from 'lucide-react';
+import { Calendar, Edit, Target, User } from '@/lib/icons';
 
 interface ConsultantProfileHeaderProps {
   profile: any;

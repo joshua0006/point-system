@@ -14,7 +14,7 @@ import {
   Calendar,
   Clock,
   ExternalLink
-} from "lucide-react";
+} from '@/lib/icons';
 import { UpcomingCharge } from "@/hooks/useUpcomingCharges";
 import { useIsMobile } from "@/hooks/use-mobile";
 

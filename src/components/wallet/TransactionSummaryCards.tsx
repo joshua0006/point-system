@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from '@/lib/icons';
 import { TransactionHistoryItem } from "@/hooks/useTransactionHistory";
 
 interface TransactionSummaryCardsProps {

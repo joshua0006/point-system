@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor, UserCheck } from "lucide-react";
+import { Plus, Edit3, Trash2, Save, Shield, Users, User, Settings, Monitor, UserCheck } from '@/lib/icons';
 import { useToast } from "@/hooks/use-toast";
 import { AdminCampaignMonitor } from "./AdminCampaignMonitor";
 import UserPermissionManagement from "../admin/UserPermissionManagement";

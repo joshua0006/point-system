@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users } from 'lucide-react';
+import { Users } from '@/lib/icons';
 
 interface Service {
   id: string;

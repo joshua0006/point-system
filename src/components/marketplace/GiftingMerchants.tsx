@@ -2,7 +2,7 @@ import React, { useState, useRef, KeyboardEvent as ReactKeyboardEvent } from 're
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp } from '@/lib/icons';
 import { useFocusRing, mergeProps, VisuallyHidden } from 'react-aria';
 
 interface Merchant {

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { Filter, Search } from 'lucide-react';
+import { Filter, Search } from '@/lib/icons';
 
 interface MobileMarketplaceFiltersProps {
   searchTerm: string;

@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { FocusIndicator } from '@/components/a11y/FocusIndicator';
 import { Link } from 'react-router-dom';
-import { Megaphone, Gift, BarChart3, Target, Phone, Headphones, Sparkles, Heart, TrendingUp, ChevronRight } from 'lucide-react';
+import { Megaphone, Gift, BarChart3, Target, Phone, Headphones, Sparkles, Heart, TrendingUp, ChevronRight } from '@/lib/icons';
 import { useChunkPrefetch } from '@/hooks/useChunkPrefetch';
 
 const Index = () => {

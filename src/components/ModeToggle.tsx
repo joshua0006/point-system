@@ -3,7 +3,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { TrendingUp, User } from 'lucide-react';
+import { TrendingUp, User } from '@/lib/icons';
 
 export function ModeToggle() {
   const { isSellerMode, toggleMode, canAccessSellerMode } = useMode();

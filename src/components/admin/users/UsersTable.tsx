@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RefreshCw, Eye, EyeOff } from "lucide-react";
+import { RefreshCw, Eye, EyeOff } from '@/lib/icons';
 import { UserTableRow } from "./UserTableRow";
 import type { UserProfile } from "@/config/types";
 

@@ -13,7 +13,7 @@ import 'reactflow/dist/style.css';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ZoomIn, ZoomOut, Maximize2, Download } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Download } from '@/lib/icons';
 import { userFlows, FlowCategory } from '@/data/userFlows';
 import { toast } from 'sonner';
 

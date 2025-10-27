@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from '@/lib/icons';
 
 // Replace with your actual Stripe publishable key from Stripe Dashboard  
 // Get it from: https://dashboard.stripe.com/apikeys (Live mode)
