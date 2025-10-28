@@ -2,7 +2,7 @@
  * Performance Report Hook
  *
  * Automatically generates a comprehensive performance report after the page
- * becomes interactive. Only runs in development mode.
+ * becomes interactive. Now enabled in production for live monitoring.
  */
 
 import { useEffect } from 'react';
@@ -11,8 +11,6 @@ import { generatePerformanceReport } from '@/utils/performanceReport';
 
 export const usePerformanceReport = () => {
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
     // Mark that the app is interactive
     mark('app-interactive');
     console.log('[PERF] ✨ App Interactive:', now().toFixed(2), 'ms');

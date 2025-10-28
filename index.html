@@ -12,17 +12,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- DNS prefetch for third-party domains (earliest possible connection) -->
+    <!-- PERFORMANCE: DNS prefetch for third-party domains (earliest possible connection) -->
     <link rel="dns-prefetch" href="https://rrnaquethuzvbsxcssss.supabase.co" />
     <link rel="dns-prefetch" href="https://js.stripe.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
 
-    <!-- Preconnect to critical third-party origins with crossorigin -->
+    <!-- PERFORMANCE: Preconnect to critical third-party origins with crossorigin -->
+    <!-- Supabase - highest priority (auth & data) -->
     <link rel="preconnect" href="https://rrnaquethuzvbsxcssss.supabase.co" crossorigin />
+    <!-- Stripe - medium priority (payment processing) -->
     <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+    <!-- Font services - low priority (progressive enhancement) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Preload critical self-hosted fonts (reduced to 2 weights for faster FCP) -->
+    <!-- PERFORMANCE: Preload critical self-hosted fonts (reduced to 2 weights for faster FCP) -->
     <link rel="preload" href="/fonts/montserrat-400-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/montserrat-500-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- PERFORMANCE: High priority CSS preload for faster FCP -->
+    <!-- Vite will inject the actual hashed CSS filename during build -->
+    <link rel="preload" as="style" href="/src/index.css" fetchpriority="high" />
 
     <!-- PERFORMANCE OPTIMIZATION: Critical CSS Inline (Above-the-Fold) -->
     <!-- Eliminates render-blocking CSS (250ms savings from Lighthouse) -->
