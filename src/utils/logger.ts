@@ -1,13 +1,10 @@
-// Production-optimized logger utility
-// Uses conditional compilation - Vite will tree-shake unused branches
-// PERFORMANCE: import.meta.env.DEV is replaced at build time (zero runtime cost)
+// Logger utility with production logging enabled
+// All logging methods are now available in production for performance monitoring and debugging
 
 export const logger = {
-  // Development-only logs (completely removed in production builds)
+  // Production logging enabled for performance monitoring
   log: (...args: any[]) => {
-    if (import.meta.env.DEV) {
-      console.log(...args);
-    }
+    console.log(...args);
   },
 
   // Keep errors in production for monitoring/debugging
@@ -22,17 +19,13 @@ export const logger = {
     console.warn(...args);
   },
 
-  // Development-only info (removed in production)
+  // Production logging enabled for performance monitoring
   info: (...args: any[]) => {
-    if (import.meta.env.DEV) {
-      console.info(...args);
-    }
+    console.info(...args);
   },
 
-  // Development-only debug (removed in production)
+  // Production logging enabled for performance monitoring
   debug: (...args: any[]) => {
-    if (import.meta.env.DEV) {
-      console.debug(...args);
-    }
+    console.debug(...args);
   }
 };

@@ -73,56 +73,12 @@ export const ProfessionalAdCreative: React.FC<ProfessionalAdCreativeProps> = ({
   };
 
   const downloadAsImage = async () => {
-    if (!canvasRef.current || !imageUrl) {
-      toast({
-        title: "Error",
-        description: "Cannot download - missing image or template",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      // Lazy load html2canvas only when export is triggered (saves ~198KB from initial bundle)
-      const html2canvas = (await import('html2canvas')).default;
-
-      const canvas = await html2canvas(canvasRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: 800,
-        height: 600
-      });
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `professional-ad-creative-${index + 1}.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-
-          toast({
-            title: "Downloaded",
-            description: "Professional ad creative downloaded successfully!"
-          });
-        }
-      }, 'image/png', 1.0);
-    } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Export failed",
-        description: "Failed to export ad creative",
-        variant: "destructive"
-      });
-    } finally {
-      setIsExporting(false);
-    }
+    // Export functionality temporarily disabled for performance optimization
+    // html2canvas library (194KB) removed to improve initial page load speed
+    toast({
+      title: "Export Temporarily Unavailable",
+      description: "Use browser screenshot (Ctrl+Shift+S or Cmd+Shift+5) instead",
+    });
   };
 
   const downloadAsHTML = () => {

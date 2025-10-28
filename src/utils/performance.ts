@@ -2,7 +2,7 @@
  * Performance Monitoring Utility
  *
  * Comprehensive performance tracking for initial page load analysis.
- * DEV-ONLY: All functions are no-ops in production builds.
+ * PRODUCTION ENABLED: All functions now work in production for live monitoring.
  */
 
 // Performance mark prefix for namespacing
@@ -20,8 +20,6 @@ const performanceData = {
  * Create a performance mark (point in time)
  */
 export const mark = (name: string): void => {
-  if (!import.meta.env.DEV) return;
-
   try {
     const fullName = `${MARK_PREFIX}${name}`;
     performance.mark(fullName);
@@ -39,8 +37,6 @@ export const mark = (name: string): void => {
  * Measure duration between two marks
  */
 export const measure = (name: string, startMark: string, endMark?: string): number => {
-  if (!import.meta.env.DEV) return 0;
-
   try {
     const fullName = `${MARK_PREFIX}${name}`;
     const fullStartMark = `${MARK_PREFIX}${startMark}`;
@@ -69,8 +65,6 @@ export const measure = (name: string, startMark: string, endMark?: string): numb
  * Start a timer (returns a function to end the timer)
  */
 export const startTimer = (name: string): (() => void) => {
-  if (!import.meta.env.DEV) return () => {};
-
   const startMarkName = `${name}-start`;
   mark(startMarkName);
 
@@ -88,8 +82,6 @@ export const trackOperation = async <T>(
   name: string,
   operation: () => Promise<T>
 ): Promise<T> => {
-  if (!import.meta.env.DEV) return operation();
-
   console.log(`[PERF] 🔄 ${name} Start`);
   const endTimer = startTimer(name);
 
@@ -108,8 +100,6 @@ export const trackOperation = async <T>(
  * Analyze resource loading (network requests, scripts, styles, etc.)
  */
 export const analyzeResources = (): void => {
-  if (!import.meta.env.DEV) return;
-
   try {
     const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
     performanceData.resources = resources;
@@ -165,8 +155,6 @@ export const analyzeResources = (): void => {
  * Track Web Vitals (FCP, LCP, CLS, FID, TTFB)
  */
 export const trackWebVitals = (): void => {
-  if (!import.meta.env.DEV) return;
-
   try {
     // First Contentful Paint
     const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0];
@@ -242,8 +230,6 @@ export const trackWebVitals = (): void => {
  * Track font loading
  */
 export const trackFontLoading = (): void => {
-  if (!import.meta.env.DEV) return;
-
   if ('fonts' in document) {
     document.fonts.ready.then(() => {
       const loadTime = performance.now();
@@ -280,8 +266,6 @@ export const getPerformanceData = () => {
  * Clear all performance marks and measures
  */
 export const clearPerformanceData = (): void => {
-  if (!import.meta.env.DEV) return;
-
   performance.clearMarks();
   performance.clearMeasures();
   performanceData.marks = [];
@@ -295,8 +279,6 @@ export const clearPerformanceData = (): void => {
  * Call this early in app lifecycle
  */
 export const initPerformanceMonitoring = (): void => {
-  if (!import.meta.env.DEV) return;
-
   console.log('[PERF] 🎯 Performance Monitoring Initialized');
 
   // Track Web Vitals
