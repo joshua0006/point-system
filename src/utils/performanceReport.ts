@@ -3,7 +3,6 @@
  *
  * Generates comprehensive performance reports with bottleneck identification
  * and optimization recommendations.
- * PRODUCTION ENABLED: Report generation now works in production for live monitoring.
  */
 
 import { getPerformanceData } from './performance';
@@ -19,6 +18,8 @@ interface BottleneckInfo {
  * Generate and display a comprehensive performance report
  */
 export const generatePerformanceReport = (): void => {
+  if (!import.meta.env.DEV) return;
+
   const data = getPerformanceData();
   const { marks, measures, resources, webVitals } = data;
 

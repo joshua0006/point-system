@@ -41,9 +41,27 @@ export function FlowchartViewer({ flowId }: FlowchartViewerProps) {
   };
 
   const handleExport = async () => {
-    // Export functionality temporarily disabled for performance optimization
-    // html2canvas library (194KB) removed to improve initial page load speed
-    toast.info('Export feature temporarily unavailable. Use browser screenshot instead.');
+    const flowElement = document.querySelector('.react-flow') as HTMLElement;
+    if (!flowElement) return;
+
+    try {
+      // Lazy load html2canvas only when export is triggered (saves ~198KB from initial bundle)
+      const html2canvas = (await import('html2canvas')).default;
+
+      const canvas = await html2canvas(flowElement, {
+        backgroundColor: 'hsl(222.2, 84%, 4.9%)',
+        scale: 2,
+      });
+
+      const link = document.createElement('a');
+      link.download = `${selectedFlow.id}-flowchart.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+
+      toast.success('Flowchart exported successfully');
+    } catch (error) {
+      toast.error('Failed to export flowchart');
+    }
   };
 
   return (

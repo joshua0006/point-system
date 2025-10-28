@@ -3,7 +3,7 @@ import { OptimizedCard, OptimizedCardContent, OptimizedCardHeader } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { TierBadge, TierType } from "@/components/TierBadge";
 import { User, Wallet, Star, Clock } from '@/lib/icons';
-import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { useHoverPrefetch } from '@/hooks/useRoutePrefetch';
 
 export interface Service {
   id: string;
@@ -41,7 +41,7 @@ export const ServiceCard = memo(function ServiceCard({
   id, title, description, category, points, duration, consultant, bookingUrl, tags, 
   onClick 
 }: ServiceCardProps) {
-  const prefetchRoute = useRoutePrefetch();
+  const { prefetchRoute } = useHoverPrefetch();
 
   const handleMouseEnter = () => {
     prefetchRoute(`/service/${id}`);

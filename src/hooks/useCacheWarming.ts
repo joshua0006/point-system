@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export function useCacheWarming() {
   const queryClient = useQueryClient();
-  const { profile, subscription } = useAuth();
+  const { profile } = useAuth();
 
   useEffect(() => {
     if (!profile) return;
@@ -15,14 +15,23 @@ export function useCacheWarming() {
       // Wait for user interaction or idle time before prefetching
       const promises: Promise<any>[] = [];
 
-      // PERFORMANCE FIX: Subscription is already managed by AuthContext
-      // AuthContext stores subscription in React state, not react-query cache
-      // Checking queryClient.getQueryData would always return undefined
-      // Instead, check if subscription exists in AuthContext (via useAuth hook)
-      // This eliminates 1480-1519ms redundant subscription fetch
+      // Check if data is already cached - skip if so
+      const cachedSubscription = queryClient.getQueryData(['subscription-status']);
 
-      // Skip subscription prefetch - already loaded in AuthContext state
-      // No need to duplicate this data in react-query cache
+      // DEFERRED: Subscription already loaded in AuthContext, skip redundant fetch
+      // Only prefetch if truly missing (rare edge case)
+      if (!cachedSubscription) {
+        promises.push(
+          queryClient.prefetchQuery({
+            queryKey: ['subscription-status'],
+            queryFn: async () => {
+              const { data } = await supabase.functions.invoke('check-subscription');
+              return data;
+            },
+            staleTime: 1000 * 60 * 5, // 5 minutes
+          })
+        );
+      }
 
       // PERFORMANCE: Skip admin stats prefetch - loaded on-demand when admin visits dashboard
       // Reduces initial cache warming overhead by ~200-300ms
@@ -46,14 +55,14 @@ export function useCacheWarming() {
       }
     };
 
-    // PERFORMANCE OPTIMIZATION: Delay cache warming briefly
-    // Use requestIdleCallback with short timeout to warm cache soon after page load
-    // Balance between initial performance and cache hit rate for navigation
+    // PERFORMANCE OPTIMIZATION: Delay cache warming significantly
+    // Use requestIdleCallback with extended timeout to avoid blocking initial load
+    // Cache warming is a nice-to-have, not critical for first render
     let idleCallbackId: number;
     let timeoutId: NodeJS.Timeout;
     let interactionListener: (() => void) | null = null;
 
-    // Strategy: Warm cache on first user interaction OR after 3 seconds idle
+    // Strategy: Warm cache on first user interaction OR after 5 seconds idle
     const triggerCacheWarming = () => {
       warmCache();
 
@@ -76,17 +85,17 @@ export function useCacheWarming() {
       window.addEventListener(event, interactionListener!, { capture: true, once: true });
     });
 
-    // Fallback: Use requestIdleCallback with short delay for better cache hits
+    // Fallback: Use requestIdleCallback with extended delay
     if ('requestIdleCallback' in window) {
       idleCallbackId = requestIdleCallback(
         () => {
           triggerCacheWarming();
         },
-        { timeout: 3000 } // 3 seconds - balance initial load vs navigation performance
+        { timeout: 20000 } // Extended to 20 seconds - prioritize initial page load performance
       );
     } else {
-      // Fallback for browsers without requestIdleCallback
-      timeoutId = setTimeout(triggerCacheWarming, 3000);
+      // Fallback for browsers without requestIdleCallback - extended delay
+      timeoutId = setTimeout(triggerCacheWarming, 20000);
     }
 
     return () => {
